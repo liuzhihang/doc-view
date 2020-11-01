@@ -1,0 +1,46 @@
+<idea-plugin require-restart="false">
+    <id>com.liuzhihang.doc-view</id>
+    <name>Doc View</name>
+    <vendor email="liuzhihangs@qq.com" url="https://liuzhihang.com">Liu ZhiHang</vendor>
+
+    <description><![CDATA[ Description will be added by gradle build]]></description>
+
+    <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/plugin_compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>org.intellij.plugins.markdown</depends>
+
+    <!-- 兼容 IDEA 版本 -->
+    <idea-version since-build="201"/>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+
+        <!-- 一个项目一个设置 -->
+        <projectService serviceImplementation="com.liuzhihang.doc.view.component.Settings"/>
+
+        <!-- app 等级 -->
+        <applicationService serviceImplementation="com.liuzhihang.doc.view.service.DocViewService"/>
+
+        <applicationConfigurable instance="com.liuzhihang.doc.view.component.SettingsConfigurable"
+                                 id="liuzhihang.api.doc.SettingsConfigurable"
+                                 displayName="Doc View Settings"
+                                 nonDefaultProject="true"/>
+
+
+        <!--<toolWindow id="Doc View" anchor="bottom" factoryClass="com.liuzhihang.doc.view.tool.DocViewToolWindow"/>-->
+
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+        <action id="liuzhihang.doc.view" class="com.liuzhihang.doc.view.action.EditorPreviewAction" text="Doc View">
+            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+        </action>
+        <action id="liuzhihang.doc.view.project" class="com.liuzhihang.doc.view.action.ProjectViewPreviewAction"
+                text="Doc View">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>
+        </action>
+    </actions>
+</idea-plugin>
