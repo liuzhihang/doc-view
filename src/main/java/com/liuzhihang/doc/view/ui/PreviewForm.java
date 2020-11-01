@@ -144,7 +144,7 @@ public class PreviewForm extends DialogWrapper {
     @Override
     protected void doHelpAction() {
 
-        BrowserUtil.browse("https://liuzhihang.com/");
+        BrowserUtil.browse("https://liuzhihang.com/2020/11/01/doc-view.html");
 
     }
 
