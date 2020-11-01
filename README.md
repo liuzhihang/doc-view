@@ -2,7 +2,7 @@ Doc View
 =======
 
 [![JetBrains Plugins](https://img.shields.io/jetbrains/plugin/v/15305-doc-view.svg)](https://plugins.jetbrains.com/plugin/15305-doc-view)
-[![Version](http://phpstorm.espend.de/badge/12384/version)](https://plugins.jetbrains.com/plugin/15305-doc-view/versions)
+[![Version](http://phpstorm.espend.de/badge/15305/version)](https://plugins.jetbrains.com/plugin/15305-doc-view/versions)
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/15305-doc-view.svg)](https://plugins.jetbrains.com/plugin/15305-doc-view)
 [![License](https://img.shields.io/badge/license-MIT-red.svg)](https://github.com/liuzhihang/toolkit/blob/master/LICENSE)
 
