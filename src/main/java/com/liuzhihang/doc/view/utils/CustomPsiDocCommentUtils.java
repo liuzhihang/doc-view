@@ -3,7 +3,6 @@ package com.liuzhihang.doc.view.utils;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
-import com.intellij.psi.javadoc.PsiDocTagValue;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,9 +31,7 @@ public class CustomPsiDocCommentUtils {
                 PsiElement[] dataElements = tag.getDataElements();
 
                 for (PsiElement psiElement : dataElements) {
-                    if (StringUtils.isNotBlank(psiElement.getText())) {
-                        desc.append(psiElement.getText()).append("\n");
-                    }
+                    desc.append(psiElement.getText());
                 }
 
                 return desc.toString();
@@ -74,9 +71,7 @@ public class CustomPsiDocCommentUtils {
             StringBuilder name = new StringBuilder();
 
             for (PsiElement dataElement : dataElements) {
-                if (StringUtils.isNotBlank(dataElement.getText())) {
-                    name.append(dataElement.getText()).append("\n");
-                }
+                name.append(dataElement.getText());
             }
 
             return name.toString();
