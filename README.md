@@ -1,11 +1,10 @@
 Doc View
 =======
 
-[![JetBrains Plugins](https://img.shields.io/jetbrains/plugin/v/12384-toolkit.svg)](https://plugins.jetbrains.com/plugin/12384-toolkit)
-[![Version](http://phpstorm.espend.de/badge/12384/version)](https://plugins.jetbrains.com/plugin/12384-toolkit/versions)
-[![Downloads](https://img.shields.io/jetbrains/plugin/d/12384-toolkit.svg)](https://plugins.jetbrains.com/plugin/12384-toolkit)
+[![JetBrains Plugins](https://img.shields.io/jetbrains/plugin/v/15305-doc-view.svg)](https://plugins.jetbrains.com/plugin/15305-doc-view)
+[![Version](http://phpstorm.espend.de/badge/12384/version)](https://plugins.jetbrains.com/plugin/15305-doc-view/versions)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/15305-doc-view.svg)](https://plugins.jetbrains.com/plugin/15305-doc-view)
 [![License](https://img.shields.io/badge/license-MIT-red.svg)](https://github.com/liuzhihang/toolkit/blob/master/LICENSE)
-
 
 特征
 ----
@@ -70,3 +69,4 @@ Doc View
 <a href="https://www.jetbrains.com/?from=Toolkit"><img src="https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/jetbrains-logo-MrNwcp.png" width="20%" height="20%"></a><a href="https://www.jetbrains.com/?from=Toolkit"><img src="https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/idea-logo-XpnqgG.png" width="20%" height="20%"> </a>
 
 
+<script defer src="https://plugins.jetbrains.com/assets/scripts/mp-widget.js"></script>
