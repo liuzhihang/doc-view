@@ -68,7 +68,7 @@ public class CustomPsiAnnotationUtils {
             return basePath;
         }
 
-        String path = methodPath + basePath;
+        String path = basePath + methodPath;
 
         return path.replace("//", "/");
     }
