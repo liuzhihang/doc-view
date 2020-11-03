@@ -34,13 +34,9 @@ Doc View
 更新
 ----
 
-## [v1.0.0](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.0) (2020-11-01)
+## [v1.0.1](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.1) (2020-11-03)
 
-- 发布最初始版本
-- 支持在 Controller 内右键唤出菜单， 显示 Controller 内的接口文档。
-- 支持在 Controller 的方法内右键唤出菜单， 显示该方法内的接口文档。
-- 支持复制为 Markdown 到剪贴板。
-- 其他一些小功能点。
+- 修复请求路径拼装错误
 
 
 [查看更多历史更新记录](./doc/ChangeNotes.md)
