@@ -2,8 +2,13 @@ package com.liuzhihang.doc.view.ui;
 
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.fileChooser.FileChooser;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.popup.util.PopupUtil;
+import com.intellij.openapi.util.io.FileUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.GuiUtils;
@@ -21,6 +26,8 @@ import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Vector;
 
@@ -48,6 +55,7 @@ public class PreviewForm extends DialogWrapper {
     private Map<String, DocView> docMap;
 
     private String currentMarkdownText;
+    private DocView currentDocView;
 
     public PreviewForm(@Nullable Project project, PsiFile psiFile, Editor editor, PsiClass psiClass, Map<String, DocView> docMap) {
         super(project, true, DialogWrapper.IdeModalityType.PROJECT);
@@ -64,10 +72,6 @@ public class PreviewForm extends DialogWrapper {
         // 生成文档
         buildDoc();
         catalogList.setSelectedIndex(0);
-
-        // if (docMap.size() == 1) {
-        //     viewSplitPane.setDividerLocation(0);
-        // }
 
     }
 
@@ -100,10 +104,10 @@ public class PreviewForm extends DialogWrapper {
 
             String selectedValue = catalogList.getSelectedValue();
 
-            DocView docView = docMap.get(selectedValue);
+            currentDocView = docMap.get(selectedValue);
 
             // 将 docView 对象转换为 markdown 文本
-            currentMarkdownText = DocViewUtils.convertMarkdownText(docView);
+            currentMarkdownText = DocViewUtils.convertMarkdownText(currentDocView);
 
             String html = MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project);
 
@@ -114,11 +118,6 @@ public class PreviewForm extends DialogWrapper {
 
     }
 
-    @Override
-    protected void createDefaultActions() {
-        super.createDefaultActions();
-        copyAction = new CopyAction();
-    }
 
     @NotNull
     @Override
@@ -126,7 +125,20 @@ public class PreviewForm extends DialogWrapper {
 
         myHelpAction.setEnabled(true);
 
-        return new Action[]{getOKAction(), getCopyAction(), getHelpAction()};
+        return new Action[]{getOKAction(), getCopyAction(), getExportAction(), getHelpAction()};
+    }
+
+    private Action getExportAction() {
+
+        return exportAction;
+    }
+
+
+    @Override
+    protected void createDefaultActions() {
+        super.createDefaultActions();
+        copyAction = new CopyAction();
+        exportAction = new ExportAction();
     }
 
     @NotNull
@@ -166,6 +178,44 @@ public class PreviewForm extends DialogWrapper {
             clipboard.setContents(selection, selection);
 
             NotificationUtils.infoNotify("复制 Markdown 到剪贴板成功!", project);
+        }
+    }
+
+    /**
+     * Export 按钮的监听
+     * 主要功能为: 导出功能
+     */
+    protected class ExportAction extends DialogWrapperAction {
+
+        protected ExportAction() {
+            super("Export");
+        }
+
+        @Override
+        protected void doAction(ActionEvent e) {
+
+            // 选择路径
+            FileChooserDescriptor fileChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
+            VirtualFile chooser = FileChooser.chooseFile(fileChooserDescriptor, project, null);
+            if (chooser != null) {
+                String path = chooser.getPath();
+
+                File file = new File(path + "/" + currentDocView.getName() + ".md");
+
+                if (file.exists()) {
+                    // 文件已存在
+                    NotificationUtils.errorNotify("文件已存在, 导出 Markdown 失败!", project);
+                    return;
+                }
+                try {
+                    FileUtil.writeToFile(file, currentMarkdownText);
+                } catch (IOException ioException) {
+                    NotificationUtils.errorNotify("导出 Markdown 失败!", project);
+                }
+
+            }
+
+            NotificationUtils.infoNotify("导出 Markdown 成功!", project);
         }
     }
 
