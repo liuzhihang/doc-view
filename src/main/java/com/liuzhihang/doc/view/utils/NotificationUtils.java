@@ -14,7 +14,7 @@ import com.intellij.openapi.project.Project;
  */
 public class NotificationUtils {
 
-    private static NotificationGroup notificationGroup = new NotificationGroup("ApiDoc.NotificationGroup", NotificationDisplayType.BALLOON, true);
+    private static NotificationGroup notificationGroup = new NotificationGroup("DocView.NotificationGroup", NotificationDisplayType.BALLOON, true);
 
     public static void warnNotify(String message, Project project) {
         Notifications.Bus.notify(notificationGroup.createNotification(message, NotificationType.WARNING), project);

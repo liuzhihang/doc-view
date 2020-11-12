@@ -2,6 +2,7 @@ package com.liuzhihang.doc.view.component;
 
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
+import com.liuzhihang.doc.view.ui.SettingsForm;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,8 +31,8 @@ public class SettingsConfigurable implements SearchableConfigurable {
     @Nullable
     @Override
     public JComponent createComponent() {
-        // return new SettingsForm();
-        return null;
+
+        return new SettingsForm().createCenterPanel();
     }
 
     @Override
