@@ -1,10 +1,13 @@
 package com.liuzhihang.doc.view.ui;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.util.ui.JBUI;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -13,7 +16,7 @@ import javax.swing.*;
  * @author liuzhihang
  * @date 2020/2/26 19:17
  */
-public class SettingsForm extends DialogWrapper {
+public class SettingsForm {
 
     private JPanel rootPanel;
     private LinkLabel<String> supportLinkLabel;
@@ -21,7 +24,6 @@ public class SettingsForm extends DialogWrapper {
 
 
     public SettingsForm() {
-        super(null);
 
         supportLinkLabel.setBorder(JBUI.Borders.emptyTop(20));
 
@@ -34,14 +36,7 @@ public class SettingsForm extends DialogWrapper {
 
     }
 
-    @Nullable
-    @Override
-    public JComponent createCenterPanel() {
+    public JPanel getRootPanel() {
         return rootPanel;
-    }
-
-    private void createUIComponents() {
-        // place custom component creation code here
-
     }
 }

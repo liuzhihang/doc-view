@@ -23,7 +23,7 @@ public class SupportForm extends DialogWrapper {
     private LinkLabel<String> websiteLinkLabel;
 
     public SupportForm() {
-        super(null);
+        super(null, true, DialogWrapper.IdeModalityType.PROJECT);
 
         init();
 
@@ -39,8 +39,8 @@ public class SupportForm extends DialogWrapper {
         starLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://github.com/liuzhihang/doc-view");
         reportLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://github.com/liuzhihang/doc-view/issues");
         ideaLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://plugins.jetbrains.com/plugin/15305-doc-view");
-        prLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://github.com/liuzhihang/doc-view/pulls");
-        prLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://docview.liuzhihang.com");
+        shareLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://github.com/liuzhihang/doc-view/pulls");
+        websiteLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://docview.liuzhihang.com");
     }
 
     @Nullable

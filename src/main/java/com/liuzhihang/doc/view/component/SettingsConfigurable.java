@@ -32,7 +32,7 @@ public class SettingsConfigurable implements SearchableConfigurable {
     @Override
     public JComponent createComponent() {
 
-        return new SettingsForm().createCenterPanel();
+        return new SettingsForm().getRootPanel();
     }
 
     @Override
