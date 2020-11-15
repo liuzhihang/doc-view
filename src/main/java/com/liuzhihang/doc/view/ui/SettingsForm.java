@@ -3,7 +3,6 @@ package com.liuzhihang.doc.view.ui;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.Nullable;
@@ -31,6 +30,8 @@ public class SettingsForm extends DialogWrapper {
         supportLinkLabel.setListener((source, data) -> new SupportForm().show(), null);
 
 
+        domainPanel.setBorder(IdeBorderFactory.createTitledBorder("当前版本不支持配置!"));
+
     }
 
     @Nullable
@@ -41,6 +42,6 @@ public class SettingsForm extends DialogWrapper {
 
     private void createUIComponents() {
         // place custom component creation code here
-        domainPanel.setBorder(IdeBorderFactory.createTitledBorder("Domain"));
+
     }
 }

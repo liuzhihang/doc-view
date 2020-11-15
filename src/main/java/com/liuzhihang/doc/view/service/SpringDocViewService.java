@@ -2,12 +2,16 @@ package com.liuzhihang.doc.view.service;
 
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.*;
 import com.liuzhihang.doc.view.component.Settings;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.Header;
 import com.liuzhihang.doc.view.dto.Param;
+import com.liuzhihang.doc.view.ui.PreviewForm;
 import com.liuzhihang.doc.view.utils.*;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -21,35 +25,45 @@ import java.util.Map;
  * @author liuzhihang
  * @date 2020/3/3 13:32
  */
-public class DocViewService {
+public class SpringDocViewService {
 
 
-    public static DocViewService getInstance() {
-        return ServiceManager.getService(DocViewService.class);
+    public static SpringDocViewService getInstance() {
+        return ServiceManager.getService(SpringDocViewService.class);
     }
 
-    public Map<String, DocView> buildDocView(@NotNull Settings settings, @NotNull PsiClass psiClass, PsiMethod psiMethod) {
 
+    public void doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass) {
 
-        if (psiClass.isInterface()) {
-            // 接口按照dubbo接口生成
+        Settings settings = project.getService(Settings.class);
+
+        // 当前方法
+        PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
+
+        Map<String, DocView> docMap = new HashMap<>();
+
+        if (targetMethod != null) {
+
+            if (checkMethod(settings, targetMethod)) {
+                NotificationUtils.errorNotify("The method does not meet the conditions", project);
+                return;
+            }
+
+            DocView docView = buildClassMethodDoc(settings, targetClass, targetMethod);
+            docMap.put(docView.getName(), docView);
 
         } else {
-
-            if (psiMethod != null) {
-                // 单个方法
-                DocView docView = buildClassMethodDoc(settings, psiClass, psiMethod);
-                Map<String, DocView> docMap = new HashMap<>(2);
-                if (docView != null) {
-                    docMap.put(docView.getName(), docView);
-                }
-                return docMap;
-            } else {
-                // 单个类 的所有方法
-                return buildClassDoc(settings, psiClass);
+            // 生成文档列表
+            docMap = buildClassDoc(settings, targetClass);
+            if (docMap.size() == 0) {
+                NotificationUtils.errorNotify("There is no public modification method in the class", project);
+                return;
             }
         }
-        return null;
+
+        DialogWrapper dialog = new PreviewForm(project, psiFile, editor, targetClass, docMap);
+        dialog.show();
+
     }
 
     @NotNull
@@ -58,29 +72,21 @@ public class DocViewService {
         Map<String, DocView> docMap = new HashMap<>(32);
 
         for (PsiMethod method : psiClass.getMethods()) {
-            DocView docView = buildClassMethodDoc(settings, psiClass, method);
-            if (docView != null) {
-                docMap.put(docView.getName(), docView);
+
+            if (checkMethod(settings, method)) {
+                continue;
             }
+
+            DocView docView = buildClassMethodDoc(settings, psiClass, method);
+            docMap.put(docView.getName(), docView);
         }
 
         return docMap;
     }
 
-    private DocView buildClassMethodDoc(Settings settings, PsiClass psiClass, @NotNull PsiMethod psiMethod) {
+    @NotNull
+    public DocView buildClassMethodDoc(Settings settings, PsiClass psiClass, @NotNull PsiMethod psiMethod) {
 
-        if (!CustomPsiModifierUtils.hasModifierProperty(psiMethod, PsiModifier.PUBLIC)) {
-            return null;
-        }
-        if (CustomPsiModifierUtils.hasModifierProperty(psiMethod, PsiModifier.STATIC)) {
-            return null;
-        }
-        if (psiMethod.isConstructor()) {
-            return null;
-        }
-        if (!AnnotationUtil.isAnnotated(psiMethod, settings.getContainMethodAnnotationName(), 0)) {
-            return null;
-        }
         // 请求路径
         String path = CustomPsiAnnotationUtils.getPath(psiClass, psiMethod);
 
@@ -155,6 +161,29 @@ public class DocViewService {
             docView.setRespExample(bodyJson);
         }
         return docView;
+    }
+
+    /**
+     * 检查方法是否满足条件
+     *
+     * @param settings
+     * @param psiMethod
+     * @return true 不满足条件
+     */
+    private boolean checkMethod(Settings settings, @NotNull PsiMethod psiMethod) {
+        if (!CustomPsiModifierUtils.hasModifierProperty(psiMethod, PsiModifier.PUBLIC)) {
+            return true;
+        }
+        if (CustomPsiModifierUtils.hasModifierProperty(psiMethod, PsiModifier.STATIC)) {
+            return true;
+        }
+        if (psiMethod.isConstructor()) {
+            return true;
+        }
+        if (!AnnotationUtil.isAnnotated(psiMethod, settings.getContainMethodAnnotationName(), 0)) {
+            return true;
+        }
+        return false;
     }
 
 }

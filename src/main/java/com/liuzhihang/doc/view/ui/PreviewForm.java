@@ -2,13 +2,8 @@ package com.liuzhihang.doc.view.ui;
 
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.fileChooser.FileChooser;
-import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.popup.util.PopupUtil;
-import com.intellij.openapi.util.io.FileUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.GuiUtils;
@@ -16,6 +11,7 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
+import com.liuzhihang.doc.view.utils.ExportUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
 import org.intellij.plugins.markdown.ui.preview.MarkdownUtil;
 import org.jetbrains.annotations.NotNull;
@@ -26,8 +22,6 @@ import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.io.IOException;
 import java.util.Map;
 import java.util.Vector;
 
@@ -37,7 +31,6 @@ import java.util.Vector;
  */
 public class PreviewForm extends DialogWrapper {
     private JPanel rootJPanel;
-    private JPanel viewPanel;
     private JSplitPane viewSplitPane;
     private JScrollPane leftScrollPane;
     private JScrollPane rightScrollPane;
@@ -78,7 +71,7 @@ public class PreviewForm extends DialogWrapper {
     private void initUI() {
         setTitle("Doc View");
 
-        GuiUtils.replaceJSplitPaneWithIDEASplitter(viewPanel, true);
+        GuiUtils.replaceJSplitPaneWithIDEASplitter(rootJPanel, true);
 
         // 边框
         leftScrollPane.setBorder(null);
@@ -91,8 +84,8 @@ public class PreviewForm extends DialogWrapper {
         UIUtil.applyStyle(UIUtil.ComponentStyle.SMALL, textPane);
 
         textPane.setBorder(JBUI.Borders.emptyLeft(7));
+
         catalogList.setBackground(UIUtil.getTextFieldBackground());
-        textPane.setBackground(UIUtil.getTextFieldBackground());
 
     }
 
@@ -156,7 +149,7 @@ public class PreviewForm extends DialogWrapper {
     @Override
     protected void doHelpAction() {
 
-        BrowserUtil.browse("https://doc-view.liuzhihang.com/");
+        BrowserUtil.browse("https://docview.liuzhihang.com");
 
     }
 
@@ -194,28 +187,7 @@ public class PreviewForm extends DialogWrapper {
         @Override
         protected void doAction(ActionEvent e) {
 
-            // 选择路径
-            FileChooserDescriptor fileChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
-            VirtualFile chooser = FileChooser.chooseFile(fileChooserDescriptor, project, null);
-            if (chooser != null) {
-                String path = chooser.getPath();
-
-                File file = new File(path + "/" + currentDocView.getName() + ".md");
-
-                if (file.exists()) {
-                    // 文件已存在
-                    NotificationUtils.errorNotify("文件已存在, 导出 Markdown 失败!", project);
-                    return;
-                }
-                try {
-                    FileUtil.writeToFile(file, currentMarkdownText);
-                } catch (IOException ioException) {
-                    NotificationUtils.errorNotify("导出 Markdown 失败!", project);
-                }
-
-            }
-
-            NotificationUtils.infoNotify("导出 Markdown 成功!", project);
+            ExportUtils.exportMarkdown(project, currentDocView.getName(), currentMarkdownText);
         }
     }
 

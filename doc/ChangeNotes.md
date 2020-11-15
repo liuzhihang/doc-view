@@ -1,5 +1,17 @@
 # ChangeNotes
 
+## [v1.0.2](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.2) (2020-11-15)
+
+- 新增配置页面(依旧不支持配置)
+- 新增导出单个为 Markdown 格式文件
+
+
+## [v1.0.1](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.1) (2020-11-03)
+
+- 去除支持 2020.3
+- 发布到插件仓库
+- 修复请求路径错误问题
+
 
 ## [v1.0.0](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.0) (2020-11-01)
 

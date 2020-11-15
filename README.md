@@ -12,6 +12,7 @@ Doc View
 - 支持在 Controller 内右键唤出菜单， 显示 Controller 内的接口文档。
 - 支持在 Controller 的方法内右键唤出菜单， 显示该方法内的接口文档。
 - 支持复制为 Markdown 到剪贴板。
+- 支持导出 Markdown 文件。
 - 其他一些小功能点。
 
 **注：因 API 问题，新插件仅支持 2020.1 和 2020.2 版本 。**
@@ -36,9 +37,10 @@ Doc View
 更新
 ----
 
-## [v1.0.1](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.1) (2020-11-03)
+## [v1.0.2](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.2) (2020-11-15)
 
-- 修复请求路径拼装错误
+- 新增配置页面(依旧不支持配置)
+- 新增导出单个为 Markdown 格式文件
 
 
 [查看更多历史更新记录](./doc/ChangeNotes.md)
