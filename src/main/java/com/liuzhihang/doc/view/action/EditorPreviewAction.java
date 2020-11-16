@@ -1,10 +1,7 @@
 package com.liuzhihang.doc.view.action;
 
 import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.CommonDataKeys;
-import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
@@ -14,6 +11,8 @@ import com.liuzhihang.doc.view.component.Settings;
 import com.liuzhihang.doc.view.service.SpringDocViewService;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
+import com.liuzhihang.doc.view.utils.SpringPsiUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author liuzhihang
@@ -52,7 +51,7 @@ public class EditorPreviewAction extends AnAction {
 
         Settings settings = project.getService(Settings.class);
 
-
+        // Dubbo
         if (targetClass.isInterface()) {
             NotificationUtils.errorNotify("The current version does not support the interface", project);
             return;
@@ -70,4 +69,51 @@ public class EditorPreviewAction extends AnAction {
     }
 
 
+    /**
+     * 设置右键菜单是否隐藏 Doc View
+     *
+     * @param e
+     */
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+
+        Project project = e.getData(PlatformDataKeys.PROJECT);
+        PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
+        Editor editor = e.getData(CommonDataKeys.EDITOR);
+
+        Presentation presentation = e.getPresentation();
+
+        if (editor == null || project == null || psiFile == null) {
+            presentation.setEnabledAndVisible(false);
+            return;
+        }
+
+        PsiClass targetClass = CustomPsiUtils.getTargetClass(editor, psiFile);
+
+        if (targetClass == null || targetClass.isAnnotationType() || targetClass.isEnum()) {
+            presentation.setEnabledAndVisible(false);
+            return;
+        }
+
+        Settings settings = project.getService(Settings.class);
+
+        // 检查是否有 Controller 注解
+        if (!AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
+            presentation.setEnabledAndVisible(false);
+            return;
+        }
+
+        PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
+
+        // 过滤掉私有和静态方法以及没有相关注解的方法
+        if (targetMethod != null) {
+            if (!SpringPsiUtils.isSpringMethod(settings, targetMethod)) {
+                presentation.setEnabledAndVisible(false);
+                return;
+            }
+
+        }
+
+
+    }
 }

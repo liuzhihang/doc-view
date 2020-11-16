@@ -21,7 +21,12 @@
         <projectService serviceImplementation="com.liuzhihang.doc.view.component.Settings"/>
 
         <!-- app 等级 -->
-        <applicationService serviceImplementation="com.liuzhihang.doc.view.service.SpringDocViewService"/>
+        <applicationService serviceInterface="com.liuzhihang.doc.view.service.SpringDocViewService"
+                            serviceImplementation="com.liuzhihang.doc.view.service.impl.SpringDocViewServiceImpl"/>
+
+        <applicationService serviceInterface="com.liuzhihang.doc.view.service.DubboDocViewService"
+                            serviceImplementation="com.liuzhihang.doc.view.service.impl.DubboDocViewServiceImpl"/>
+
 
         <applicationConfigurable instance="com.liuzhihang.doc.view.component.SettingsConfigurable"
                                  id="liuzhihang.api.doc.SettingsConfigurable"

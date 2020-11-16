@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
  * @author liuzhihang
  * @date 2020/3/6 13:24
  */
-public class HeaderUtils {
+public class SpringHeaderUtils {
 
     @NotNull
     public static Header buildJsonHeader() {

@@ -14,7 +14,7 @@ import java.util.List;
  * @author liuzhihang
  * @date 2020/3/6 14:54
  */
-public class DocViewUtils {
+public class SpringDocUtils {
 
     @NotNull
     public static String convertMarkdownText(@NotNull DocView docView) {

@@ -6,7 +6,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
-import com.intellij.ui.GuiUtils;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.dto.DocView;
@@ -22,20 +21,16 @@ import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
-import java.util.Map;
-import java.util.Vector;
 
 /**
  * @author liuzhihang
- * @date 2020/2/26 19:40
+ * @date 2020/11/15 14:46
  */
-public class PreviewForm extends DialogWrapper {
+public class MethodPreviewForm extends DialogWrapper {
     private JPanel rootJPanel;
-    private JSplitPane viewSplitPane;
-    private JScrollPane leftScrollPane;
-    private JScrollPane rightScrollPane;
-    private JList<String> catalogList;
     private JTextPane textPane;
+    private JScrollPane scrollPane;
+
 
     private Action copyAction;
     private Action uploadAction;
@@ -45,18 +40,17 @@ public class PreviewForm extends DialogWrapper {
     private PsiFile psiFile;
     private Editor editor;
     private PsiClass psiClass;
-    private Map<String, DocView> docMap;
+    private DocView docView;
 
     private String currentMarkdownText;
-    private DocView currentDocView;
 
-    public PreviewForm(@Nullable Project project, PsiFile psiFile, Editor editor, PsiClass psiClass, Map<String, DocView> docMap) {
+    public MethodPreviewForm(@Nullable Project project, PsiFile psiFile, Editor editor, PsiClass psiClass, DocView docView) {
         super(project, true, DialogWrapper.IdeModalityType.PROJECT);
         this.project = project;
         this.psiFile = psiFile;
         this.editor = editor;
         this.psiClass = psiClass;
-        this.docMap = docMap;
+        this.docView = docView;
 
 
         init();
@@ -64,53 +58,35 @@ public class PreviewForm extends DialogWrapper {
         initUI();
         // 生成文档
         buildDoc();
-        catalogList.setSelectedIndex(0);
 
     }
 
     private void initUI() {
         setTitle("Doc View");
 
-        GuiUtils.replaceJSplitPaneWithIDEASplitter(rootJPanel, true);
-
-        // 边框
-        leftScrollPane.setBorder(null);
-        rightScrollPane.setBorder(null);
+        scrollPane.setBorder(null);
 
         textPane.setBackground(UIUtil.getTextFieldBackground());
         textPane.setEditable(false);
-        // textPane.addHyperlinkListener(new PluginManagerMain.MyHyperlinkListener());
 
         UIUtil.applyStyle(UIUtil.ComponentStyle.SMALL, textPane);
-
         textPane.setBorder(JBUI.Borders.emptyLeft(7));
 
-        catalogList.setBackground(UIUtil.getTextFieldBackground());
 
     }
 
     private void buildDoc() {
 
-        catalogList.setListData(new Vector<>(docMap.keySet()));
+        // 将 docView 对象转换为 markdown 文本
+        currentMarkdownText = SpringDocUtils.convertMarkdownText(docView);
 
-        catalogList.addListSelectionListener(catalog -> {
+        String html = MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project);
 
-            String selectedValue = catalogList.getSelectedValue();
+        textPane.setText(html);
+        textPane.setCaretPosition(0);
 
-            currentDocView = docMap.get(selectedValue);
-
-            // 将 docView 对象转换为 markdown 文本
-            currentMarkdownText = SpringDocUtils.convertMarkdownText(currentDocView);
-
-            String html = MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project);
-
-            textPane.setText(html);
-            textPane.setCaretPosition(0);
-
-        });
 
     }
-
 
     @NotNull
     @Override
@@ -187,8 +163,8 @@ public class PreviewForm extends DialogWrapper {
         @Override
         protected void doAction(ActionEvent e) {
 
-            ExportUtils.exportMarkdown(project, currentDocView.getName(), currentMarkdownText);
+            ExportUtils.exportMarkdown(project, docView.getName(), currentMarkdownText);
+
         }
     }
-
 }
