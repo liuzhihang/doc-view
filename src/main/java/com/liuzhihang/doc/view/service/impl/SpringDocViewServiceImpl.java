@@ -9,7 +9,7 @@ import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.Header;
 import com.liuzhihang.doc.view.dto.Param;
-import com.liuzhihang.doc.view.service.SpringDocViewService;
+import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.ui.PreviewForm;
 import com.liuzhihang.doc.view.utils.*;
 import org.apache.commons.lang3.StringUtils;
@@ -24,7 +24,7 @@ import java.util.Map;
  * @author liuzhihang
  * @date 2020/3/3 13:32
  */
-public class SpringDocViewServiceImpl implements SpringDocViewService {
+public class SpringDocViewServiceImpl implements DocViewService {
 
 
     @Override
@@ -105,6 +105,7 @@ public class SpringDocViewServiceImpl implements SpringDocViewService {
         docView.setPath(path);
         docView.setMethod(method);
         // docView.setDomain();
+        docView.setType("Spring");
 
         List<Header> headerList = new ArrayList<>();
 
@@ -151,10 +152,10 @@ public class SpringDocViewServiceImpl implements SpringDocViewService {
 
         PsiType returnType = psiMethod.getReturnType();
         if (returnType != null && returnType.isValid() && !returnType.equalsToText("void")) {
-            List<Body> respParamList = SpringPsiUtils.buildRespBody(settings, returnType);
+            List<Body> respParamList = ParamPsiUtils.buildRespBody(settings, returnType);
             docView.setRespBodyList(respParamList);
 
-            String bodyJson = SpringPsiUtils.getRespBodyJson(settings, returnType);
+            String bodyJson = ParamPsiUtils.getRespBodyJson(settings, returnType);
             docView.setRespExample(bodyJson);
         }
         return docView;

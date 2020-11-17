@@ -1,11 +1,122 @@
 package com.liuzhihang.doc.view.service.impl;
 
-import com.liuzhihang.doc.view.service.DubboDocViewService;
+import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiType;
+import com.liuzhihang.doc.view.component.Settings;
+import com.liuzhihang.doc.view.dto.Body;
+import com.liuzhihang.doc.view.dto.DocView;
+import com.liuzhihang.doc.view.service.DocViewService;
+import com.liuzhihang.doc.view.ui.PreviewForm;
+import com.liuzhihang.doc.view.utils.*;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author liuzhihang
  * @date 2020/11/16 18:28
  */
-public class DubboDocViewServiceImpl implements DubboDocViewService {
+public class DubboDocViewServiceImpl implements DocViewService {
 
+    @Override
+    public void doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass) {
+
+        Settings settings = project.getService(Settings.class);
+
+        // 当前方法
+        PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
+
+        Map<String, DocView> docMap = new HashMap<>();
+
+        if (targetMethod != null) {
+
+            if (!DubboPsiUtils.isDubboMethod(settings, targetMethod)) {
+                NotificationUtils.errorNotify("The method does not meet the conditions", project);
+                return;
+            }
+
+            DocView docView = buildClassMethodDoc(settings, targetClass, targetMethod);
+            docMap.put(docView.getName(), docView);
+
+        } else {
+            // 生成文档列表
+            docMap = buildClassDoc(settings, targetClass);
+            if (docMap.size() == 0) {
+                NotificationUtils.errorNotify("There are no methods in this interface", project);
+                return;
+            }
+        }
+
+        DialogWrapper dialog = new PreviewForm(project, psiFile, editor, targetClass, docMap);
+        dialog.show();
+
+
+    }
+
+    @Override
+    public Map<String, DocView> buildClassDoc(Settings settings, @NotNull PsiClass psiClass) {
+        return null;
+    }
+
+    @NotNull
+    @Override
+    public DocView buildClassMethodDoc(Settings settings, PsiClass psiClass, @NotNull PsiMethod psiMethod) {
+
+
+        // 请求路径
+        String path = psiClass.getName() + "#" + psiMethod.getName();
+
+        // 请求方式
+        String method = "Dubbo";
+
+        // 文档注释
+        String desc = CustomPsiCommentUtils.getComment(psiMethod.getDocComment(), "description");
+
+        String name = CustomPsiCommentUtils.getComment(psiMethod.getDocComment(), "name", false);
+
+        if (StringUtils.isBlank(name)) {
+            name = psiClass.getName() + "#" + psiMethod.getName();
+        }
+
+        DocView docView = new DocView();
+        docView.setName(name);
+        docView.setDesc(desc);
+        docView.setPath(path);
+        docView.setMethod(method);
+        // docView.setDomain();
+        docView.setType("Dubbo");
+
+
+        // 有参数
+        if (psiMethod.hasParameters()) {
+
+            // 获取
+            List<Body> reqBody = DubboPsiUtils.buildBody(settings, psiMethod);
+            docView.setReqBodyList(reqBody);
+
+            String bodyJson = DubboPsiUtils.getReqBodyJson(settings, psiMethod);
+            docView.setReqExample(bodyJson);
+
+        }
+
+        PsiType returnType = psiMethod.getReturnType();
+        // 返回代码相同
+        if (returnType != null && returnType.isValid() && !returnType.equalsToText("void")) {
+            List<Body> respParamList = ParamPsiUtils.buildRespBody(settings, returnType);
+            docView.setRespBodyList(respParamList);
+
+            String bodyJson = ParamPsiUtils.getRespBodyJson(settings, returnType);
+            docView.setRespExample(bodyJson);
+        }
+        return docView;
+
+    }
 }

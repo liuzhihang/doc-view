@@ -8,8 +8,9 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.liuzhihang.doc.view.component.Settings;
-import com.liuzhihang.doc.view.service.SpringDocViewService;
+import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
+import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 import org.jetbrains.annotations.NotNull;
@@ -49,23 +50,15 @@ public class EditorPreviewAction extends AnAction {
             return;
         }
 
-        Settings settings = project.getService(Settings.class);
+        DocViewService instance = DocViewService.getInstance(project, psiFile, editor, targetClass);
 
-        // Dubbo
-        if (targetClass.isInterface()) {
-            NotificationUtils.errorNotify("The current version does not support the interface", project);
+        if (instance == null) {
+            NotificationUtils.errorNotify("Document generation is not supported here", project);
             return;
         }
 
-        // Spring
-        if (AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
+        instance.doPreview(project, psiFile, editor, targetClass);
 
-            SpringDocViewService.getInstance().doPreview(project, psiFile, editor, targetClass);
-
-            return;
-        }
-
-        NotificationUtils.errorNotify("Document generation is not supported here", project);
     }
 
 
@@ -97,21 +90,36 @@ public class EditorPreviewAction extends AnAction {
 
         Settings settings = project.getService(Settings.class);
 
-        // 检查是否有 Controller 注解
-        if (!AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
+        // 检查是否有 Controller 注解 且不是接口
+        if (!targetClass.isInterface() && !AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
             presentation.setEnabledAndVisible(false);
             return;
         }
 
-        PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
+        // Spring Controller 还需要检查方法是否满足条件
+        if (!AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
+            PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
+            // 过滤掉私有和静态方法以及没有相关注解的方法
+            if (targetMethod != null) {
+                if (!SpringPsiUtils.isSpringMethod(settings, targetMethod)) {
+                    presentation.setEnabledAndVisible(false);
+                    return;
+                }
 
-        // 过滤掉私有和静态方法以及没有相关注解的方法
-        if (targetMethod != null) {
-            if (!SpringPsiUtils.isSpringMethod(settings, targetMethod)) {
-                presentation.setEnabledAndVisible(false);
-                return;
             }
+        }
 
+        // Dubbo 接口 还需要检查方法是否满足条件
+        if (!targetClass.isInterface()) {
+            PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
+            // 过滤掉私有和静态方法以及没有相关注解的方法
+            if (targetMethod != null) {
+                if (!DubboPsiUtils.isDubboMethod(settings, targetMethod)) {
+                    presentation.setEnabledAndVisible(false);
+                    return;
+                }
+
+            }
         }
 
 
