@@ -9,7 +9,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.dto.DocView;
-import com.liuzhihang.doc.view.utils.SpringDocUtils;
+import com.liuzhihang.doc.view.utils.DocUtils;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
 import org.intellij.plugins.markdown.ui.preview.MarkdownUtil;
@@ -78,7 +78,7 @@ public class MethodPreviewForm extends DialogWrapper {
     private void buildDoc() {
 
         // 将 docView 对象转换为 markdown 文本
-        currentMarkdownText = SpringDocUtils.convertMarkdownText(docView);
+        currentMarkdownText = DocUtils.convertMarkdownText(docView);
 
         String html = MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project);
 

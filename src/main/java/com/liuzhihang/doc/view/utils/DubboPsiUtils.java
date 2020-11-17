@@ -61,7 +61,7 @@ public class DubboPsiUtils {
             // 集合
             Body body = new Body();
             body.setRequired(false);
-            body.setName(null);
+            body.setName(parameter.getName());
             body.setType(type.getPresentableText());
 
             // 基本类型

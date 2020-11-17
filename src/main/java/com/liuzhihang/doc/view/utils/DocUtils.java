@@ -14,7 +14,7 @@ import java.util.List;
  * @author liuzhihang
  * @date 2020/3/6 14:54
  */
-public class SpringDocUtils {
+public class DocUtils {
 
     @NotNull
     public static String convertMarkdownText(@NotNull DocView docView) {
@@ -33,7 +33,7 @@ public class SpringDocUtils {
 
                 "**请求参数:**\n\n" +
 
-                "- Header\n\n" +
+                // - Header
                 buildReqHeaderParam(docView.getHeaderList()) + "\n\n" +
 
                 // - Param
@@ -75,7 +75,8 @@ public class SpringDocUtils {
         }
 
 
-        return "|参数名|参数值|必填|备注|\n" +
+        return "- Header\n\n" +
+                "|参数名|参数值|必填|备注|\n" +
                 "|:-----|:-----|:-----|:-----|\n" +
                 builder;
     }

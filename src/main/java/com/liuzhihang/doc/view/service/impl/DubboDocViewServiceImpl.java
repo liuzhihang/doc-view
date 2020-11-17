@@ -63,7 +63,21 @@ public class DubboDocViewServiceImpl implements DocViewService {
 
     @Override
     public Map<String, DocView> buildClassDoc(Settings settings, @NotNull PsiClass psiClass) {
-        return null;
+
+        Map<String, DocView> docMap = new HashMap<>(32);
+
+        for (PsiMethod method : psiClass.getMethods()) {
+
+            if (!DubboPsiUtils.isDubboMethod(settings, method)) {
+                continue;
+            }
+
+            DocView docView = buildClassMethodDoc(settings, psiClass, method);
+            docMap.put(docView.getName(), docView);
+        }
+
+        return docMap;
+
     }
 
     @NotNull

@@ -37,7 +37,7 @@ public class CustomPsiCommentUtils {
                 desc.append(descriptionElement.getText()).append("\n");
             }
         }
-
+        desc.deleteCharAt(desc.lastIndexOf("\n"));
 
         return desc.toString();
 

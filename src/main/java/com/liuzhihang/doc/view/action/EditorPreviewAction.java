@@ -97,7 +97,7 @@ public class EditorPreviewAction extends AnAction {
         }
 
         // Spring Controller 还需要检查方法是否满足条件
-        if (!AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
+        if (AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
             PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
             // 过滤掉私有和静态方法以及没有相关注解的方法
             if (targetMethod != null) {
@@ -110,7 +110,7 @@ public class EditorPreviewAction extends AnAction {
         }
 
         // Dubbo 接口 还需要检查方法是否满足条件
-        if (!targetClass.isInterface()) {
+        if (targetClass.isInterface()) {
             PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
             // 过滤掉私有和静态方法以及没有相关注解的方法
             if (targetMethod != null) {

@@ -10,9 +10,9 @@ import com.intellij.ui.GuiUtils;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.dto.DocView;
-import com.liuzhihang.doc.view.utils.SpringDocUtils;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
+import com.liuzhihang.doc.view.utils.DocUtils;
 import org.intellij.plugins.markdown.ui.preview.MarkdownUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -100,7 +100,7 @@ public class PreviewForm extends DialogWrapper {
             currentDocView = docMap.get(selectedValue);
 
             // 将 docView 对象转换为 markdown 文本
-            currentMarkdownText = SpringDocUtils.convertMarkdownText(currentDocView);
+            currentMarkdownText = DocUtils.convertMarkdownText(currentDocView);
 
             String html = MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project);
 
