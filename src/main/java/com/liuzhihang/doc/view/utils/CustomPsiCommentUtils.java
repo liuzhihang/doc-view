@@ -37,9 +37,14 @@ public class CustomPsiCommentUtils {
                 desc.append(descriptionElement.getText()).append("\n");
             }
         }
-        desc.deleteCharAt(desc.lastIndexOf("\n"));
 
-        return desc.toString();
+        String comment = desc.toString();
+
+        if (comment.endsWith("\n")) {
+            comment = comment.substring(0, comment.lastIndexOf("\n"));
+        }
+
+        return comment;
 
     }
 
