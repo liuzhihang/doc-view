@@ -1,5 +1,10 @@
 # ChangeNotes
 
+
+## [v1.0.3](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.3) (2020-11-17)
+
+- 支持 Dubbo 接口
+
 ## [v1.0.2](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.2) (2020-11-15)
 
 - 新增配置页面(依旧不支持配置)
