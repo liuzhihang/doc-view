@@ -255,7 +255,7 @@
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
-                  <text value="关注公众号:『 刘志航 』"/>
+                  <text value="关注公众号:『 程序员小航 』"/>
                 </properties>
               </component>
               <hspacer id="db9b2">
