@@ -83,7 +83,8 @@ public class PreviewForm extends DialogWrapper {
 
         UIUtil.applyStyle(UIUtil.ComponentStyle.SMALL, textPane);
 
-        textPane.setBorder(JBUI.Borders.emptyLeft(7));
+        // 预览页左边距 7 ->> 17
+        textPane.setBorder(JBUI.Borders.emptyLeft(17));
 
         catalogList.setBackground(UIUtil.getTextFieldBackground());
 
