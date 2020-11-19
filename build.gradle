@@ -31,3 +31,7 @@ patchPluginXml {
     pluginDescription(file(descriptionFile).text)
     changeNotes(file(changesFile).text)
 }
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}

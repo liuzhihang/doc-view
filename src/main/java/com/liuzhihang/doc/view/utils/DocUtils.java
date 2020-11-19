@@ -19,19 +19,19 @@ public class DocUtils {
     @NotNull
     public static String convertMarkdownText(@NotNull DocView docView) {
 
-        return "**接口名称:**\n\n" +
+        return "### 接口名称\n\n" +
                 docView.getName() + "\n\n" +
 
-                "**接口描述:**\n\n" +
+                "#### 1. 接口描述\n\n" +
                 docView.getDesc() + "\n\n" +
 
-                "**请求路径:**\n\n" +
+                "#### 2. 请求路径\n\n" +
                 docView.getPath() + "\n\n" +
 
-                "**请求方式:**\n\n" +
+                "#### 3. 请求方式\n\n" +
                 docView.getMethod() + "\n\n" +
 
-                "**请求参数:**\n\n" +
+                "#### 4. 请求参数\n\n" +
 
                 // - Header
                 buildReqHeaderParam(docView.getHeaderList()) + "\n\n" +
@@ -42,15 +42,15 @@ public class DocUtils {
                 // - Body
                 buildReqBodyParam(docView.getReqBodyList()) + "\n\n" +
 
-                "**请求示例:**\n\n" +
+                "#### 5. 请求示例\n\n" +
                 "```" + docView.getReqExampleType() + "\n" +
                 (docView.getReqExample() == null ? "" : docView.getReqExample()) + "\n" +
                 "```\n\n" +
 
-                "**返回参数:**\n\n" +
+                "#### 6. 返回参数\n\n" +
                 buildRespBodyParam(docView.getRespBodyList()) + "\n\n" +
 
-                "**返回示例:**\n\n" +
+                "#### 7. 返回示例\n\n" +
                 "```json\n" +
                 (docView.getRespExample() == null ? "" : docView.getRespExample()) + "\n" +
                 "```\n\n";

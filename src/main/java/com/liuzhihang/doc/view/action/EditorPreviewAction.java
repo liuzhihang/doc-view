@@ -116,7 +116,6 @@ public class EditorPreviewAction extends AnAction {
             if (targetMethod != null) {
                 if (!DubboPsiUtils.isDubboMethod(settings, targetMethod)) {
                     presentation.setEnabledAndVisible(false);
-                    return;
                 }
 
             }

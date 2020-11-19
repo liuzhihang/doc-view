@@ -72,6 +72,7 @@
                 <clientProperties>
                   <JEditorPane.honorDisplayProperties class="java.lang.Boolean" value="true"/>
                   <JEditorPane.w3cLengthUnits class="java.lang.Boolean" value="false"/>
+                  <charset class="java.lang.String" value=""/>
                   <html.disable class="java.lang.Boolean" value="false"/>
                 </clientProperties>
               </component>
