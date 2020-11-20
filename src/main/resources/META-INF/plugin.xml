@@ -28,7 +28,14 @@
 
         <applicationConfigurable instance="com.liuzhihang.doc.view.component.SettingsConfigurable"
                                  id="liuzhihang.api.doc.SettingsConfigurable"
-                                 displayName="Doc View Settings"
+                                 displayName="Doc View"
+                                 nonDefaultProject="true"/>
+
+
+        <applicationConfigurable instance="com.liuzhihang.doc.view.component.TemplateConfigurable"
+                                 id="liuzhihang.api.doc.TemplateConfigurable"
+                                 groupId="liuzhihang.api.doc.SettingsConfigurable"
+                                 displayName="Markdown Template"
                                  nonDefaultProject="true"/>
 
 

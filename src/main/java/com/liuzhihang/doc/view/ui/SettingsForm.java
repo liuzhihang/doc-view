@@ -1,14 +1,9 @@
 package com.liuzhihang.doc.view.ui;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.project.ProjectManager;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.util.ui.JBUI;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
@@ -19,8 +14,9 @@ import javax.swing.*;
 public class SettingsForm {
 
     private JPanel rootPanel;
+    private JPanel titlePanel;
+
     private LinkLabel<String> supportLinkLabel;
-    private JPanel domainPanel;
 
 
     public SettingsForm() {
@@ -32,7 +28,7 @@ public class SettingsForm {
         supportLinkLabel.setListener((source, data) -> new SupportForm().show(), null);
 
 
-        domainPanel.setBorder(IdeBorderFactory.createTitledBorder("当前版本不支持配置!"));
+        titlePanel.setBorder(IdeBorderFactory.createTitledBorder("当前版本不支持配置!"));
 
     }
 
