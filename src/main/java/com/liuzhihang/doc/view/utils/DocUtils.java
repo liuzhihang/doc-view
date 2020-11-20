@@ -19,8 +19,7 @@ public class DocUtils {
     @NotNull
     public static String convertMarkdownText(@NotNull DocView docView) {
 
-        return "### 接口名称\n\n" +
-                docView.getName() + "\n\n" +
+        return "### " + docView.getName() + "\n\n" +
 
                 "#### 1. 接口描述\n\n" +
                 docView.getDesc() + "\n\n" +

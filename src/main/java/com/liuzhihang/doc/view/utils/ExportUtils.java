@@ -5,7 +5,6 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.liuzhihang.doc.view.dto.DocView;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,9 +25,8 @@ public class ExportUtils {
 
             File file = new File(path + "/" + fileName + ".md");
 
-            if (file.exists()) {
-                // 文件已存在
-                NotificationUtils.errorNotify("文件已存在, 导出 Markdown 失败!", project);
+            // 文件已存在，选择是否覆盖导出。
+            if (file.exists() && !DialogUtil.confirm("文件已存在","覆盖导出？")) {
                 return;
             }
             try {
