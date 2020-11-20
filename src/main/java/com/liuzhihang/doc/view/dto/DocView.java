@@ -85,6 +85,13 @@ public class DocView {
 
     private String type;
 
+    public DocView(String name) {
+        this.name = name;
+    }
+
+    public DocView() {
+    }
+
     public String getType() {
         return type;
     }

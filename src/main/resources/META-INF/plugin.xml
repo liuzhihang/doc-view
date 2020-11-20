@@ -32,7 +32,8 @@
                                  nonDefaultProject="true"/>
 
 
-        <!--<toolWindow id="Doc View" anchor="bottom" factoryClass="com.liuzhihang.doc.view.tool.DocViewToolWindow"/>-->
+        <toolWindow icon="/toolwindows/documentation.svg" id="Doc View" anchor="right"
+                    factoryClass="com.liuzhihang.doc.view.tool.DocViewToolWindowFactory"/>
 
         <!-- 2020.3 需要使用 notificationGroup 配置通知 -->
         <!--<notificationGroup id="DocView.NotificationGroup" displayType="BALLOON" key="DocView.NotificationGroup"/>-->
@@ -49,5 +50,31 @@
                 text="Doc View">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>
         </action>
+
+        <!-- NavigatorActionsToolbar's actions -->
+        <action id="docview.refresh" class="com.liuzhihang.doc.view.action.toolbar.RefreshAction"
+                icon="/actions/refresh.svg">
+        </action>
+        <action id="docview.export" class="com.liuzhihang.doc.view.action.toolbar.ExportAction"
+                icon="/toolbarDecorator/export.svg">
+        </action>
+        <action id="docview.expandall" class="com.liuzhihang.doc.view.action.toolbar.ExpandallAction"
+                icon="/actions/expandall.svg">
+        </action>
+        <action id="docview.collapseall" class="com.liuzhihang.doc.view.action.toolbar.CollapseallAction"
+                icon="/actions/collapseall.svg">
+        </action>
+        <action id="docview.settings" class="com.liuzhihang.doc.view.action.toolbar.SettingsAction"
+                icon="/general/settings.svg">
+        </action>
+        <group id="docview.NavigatorActionsToolbar">
+            <reference id="docview.refresh"/>
+            <reference id="docview.export"/>
+            <separator/>
+            <reference id="docview.expandall"/>
+            <reference id="docview.collapseall"/>
+            <separator/>
+            <reference id="docview.settings"/>
+        </group>
     </actions>
 </idea-plugin>
