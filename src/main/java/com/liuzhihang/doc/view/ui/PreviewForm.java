@@ -1,5 +1,6 @@
 package com.liuzhihang.doc.view.ui;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
@@ -36,6 +37,8 @@ public class PreviewForm extends DialogWrapper {
     private JScrollPane rightScrollPane;
     private JList<String> catalogList;
     private JTextPane textPane;
+    private JButton button1;
+
 
     private Action copyAction;
     private Action uploadAction;
@@ -87,6 +90,9 @@ public class PreviewForm extends DialogWrapper {
         textPane.setBorder(JBUI.Borders.emptyLeft(17));
 
         catalogList.setBackground(UIUtil.getTextFieldBackground());
+
+
+        button1.setIcon(AllIcons.General.LayoutPreviewOnly);
 
     }
 

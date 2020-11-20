@@ -9,18 +9,35 @@ Doc View
 特征
 ----
 
-- 支持在 Controller 内右键唤出菜单， 显示 Controller 内的接口文档。
-- 支持在 Controller 的方法内右键唤出菜单， 显示该方法内的接口文档。
-- 支持复制为 Markdown 到剪贴板。
-- 支持导出 Markdown 文件。
-- 其他一些小功能点。
+- 生成接口文档
+    - 生成请求返回参数列表
+    - 生成请求返回参数示例
+- 支持 Spring Controller
+- 支持 Dubbo 接口
+- 支持 `validation` 相关注解
+- 复制 Markdown 文本剪贴板
+- 导出 Markdown 文件
 
 **注：因 API 问题，新插件仅支持 2020.1 和 2020.2 版本 。**
+
+
+待办
+----
+
+- [ ] 批量生成（当前仅支持单个类或者方法）
+- [ ] 批量导出
+- [ ] 面板支持查看 Markdown 源文本
+- [ ] 支持从 Swagger 注解获取字段相关信息
+- [ ] 支持 Setting 设置
+- [ ] 支持自定义模版
+- [ ] 支持上传到 YApi
+- [ ] 支持 ToolWindow 查看
 
 演示
 ----
 
-![Doc View 样例](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/B9FzFw-9M24Py.png)
+![1111-l7NaTW](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/1111-l7NaTW.gif)
+
 
 安装
 ----
@@ -48,12 +65,14 @@ Doc View
 关于我
 ----
 
-欢迎关注公众号：『 刘志航 』
+欢迎关注公众号：『 程序员小航 』
 
-<img src="https://liuzhihang.com/oss/pic/wechat.jpg"  width="20%" height="20%" />
+![wechat-vxgNsq](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/wechat-vxgNsq.png)
 
-感谢
+
+小伙伴们
 ----
+
 
 
 其他插件
