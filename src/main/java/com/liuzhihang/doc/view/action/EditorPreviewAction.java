@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.component.Settings;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
@@ -38,7 +39,7 @@ public class EditorPreviewAction extends AnAction {
         PsiClass targetClass = CustomPsiUtils.getTargetClass(editor, psiFile);
 
         if (targetClass == null || targetClass.isAnnotationType() || targetClass.isEnum()) {
-            NotificationUtils.errorNotify("Please use in java class file", project);
+            NotificationUtils.errorNotify(DocViewBundle.message("notify.error.class"), project);
             return;
         }
 
@@ -46,14 +47,14 @@ public class EditorPreviewAction extends AnAction {
         PsiMethod[] methods = targetClass.getMethods();
 
         if (methods.length == 0) {
-            NotificationUtils.errorNotify("There is no method in the class", project);
+            NotificationUtils.errorNotify(DocViewBundle.message("notify.error.class.no.method"), project);
             return;
         }
 
         DocViewService instance = DocViewService.getInstance(project, psiFile, editor, targetClass);
 
         if (instance == null) {
-            NotificationUtils.errorNotify("Document generation is not supported here", project);
+            NotificationUtils.errorNotify(DocViewBundle.message("notify.error.not.support"), project);
             return;
         }
 

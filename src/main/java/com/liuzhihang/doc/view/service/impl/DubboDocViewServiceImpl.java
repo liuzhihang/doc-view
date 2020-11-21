@@ -7,6 +7,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiType;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.component.Settings;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
@@ -39,7 +40,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
         if (targetMethod != null) {
 
             if (!DubboPsiUtils.isDubboMethod(settings, targetMethod)) {
-                NotificationUtils.errorNotify("The method does not meet the conditions", project);
+                NotificationUtils.errorNotify(DocViewBundle.message("notify.dubbo.error.method"), project);
                 return;
             }
 
@@ -50,7 +51,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
             // 生成文档列表
             docMap = buildClassDoc(settings, targetClass);
             if (docMap.size() == 0) {
-                NotificationUtils.errorNotify("There are no methods in this interface", project);
+                NotificationUtils.errorNotify(DocViewBundle.message("notify.dubbo.error.no.method"), project);
                 return;
             }
         }

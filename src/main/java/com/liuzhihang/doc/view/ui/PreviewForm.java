@@ -10,6 +10,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.ui.GuiUtils;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
@@ -156,7 +157,7 @@ public class PreviewForm extends DialogWrapper {
     @Override
     protected void doHelpAction() {
 
-        BrowserUtil.browse("https://docview.liuzhihang.com");
+        BrowserUtil.browse(DocViewBundle.message("website"));
 
     }
 
@@ -177,7 +178,7 @@ public class PreviewForm extends DialogWrapper {
             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
             clipboard.setContents(selection, selection);
 
-            NotificationUtils.infoNotify("复制 Markdown 到剪贴板成功!", project);
+            NotificationUtils.infoNotify(DocViewBundle.message("notify.copy.success", currentDocView.getName()), project);
         }
     }
 

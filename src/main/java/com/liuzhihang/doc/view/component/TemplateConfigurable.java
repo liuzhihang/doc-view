@@ -18,6 +18,8 @@ import javax.swing.*;
 public class TemplateConfigurable implements SearchableConfigurable {
 
 
+    private TemplateSetting templateSetting;
+
     @NotNull
     @Override
     public String getId() {
@@ -34,17 +36,27 @@ public class TemplateConfigurable implements SearchableConfigurable {
     @Override
     public JComponent createComponent() {
 
-        return new TemplateSetting().getRootPanel();
+        templateSetting = new TemplateSetting();
+
+        return templateSetting.getRootPanel();
     }
 
     @Override
     public boolean isModified() {
-        return false;
+
+        return templateSetting.isModified();
     }
 
     @Override
     public void apply() throws ConfigurationException {
 
+        templateSetting.apply();
+    }
+
+    @Override
+    public void reset() {
+
+        templateSetting.reset();
     }
 
 

@@ -4,6 +4,7 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.*;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.component.Settings;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
@@ -40,7 +41,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
         if (targetMethod != null) {
 
             if (!SpringPsiUtils.isSpringMethod(settings, targetMethod)) {
-                NotificationUtils.errorNotify("The method does not meet the conditions", project);
+                NotificationUtils.errorNotify(DocViewBundle.message("notify.spring.error.method"), project);
                 return;
             }
 
@@ -51,7 +52,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
             // 生成文档列表
             docMap = buildClassDoc(settings, targetClass);
             if (docMap.size() == 0) {
-                NotificationUtils.errorNotify("There is no public modification method in the class", project);
+                NotificationUtils.errorNotify(DocViewBundle.message("notify.spring.error.no.method"), project);
                 return;
             }
         }

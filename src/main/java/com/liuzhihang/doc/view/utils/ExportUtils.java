@@ -5,6 +5,7 @@ import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.liuzhihang.doc.view.DocViewBundle;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,12 +33,12 @@ public class ExportUtils {
             try {
                 FileUtil.writeToFile(file, markdownText);
             } catch (IOException ioException) {
-                NotificationUtils.errorNotify("导出 Markdown 失败!", project);
+                NotificationUtils.errorNotify(DocViewBundle.message("notify.export.fail"), project);
             }
 
         }
 
-        NotificationUtils.infoNotify("导出 Markdown 成功!", project);
+        NotificationUtils.infoNotify(DocViewBundle.message("notify.export.success"), project);
 
     }
 
