@@ -8,10 +8,12 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
+import com.liuzhihang.doc.view.config.TemplateSettings;
 import com.liuzhihang.doc.view.dto.DocView;
-import com.liuzhihang.doc.view.utils.DocUtils;
+import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
+import com.liuzhihang.doc.view.utils.VelocityUtils;
 import org.intellij.plugins.markdown.ui.preview.MarkdownUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -77,8 +79,10 @@ public class MethodPreviewForm extends DialogWrapper {
 
     private void buildDoc() {
 
-        // 将 docView 对象转换为 markdown 文本
-        currentMarkdownText = DocUtils.convertMarkdownText(docView);
+        // 将 docView 按照模版转换
+        DocViewData docViewData = new DocViewData(docView);
+        currentMarkdownText = VelocityUtils.convert(TemplateSettings.getInstance(project).getSpringTemplate(), docViewData);
+
 
         String html = MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project);
 

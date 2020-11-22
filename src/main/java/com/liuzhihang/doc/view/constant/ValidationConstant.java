@@ -1,10 +1,10 @@
-package com.liuzhihang.doc.view.config;
+package com.liuzhihang.doc.view.constant;
 
 /**
  * @author liuzhihang
  * @date 2020/3/4 22:34
  */
-public class ValidationConfig {
+public class ValidationConstant {
 
     public static final String VALID = "javax.validation.Valid";
 

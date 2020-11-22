@@ -1,9 +1,5 @@
-package com.liuzhihang.doc.view.utils;
+package com.liuzhihang.doc.view.dto;
 
-import com.liuzhihang.doc.view.dto.Body;
-import com.liuzhihang.doc.view.dto.DocView;
-import com.liuzhihang.doc.view.dto.Header;
-import com.liuzhihang.doc.view.dto.Param;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -11,48 +7,99 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
+ * DocView 的模版 用来使用 Velocity 生成内容
+ * <p>
+ * Velocity 会根据 get 方法 获取值, 不提供 set 方法
+ *
  * @author liuzhihang
- * @date 2020/3/6 14:54
+ * @date 2020/11/21 16:39
  */
-public class DocUtils {
+public class DocViewData {
 
-    @NotNull
-    public static String convertMarkdownText(@NotNull DocView docView) {
+    /**
+     * 文档名称
+     */
+    private final String name;
 
-        return "### " + docView.getName() + "\n\n" +
+    /**
+     * 文档描述
+     */
+    private final String desc;
 
-                "#### 1. 接口描述\n\n" +
-                docView.getDesc() + "\n\n" +
+    /**
+     * 环境地址
+     */
+    // private final   String domain;
 
-                "#### 2. 请求路径\n\n" +
-                docView.getPath() + "\n\n" +
+    /**
+     * 接口地址
+     */
+    private final String path;
 
-                "#### 3. 请求方式\n\n" +
-                docView.getMethod() + "\n\n" +
+    /**
+     * 请求方式 GET POST PUT DELETE HEAD OPTIONS PATCH
+     */
+    private final String method;
 
-                "#### 4. 请求参数\n\n" +
 
-                // - Header
-                buildReqHeaderParam(docView.getHeaderList()) + "\n\n" +
+    /**
+     * headers
+     */
+    private final String requestHeader;
 
-                // - Param
-                buildReqParam(docView.getReqParamList()) + "\n\n" +
+    /**
+     * 请求参数
+     */
+    private final String requestParam;
 
-                // - Body
-                buildReqBodyParam(docView.getReqBodyList()) + "\n\n" +
 
-                "#### 5. 请求示例\n\n" +
-                "```" + docView.getReqExampleType() + "\n" +
-                (docView.getReqExample() == null ? "" : docView.getReqExample()) + "\n" +
-                "```\n\n" +
+    /**
+     * 请求参数
+     */
+    private final String requestBody;
 
-                "#### 6. 返回参数\n\n" +
-                buildRespBodyParam(docView.getRespBodyList()) + "\n\n" +
+    /**
+     * 请求示例
+     */
+    private final String requestExample;
 
-                "#### 7. 返回示例\n\n" +
-                "```json\n" +
-                (docView.getRespExample() == null ? "" : docView.getRespExample()) + "\n" +
+    /**
+     * 返回参数
+     */
+    private final String responseParam;
+
+
+    /**
+     * 返回示例
+     */
+    private final String responseExample;
+
+
+    public DocViewData(DocView docView) {
+
+        this.name = docView.getName();
+        this.desc = docView.getDesc();
+        this.path = docView.getPath();
+        this.method = docView.getMethod();
+        this.requestHeader = buildReqHeaderParam(docView.getHeaderList());
+        this.requestParam = buildReqParam(docView.getReqParamList());
+        this.requestBody = buildReqBodyParam(docView.getReqBodyList());
+        this.requestExample = buildReqExample(docView.getReqExampleType(), docView.getReqExample());
+        this.responseParam = buildRespBodyParam(docView.getRespBodyList());
+        this.responseExample = buildRespExample(docView.getReqExampleType(), docView.getRespExample());
+    }
+
+    private String buildRespExample(String respExampleType, String respExample) {
+        return "```json\n" +
+                (respExampleType == null ? "" : respExample) + "\n" +
                 "```\n\n";
+    }
+
+    private String buildReqExample(String reqExampleType, String reqExample) {
+
+        return "```" + reqExampleType + "\n" +
+                (reqExample == null ? "" : reqExample) + "\n" +
+                "```";
     }
 
     @NotNull
@@ -74,8 +121,7 @@ public class DocUtils {
         }
 
 
-        return "- Header\n\n" +
-                "|参数名|参数值|必填|备注|\n" +
+        return "|参数名|参数值|必填|备注|\n" +
                 "|:-----|:-----|:-----|:-----|\n" +
                 builder;
     }
@@ -98,8 +144,7 @@ public class DocUtils {
         }
 
 
-        return "- Param\n\n" +
-                "|参数名|类型|必选|说明|备注|\n" +
+        return "|参数名|类型|必选|说明|备注|\n" +
                 "|:-----|:-----|:-----|:-----|:-----|\n" +
                 builder;
     }
@@ -112,8 +157,7 @@ public class DocUtils {
             return "";
         }
 
-        return "- Body\n\n" +
-                "|参数名|类型|必选|说明|备注|\n" +
+        return "|参数名|类型|必选|说明|备注|\n" +
                 "|:-----|:-----|:-----|:-----|:-----|\n" +
                 buildTableContext(paramList, "");
     }
@@ -157,4 +201,47 @@ public class DocUtils {
         return param;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    // public String getDomain() {
+    //     return domain;
+    // }
+
+    public String getPath() {
+        return path;
+    }
+
+    public String getMethod() {
+        return method;
+    }
+
+    public String getRequestHeader() {
+        return requestHeader;
+    }
+
+    public String getRequestBody() {
+        return requestBody;
+    }
+
+    public String getRequestExample() {
+        return requestExample;
+    }
+
+    public String getResponseParam() {
+        return responseParam;
+    }
+
+    public String getResponseExample() {
+        return responseExample;
+    }
+
+    public String getRequestParam() {
+        return requestParam;
+    }
 }

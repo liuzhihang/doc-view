@@ -8,8 +8,8 @@ import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
-import com.liuzhihang.doc.view.component.Settings;
-import com.liuzhihang.doc.view.config.FieldTypeConfig;
+import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.Body;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +45,7 @@ public class ParamPsiUtils {
             body.setDesc(CustomPsiCommentUtils.getComment(docComment));
         }
 
-        if (type instanceof PsiPrimitiveType || FieldTypeConfig.FIELD_TYPE.containsKey(type.getPresentableText())) {
+        if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
             return body;
         } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_COLLECTION)) {
             // List Set or HashSet
@@ -136,8 +136,8 @@ public class ParamPsiUtils {
                     //reference Type
                     String fieldTypeName = type.getPresentableText();
                     // 指定的类型
-                    if (FieldTypeConfig.FIELD_TYPE.containsKey(fieldTypeName)) {
-                        fieldMap.put(name, FieldTypeConfig.FIELD_TYPE.get(fieldTypeName));
+                    if (FieldTypeConstant.FIELD_TYPE.containsKey(fieldTypeName)) {
+                        fieldMap.put(name, FieldTypeConstant.FIELD_TYPE.get(fieldTypeName));
                     } else if (type instanceof PsiArrayType) {
                         //array type
                         List<Object> list = new ArrayList<>();
@@ -145,8 +145,8 @@ public class ParamPsiUtils {
                         String deepTypeName = deepType.getPresentableText();
                         if (deepType instanceof PsiPrimitiveType) {
                             list.add(PsiTypesUtil.getDefaultValue(deepType));
-                        } else if (FieldTypeConfig.FIELD_TYPE.containsKey(deepTypeName)) {
-                            list.add(FieldTypeConfig.FIELD_TYPE.get(deepTypeName));
+                        } else if (FieldTypeConstant.FIELD_TYPE.containsKey(deepTypeName)) {
+                            list.add(FieldTypeConstant.FIELD_TYPE.get(deepTypeName));
                         } else {
                             list.add(getFieldsAndDefaultValue(PsiUtil.resolveClassInType(deepType), null));
                         }
@@ -158,8 +158,8 @@ public class ParamPsiUtils {
                         PsiClass iterableClass = PsiUtil.resolveClassInClassTypeOnly(iterableType);
                         if (iterableClass != null) {
                             String classTypeName = iterableClass.getName();
-                            if (FieldTypeConfig.FIELD_TYPE.containsKey(classTypeName)) {
-                                list.add(FieldTypeConfig.FIELD_TYPE.get(classTypeName));
+                            if (FieldTypeConstant.FIELD_TYPE.containsKey(classTypeName)) {
+                                list.add(FieldTypeConstant.FIELD_TYPE.get(classTypeName));
                             } else {
                                 list.add(getFieldsAndDefaultValue(iterableClass, null));
                             }
@@ -197,7 +197,7 @@ public class ParamPsiUtils {
      */
     private static boolean containsAnnotation(@NotNull PsiAnnotation[] annotations) {
         for (PsiAnnotation annotation : annotations) {
-            if (FieldTypeConfig.ANNOTATION_TYPES.contains(annotation.getQualifiedName())) {
+            if (FieldTypeConstant.ANNOTATION_TYPES.contains(annotation.getQualifiedName())) {
                 return true;
             }
         }
@@ -209,7 +209,7 @@ public class ParamPsiUtils {
     public static List<Body> buildRespBody(Settings settings, PsiType returnType) {
 
         List<Body> list = new ArrayList<>();
-        if (returnType instanceof PsiPrimitiveType || FieldTypeConfig.FIELD_TYPE.containsKey(returnType.getPresentableText())) {
+        if (returnType instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(returnType.getPresentableText())) {
             Body body = new Body();
             body.setRequired(false);
             body.setName(null);
@@ -249,7 +249,7 @@ public class ParamPsiUtils {
     public static String getRespBodyJson(Settings settings, PsiType returnType) {
 
 
-        if (returnType instanceof PsiPrimitiveType || FieldTypeConfig.FIELD_TYPE.containsKey(returnType.getPresentableText())) {
+        if (returnType instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(returnType.getPresentableText())) {
             return "";
         } else if (returnType instanceof PsiClassType) {
 

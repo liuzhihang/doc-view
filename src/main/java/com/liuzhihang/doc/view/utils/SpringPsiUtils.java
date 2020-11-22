@@ -4,13 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.psi.*;
-import com.intellij.psi.javadoc.PsiDocComment;
-import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
-import com.liuzhihang.doc.view.component.Settings;
-import com.liuzhihang.doc.view.config.AnnotationConfig;
-import com.liuzhihang.doc.view.config.FieldTypeConfig;
+import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.constant.AnnotationConstant;
+import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.Header;
 import com.liuzhihang.doc.view.dto.Param;
@@ -32,18 +30,18 @@ public class SpringPsiUtils {
 
         String method;
 
-        if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConfig.GET_MAPPING, 0)) {
+        if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConstant.GET_MAPPING, 0)) {
             method = "GET";
-        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConfig.POST_MAPPING, 0)) {
+        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConstant.POST_MAPPING, 0)) {
             method = "POST";
-        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConfig.PUT_MAPPING, 0)) {
+        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConstant.PUT_MAPPING, 0)) {
             method = "PUT";
-        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConfig.DELETE_MAPPING, 0)) {
+        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConstant.DELETE_MAPPING, 0)) {
             method = "DELETE";
-        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConfig.PATCH_MAPPING, 0)) {
+        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConstant.PATCH_MAPPING, 0)) {
             method = "PATCH";
-        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConfig.REQUEST_MAPPING, 0)) {
-            PsiAnnotation annotation = AnnotationUtil.findAnnotation(psiMethod, AnnotationConfig.REQUEST_MAPPING);
+        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConstant.REQUEST_MAPPING, 0)) {
+            PsiAnnotation annotation = AnnotationUtil.findAnnotation(psiMethod, AnnotationConstant.REQUEST_MAPPING);
             if (annotation == null) {
                 method = "GET";
             } else {
@@ -86,7 +84,7 @@ public class SpringPsiUtils {
     @NotNull
     public static String getBasePath(PsiClass psiClass) {
         // controller 路径
-        PsiAnnotation annotation = AnnotationUtil.findAnnotation(psiClass, AnnotationConfig.REQUEST_MAPPING);
+        PsiAnnotation annotation = AnnotationUtil.findAnnotation(psiClass, AnnotationConstant.REQUEST_MAPPING);
 
         return getPath(annotation);
     }
@@ -108,18 +106,18 @@ public class SpringPsiUtils {
     public static String getMethodPath(PsiMethod psiMethod) {
         String url;
 
-        if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConfig.GET_MAPPING, 0)) {
-            url = getPath(AnnotationUtil.findAnnotation(psiMethod, AnnotationConfig.GET_MAPPING));
-        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConfig.POST_MAPPING, 0)) {
-            url = getPath(AnnotationUtil.findAnnotation(psiMethod, AnnotationConfig.POST_MAPPING));
-        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConfig.PUT_MAPPING, 0)) {
-            url = getPath(AnnotationUtil.findAnnotation(psiMethod, AnnotationConfig.PUT_MAPPING));
-        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConfig.DELETE_MAPPING, 0)) {
-            url = getPath(AnnotationUtil.findAnnotation(psiMethod, AnnotationConfig.DELETE_MAPPING));
-        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConfig.PATCH_MAPPING, 0)) {
-            url = getPath(AnnotationUtil.findAnnotation(psiMethod, AnnotationConfig.PATCH_MAPPING));
-        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConfig.REQUEST_MAPPING, 0)) {
-            url = getPath(AnnotationUtil.findAnnotation(psiMethod, AnnotationConfig.REQUEST_MAPPING));
+        if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConstant.GET_MAPPING, 0)) {
+            url = getPath(AnnotationUtil.findAnnotation(psiMethod, AnnotationConstant.GET_MAPPING));
+        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConstant.POST_MAPPING, 0)) {
+            url = getPath(AnnotationUtil.findAnnotation(psiMethod, AnnotationConstant.POST_MAPPING));
+        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConstant.PUT_MAPPING, 0)) {
+            url = getPath(AnnotationUtil.findAnnotation(psiMethod, AnnotationConstant.PUT_MAPPING));
+        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConstant.DELETE_MAPPING, 0)) {
+            url = getPath(AnnotationUtil.findAnnotation(psiMethod, AnnotationConstant.DELETE_MAPPING));
+        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConstant.PATCH_MAPPING, 0)) {
+            url = getPath(AnnotationUtil.findAnnotation(psiMethod, AnnotationConstant.PATCH_MAPPING));
+        } else if (AnnotationUtil.isAnnotated(psiMethod, AnnotationConstant.REQUEST_MAPPING, 0)) {
+            url = getPath(AnnotationUtil.findAnnotation(psiMethod, AnnotationConstant.REQUEST_MAPPING));
         } else {
             url = "";
         }
@@ -137,7 +135,7 @@ public class SpringPsiUtils {
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
 
         for (PsiParameter parameter : parameters) {
-            if (AnnotationUtil.isAnnotated(parameter, AnnotationConfig.REQUEST_BODY, 0)) {
+            if (AnnotationUtil.isAnnotated(parameter, AnnotationConstant.REQUEST_BODY, 0)) {
                 return parameter;
             }
         }
@@ -160,7 +158,7 @@ public class SpringPsiUtils {
         List<Header> list = new ArrayList<>();
         for (PsiParameter parameter : parameters) {
 
-            if (!AnnotationUtil.isAnnotated(parameter, AnnotationConfig.REQUEST_HEADER, 0)) {
+            if (!AnnotationUtil.isAnnotated(parameter, AnnotationConstant.REQUEST_HEADER, 0)) {
                 continue;
             }
 
@@ -192,7 +190,7 @@ public class SpringPsiUtils {
         PsiType type = parameter.getType();
 
         // 基本类型
-        if (type instanceof PsiPrimitiveType || FieldTypeConfig.FIELD_TYPE.containsKey(type.getPresentableText())) {
+        if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
             List<Body> list = new ArrayList<>();
             list.add(buildBodyFromParameter(settings, parameter));
             return list;
@@ -258,8 +256,8 @@ public class SpringPsiUtils {
         if (type instanceof PsiPrimitiveType) {
             fieldMap.put(name, PsiTypesUtil.getDefaultValue(type));
 
-        } else if (FieldTypeConfig.FIELD_TYPE.containsKey(type.getPresentableText())) {
-            fieldMap.put(name, FieldTypeConfig.FIELD_TYPE.get(type.getPresentableText()));
+        } else if (FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
+            fieldMap.put(name, FieldTypeConstant.FIELD_TYPE.get(type.getPresentableText()));
         } else {
             PsiClass psiClass = PsiUtil.resolveClassInType(type);
             if (psiClass != null) {
@@ -313,17 +311,17 @@ public class SpringPsiUtils {
         List<Param> list = new ArrayList<>();
         for (PsiParameter parameter : parameters) {
 
-            if (AnnotationUtil.isAnnotated(parameter, AnnotationConfig.REQUEST_BODY, 0)) {
+            if (AnnotationUtil.isAnnotated(parameter, AnnotationConstant.REQUEST_BODY, 0)) {
                 continue;
             }
 
-            if (AnnotationUtil.isAnnotated(parameter, AnnotationConfig.REQUEST_HEADER, 0)) {
+            if (AnnotationUtil.isAnnotated(parameter, AnnotationConstant.REQUEST_HEADER, 0)) {
                 continue;
             }
 
             PsiType type = parameter.getType();
 
-            if (type instanceof PsiPrimitiveType || FieldTypeConfig.FIELD_TYPE.containsKey(type.getPresentableText())) {
+            if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
                 list.add(buildPramFromParameter(settings, parameter));
             }
             // 在 param 中不存在对象类型

@@ -1,8 +1,8 @@
-package com.liuzhihang.doc.view.component;
+package com.liuzhihang.doc.view.config;
 
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
-import com.liuzhihang.doc.view.ui.TemplateSetting;
+import com.liuzhihang.doc.view.ui.SettingsForm;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,53 +10,39 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 
 /**
- * 设置末班
- *
  * @author liuzhihang
  * @date 2020/3/4 13:05
  */
-public class TemplateConfigurable implements SearchableConfigurable {
+public class SettingsConfigurable implements SearchableConfigurable {
 
-
-    private TemplateSetting templateSetting;
 
     @NotNull
     @Override
     public String getId() {
-        return "liuzhihang.api.doc.TemplateConfigurable";
+        return "liuzhihang.api.doc.SettingsConfigurable";
     }
 
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
     public String getDisplayName() {
-        return "Markdown Template";
+        return "Doc View";
     }
 
     @Nullable
     @Override
     public JComponent createComponent() {
 
-        templateSetting = new TemplateSetting();
-
-        return templateSetting.getRootPanel();
+        return new SettingsForm().getRootPanel();
     }
 
     @Override
     public boolean isModified() {
-
-        return templateSetting.isModified();
+        return false;
     }
 
     @Override
     public void apply() throws ConfigurationException {
 
-        templateSetting.apply();
-    }
-
-    @Override
-    public void reset() {
-
-        templateSetting.reset();
     }
 
 

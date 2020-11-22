@@ -8,7 +8,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiType;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.component.Settings;
+import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.DocViewService;
@@ -30,7 +30,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
     @Override
     public void doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass) {
 
-        Settings settings = project.getService(Settings.class);
+        Settings settings = Settings.getInstance(project);
 
         // 当前方法
         PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);

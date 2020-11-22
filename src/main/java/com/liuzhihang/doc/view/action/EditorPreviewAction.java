@@ -8,7 +8,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.component.Settings;
+import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
@@ -89,7 +89,7 @@ public class EditorPreviewAction extends AnAction {
             return;
         }
 
-        Settings settings = project.getService(Settings.class);
+        Settings settings = Settings.getInstance(project);
 
         // 检查是否有 Controller 注解 且不是接口
         if (!targetClass.isInterface() && !AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {

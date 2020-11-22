@@ -1,11 +1,13 @@
-package com.liuzhihang.doc.view.component;
+package com.liuzhihang.doc.view.config;
 
 import com.intellij.openapi.components.PersistentStateComponent;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
+import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
-import com.liuzhihang.doc.view.config.AnnotationConfig;
-import com.liuzhihang.doc.view.config.ValidationConfig;
+import com.liuzhihang.doc.view.constant.AnnotationConstant;
+import com.liuzhihang.doc.view.constant.ValidationConstant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,20 +31,20 @@ public class Settings implements PersistentStateComponent<Settings> {
      * 包含类注解名称
      */
     private Set<String> containClassAnnotationName = new HashSet<String>() {{
-        add(AnnotationConfig.CONTROLLER);
-        add(AnnotationConfig.REST_CONTROLLER);
+        add(AnnotationConstant.CONTROLLER);
+        add(AnnotationConstant.REST_CONTROLLER);
     }};
 
     /**
      * 包含方法注解名称
      */
     private Set<String> containMethodAnnotationName = new HashSet<String>() {{
-        add(AnnotationConfig.GET_MAPPING);
-        add(AnnotationConfig.POST_MAPPING);
-        add(AnnotationConfig.PUT_MAPPING);
-        add(AnnotationConfig.DELETE_MAPPING);
-        add(AnnotationConfig.PATCH_MAPPING);
-        add(AnnotationConfig.REQUEST_MAPPING);
+        add(AnnotationConstant.GET_MAPPING);
+        add(AnnotationConstant.POST_MAPPING);
+        add(AnnotationConstant.PUT_MAPPING);
+        add(AnnotationConstant.DELETE_MAPPING);
+        add(AnnotationConstant.PATCH_MAPPING);
+        add(AnnotationConstant.REQUEST_MAPPING);
     }};
 
 
@@ -60,9 +62,9 @@ public class Settings implements PersistentStateComponent<Settings> {
      * 字段必填注解
      */
     private Set<String> fieldRequiredAnnotationName = new HashSet<String>() {{
-        add(ValidationConfig.NOT_BLANK);
-        add(ValidationConfig.NOT_EMPTY);
-        add(ValidationConfig.NOT_NULL);
+        add(ValidationConstant.NOT_BLANK);
+        add(ValidationConstant.NOT_EMPTY);
+        add(ValidationConstant.NOT_NULL);
     }};
 
     /**
@@ -71,6 +73,10 @@ public class Settings implements PersistentStateComponent<Settings> {
     private Set<String> excludeFieldNames = new HashSet<String>() {{
         add("serialVersionUID");
     }};
+
+    public static Settings getInstance(@NotNull Project project) {
+        return ServiceManager.getService(project, Settings.class);
+    }
 
 
     @Nullable

@@ -6,8 +6,8 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
-import com.liuzhihang.doc.view.component.Settings;
-import com.liuzhihang.doc.view.config.FieldTypeConfig;
+import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.Body;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,7 +65,7 @@ public class DubboPsiUtils {
             body.setType(type.getPresentableText());
 
             // 基本类型
-            if (type instanceof PsiPrimitiveType || FieldTypeConfig.FIELD_TYPE.containsKey(type.getPresentableText())) {
+            if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
 
             } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_COLLECTION)) {
 
@@ -142,8 +142,8 @@ public class DubboPsiUtils {
 
             if (type instanceof PsiPrimitiveType) {
                 fieldMap.put(name, PsiTypesUtil.getDefaultValue(type));
-            } else if (FieldTypeConfig.FIELD_TYPE.containsKey(type.getPresentableText())) {
-                fieldMap.put(name, FieldTypeConfig.FIELD_TYPE.get(type.getPresentableText()));
+            } else if (FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
+                fieldMap.put(name, FieldTypeConstant.FIELD_TYPE.get(type.getPresentableText()));
             } else {
                 PsiClass psiClass = PsiUtil.resolveClassInType(type);
                 if (psiClass != null) {

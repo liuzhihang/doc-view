@@ -7,7 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
-import com.liuzhihang.doc.view.component.Settings;
+import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.impl.DubboDocViewServiceImpl;
 import com.liuzhihang.doc.view.service.impl.SpringDocViewServiceImpl;
@@ -31,7 +31,7 @@ public interface DocViewService {
             return ServiceManager.getService(DubboDocViewServiceImpl.class);
         }
 
-        Settings settings = project.getService(Settings.class);
+        Settings settings = Settings.getInstance(project);
 
         // Spring
         if (AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {

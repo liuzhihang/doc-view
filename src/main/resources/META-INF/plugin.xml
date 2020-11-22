@@ -18,7 +18,9 @@
         <!-- Add your extensions here -->
 
         <!-- 一个项目一个设置 -->
-        <projectService serviceImplementation="com.liuzhihang.doc.view.component.Settings"/>
+        <projectService serviceImplementation="com.liuzhihang.doc.view.config.Settings"/>
+        <!-- 模版设置 -->
+        <projectService serviceImplementation="com.liuzhihang.doc.view.config.TemplateSettings"/>
 
         <!-- 相关服务 -->
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.SpringDocViewServiceImpl"/>
@@ -26,17 +28,18 @@
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.DubboDocViewServiceImpl"/>
 
 
-        <applicationConfigurable instance="com.liuzhihang.doc.view.component.SettingsConfigurable"
-                                 id="liuzhihang.api.doc.SettingsConfigurable"
-                                 displayName="Doc View"
-                                 nonDefaultProject="true"/>
+        <!-- 配置为项目等级 全局为 applicationConfigurable -->
+        <projectConfigurable instance="com.liuzhihang.doc.view.config.SettingsConfigurable"
+                             id="liuzhihang.api.doc.SettingsConfigurable"
+                             displayName="Doc View"
+                             nonDefaultProject="true"/>
 
 
-        <applicationConfigurable instance="com.liuzhihang.doc.view.component.TemplateConfigurable"
-                                 id="liuzhihang.api.doc.TemplateConfigurable"
-                                 groupId="liuzhihang.api.doc.SettingsConfigurable"
-                                 displayName="Markdown Template"
-                                 nonDefaultProject="true"/>
+        <projectConfigurable instance="com.liuzhihang.doc.view.config.TemplateConfigurable"
+                             id="liuzhihang.api.doc.TemplateConfigurable"
+                             groupId="liuzhihang.api.doc.SettingsConfigurable"
+                             displayName="Markdown Template"
+                             nonDefaultProject="true"/>
 
 
         <toolWindow icon="/toolwindows/documentation.svg" id="Doc View" anchor="right"
@@ -44,7 +47,6 @@
 
         <!-- 2020.3 需要使用 notificationGroup 配置通知 -->
         <!--<notificationGroup id="DocView.NotificationGroup" displayType="BALLOON" key="DocView.NotificationGroup"/>-->
-
 
     </extensions>
 

@@ -5,7 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.*;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.component.Settings;
+import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.Header;
@@ -31,7 +31,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
     @Override
     public void doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass) {
 
-        Settings settings = project.getService(Settings.class);
+        Settings settings = Settings.getInstance(project);
 
         // 当前方法
         PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);

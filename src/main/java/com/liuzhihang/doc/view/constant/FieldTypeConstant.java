@@ -1,4 +1,4 @@
-package com.liuzhihang.doc.view.config;
+package com.liuzhihang.doc.view.constant;
 
 import org.jetbrains.annotations.NonNls;
 
@@ -11,7 +11,7 @@ import java.util.Set;
  * @author liuzhihang
  * @date 2020/3/4 20:35
  */
-public class FieldTypeConfig {
+public class FieldTypeConstant {
 
 
     @NonNls

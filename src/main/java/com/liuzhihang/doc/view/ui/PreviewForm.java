@@ -1,6 +1,5 @@
 package com.liuzhihang.doc.view.ui;
 
-import com.intellij.icons.AllIcons;
 import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
@@ -11,10 +10,12 @@ import com.intellij.ui.GuiUtils;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
+import com.liuzhihang.doc.view.config.TemplateSettings;
 import com.liuzhihang.doc.view.dto.DocView;
+import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
-import com.liuzhihang.doc.view.utils.DocUtils;
+import com.liuzhihang.doc.view.utils.VelocityUtils;
 import org.intellij.plugins.markdown.ui.preview.MarkdownUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -38,7 +39,6 @@ public class PreviewForm extends DialogWrapper {
     private JScrollPane rightScrollPane;
     private JList<String> catalogList;
     private JTextPane textPane;
-    private JButton button1;
 
 
     private Action copyAction;
@@ -92,9 +92,6 @@ public class PreviewForm extends DialogWrapper {
 
         catalogList.setBackground(UIUtil.getTextFieldBackground());
 
-
-        button1.setIcon(AllIcons.General.LayoutPreviewOnly);
-
     }
 
     private void buildDoc() {
@@ -107,8 +104,9 @@ public class PreviewForm extends DialogWrapper {
 
             currentDocView = docMap.get(selectedValue);
 
-            // 将 docView 对象转换为 markdown 文本
-            currentMarkdownText = DocUtils.convertMarkdownText(currentDocView);
+            // 将 docView 按照模版转换
+            DocViewData docViewData = new DocViewData(currentDocView);
+            currentMarkdownText = VelocityUtils.convert(TemplateSettings.getInstance(project).getSpringTemplate(), docViewData);
 
             String html = MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project);
 

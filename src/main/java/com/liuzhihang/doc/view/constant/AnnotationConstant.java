@@ -1,10 +1,10 @@
-package com.liuzhihang.doc.view.config;
+package com.liuzhihang.doc.view.constant;
 
 /**
  * @author liuzhihang
  * @date 2020/3/4 13:44
  */
-public class AnnotationConfig {
+public class AnnotationConstant {
 
     /**
      * controller
