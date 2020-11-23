@@ -17,6 +17,7 @@ Doc View
 - 支持 `validation` 相关注解
 - 复制 Markdown 文本剪贴板
 - 导出 Markdown 文件
+- 支持自定义 Markdown 模版
 
 **注：因 API 问题，新插件仅支持 2020.1 和 2020.2 版本 。**
 
@@ -29,7 +30,6 @@ Doc View
 - [ ] 面板支持查看 Markdown 源文本
 - [ ] 支持从 Swagger 注解获取字段相关信息
 - [ ] 支持 Setting 设置
-- [ ] 支持自定义模版
 - [ ] 支持上传到 YApi
 - [ ] 支持 ToolWindow 查看
 
@@ -54,10 +54,10 @@ Doc View
 更新
 ----
 
-## [v1.0.2](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.2) (2020-11-15)
+## [v1.0.4](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.4) (2020-11-23)
 
-- 新增配置页面(依旧不支持配置)
-- 新增导出单个为 Markdown 格式文件
+1. 支持配置 Markdown 模版。
+2. 在导出时如果已存在，会提示是否覆盖当前文件。
 
 
 [查看更多历史更新记录](./doc/ChangeNotes.md)
@@ -72,6 +72,10 @@ Doc View
 
 小伙伴们
 ----
+
+感谢以下小伙伴的参与:
+
+[lvgo](https://github.com/lvgocc)
 
 
 

@@ -1,6 +1,11 @@
 # ChangeNotes
 
 
+## [v1.0.4](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.4) (2020-11-23)
+
+1. 支持配置 Markdown 模版。
+2. 在导出时如果已存在，会提示是否覆盖当前文件。
+
 ## [v1.0.3](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.3) (2020-11-17)
 
 - 支持 Dubbo 接口

@@ -5,9 +5,11 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.EditorSettings;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBScrollPane;
@@ -24,8 +26,6 @@ import java.awt.*;
 public class TemplateSettingForm {
 
     private JPanel rootPanel;
-    private JPanel exportPanel;
-    private TextFieldWithBrowseButton exportPathButton;
 
     private JTabbedPane templateTabledPane;
     private JPanel springTemplatePanel;
@@ -40,8 +40,6 @@ public class TemplateSettingForm {
     public TemplateSettingForm(Project project) {
         this.project = project;
 
-
-        exportPanel.setBorder(IdeBorderFactory.createTitledBorder("Export Path"));
         templateTabledPane.setBorder(IdeBorderFactory.createTitledBorder("Markdown Template"));
         descriptionPanel.setBorder(IdeBorderFactory.createTitledBorder("Description"));
 
@@ -51,10 +49,10 @@ public class TemplateSettingForm {
 
         initSpringTemplatePanel(project, fileType);
         initDubboTemplatePanel(project, fileType);
-
         initDescriptionPanel(project, fileType);
 
     }
+
 
     /**
      * 初始化 Spring 模版

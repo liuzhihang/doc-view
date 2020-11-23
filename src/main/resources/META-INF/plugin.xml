@@ -42,8 +42,8 @@
                              nonDefaultProject="true"/>
 
 
-        <toolWindow icon="/toolwindows/documentation.svg" id="Doc View" anchor="right"
-                    factoryClass="com.liuzhihang.doc.view.tool.DocViewToolWindowFactory"/>
+        <!--<toolWindow icon="/toolwindows/documentation.svg" id="Doc View" anchor="right"-->
+        <!--            factoryClass="com.liuzhihang.doc.view.tool.DocViewToolWindowFactory"/>-->
 
         <!-- 2020.3 需要使用 notificationGroup 配置通知 -->
         <!--<notificationGroup id="DocView.NotificationGroup" displayType="BALLOON" key="DocView.NotificationGroup"/>-->
