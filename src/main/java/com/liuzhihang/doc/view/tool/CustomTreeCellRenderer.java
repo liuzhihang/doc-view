@@ -1,6 +1,8 @@
 package com.liuzhihang.doc.view.tool;
 
 import com.intellij.ide.util.treeView.NodeRenderer;
+import com.intellij.ui.JBColor;
+import com.intellij.util.ui.ImageUtil;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -8,12 +10,13 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.Objects;
 
 public class CustomTreeCellRenderer extends NodeRenderer {
 
-    private static final Color Level1 = new Color(92, 184, 92);
-    private static final Color Level2 = new Color(240, 173, 78);
-    private static final Color Level3 = new Color(217, 83, 79);
+    private static final JBColor Level1 = new JBColor(new Color(92, 184, 92), new Color(92, 184, 92));
+    private static final JBColor Level2 = new JBColor(new Color(240, 173, 78), new Color(240, 173, 78));
+    private static final JBColor Level3 = new JBColor(new Color(217, 83, 79), new Color(217, 83, 79));
 
     public CustomTreeCellRenderer() {
         loaColor();
@@ -25,12 +28,13 @@ public class CustomTreeCellRenderer extends NodeRenderer {
     public static BufferedImage getResourceBufferedImage(String filePath) {
         if (CustomTreeCellRenderer.class.getClassLoader().getResourceAsStream(filePath) != null) {
             try {
-                return ImageIO.read(CustomTreeCellRenderer.class.getClassLoader().getResourceAsStream(filePath));
+                return ImageIO.read(Objects.requireNonNull(CustomTreeCellRenderer.class.getClassLoader().getResourceAsStream(filePath)));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        return com.intellij.util.ui.UIUtil.createImage(10, 10, 1);
+
+        return ImageUtil.createImage(10, 10, 1);
     }
 
     @SuppressWarnings("unchecked")
