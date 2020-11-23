@@ -7,14 +7,12 @@ import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.EditorSettings;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBScrollPane;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.TemplateSettings;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,10 +27,13 @@ public class TemplateSettingForm {
     private JPanel exportPanel;
     private TextFieldWithBrowseButton exportPathButton;
 
-    private JPanel templatePanel;
+    private JTabbedPane templateTabledPane;
+    private JPanel springTemplatePanel;
     private JPanel descriptionPanel;
+    private JPanel dubboTemplatePanel;
 
-    private final Editor templateEditor;
+    private Editor springTemplateEditor;
+    private Editor dubboTemplateEditor;
 
     private final Project project;
 
@@ -41,30 +42,76 @@ public class TemplateSettingForm {
 
 
         exportPanel.setBorder(IdeBorderFactory.createTitledBorder("Export Path"));
-        templatePanel.setBorder(IdeBorderFactory.createTitledBorder("Markdown Template"));
+        templateTabledPane.setBorder(IdeBorderFactory.createTitledBorder("Markdown Template"));
         descriptionPanel.setBorder(IdeBorderFactory.createTitledBorder("Description"));
 
-        Document templateDocument = EditorFactory.getInstance().createDocument(TemplateSettings.getInstance(project).getSpringTemplate());
 
         // 会使用 velocity 渲染模版
         FileType fileType = FileTypeManager.getInstance().getFileTypeByExtension("md");
 
-        templateEditor = EditorFactory.getInstance().createEditor(templateDocument, project, fileType, false);
-        EditorSettings templateEditorSettings = templateEditor.getSettings();
-        templateEditorSettings.setAdditionalLinesCount(0);
-        templateEditorSettings.setAdditionalColumnsCount(0);
-        templateEditorSettings.setLineMarkerAreaShown(false);
-        templateEditorSettings.setLineNumbersShown(false);
-        templateEditorSettings.setVirtualSpace(false);
-        templateEditorSettings.setLanguageSupplier(() -> Language.findLanguageByID("Markdown"));
+        initSpringTemplatePanel(project, fileType);
+        initDubboTemplatePanel(project, fileType);
 
-        JBScrollPane templateScrollPane = new JBScrollPane(templateEditor.getComponent());
-        templatePanel.add(templateScrollPane, BorderLayout.CENTER);
+        initDescriptionPanel(project, fileType);
 
+    }
 
+    /**
+     * 初始化 Spring 模版
+     *
+     * @param project
+     * @param fileType
+     */
+    private void initSpringTemplatePanel(Project project, FileType fileType) {
+        Document templateDocument = EditorFactory.getInstance().createDocument(TemplateSettings.getInstance(project).getSpringTemplate());
+
+        springTemplateEditor = EditorFactory.getInstance().createEditor(templateDocument, project, fileType, false);
+        initEditorSettingsUI(springTemplateEditor);
+
+        JBScrollPane templateScrollPane = new JBScrollPane(springTemplateEditor.getComponent());
+        springTemplatePanel.add(templateScrollPane, BorderLayout.CENTER);
+    }
+
+    /**
+     * 初始化 Dubbo 模版
+     *
+     * @param project
+     * @param fileType
+     */
+    private void initDubboTemplatePanel(Project project, FileType fileType) {
+
+        Document document = EditorFactory.getInstance().createDocument(TemplateSettings.getInstance(project).getDubboTemplate());
+
+        dubboTemplateEditor = EditorFactory.getInstance().createEditor(document, project, fileType, false);
+        initEditorSettingsUI(dubboTemplateEditor);
+
+        JBScrollPane templateScrollPane = new JBScrollPane(dubboTemplateEditor.getComponent());
+        dubboTemplatePanel.add(templateScrollPane, BorderLayout.CENTER);
+
+    }
+
+    /**
+     * 显示字段描述
+     *
+     * @param project
+     * @param fileType
+     */
+    private void initDescriptionPanel(Project project, FileType fileType) {
         Document descriptionDocument = EditorFactory.getInstance().createDocument(DocViewBundle.message("template.description"));
 
         Editor descriptionEditor = EditorFactory.getInstance().createEditor(descriptionDocument, project, fileType, true);
+        initEditorSettingsUI(descriptionEditor);
+
+        descriptionPanel.add(descriptionEditor.getComponent(), BorderLayout.CENTER);
+    }
+
+
+    /**
+     * 设置编辑框的 UI
+     *
+     * @param descriptionEditor
+     */
+    private void initEditorSettingsUI(Editor descriptionEditor) {
         EditorSettings descriptionEditorSettings = descriptionEditor.getSettings();
         descriptionEditorSettings.setAdditionalLinesCount(0);
         descriptionEditorSettings.setAdditionalColumnsCount(0);
@@ -72,10 +119,8 @@ public class TemplateSettingForm {
         descriptionEditorSettings.setLineNumbersShown(false);
         descriptionEditorSettings.setVirtualSpace(false);
         descriptionEditorSettings.setLanguageSupplier(() -> Language.findLanguageByID("Markdown"));
-
-        descriptionPanel.add(descriptionEditor.getComponent(), BorderLayout.CENTER);
-
     }
+
 
     public JPanel getRootPanel() {
         return rootPanel;
@@ -85,14 +130,22 @@ public class TemplateSettingForm {
 
         TemplateSettings templateSettings = TemplateSettings.getInstance(project);
 
+        if (!templateSettings.getSpringTemplate().equals(springTemplateEditor.getDocument().getText())) {
+            return true;
+        }
+        if (!templateSettings.getDubboTemplate().equals(dubboTemplateEditor.getDocument().getText())) {
+            return true;
+        }
 
-        return !templateSettings.getSpringTemplate().equals(templateEditor.getDocument().getText());
+
+        return false;
     }
 
     public void apply() {
 
         TemplateSettings templateSettings = TemplateSettings.getInstance(project);
-        templateSettings.setSpringTemplate(templateEditor.getDocument().getText());
+        templateSettings.setSpringTemplate(springTemplateEditor.getDocument().getText());
+        templateSettings.setDubboTemplate(dubboTemplateEditor.getDocument().getText());
 
     }
 
@@ -100,5 +153,6 @@ public class TemplateSettingForm {
     public void reset() {
         TemplateSettings templateSettings = TemplateSettings.getInstance(project);
         templateSettings.setSpringTemplate(DocViewBundle.message("template.spring.init"));
+        templateSettings.setDubboTemplate(DocViewBundle.message("template.dubbo.init"));
     }
 }

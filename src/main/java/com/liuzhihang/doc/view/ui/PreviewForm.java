@@ -106,7 +106,12 @@ public class PreviewForm extends DialogWrapper {
 
             // 将 docView 按照模版转换
             DocViewData docViewData = new DocViewData(currentDocView);
-            currentMarkdownText = VelocityUtils.convert(TemplateSettings.getInstance(project).getSpringTemplate(), docViewData);
+            if (currentDocView.getType().equalsIgnoreCase("Dubbo")) {
+                currentMarkdownText = VelocityUtils.convert(TemplateSettings.getInstance(project).getDubboTemplate(), docViewData);
+            } else {
+                // 按照 Spring 模版
+                currentMarkdownText = VelocityUtils.convert(TemplateSettings.getInstance(project).getSpringTemplate(), docViewData);
+            }
 
             String html = MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project);
 

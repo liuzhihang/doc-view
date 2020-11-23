@@ -116,6 +116,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
             // 获取
             List<Body> reqBody = DubboPsiUtils.buildBody(settings, psiMethod);
             docView.setReqBodyList(reqBody);
+            docView.setReqExampleType("json");
 
             String bodyJson = DubboPsiUtils.getReqBodyJson(settings, psiMethod);
             docView.setReqExample(bodyJson);
