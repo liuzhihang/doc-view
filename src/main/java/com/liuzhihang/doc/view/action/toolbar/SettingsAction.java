@@ -2,6 +2,8 @@ package com.liuzhihang.doc.view.action.toolbar;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.options.ShowSettingsUtil;
+import com.liuzhihang.doc.view.config.SettingsConfigurable;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -14,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 public class SettingsAction extends AnAction {
 
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
-        System.out.println(e);
+    public void actionPerformed(@NotNull AnActionEvent anActionEvent) {
+        ShowSettingsUtil.getInstance().showSettingsDialog(anActionEvent.getProject(), SettingsConfigurable.class);
     }
 }

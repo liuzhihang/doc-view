@@ -11,9 +11,11 @@ import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.impl.DubboDocViewServiceImpl;
 import com.liuzhihang.doc.view.service.impl.SpringDocViewServiceImpl;
+import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -22,10 +24,30 @@ import java.util.Map;
  */
 public interface DocViewService {
 
+    /**
+     * 获取接口生成 service
+     *
+     * @param project 项目参数
+     * @param psiFile PsiFile
+     * @return DocViewService
+     * @author lvgorice@gmail.com
+     * @since 1.0.4
+     */
+    static DocViewService getInstance(Project project, PsiFile psiFile) {
+        PsiClass targetClass = CustomPsiUtils.getTargetClass(psiFile);
+        if (targetClass == null) {
+            return null;
+        }
+        return getDocViewService(project, targetClass);
+    }
 
     @Nullable
     static DocViewService getInstance(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull PsiClass targetClass) {
+        return getDocViewService(project, targetClass);
+    }
 
+    @Nullable
+    static DocViewService getDocViewService(@NotNull Project project, @NotNull PsiClass targetClass) {
         // Dubbo
         if (targetClass.isInterface()) {
             return ServiceManager.getService(DubboDocViewServiceImpl.class);
@@ -40,6 +62,22 @@ public interface DocViewService {
         return null;
     }
 
+    /**
+     * 生成接口文档
+     *
+     * @param project 项目参数
+     * @param psiFile 当前操作文件
+     * @return 生成结果
+     */
+    default Map<String, DocView> generatorDocView(Project project, PsiFile psiFile) {
+        Settings settings = Settings.getInstance(project);
+        PsiClass targetClass = CustomPsiUtils.getTargetClass(psiFile);
+        if (targetClass == null) {
+            return new HashMap<>();
+        }
+        // 生成文档列表
+        return buildClassDoc(settings, targetClass);
+    }
 
     void doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass);
 

@@ -3,7 +3,6 @@ package com.liuzhihang.doc.view.utils;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.intellij.psi.util.PsiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,6 +12,23 @@ import org.jetbrains.annotations.Nullable;
  */
 public class CustomPsiUtils {
 
+    /**
+     * 通过 PsiFile 获取 PsiClass
+     *
+     * @param file PsiFile
+     * @return PsiClass
+     * @author lvgorice@gmail.com
+     * @since 1.0.4
+     */
+    public static PsiClass getTargetClass(PsiFile file) {
+        PsiElement[] children = file.getChildren();
+        for (PsiElement child : children) {
+            if (child instanceof PsiClass) {
+                return (PsiClass) child;
+            }
+        }
+        return null;
+    }
 
     @Nullable
     public static PsiClass getTargetClass(@NotNull Editor editor, @NotNull PsiFile file) {
@@ -52,11 +68,7 @@ public class CustomPsiUtils {
 
         PsiModifierList modifierList = psiMethod.getModifierList();
 
-        if (modifierList.hasModifierProperty(modifier)) {
-            return true;
-        }
-
-        return false;
+        return modifierList.hasModifierProperty(modifier);
     }
 
     /**
@@ -75,11 +87,7 @@ public class CustomPsiUtils {
         }
 
 
-        if (modifierList.hasModifierProperty(modifier)) {
-            return true;
-        }
-
-        return false;
+        return modifierList.hasModifierProperty(modifier);
     }
 
 
