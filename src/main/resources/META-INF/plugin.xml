@@ -12,7 +12,7 @@
     <depends>org.intellij.plugins.markdown</depends>
 
     <!-- 兼容 IDEA 版本 -->
-    <idea-version since-build="201.6668.113" until-build="202.*"/>
+    <idea-version since-build="203.3645.34"/>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
@@ -48,7 +48,7 @@
                     factoryClass="com.liuzhihang.doc.view.tool.DocViewToolWindowFactory"/>
 
         <!-- 2020.3 需要使用 notificationGroup 配置通知 -->
-        <!--<notificationGroup id="doc-view.NotificationGroup" displayType="BALLOON" key="doc-view.NotificationGroup"/>-->
+        <notificationGroup id="doc-view.NotificationGroup" displayType="BALLOON"/>
 
     </extensions>
 

@@ -4,9 +4,9 @@ plugins {
 }
 
 group 'com.liuzhihang'
-version '1.0.4'
+version '1.0.5'
 
-JavaVersion.VERSION_1_8
+JavaVersion.VERSION_11
 
 repositories {
     mavenLocal()
@@ -20,8 +20,9 @@ dependencies {
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
+// 设置仅支持 IU
 intellij {
-    version '2020.2'
+    version 'IU-2020.3'
     plugins = ['java', 'markdown']
     pluginName 'Doc View'
     updateSinceUntilBuild false

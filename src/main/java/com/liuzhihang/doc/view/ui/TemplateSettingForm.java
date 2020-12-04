@@ -1,13 +1,18 @@
 package com.liuzhihang.doc.view.ui;
 
+import com.intellij.ide.highlighter.HighlighterFactory;
 import com.intellij.lang.Language;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.EditorSettings;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
+import com.intellij.openapi.editor.ex.EditorEx;
+import com.intellij.openapi.editor.highlighter.EditorHighlighter;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.fileTypes.UnknownFileType;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.TextComponentAccessor;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
@@ -15,6 +20,7 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBScrollPane;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.TemplateSettings;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -32,8 +38,8 @@ public class TemplateSettingForm {
     private JPanel descriptionPanel;
     private JPanel dubboTemplatePanel;
 
-    private Editor springTemplateEditor;
-    private Editor dubboTemplateEditor;
+    private EditorEx springTemplateEditor;
+    private EditorEx dubboTemplateEditor;
 
     private final Project project;
 
@@ -47,8 +53,11 @@ public class TemplateSettingForm {
         // 会使用 velocity 渲染模版
         FileType fileType = FileTypeManager.getInstance().getFileTypeByExtension("md");
 
-        initSpringTemplatePanel(project, fileType);
-        initDubboTemplatePanel(project, fileType);
+        final EditorHighlighter editorHighlighter =
+                HighlighterFactory.createHighlighter(fileType, EditorColorsManager.getInstance().getGlobalScheme(), null);
+
+        initSpringTemplatePanel(project, fileType, editorHighlighter);
+        initDubboTemplatePanel(project, fileType, editorHighlighter);
         initDescriptionPanel(project, fileType);
 
     }
@@ -59,12 +68,15 @@ public class TemplateSettingForm {
      *
      * @param project
      * @param fileType
+     * @param editorHighlighter
      */
-    private void initSpringTemplatePanel(Project project, FileType fileType) {
+    private void initSpringTemplatePanel(Project project, FileType fileType, EditorHighlighter editorHighlighter) {
         Document templateDocument = EditorFactory.getInstance().createDocument(TemplateSettings.getInstance(project).getSpringTemplate());
 
-        springTemplateEditor = EditorFactory.getInstance().createEditor(templateDocument, project, fileType, false);
+        springTemplateEditor = (EditorEx) EditorFactory.getInstance().createEditor(templateDocument, project, fileType, false);
         initEditorSettingsUI(springTemplateEditor);
+
+        springTemplateEditor.setHighlighter(editorHighlighter);
 
         JBScrollPane templateScrollPane = new JBScrollPane(springTemplateEditor.getComponent());
         springTemplatePanel.add(templateScrollPane, BorderLayout.CENTER);
@@ -75,13 +87,16 @@ public class TemplateSettingForm {
      *
      * @param project
      * @param fileType
+     * @param editorHighlighter
      */
-    private void initDubboTemplatePanel(Project project, FileType fileType) {
+    private void initDubboTemplatePanel(Project project, FileType fileType, EditorHighlighter editorHighlighter) {
 
         Document document = EditorFactory.getInstance().createDocument(TemplateSettings.getInstance(project).getDubboTemplate());
 
-        dubboTemplateEditor = EditorFactory.getInstance().createEditor(document, project, fileType, false);
+        dubboTemplateEditor = (EditorEx) EditorFactory.getInstance().createEditor(document, project, fileType, false);
         initEditorSettingsUI(dubboTemplateEditor);
+
+        dubboTemplateEditor.setHighlighter(editorHighlighter);
 
         JBScrollPane templateScrollPane = new JBScrollPane(dubboTemplateEditor.getComponent());
         dubboTemplatePanel.add(templateScrollPane, BorderLayout.CENTER);
@@ -117,6 +132,7 @@ public class TemplateSettingForm {
         descriptionEditorSettings.setLineNumbersShown(false);
         descriptionEditorSettings.setVirtualSpace(false);
         descriptionEditorSettings.setLanguageSupplier(() -> Language.findLanguageByID("Markdown"));
+
     }
 
 

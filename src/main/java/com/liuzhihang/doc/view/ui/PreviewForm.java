@@ -16,7 +16,9 @@ import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
 import com.liuzhihang.doc.view.utils.VelocityUtils;
-import org.intellij.plugins.markdown.ui.preview.MarkdownUtil;
+import org.intellij.plugins.markdown.settings.MarkdownApplicationSettings;
+import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanelProvider;
+import org.intellij.plugins.markdown.ui.preview.html.MarkdownUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,6 +93,12 @@ public class PreviewForm extends DialogWrapper {
         textPane.setBorder(JBUI.Borders.emptyLeft(17));
 
         catalogList.setBackground(UIUtil.getTextFieldBackground());
+
+        // TODO: 2020/12/4  MarkdownHtmlPanel 替代右侧
+        // MarkdownApplicationSettings settings = MarkdownApplicationSettings.getInstance();
+        // final MarkdownHtmlPanelProvider.ProviderInfo providerInfo = settings.getMarkdownPreviewSettings().getHtmlPanelProviderInfo();
+        // MarkdownHtmlPanelProvider provider = MarkdownHtmlPanelProvider.createFromInfo(providerInfo);
+        // markdownHtmlPanel = provider.createHtmlPanel();
 
     }
 

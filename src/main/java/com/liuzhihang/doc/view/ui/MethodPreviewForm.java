@@ -14,7 +14,7 @@ import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
 import com.liuzhihang.doc.view.utils.VelocityUtils;
-import org.intellij.plugins.markdown.ui.preview.MarkdownUtil;
+import org.intellij.plugins.markdown.ui.preview.html.MarkdownUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

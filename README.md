@@ -54,10 +54,9 @@ Doc View
 更新
 ----
 
-## [v1.0.4](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.4) (2020-11-23)
+## [v1.0.5](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.5) (2020-12-05)
 
-1. 支持配置 Markdown 模版。
-2. 在导出时如果已存在，会提示是否覆盖当前文件。
+1. 支持 IDEA 2020.3
 
 
 [查看更多历史更新记录](./doc/ChangeNotes.md)
