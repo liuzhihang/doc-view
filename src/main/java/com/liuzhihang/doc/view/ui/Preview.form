@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.liuzhihang.doc.view.ui.PreviewForm">
-  <grid id="27dc6" binding="rootJPanel" default-binding="true" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="rootJPanel" default-binding="true" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="20" width="772" height="567"/>
@@ -15,18 +15,18 @@
     <children>
       <splitpane id="91f69" binding="viewSplitPane">
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
             <preferred-size width="200" height="200"/>
           </grid>
         </constraints>
         <properties>
           <continuousLayout value="true"/>
-          <dividerLocation value="101"/>
+          <dividerLocation value="150"/>
           <dividerSize value="-1"/>
           <doubleBuffered value="false"/>
           <enabled value="true"/>
           <focusCycleRoot value="false"/>
-          <lastDividerLocation value="200"/>
+          <lastDividerLocation value="150"/>
         </properties>
         <border type="none"/>
         <children>
@@ -50,36 +50,31 @@
               </component>
             </children>
           </scrollpane>
-          <scrollpane id="a695f" binding="rightScrollPane">
+          <grid id="7294f" binding="previewPane" layout-manager="BorderLayout" hgap="0" vgap="0">
             <constraints>
               <splitpane position="right"/>
             </constraints>
-            <properties>
-              <minimumSize width="100" height="-1"/>
-              <preferredSize width="-1" height="-1"/>
-            </properties>
-            <border type="empty"/>
+            <properties/>
+            <border type="none"/>
             <children>
-              <component id="4611d" class="javax.swing.JTextPane" binding="textPane">
-                <constraints/>
-                <properties>
-                  <contentType value="text/html"/>
-                  <editable value="false"/>
-                  <enabled value="true"/>
-                  <selectionColor color="-13670966"/>
-                  <text value="&lt;!DOCTYPE html&gt; &lt;html lang=&quot;en&quot;&gt; &lt;head&gt;     &lt;meta charset=&quot;UTF-8&quot;&gt;     &lt;title&gt;Doc View&lt;/title&gt;     &lt;style&gt;           body ul {             padding-left: 0 !important;         }          body table {             margin: 0;             border-bottom: 1px solid #dddddd;             border-right: 1px solid #dddddd;             border-collapse: collapse;             border-spacing: 0;         }          table tr th {             margin: 0;             border-top: 1px solid #dddddd; /*内部边框样式*/             border-left: 1px solid #dddddd; /*内部边框样式*/             padding: 5px 5px; /*内边距*/             border-collapse: collapse;         }          table tr td {             margin: 0;             border-top: 1px solid #dddddd; /*内部边框样式*/             border-left: 1px solid #dddddd; /*内部边框样式*/             padding: 5px 5px; /*内边距*/         }       &lt;/style&gt; &lt;/head&gt; &lt;body&gt;   &lt;/body&gt; &lt;/html&gt;" noi18n="true"/>
-                </properties>
-                <clientProperties>
-                  <JEditorPane.honorDisplayProperties class="java.lang.Boolean" value="true"/>
-                  <JEditorPane.w3cLengthUnits class="java.lang.Boolean" value="false"/>
-                  <charset class="java.lang.String" value=""/>
-                  <html.disable class="java.lang.Boolean" value="false"/>
-                </clientProperties>
-              </component>
+              <grid id="66aae" binding="previewEditorPane" layout-manager="BorderLayout" hgap="3" vgap="0">
+                <constraints border-constraint="South"/>
+                <properties/>
+                <border type="none"/>
+                <children/>
+              </grid>
             </children>
-          </scrollpane>
+          </grid>
         </children>
       </splitpane>
+      <grid id="f0cc8" binding="rootToolPane" layout-manager="BorderLayout" hgap="3" vgap="0">
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="none"/>
+        <children/>
+      </grid>
     </children>
   </grid>
 </form>

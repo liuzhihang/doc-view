@@ -3,6 +3,8 @@ package com.liuzhihang.doc.view.service.impl;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.*;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
@@ -58,7 +60,19 @@ public class SpringDocViewServiceImpl implements DocViewService {
         }
 
         DialogWrapper dialog = new PreviewForm(project, psiFile, editor, targetClass, docMap);
-        dialog.show();
+        // dialog.show();
+
+
+        JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(dialog.getContentPanel(), dialog.getContentPanel())
+                .setProject(project)
+                .setResizable(true)
+                .setMovable(true)
+                .setFocusable(true)
+                .setCancelOnClickOutside(true)
+                .setModalContext(false)
+                // .setDimensionServiceKey(project, DOCUMENTATION_POPUP_SIZE, false)
+                .createPopup();
+        popup.showCenteredInCurrentWindow(project);
 
     }
 

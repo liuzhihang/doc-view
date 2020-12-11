@@ -46,7 +46,7 @@ public class TemplateConfigurable implements SearchableConfigurable {
 
         templateSettingForm = new TemplateSettingForm(project);
 
-        return templateSettingForm.getRootPanel();
+        return templateSettingForm.createCenterPanel();
     }
 
     @Override

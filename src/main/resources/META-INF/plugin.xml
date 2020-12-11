@@ -44,8 +44,8 @@
                              nonDefaultProject="true"/>
 
 
-        <toolWindow icon="/toolwindows/documentation.svg" id="Doc View" anchor="right"
-                    factoryClass="com.liuzhihang.doc.view.tool.DocViewToolWindowFactory"/>
+        <!--<toolWindow icon="/toolwindows/documentation.svg" id="Doc View" anchor="right"-->
+        <!--            factoryClass="com.liuzhihang.doc.view.tool.DocViewToolWindowFactory"/>-->
 
         <!-- 2020.3 需要使用 notificationGroup 配置通知 -->
         <notificationGroup id="doc-view.NotificationGroup" displayType="BALLOON"/>
@@ -57,10 +57,10 @@
         <action id="liuzhihang.doc.view" class="com.liuzhihang.doc.view.action.EditorPreviewAction" text="Doc View">
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
         </action>
-        <action id="liuzhihang.doc.view.project" class="com.liuzhihang.doc.view.action.ProjectViewPreviewAction"
-                text="Doc View">
-            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>
-        </action>
+        <!--<action id="liuzhihang.doc.view.project" class="com.liuzhihang.doc.view.action.ProjectViewPreviewAction"-->
+        <!--        text="Doc View">-->
+        <!--    <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>-->
+        <!--</action>-->
 
         <!-- NavigatorActionsToolbar's actions -->
         <action id="doc-view.refresh" class="com.liuzhihang.doc.view.action.toolbar.RefreshAction"

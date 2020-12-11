@@ -9,18 +9,15 @@ import com.intellij.openapi.editor.EditorSettings;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.highlighter.EditorHighlighter;
-import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
-import com.intellij.openapi.fileTypes.UnknownFileType;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.TextComponentAccessor;
-import com.intellij.openapi.ui.TextFieldWithBrowseButton;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBScrollPane;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.TemplateSettings;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,7 +26,7 @@ import java.awt.*;
  * @author liuzhihang
  * @date 2020/11/20 16:48
  */
-public class TemplateSettingForm {
+public class TemplateSettingForm extends DialogWrapper {
 
     private JPanel rootPanel;
 
@@ -44,7 +41,10 @@ public class TemplateSettingForm {
     private final Project project;
 
     public TemplateSettingForm(Project project) {
+        super(project, true, DialogWrapper.IdeModalityType.PROJECT);
         this.project = project;
+
+        init();
 
         templateTabledPane.setBorder(IdeBorderFactory.createTitledBorder("Markdown Template"));
         descriptionPanel.setBorder(IdeBorderFactory.createTitledBorder("Description"));
@@ -53,13 +53,16 @@ public class TemplateSettingForm {
         // 会使用 velocity 渲染模版
         FileType fileType = FileTypeManager.getInstance().getFileTypeByExtension("md");
 
-        final EditorHighlighter editorHighlighter =
-                HighlighterFactory.createHighlighter(fileType, EditorColorsManager.getInstance().getGlobalScheme(), null);
-
-        initSpringTemplatePanel(project, fileType, editorHighlighter);
-        initDubboTemplatePanel(project, fileType, editorHighlighter);
+        initSpringTemplatePanel(project, fileType);
+        initDubboTemplatePanel(project, fileType);
         initDescriptionPanel(project, fileType);
 
+    }
+
+    @Nullable
+    @Override
+    public JComponent createCenterPanel() {
+        return rootPanel;
     }
 
 
@@ -68,10 +71,13 @@ public class TemplateSettingForm {
      *
      * @param project
      * @param fileType
-     * @param editorHighlighter
      */
-    private void initSpringTemplatePanel(Project project, FileType fileType, EditorHighlighter editorHighlighter) {
+    private void initSpringTemplatePanel(Project project, FileType fileType) {
         Document templateDocument = EditorFactory.getInstance().createDocument(TemplateSettings.getInstance(project).getSpringTemplate());
+
+        final EditorHighlighter editorHighlighter =
+                HighlighterFactory.createHighlighter(fileType, EditorColorsManager.getInstance().getGlobalScheme(), project);
+
 
         springTemplateEditor = (EditorEx) EditorFactory.getInstance().createEditor(templateDocument, project, fileType, false);
         initEditorSettingsUI(springTemplateEditor);
@@ -87,14 +93,17 @@ public class TemplateSettingForm {
      *
      * @param project
      * @param fileType
-     * @param editorHighlighter
      */
-    private void initDubboTemplatePanel(Project project, FileType fileType, EditorHighlighter editorHighlighter) {
+    private void initDubboTemplatePanel(Project project, FileType fileType) {
 
         Document document = EditorFactory.getInstance().createDocument(TemplateSettings.getInstance(project).getDubboTemplate());
 
         dubboTemplateEditor = (EditorEx) EditorFactory.getInstance().createEditor(document, project, fileType, false);
         initEditorSettingsUI(dubboTemplateEditor);
+
+
+        final EditorHighlighter editorHighlighter =
+                HighlighterFactory.createHighlighter(fileType, EditorColorsManager.getInstance().getGlobalScheme(), project);
 
         dubboTemplateEditor.setHighlighter(editorHighlighter);
 
@@ -131,13 +140,9 @@ public class TemplateSettingForm {
         descriptionEditorSettings.setLineMarkerAreaShown(false);
         descriptionEditorSettings.setLineNumbersShown(false);
         descriptionEditorSettings.setVirtualSpace(false);
+        descriptionEditorSettings.setFoldingOutlineShown(false);
         descriptionEditorSettings.setLanguageSupplier(() -> Language.findLanguageByID("Markdown"));
 
-    }
-
-
-    public JPanel getRootPanel() {
-        return rootPanel;
     }
 
     public boolean isModified() {
