@@ -1,10 +1,12 @@
 package com.liuzhihang.doc.view.ui;
 
+import com.intellij.find.editorHeaderActions.Utils;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.PinActiveTabAction;
 import com.intellij.ide.highlighter.HighlighterFactory;
 import com.intellij.lang.Language;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -60,6 +62,7 @@ public class PreviewForm extends DialogWrapper {
     private JPanel previewPane;
     private JPanel rootToolPane;
     private JPanel previewEditorPane;
+    private JLabel docInfoLabel;
 
     private EditorEx markdownEditor;
 
@@ -95,7 +98,8 @@ public class PreviewForm extends DialogWrapper {
         initRootToolbar();
         // 右侧文档
         initMarkdownEditor();
-        initEditorToolbar();
+        initEditorLeftToolbar();
+        initEditorRightToolbar();
 
         // 生成文档
         buildDoc();
@@ -112,13 +116,21 @@ public class PreviewForm extends DialogWrapper {
 
         JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(getContentPanel(), getContentPanel())
                 .setProject(project)
+                .setModalContext(false)
+                .setCancelOnClickOutside(true)
+                .setRequestFocus(true)
+                .setCancelKeyEnabled(false)
+                .addUserData("SIMPLE_WINDOW")
                 .setResizable(true)
                 .setMovable(true)
-                .setCancelOnClickOutside(true)
-                .setModalContext(false)
-                .setDimensionServiceKey(project, DOC_VIEW_POPUP, false)
+                .setDimensionServiceKey(project, DOC_VIEW_POPUP, true)
+                .setLocateWithinScreenBounds(false)
                 .createPopup();
+
+        // Disposer.register(popup);
+
         popup.showCenteredInCurrentWindow(project);
+
     }
 
 
@@ -153,10 +165,16 @@ public class PreviewForm extends DialogWrapper {
         group.add(new PinActiveTabAction());
 
 
-        ActionToolbar actionToolbar = ActionManager.getInstance()
-                .createActionToolbar(ActionPlaces.POPUP, group, true);
-        actionToolbar.setTargetComponent(rootToolPane);
-        rootToolPane.add(actionToolbar.getComponent(), BorderLayout.EAST);
+        ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
+                .createActionToolbar("DocViewRootToolbar", group, true);
+        toolbar.setTargetComponent(rootToolPane);
+
+        toolbar.setForceMinimumSize(true);
+        toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
+        Utils.setSmallerFontForChildren(toolbar);
+        toolbar.setNoGapMode();
+
+        rootToolPane.add(toolbar.getComponent(), BorderLayout.EAST);
     }
 
 
@@ -186,10 +204,48 @@ public class PreviewForm extends DialogWrapper {
     }
 
 
-    private void initEditorToolbar() {
-        DefaultActionGroup group = new DefaultActionGroup();
+    private void initEditorLeftToolbar() {
 
-        group.add(new AnAction("Export", "Export markdown", AllIcons.ToolbarDecorator.Export) {
+        DefaultActionGroup leftGroup = new DefaultActionGroup();
+
+        leftGroup.add(new AnAction("Preview", "Preview markdown", AllIcons.Actions.Preview) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+
+                NotificationUtils.infoNotify(DocViewBundle.message("notify.preview.success"), project);
+
+            }
+        });
+
+        leftGroup.addSeparator();
+
+        leftGroup.add(new AnAction("Editor", "Editor doc", AllIcons.Actions.Edit) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+
+                NotificationUtils.infoNotify(DocViewBundle.message("notify.editor.success"), project);
+
+            }
+        });
+
+        ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
+                .createActionToolbar("DocViewEditorLeftToolbar", leftGroup, true);
+        toolbar.setTargetComponent(previewEditorPane);
+        toolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
+
+        toolbar.setForceMinimumSize(true);
+        toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
+        Utils.setSmallerFontForChildren(toolbar);
+        toolbar.setNoGapMode();
+
+        previewEditorPane.setBackground(markdownEditor.getBackgroundColor());
+        previewEditorPane.add(toolbar.getComponent(), BorderLayout.WEST);
+    }
+
+    private void initEditorRightToolbar() {
+        DefaultActionGroup rightGroup = new DefaultActionGroup();
+
+        rightGroup.add(new AnAction("Export", "Export markdown", AllIcons.ToolbarDecorator.Export) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
@@ -197,7 +253,7 @@ public class PreviewForm extends DialogWrapper {
             }
         });
 
-        group.add(new AnAction("Copy", "Copy to clipboard", AllIcons.Actions.Copy) {
+        rightGroup.add(new AnAction("Copy", "Copy to clipboard", AllIcons.Actions.Copy) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
@@ -210,13 +266,18 @@ public class PreviewForm extends DialogWrapper {
         });
 
         // init toolbar
-        ActionToolbar actionToolbar = ActionManager.getInstance()
-                .createActionToolbar(ActionPlaces.POPUP, group, true);
-        actionToolbar.setTargetComponent(previewEditorPane);
-        actionToolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
+        ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
+                .createActionToolbar("DocViewEditorRightToolbar", rightGroup, true);
+        toolbar.setTargetComponent(previewEditorPane);
+        toolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
 
+        toolbar.setForceMinimumSize(true);
+        toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
+        Utils.setSmallerFontForChildren(toolbar);
+        toolbar.setNoGapMode();
         previewEditorPane.setBackground(markdownEditor.getBackgroundColor());
-        previewEditorPane.add(actionToolbar.getComponent(), BorderLayout.EAST);
+        previewEditorPane.add(toolbar.getComponent(), BorderLayout.EAST);
+
     }
 
 
@@ -229,6 +290,8 @@ public class PreviewForm extends DialogWrapper {
             String selectedValue = catalogList.getSelectedValue();
 
             currentDocView = docMap.get(selectedValue);
+
+            docInfoLabel.setText(currentDocView.getMethodFullName());
 
             // 将 docView 按照模版转换
             DocViewData docViewData = new DocViewData(currentDocView);
@@ -267,5 +330,4 @@ public class PreviewForm extends DialogWrapper {
         // 禁用默认的按钮
         return new Action[]{};
     }
-
 }

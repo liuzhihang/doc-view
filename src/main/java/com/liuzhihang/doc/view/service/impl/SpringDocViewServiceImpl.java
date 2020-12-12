@@ -92,12 +92,11 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
         String name = CustomPsiCommentUtils.getComment(psiMethod.getDocComment(), "name", false);
 
-        if (StringUtils.isBlank(name)) {
-            name = psiClass.getName() + "#" + psiMethod.getName();
-        }
+        String methodFullName = psiClass.getName() + "#" + psiMethod.getName();
 
         DocView docView = new DocView();
-        docView.setName(name);
+        docView.setMethodFullName(methodFullName);
+        docView.setName(StringUtils.isBlank(name) ? methodFullName : name);
         docView.setDesc(desc);
         docView.setPath(path);
         docView.setMethod(method);

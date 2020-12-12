@@ -24,11 +24,6 @@ public class Param {
      */
     private String desc;
 
-    /**
-     * 备注
-     */
-    private String remark;
-
 
     /**
      * 类型
@@ -66,14 +61,6 @@ public class Param {
 
     public void setDesc(String desc) {
         this.desc = desc;
-    }
-
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
     }
 
     public String getType() {

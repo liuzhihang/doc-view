@@ -75,8 +75,11 @@ public class DocViewData {
     private final String responseExample;
 
 
+    private final String methodFullName;
+
     public DocViewData(DocView docView) {
 
+        this.methodFullName = docView.getMethodFullName();
         this.name = docView.getName();
         this.desc = docView.getDesc();
         this.path = docView.getPath();
@@ -121,7 +124,7 @@ public class DocViewData {
         }
 
 
-        return "|参数名|参数值|必填|备注|\n" +
+        return "|参数名|参数值|必填|描述|\n" +
                 "|:-----|:-----|:-----|:-----|\n" +
                 builder;
     }
@@ -140,12 +143,12 @@ public class DocViewData {
                     .append("|").append(param.getType())
                     .append("|").append(param.getRequired() ? "Y" : "N")
                     .append("|").append(StringUtils.isNotBlank(param.getDesc()) ? param.getDesc() : "")
-                    .append("|").append(StringUtils.isNotBlank(param.getRemark()) ? param.getRemark() : "");
+                    .append("|").append("\n");
         }
 
 
-        return "|参数名|类型|必选|说明|备注|\n" +
-                "|:-----|:-----|:-----|:-----|:-----|\n" +
+        return "|参数名|类型|必选|描述|\n" +
+                "|:-----|:-----|:-----|:-----|\n" +
                 builder;
     }
 
@@ -157,8 +160,8 @@ public class DocViewData {
             return "";
         }
 
-        return "|参数名|类型|必选|说明|备注|\n" +
-                "|:-----|:-----|:-----|:-----|:-----|\n" +
+        return "|参数名|类型|必选|描述|\n" +
+                "|:-----|:-----|:-----|:-----|\n" +
                 buildTableContext(paramList, "");
     }
 
@@ -171,8 +174,8 @@ public class DocViewData {
         }
 
 
-        return "|参数名|类型|必选|说明|备注|\n" +
-                "|:----|:----|:-----|:-----|:-----|\n" +
+        return "|参数名|类型|必选|描述|\n" +
+                "|:----|:----|:-----|:-----|\n" +
                 buildTableContext(paramList, "");
     }
 
@@ -190,7 +193,6 @@ public class DocViewData {
                     .append("|").append(body.getType())
                     .append("|").append(body.getRequired() ? "Y" : "N")
                     .append("|").append(StringUtils.isNotBlank(body.getDesc()) ? body.getDesc() : "")
-                    .append("|").append(StringUtils.isNotBlank(body.getRemark()) ? body.getRemark() : "")
                     .append("|").append("\n");
 
 
@@ -243,5 +245,10 @@ public class DocViewData {
 
     public String getRequestParam() {
         return requestParam;
+    }
+
+
+    public String getMethodFullName() {
+        return methodFullName;
     }
 }

@@ -28,12 +28,6 @@ public class Body {
     private String desc;
 
     /**
-     * 备注
-     */
-    private String remark;
-
-
-    /**
      * 类型
      */
     private String type;
@@ -73,14 +67,6 @@ public class Body {
 
     public void setDesc(String desc) {
         this.desc = desc;
-    }
-
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
     }
 
     public String getType() {

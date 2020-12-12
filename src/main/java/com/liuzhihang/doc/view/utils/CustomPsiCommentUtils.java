@@ -34,14 +34,15 @@ public class CustomPsiCommentUtils {
 
         for (PsiElement descriptionElement : descriptionElements) {
             if (StringUtils.isNotBlank(descriptionElement.getText())) {
-                desc.append(descriptionElement.getText()).append("\n");
+                // 替换回车符为 <br/> 防止出现列表参数混乱
+                desc.append(descriptionElement.getText()).append("<br/>");
             }
         }
 
         String comment = desc.toString();
 
-        if (comment.endsWith("\n")) {
-            comment = comment.substring(0, comment.lastIndexOf("\n"));
+        if (comment.endsWith("<br/>")) {
+            comment = comment.substring(0, comment.lastIndexOf("<br/>"));
         }
 
         return comment;

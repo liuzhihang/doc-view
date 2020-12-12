@@ -221,18 +221,6 @@ public class SpringPsiUtils {
         return null;
     }
 
-    @NotNull
-    private static Param buildPramFromParameter(@NotNull Settings settings, PsiParameter parameter) {
-
-        Param param = new Param();
-        param.setRequired(AnnotationUtil.isAnnotated(parameter, settings.getFieldRequiredAnnotationName(), 0));
-        param.setName(parameter.getName());
-        String fieldTypeName = parameter.getType().getPresentableText();
-        param.setType(fieldTypeName);
-
-        return param;
-    }
-
 
     @NotNull
     private static Body buildBodyFromParameter(@NotNull Settings settings, PsiParameter parameter) {
@@ -298,8 +286,6 @@ public class SpringPsiUtils {
     }
 
 
-
-
     public static List<Param> buildFormParam(Settings settings, PsiMethod psiMethod) {
 
         if (!psiMethod.hasParameters()) {
@@ -330,8 +316,36 @@ public class SpringPsiUtils {
 
     }
 
+    @NotNull
+    private static Param buildPramFromParameter(@NotNull Settings settings, PsiParameter parameter) {
 
+        Param param = new Param();
+        param.setRequired(false);
 
+        if (AnnotationUtil.isAnnotated(parameter, AnnotationConstant.REQUEST_PARAM, 0)) {
+            PsiAnnotation annotation = parameter.getAnnotation(AnnotationConstant.REQUEST_PARAM);
+            assert annotation != null;
+
+            PsiNameValuePair[] nameValuePairs = annotation.getParameterList().getAttributes();
+
+            // 初始为 true
+            param.setRequired(true);
+            for (PsiNameValuePair nameValuePair : nameValuePairs) {
+
+                if (nameValuePair.getAttributeName().equalsIgnoreCase("required")
+                        && Objects.requireNonNull(nameValuePair.getLiteralValue()).equalsIgnoreCase("false")) {
+                    param.setRequired(false);
+                }
+
+            }
+        }
+
+        param.setName(parameter.getName());
+        String fieldTypeName = parameter.getType().getPresentableText();
+        param.setType(fieldTypeName);
+
+        return param;
+    }
 
 
     /**
