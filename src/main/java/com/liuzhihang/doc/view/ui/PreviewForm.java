@@ -2,9 +2,9 @@ package com.liuzhihang.doc.view.ui;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.HighlighterFactory;
+import com.intellij.ide.ui.UISettings;
 import com.intellij.lang.Language;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
@@ -15,16 +15,17 @@ import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.highlighter.EditorHighlighter;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.GuiUtils;
 import com.intellij.ui.components.JBScrollPane;
-import com.intellij.ui.components.panels.HorizontalLayout;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
+import com.liuzhihang.doc.view.config.SettingsConfigurable;
 import com.liuzhihang.doc.view.config.TemplateSettings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
@@ -38,9 +39,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.ActionEvent;
 import java.util.Map;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author liuzhihang
@@ -50,17 +51,16 @@ public class PreviewForm extends DialogWrapper {
     private JPanel rootJPanel;
     private JSplitPane viewSplitPane;
     private JScrollPane leftScrollPane;
+    private JPanel viewPane;
     private JList<String> catalogList;
     private JPanel previewPane;
     private JPanel rootToolPane;
     private JPanel previewEditorPane;
-    // private JToolBar toolBar;
 
     private EditorEx markdownEditor;
 
-    private Action copyAction;
-    private Action uploadAction;
-    private Action exportAction;
+    private final AtomicBoolean myIsPinned = new AtomicBoolean(false);
+
 
     private Document markdownDocument = EditorFactory.getInstance().createDocument("");
 
@@ -105,6 +105,7 @@ public class PreviewForm extends DialogWrapper {
         viewSplitPane.setBorder(JBUI.Borders.empty());
         previewEditorPane.setBorder(JBUI.Borders.empty());
         previewPane.setBorder(JBUI.Borders.empty());
+        viewPane.setBorder(JBUI.Borders.empty());
 
         catalogList.setBackground(UIUtil.getTextFieldBackground());
 
@@ -116,7 +117,7 @@ public class PreviewForm extends DialogWrapper {
         group.add(new AnAction("Setting", "Doc view settings", AllIcons.General.GearPlain) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-
+                ShowSettingsUtil.getInstance().showSettingsDialog(e.getProject(), SettingsConfigurable.class);
             }
         });
 
@@ -130,12 +131,13 @@ public class PreviewForm extends DialogWrapper {
 
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
-                return false;
+                return UISettings.getInstance().getPinFindInPath();
             }
 
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
-
+                myIsPinned.set(state);
+                UISettings.getInstance().setPinFindInPath(state);
             }
         });
 
@@ -143,7 +145,6 @@ public class PreviewForm extends DialogWrapper {
         ActionToolbar actionToolbar = ActionManager.getInstance()
                 .createActionToolbar(ActionPlaces.POPUP, group, true);
         actionToolbar.setTargetComponent(rootToolPane);
-        actionToolbar.setMiniMode(true);
         rootToolPane.add(actionToolbar.getComponent(), BorderLayout.EAST);
     }
 
@@ -177,20 +178,31 @@ public class PreviewForm extends DialogWrapper {
     private void initEditorToolbar() {
         DefaultActionGroup group = new DefaultActionGroup();
 
-        group.add(new AnAction("Copy", "Copy to clipboard", AllIcons.Actions.Copy) {
+        group.add(new AnAction("Export", "Export markdown", AllIcons.ToolbarDecorator.Export) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
+
+                ExportUtils.exportMarkdown(project, currentDocView.getName(), currentMarkdownText);
             }
         });
 
-        group.addSeparator();
+        group.add(new AnAction("Copy", "Copy to clipboard", AllIcons.Actions.Copy) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+
+                StringSelection selection = new StringSelection(currentMarkdownText);
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                clipboard.setContents(selection, selection);
+
+                NotificationUtils.infoNotify(DocViewBundle.message("notify.copy.success", currentDocView.getName()), project);
+            }
+        });
 
         // init toolbar
         ActionToolbar actionToolbar = ActionManager.getInstance()
                 .createActionToolbar(ActionPlaces.POPUP, group, true);
         actionToolbar.setTargetComponent(previewEditorPane);
         actionToolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
-        actionToolbar.setMiniMode(true);
 
         previewEditorPane.setBackground(markdownEditor.getBackgroundColor());
         previewEditorPane.add(actionToolbar.getComponent(), BorderLayout.EAST);
@@ -234,27 +246,8 @@ public class PreviewForm extends DialogWrapper {
     @Override
     protected Action[] createActions() {
 
-        myHelpAction.setEnabled(true);
-
+        // 禁用默认的按钮
         return new Action[]{};
-    }
-
-    private Action getExportAction() {
-
-        return exportAction;
-    }
-
-
-    @Override
-    protected void createDefaultActions() {
-        super.createDefaultActions();
-        copyAction = new CopyAction();
-        exportAction = new ExportAction();
-    }
-
-    @NotNull
-    protected Action getCopyAction() {
-        return copyAction;
     }
 
 
@@ -262,44 +255,6 @@ public class PreviewForm extends DialogWrapper {
     @Override
     protected JComponent createCenterPanel() {
         return rootJPanel;
-    }
-
-    /**
-     * Copy 按钮的监听
-     * 主要功能为: 复制 Markdown 到剪贴板, 并提示.
-     */
-    protected class CopyAction extends DialogWrapperAction {
-
-        protected CopyAction() {
-            super("Copy");
-        }
-
-        @Override
-        protected void doAction(ActionEvent e) {
-
-            StringSelection selection = new StringSelection(currentMarkdownText);
-            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-            clipboard.setContents(selection, selection);
-
-            NotificationUtils.infoNotify(DocViewBundle.message("notify.copy.success", currentDocView.getName()), project);
-        }
-    }
-
-    /**
-     * Export 按钮的监听
-     * 主要功能为: 导出功能
-     */
-    protected class ExportAction extends DialogWrapperAction {
-
-        protected ExportAction() {
-            super("Export");
-        }
-
-        @Override
-        protected void doAction(ActionEvent e) {
-
-            ExportUtils.exportMarkdown(project, currentDocView.getName(), currentMarkdownText);
-        }
     }
 
 }
