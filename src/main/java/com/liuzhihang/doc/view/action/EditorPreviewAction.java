@@ -61,23 +61,6 @@ public class EditorPreviewAction extends AnAction {
             NotificationUtils.errorNotify(DocViewBundle.message("notify.error.not.support"), project);
             return;
         }
-
-        DialogWrapper dialogWrapper = instance.doPreview(project, psiFile, editor, targetClass);
-
-        if (dialogWrapper == null) {
-            return;
-        }
-
-        JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(dialogWrapper.getContentPanel(), dialogWrapper.getContentPanel())
-                .setProject(project)
-                .setResizable(true)
-                .setMovable(true)
-                .setCancelOnClickOutside(true)
-                .setModalContext(false)
-                // .setDimensionServiceKey(project, DOCUMENTATION_POPUP_SIZE, false)
-                .createPopup();
-        popup.showCenteredInCurrentWindow(project);
-
     }
 
 

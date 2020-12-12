@@ -2,9 +2,6 @@ package com.liuzhihang.doc.view.service.impl;
 
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.*;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
@@ -31,7 +28,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
 
     @Override
-    public DialogWrapper doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass) {
+    public void doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass) {
 
         Settings settings = Settings.getInstance(project);
 
@@ -44,7 +41,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
             if (!SpringPsiUtils.isSpringMethod(settings, targetMethod)) {
                 NotificationUtils.errorNotify(DocViewBundle.message("notify.spring.error.method"), project);
-                return null;
+                return;
             }
 
             DocView docView = buildClassMethodDoc(settings, targetClass, targetMethod);
@@ -55,12 +52,10 @@ public class SpringDocViewServiceImpl implements DocViewService {
             docMap = buildClassDoc(settings, targetClass);
             if (docMap.size() == 0) {
                 NotificationUtils.errorNotify(DocViewBundle.message("notify.spring.error.no.method"), project);
-                return null;
+                return;
             }
         }
-
-        return new PreviewForm(project, psiFile, editor, targetClass, docMap);
-
+        PreviewForm.getInstance(project, psiFile, editor, targetClass, docMap).popup();
     }
 
     @NotNull

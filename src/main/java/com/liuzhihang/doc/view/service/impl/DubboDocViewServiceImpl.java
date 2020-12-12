@@ -2,7 +2,6 @@ package com.liuzhihang.doc.view.service.impl;
 
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
@@ -28,7 +27,7 @@ import java.util.Map;
 public class DubboDocViewServiceImpl implements DocViewService {
 
     @Override
-    public DialogWrapper doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass) {
+    public void doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass) {
 
         Settings settings = Settings.getInstance(project);
 
@@ -41,7 +40,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
 
             if (!DubboPsiUtils.isDubboMethod(settings, targetMethod)) {
                 NotificationUtils.errorNotify(DocViewBundle.message("notify.dubbo.error.method"), project);
-                return null;
+                return;
             }
 
             DocView docView = buildClassMethodDoc(settings, targetClass, targetMethod);
@@ -52,12 +51,11 @@ public class DubboDocViewServiceImpl implements DocViewService {
             docMap = buildClassDoc(settings, targetClass);
             if (docMap.size() == 0) {
                 NotificationUtils.errorNotify(DocViewBundle.message("notify.dubbo.error.no.method"), project);
-                return null;
+                return;
             }
         }
 
-        return new PreviewForm(project, psiFile, editor, targetClass, docMap);
-
+        PreviewForm.getInstance(project, psiFile, editor, targetClass, docMap).popup();
 
     }
 

@@ -7,6 +7,7 @@ import com.intellij.ide.ui.UISettings;
 import com.intellij.lang.Language;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
@@ -19,6 +20,8 @@ import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.GuiUtils;
@@ -34,6 +37,7 @@ import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
 import com.liuzhihang.doc.view.utils.VelocityUtils;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -98,6 +102,26 @@ public class PreviewForm extends DialogWrapper {
         buildDoc();
         catalogList.setSelectedIndex(0);
     }
+
+    @NotNull
+    @Contract("_, _, _, _, _ -> new")
+    public static PreviewForm getInstance(@Nullable Project project, PsiFile psiFile, Editor editor, PsiClass psiClass, Map<String, DocView> docMap) {
+        return new PreviewForm(project, psiFile, editor, psiClass, docMap);
+    }
+
+    public void popup() {
+
+        JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(getContentPanel(), getContentPanel())
+                .setProject(project)
+                .setResizable(true)
+                .setMovable(true)
+                .setCancelOnClickOutside(true)
+                .setModalContext(false)
+                // .setDimensionServiceKey(project, DOCUMENTATION_POPUP_SIZE, false)
+                .createPopup();
+        popup.showCenteredInCurrentWindow(project);
+    }
+
 
     private void initUI() {
         setTitle("Doc View");
