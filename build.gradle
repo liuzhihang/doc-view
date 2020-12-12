@@ -22,7 +22,7 @@ dependencies {
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 // 设置仅支持 IU
 intellij {
-    version '2020.2'
+    version 'IU-2020.3'
     plugins = ['java']
     pluginName 'Doc View'
     updateSinceUntilBuild false

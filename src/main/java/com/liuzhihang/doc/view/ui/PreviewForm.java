@@ -3,11 +3,9 @@ package com.liuzhihang.doc.view.ui;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.actions.PinActiveTabAction;
 import com.intellij.ide.highlighter.HighlighterFactory;
-import com.intellij.ide.ui.UISettings;
 import com.intellij.lang.Language;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
@@ -25,7 +23,6 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.GuiUtils;
-import com.intellij.ui.PopupBorder;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -38,6 +35,7 @@ import com.liuzhihang.doc.view.utils.ExportUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
 import com.liuzhihang.doc.view.utils.VelocityUtils;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,8 +43,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -80,6 +76,9 @@ public class PreviewForm extends DialogWrapper {
 
     private String currentMarkdownText;
     private DocView currentDocView;
+
+    @NonNls
+    public static final String DOC_VIEW_POPUP = "com.intellij.docview.popup";
 
     public PreviewForm(@Nullable Project project, PsiFile psiFile, Editor editor, PsiClass psiClass, Map<String, DocView> docMap) {
         super(project, true, DialogWrapper.IdeModalityType.PROJECT);
@@ -117,7 +116,7 @@ public class PreviewForm extends DialogWrapper {
                 .setMovable(true)
                 .setCancelOnClickOutside(true)
                 .setModalContext(false)
-                // .setDimensionServiceKey(project, DOCUMENTATION_POPUP_SIZE, false)
+                .setDimensionServiceKey(project, DOC_VIEW_POPUP, false)
                 .createPopup();
         popup.showCenteredInCurrentWindow(project);
     }

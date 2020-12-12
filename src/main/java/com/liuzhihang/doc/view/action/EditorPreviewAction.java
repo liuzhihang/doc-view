@@ -4,13 +4,9 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
-import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
-import com.intellij.util.AdapterProcessor;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.service.DocViewService;
@@ -61,6 +57,8 @@ public class EditorPreviewAction extends AnAction {
             NotificationUtils.errorNotify(DocViewBundle.message("notify.error.not.support"), project);
             return;
         }
+
+        instance.doPreview(project, psiFile, editor, targetClass);
     }
 
 
