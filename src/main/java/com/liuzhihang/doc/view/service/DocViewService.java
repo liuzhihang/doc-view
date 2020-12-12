@@ -4,6 +4,7 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
@@ -79,7 +80,7 @@ public interface DocViewService {
         return buildClassDoc(settings, targetClass);
     }
 
-    void doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass);
+    DialogWrapper doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass);
 
     Map<String, DocView> buildClassDoc(Settings settings, @NotNull PsiClass psiClass);
 

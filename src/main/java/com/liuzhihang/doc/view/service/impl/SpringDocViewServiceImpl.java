@@ -31,7 +31,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
 
     @Override
-    public void doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass) {
+    public DialogWrapper doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass) {
 
         Settings settings = Settings.getInstance(project);
 
@@ -44,7 +44,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
             if (!SpringPsiUtils.isSpringMethod(settings, targetMethod)) {
                 NotificationUtils.errorNotify(DocViewBundle.message("notify.spring.error.method"), project);
-                return;
+                return null;
             }
 
             DocView docView = buildClassMethodDoc(settings, targetClass, targetMethod);
@@ -55,24 +55,11 @@ public class SpringDocViewServiceImpl implements DocViewService {
             docMap = buildClassDoc(settings, targetClass);
             if (docMap.size() == 0) {
                 NotificationUtils.errorNotify(DocViewBundle.message("notify.spring.error.no.method"), project);
-                return;
+                return null;
             }
         }
 
-        DialogWrapper dialog = new PreviewForm(project, psiFile, editor, targetClass, docMap);
-        // dialog.show();
-
-
-        JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(dialog.getContentPanel(), dialog.getContentPanel())
-                .setProject(project)
-                .setResizable(true)
-                .setMovable(true)
-                .setFocusable(true)
-                .setCancelOnClickOutside(true)
-                .setModalContext(false)
-                // .setDimensionServiceKey(project, DOCUMENTATION_POPUP_SIZE, false)
-                .createPopup();
-        popup.showCenteredInCurrentWindow(project);
+        return new PreviewForm(project, psiFile, editor, targetClass, docMap);
 
     }
 

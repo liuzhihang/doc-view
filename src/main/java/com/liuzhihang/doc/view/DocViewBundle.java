@@ -2,7 +2,6 @@
 package com.liuzhihang.doc.view;
 
 import com.intellij.DynamicBundle;
-import org.intellij.plugins.markdown.MarkdownBundle;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;

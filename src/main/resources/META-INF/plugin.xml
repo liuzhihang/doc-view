@@ -9,10 +9,11 @@
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
-    <depends>org.intellij.plugins.markdown</depends>
+    <!-- 暂时不打开预览 -->
+    <!--<depends>org.intellij.plugins.markdown</depends>-->
 
     <!-- 兼容 IDEA 版本 -->
-    <idea-version since-build="203.3645.34"/>
+    <idea-version since-build="201.6668.113"/>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
@@ -48,7 +49,7 @@
         <!--            factoryClass="com.liuzhihang.doc.view.tool.DocViewToolWindowFactory"/>-->
 
         <!-- 2020.3 需要使用 notificationGroup 配置通知 -->
-        <notificationGroup id="doc-view.NotificationGroup" displayType="BALLOON"/>
+        <!--<notificationGroup id="doc-view.NotificationGroup" displayType="BALLOON"/>-->
 
     </extensions>
 

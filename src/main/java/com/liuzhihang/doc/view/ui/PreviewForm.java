@@ -1,6 +1,7 @@
 package com.liuzhihang.doc.view.ui;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.actions.PinActiveTabAction;
 import com.intellij.ide.highlighter.HighlighterFactory;
 import com.intellij.ide.ui.UISettings;
 import com.intellij.lang.Language;
@@ -21,6 +22,7 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.GuiUtils;
+import com.intellij.ui.PopupBorder;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
@@ -39,6 +41,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -123,23 +127,7 @@ public class PreviewForm extends DialogWrapper {
 
         group.addSeparator();
 
-        group.add(new ToggleAction("Pin", "Pin window", AllIcons.General.Pin_tab) {
-            @Override
-            public boolean isDumbAware() {
-                return true;
-            }
-
-            @Override
-            public boolean isSelected(@NotNull AnActionEvent e) {
-                return UISettings.getInstance().getPinFindInPath();
-            }
-
-            @Override
-            public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                myIsPinned.set(state);
-                UISettings.getInstance().setPinFindInPath(state);
-            }
-        });
+        group.add(new PinActiveTabAction());
 
 
         ActionToolbar actionToolbar = ActionManager.getInstance()
@@ -208,6 +196,7 @@ public class PreviewForm extends DialogWrapper {
         previewEditorPane.add(actionToolbar.getComponent(), BorderLayout.EAST);
     }
 
+
     private void buildDoc() {
 
         catalogList.setListData(new Vector<>(docMap.keySet()));
@@ -242,19 +231,18 @@ public class PreviewForm extends DialogWrapper {
     }
 
 
+    @Override
+    protected @Nullable
+    JComponent createCenterPanel() {
+        return rootJPanel;
+    }
+
     @NotNull
     @Override
     protected Action[] createActions() {
 
         // 禁用默认的按钮
         return new Action[]{};
-    }
-
-
-    @Nullable
-    @Override
-    protected JComponent createCenterPanel() {
-        return rootJPanel;
     }
 
 }

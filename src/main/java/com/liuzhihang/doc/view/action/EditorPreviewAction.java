@@ -4,9 +4,13 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.popup.JBPopup;
+import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
+import com.intellij.util.AdapterProcessor;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.service.DocViewService;
@@ -58,7 +62,21 @@ public class EditorPreviewAction extends AnAction {
             return;
         }
 
-        instance.doPreview(project, psiFile, editor, targetClass);
+        DialogWrapper dialogWrapper = instance.doPreview(project, psiFile, editor, targetClass);
+
+        if (dialogWrapper == null) {
+            return;
+        }
+
+        JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(dialogWrapper.getContentPanel(), dialogWrapper.getContentPanel())
+                .setProject(project)
+                .setResizable(true)
+                .setMovable(true)
+                .setCancelOnClickOutside(true)
+                .setModalContext(false)
+                // .setDimensionServiceKey(project, DOCUMENTATION_POPUP_SIZE, false)
+                .createPopup();
+        popup.showCenteredInCurrentWindow(project);
 
     }
 
