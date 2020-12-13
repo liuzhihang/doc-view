@@ -114,7 +114,7 @@ public class PreviewForm extends DialogWrapper {
 
     public void popup() {
 
-        JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(getContentPanel(), getContentPanel())
+        JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(rootJPanel, rootJPanel)
                 .setProject(project)
                 .setModalContext(false)
                 .setCancelOnClickOutside(true)
