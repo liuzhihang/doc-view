@@ -2,7 +2,7 @@ package com.liuzhihang.doc.view.ui;
 
 import com.intellij.find.editorHeaderActions.Utils;
 import com.intellij.icons.AllIcons;
-import com.intellij.ide.actions.PinActiveTabAction;
+import com.intellij.ide.IdeBundle;
 import com.intellij.ide.highlighter.HighlighterFactory;
 import com.intellij.lang.Language;
 import com.intellij.openapi.actionSystem.*;
@@ -19,7 +19,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.DialogWrapper;
+import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiClass;
@@ -53,7 +53,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author liuzhihang
  * @date 2020/2/26 19:40
  */
-public class PreviewForm extends DialogWrapper {
+public class PreviewForm {
+    @NonNls
+    public static final String DOC_VIEW_POPUP = "com.intellij.docview.popup";
+    private static final AtomicBoolean myIsPinned = new AtomicBoolean(false);
     private JPanel rootJPanel;
     private JSplitPane viewSplitPane;
     private JScrollPane leftScrollPane;
@@ -63,35 +66,27 @@ public class PreviewForm extends DialogWrapper {
     private JPanel rootToolPane;
     private JPanel previewEditorPane;
     private JLabel docInfoLabel;
-
     private EditorEx markdownEditor;
-
-    private final AtomicBoolean myIsPinned = new AtomicBoolean(false);
-
-
     private Document markdownDocument = EditorFactory.getInstance().createDocument("");
-
     private Project project;
     private PsiFile psiFile;
     private Editor editor;
     private PsiClass psiClass;
     private Map<String, DocView> docMap;
-
     private String currentMarkdownText;
     private DocView currentDocView;
 
-    @NonNls
-    public static final String DOC_VIEW_POPUP = "com.intellij.docview.popup";
-
     public PreviewForm(@Nullable Project project, PsiFile psiFile, Editor editor, PsiClass psiClass, Map<String, DocView> docMap) {
-        super(project, true, DialogWrapper.IdeModalityType.PROJECT);
+        // dialog 改成 popup
+//        super(project, true, DialogWrapper.IdeModalityType.PROJECT);
         this.project = project;
         this.psiFile = psiFile;
         this.editor = editor;
         this.psiClass = psiClass;
         this.docMap = docMap;
 
-        init();
+        // dialog 改成 popup
+//        init();
 
         // UI调整
         initUI();
@@ -113,29 +108,38 @@ public class PreviewForm extends DialogWrapper {
     }
 
     public void popup() {
-
-        JBPopup popup = JBPopupFactory.getInstance().createComponentPopupBuilder(getContentPanel(), getContentPanel())
+        // dialog 改成 popup, 第一个为根面板，第二个为焦点面板
+        ComponentPopupBuilder popupBuilder = JBPopupFactory.getInstance().createComponentPopupBuilder(rootJPanel, viewPane);
+        JBPopup popup = popupBuilder
                 .setProject(project)
-                .setModalContext(false)
-                .setCancelOnClickOutside(true)
-                .setRequestFocus(true)
-                .setCancelKeyEnabled(false)
-                .addUserData("SIMPLE_WINDOW")
+                // 上下文要给，否则窗口相关设置无效，默认值为 true
+//                .setModalContext(false)
                 .setResizable(true)
+                .setTitle("如果没有标题，无法移动")
                 .setMovable(true)
+                .setAdText("此处可以在底部设置一些广告内容")
+                // 是否在其他窗口打开时，关闭窗口，默认值 false
+//                .setCancelOnOtherWindowOpen(true)
+                // 是否可以使用ESC关闭窗口，默认值 true
+//                .setCancelKeyEnabled(false)
+                // 是否在外部点击时关闭窗口，可以通过设置此值来锁定窗口不消失 默认值 true
+                .setCancelOnClickOutside(false)
                 .setDimensionServiceKey(project, DOC_VIEW_POPUP, true)
                 .setLocateWithinScreenBounds(false)
+                // 点击窗口外部位置，并且当前窗口未固定，则关闭
+                .setCancelOnMouseOutCallback(event -> event.getClickCount() > 0 && !myIsPinned.get())
                 .createPopup();
+
 
         // Disposer.register(popup);
 
         popup.showCenteredInCurrentWindow(project);
-
     }
 
 
     private void initUI() {
-        setTitle("Doc View");
+        // dialog 改成 popup
+//        setTitle("Doc View");
 
         GuiUtils.replaceJSplitPaneWithIDEASplitter(rootJPanel, true);
         // 边框
@@ -162,8 +166,19 @@ public class PreviewForm extends DialogWrapper {
 
         group.addSeparator();
 
-        group.add(new PinActiveTabAction());
-
+//        group.add(new PinActiveTabAction());
+        group.add(new AnAction(() -> myIsPinned.get() ? IdeBundle.message("action.unpin.tab") : IdeBundle.message("action.pin.tab"), AllIcons.General.Pin_tab) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                myIsPinned.set(!myIsPinned.get());
+            }
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                super.update(e);
+                e.getPresentation().setText(myIsPinned.get() ? IdeBundle.message("action.unpin.tab") : IdeBundle.message("action.pin.tab"));
+                e.getPresentation().setIcon(myIsPinned.get() ? null : AllIcons.General.Pin_tab);
+            }
+        });
 
         ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
                 .createActionToolbar("DocViewRootToolbar", group, true);
@@ -317,6 +332,8 @@ public class PreviewForm extends DialogWrapper {
     }
 
 
+    /*
+            // dialog 改成 popup
     @Override
     protected @Nullable
     JComponent createCenterPanel() {
@@ -330,4 +347,5 @@ public class PreviewForm extends DialogWrapper {
         // 禁用默认的按钮
         return new Action[]{};
     }
+     */
 }
