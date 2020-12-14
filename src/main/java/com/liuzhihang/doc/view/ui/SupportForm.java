@@ -17,7 +17,7 @@ public class SupportForm extends DialogWrapper {
     private JPanel rootPanel;
     private LinkLabel<String> starLinkLabel;
     private LinkLabel<String> reportLinkLabel;
-    private LinkLabel<String> ideaLinkLabel;
+    private LinkLabel<String> discussionsLinkLabel;
     private LinkLabel<String> websiteLinkLabel;
 
     public SupportForm() {
@@ -27,14 +27,14 @@ public class SupportForm extends DialogWrapper {
 
         starLinkLabel.setIcon(null);
         reportLinkLabel.setIcon(null);
-        ideaLinkLabel.setIcon(null);
+        discussionsLinkLabel.setIcon(null);
         websiteLinkLabel.setIcon(null);
 
         rootPanel.setBorder(JBUI.Borders.empty(12, 15));
         rootPanel.setBackground(UIManager.getColor("TextArea.background"));
         starLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://github.com/liuzhihang/doc-view");
         reportLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://github.com/liuzhihang/doc-view/issues");
-        ideaLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://plugins.jetbrains.com/plugin/15305-doc-view");
+        discussionsLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://github.com/liuzhihang/doc-view/discussions");
         websiteLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://docview.liuzhihang.com");
     }
 

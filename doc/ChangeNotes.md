@@ -2,7 +2,11 @@
 
 ## [v1.0.5](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.5) (2020-12-05)
 
-1. 支持 IDEA 2020.3
+1. 新的 UI 面板
+2. 支持 IDEA 2020.3
+3. fix: <a href="https://github.com/liuzhihang/doc-view/issues/4">#4</a>
+
+访问 [1.0.5 版本变化及已知问题](https://github.com/liuzhihang/doc-view/discussions/10) 参与互动讨论.
 
 ## [v1.0.4](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.4) (2020-11-23)
 

@@ -104,13 +104,13 @@
               <text value="4."/>
             </properties>
           </component>
-          <component id="d360f" class="com.intellij.ui.components.labels.LinkLabel" binding="ideaLinkLabel">
+          <component id="d360f" class="com.intellij.ui.components.labels.LinkLabel" binding="discussionsLinkLabel">
             <constraints>
               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <horizontalAlignment value="2"/>
-              <text resource-bundle="messages/DocViewBundle" key="support.website"/>
+              <text resource-bundle="messages/DocViewBundle" key="support.discussions"/>
             </properties>
           </component>
           <hspacer id="7eafa">

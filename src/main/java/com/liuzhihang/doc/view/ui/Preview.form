@@ -20,7 +20,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="2c18c" class="javax.swing.JLabel" binding="docInfoLabel">
+          <component id="2c18c" class="javax.swing.JLabel" binding="docNameLabel">
             <constraints border-constraint="West"/>
             <properties>
               <text value=""/>
@@ -66,10 +66,17 @@
                   <component id="b4f56" class="javax.swing.JList" binding="catalogList">
                     <constraints/>
                     <properties>
+                      <alignmentX value="0.5"/>
+                      <dragEnabled value="false"/>
+                      <enabled value="true"/>
                       <model/>
                       <requestFocusEnabled value="true"/>
                       <selectionBackground color="-11434241"/>
+                      <selectionMode value="0"/>
                     </properties>
+                    <clientProperties>
+                      <List.isFileList class="java.lang.Boolean" value="false"/>
+                    </clientProperties>
                   </component>
                 </children>
               </scrollpane>
@@ -79,6 +86,7 @@
                 </constraints>
                 <properties>
                   <minimumSize width="150" height="0"/>
+                  <preferredSize width="0" height="0"/>
                 </properties>
                 <border type="none"/>
                 <children>
