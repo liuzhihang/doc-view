@@ -199,7 +199,6 @@ public class PreviewForm {
         toolbar.setForceMinimumSize(true);
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
-        toolbar.setNoGapMode();
 
         rootToolPane.add(toolbar.getComponent(), BorderLayout.EAST);
     }
@@ -269,7 +268,6 @@ public class PreviewForm {
         toolbar.setForceMinimumSize(true);
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
-        toolbar.setNoGapMode();
 
         previewEditorPane.setBackground(markdownEditor.getBackgroundColor());
         previewEditorPane.add(toolbar.getComponent(), BorderLayout.WEST);
@@ -307,7 +305,7 @@ public class PreviewForm {
         toolbar.setForceMinimumSize(true);
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
-        toolbar.setNoGapMode();
+
         previewEditorPane.setBackground(markdownEditor.getBackgroundColor());
         previewEditorPane.add(toolbar.getComponent(), BorderLayout.EAST);
 

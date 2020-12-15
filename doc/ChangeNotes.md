@@ -1,6 +1,6 @@
 # ChangeNotes
 
-## [v1.0.5](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.5) (2020-12-05)
+## [v1.0.5](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.5) (2020-12-13)
 
 1. 新的 UI 面板
 2. 支持 IDEA 2020.3
