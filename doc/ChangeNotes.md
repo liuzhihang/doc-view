@@ -1,5 +1,9 @@
 # ChangeNotes
 
+## [v1.0.6](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.6) (2021-01-13)
+
+1. fix: <a href="https://github.com/liuzhihang/doc-view/issues/11">#11</a>
+
 ## [v1.0.5](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.5) (2020-12-13)
 
 1. 新的 UI 面板
