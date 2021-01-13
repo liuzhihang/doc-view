@@ -76,6 +76,10 @@ public class SpringPsiUtils {
             return basePath;
         }
 
+        if (!methodPath.startsWith("/")) {
+            methodPath = "/" + methodPath;
+        }
+
         String path = basePath + methodPath;
 
         return path.replace("//", "/");
