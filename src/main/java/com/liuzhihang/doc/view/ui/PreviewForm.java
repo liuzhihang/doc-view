@@ -24,6 +24,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.GuiUtils;
+import com.intellij.ui.WindowMoveListener;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
 import com.intellij.util.ui.JBUI;
@@ -45,6 +46,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.MouseEvent;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -67,7 +69,7 @@ public class PreviewForm {
     private JPanel previewPane;
     private JPanel rootToolPane;
     private JPanel previewEditorPane;
-    private JLabel docNameLabel;
+    private JLabel fullClassName;
 
     private EditorEx markdownEditor;
     private Document markdownDocument = EditorFactory.getInstance().createDocument("");
@@ -99,6 +101,15 @@ public class PreviewForm {
         // 生成文档
         buildDoc();
         catalogList.setSelectedIndex(0);
+
+        addMouseListeners();
+    }
+
+    private void addMouseListeners() {
+        WindowMoveListener windowMoveListener = new WindowMoveListener(rootJPanel);
+        rootJPanel.addMouseListener(windowMoveListener);
+        rootJPanel.addMouseMotionListener(windowMoveListener);
+
     }
 
     @NotNull
@@ -116,7 +127,7 @@ public class PreviewForm {
                 .setProject(project)
                 // 上下文要给，否则窗口相关设置无效，默认值为 true
                 .setResizable(true)
-                .setTitle("Doc View")
+                .setTitle(null)
                 .setMovable(true)
                 // .setAdText("此处可以在底部设置一些广告内容")
                 // 是否在其他窗口打开时，关闭窗口，默认值 false
@@ -124,11 +135,18 @@ public class PreviewForm {
                 // 是否可以使用ESC关闭窗口，默认值 true
                 // .setCancelKeyEnabled(false)
                 // 是否在外部点击时关闭窗口，可以通过设置此值来锁定窗口不消失 默认值 true
+                .setRequestFocus(true)
+                .setModalContext(false)
                 .setCancelOnClickOutside(false)
-                .setDimensionServiceKey(project, DOC_VIEW_POPUP, true)
+                .setBelongsToGlobalPopupStack(true)
+                .setDimensionServiceKey(null, DOC_VIEW_POPUP, true)
                 .setLocateWithinScreenBounds(false)
                 // 点击窗口外部位置，并且当前窗口未固定，则关闭
-                .setCancelOnMouseOutCallback(event -> event.getClickCount() > 0 && !myIsPinned.get())
+
+                .setCancelOnMouseOutCallback(event -> event.getID() == MouseEvent.MOUSE_PRESSED
+                        && event.getClickCount() > 0
+                        && !myIsPinned.get())
+                .setCancelOnOtherWindowOpen(false)
                 .createPopup();
 
         popup.showCenteredInCurrentWindow(project);
@@ -145,7 +163,7 @@ public class PreviewForm {
         previewEditorPane.setBorder(JBUI.Borders.empty());
         previewPane.setBorder(JBUI.Borders.empty());
         viewPane.setBorder(JBUI.Borders.empty());
-        docNameLabel.setBorder(JBUI.Borders.emptyLeft(5));
+        fullClassName.setBorder(JBUI.Borders.emptyLeft(5));
 
         catalogList.setBackground(UIUtil.getTextFieldBackground());
         leftScrollPane.setBackground(UIUtil.getTextFieldBackground());
@@ -183,6 +201,8 @@ public class PreviewForm {
 
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
+
+
                 return myIsPinned.get();
             }
 
@@ -322,7 +342,7 @@ public class PreviewForm {
 
             currentDocView = docMap.get(selectedValue);
 
-            docNameLabel.setText(currentDocView.getMethodFullName());
+            fullClassName.setText(currentDocView.getFullClassName());
 
             // 将 docView 按照模版转换
             DocViewData docViewData = new DocViewData(currentDocView);

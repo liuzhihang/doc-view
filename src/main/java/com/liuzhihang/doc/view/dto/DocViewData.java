@@ -75,11 +75,11 @@ public class DocViewData {
     private final String responseExample;
 
 
-    private final String methodFullName;
+    private final String fullClassName;
 
     public DocViewData(DocView docView) {
 
-        this.methodFullName = docView.getMethodFullName();
+        this.fullClassName = docView.getFullClassName();
         this.name = docView.getName();
         this.desc = docView.getDesc();
         this.path = docView.getPath();
@@ -248,7 +248,7 @@ public class DocViewData {
     }
 
 
-    public String getMethodFullName() {
-        return methodFullName;
+    public String getFullClassName() {
+        return fullClassName;
     }
 }

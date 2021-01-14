@@ -10,7 +10,7 @@ import java.util.List;
  */
 public class DocView {
 
-    private String methodFullName;
+    private String fullClassName;
 
     /**
      * 文档名称
@@ -214,11 +214,11 @@ public class DocView {
         this.reqParamList = reqParamList;
     }
 
-    public String getMethodFullName() {
-        return methodFullName;
+    public String getFullClassName() {
+        return fullClassName;
     }
 
-    public void setMethodFullName(String methodFullName) {
-        this.methodFullName = methodFullName;
+    public void setFullClassName(String fullClassName) {
+        this.fullClassName = fullClassName;
     }
 }

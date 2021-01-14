@@ -94,11 +94,9 @@ public class DubboDocViewServiceImpl implements DocViewService {
 
         String name = CustomPsiCommentUtils.getComment(psiMethod.getDocComment(), "name", false);
 
-        String methodFullName = psiClass.getName() + "#" + psiMethod.getName();
-
         DocView docView = new DocView();
-        docView.setMethodFullName(methodFullName);
-        docView.setName(StringUtils.isBlank(name) ? methodFullName : name);
+        docView.setFullClassName(psiClass.getQualifiedName());
+        docView.setName(StringUtils.isBlank(name) ? psiMethod.getName() : name);
         docView.setDesc(desc);
         docView.setPath(path);
         docView.setMethod(method);

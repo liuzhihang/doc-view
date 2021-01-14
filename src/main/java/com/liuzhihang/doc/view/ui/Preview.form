@@ -20,7 +20,7 @@
         <properties/>
         <border type="none"/>
         <children>
-          <component id="2c18c" class="javax.swing.JLabel" binding="docNameLabel">
+          <component id="2c18c" class="javax.swing.JLabel" binding="fullClassName">
             <constraints border-constraint="West"/>
             <properties>
               <text value=""/>
