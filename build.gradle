@@ -23,7 +23,7 @@ dependencies {
 // 设置仅支持 IU
 intellij {
     version 'IU-2020.3'
-    plugins = ['java']
+    plugins = ['java', 'markdown']
     pluginName 'Doc View'
     updateSinceUntilBuild false
     sameSinceUntilBuild false

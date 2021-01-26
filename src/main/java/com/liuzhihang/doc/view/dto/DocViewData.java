@@ -197,7 +197,7 @@ public class DocViewData {
 
 
             if (CollectionUtils.isNotEmpty(body.getObjectReqList())) {
-                param.append(buildTableContext(body.getObjectReqList(), "&emsp;&emsp;"));
+                param.append(buildTableContext(body.getObjectReqList(), "-->"));
             }
         }
         return param;
