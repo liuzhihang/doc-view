@@ -158,10 +158,9 @@ public class PreviewForm {
 
         // 设置滚动条, 总是隐藏
 
-
         JBScrollBar jbScrollBar = new JBScrollBar();
         jbScrollBar.setBackground(UIUtil.getTextFieldBackground());
-
+        jbScrollBar.setAutoscrolls(true);
         leftScrollPane.setHorizontalScrollBar(jbScrollBar);
         //
         // leftScrollPane.setPreferredSize(new Dimension(1,1));
@@ -231,7 +230,6 @@ public class PreviewForm {
 
         markdownEditor.setHighlighter(editorHighlighter);
         markdownEditor.setBorder(JBUI.Borders.emptyLeft(5));
-
         JBScrollPane templateScrollPane = new JBScrollPane(markdownEditor.getComponent());
 
         JBScrollBar jbScrollBar = new JBScrollBar();

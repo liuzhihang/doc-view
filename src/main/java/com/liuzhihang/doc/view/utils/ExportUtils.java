@@ -2,6 +2,7 @@ package com.liuzhihang.doc.view.utils;
 
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -67,7 +68,8 @@ public class ExportUtils {
     public static void exportMarkdown(Project project, String fileName, String markdownText) {
 
         // 选择路径
-        FileChooserDescriptor fileChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
+        FileChooserDescriptor fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
+        fileChooserDescriptor.setForcedToUseIdeaFileChooser(true);
         VirtualFile chooser = FileChooser.chooseFile(fileChooserDescriptor, project, null);
         if (chooser != null) {
             String path = chooser.getPath();
@@ -95,7 +97,8 @@ public class ExportUtils {
     public static void allExportMarkdown(Project project, String className, Map<String, DocView> docMap) {
 
         // 选择路径
-        FileChooserDescriptor fileChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
+        FileChooserDescriptor fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
+        fileChooserDescriptor.setForcedToUseIdeaFileChooser(true);
         VirtualFile chooser = FileChooser.chooseFile(fileChooserDescriptor, project, null);
         if (chooser != null) {
             String path = chooser.getPath();
