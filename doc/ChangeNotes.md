@@ -1,5 +1,9 @@
 # ChangeNotes
 
+## [v1.0.7](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.7) (2021-02-28)
+
+支持批量导出
+
 ## [v1.0.6](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.6) (2021-01-13)
 
 1. fix: <a href="https://github.com/liuzhihang/doc-view/issues/11">#11</a>
@@ -9,8 +13,6 @@
 1. 新的 UI 面板
 2. 支持 IDEA 2020.3
 3. fix: <a href="https://github.com/liuzhihang/doc-view/issues/4">#4</a>
-
-访问 [1.0.5 版本变化及已知问题](https://github.com/liuzhihang/doc-view/discussions/10) 参与互动讨论.
 
 ## [v1.0.4](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.4) (2020-11-23)
 
