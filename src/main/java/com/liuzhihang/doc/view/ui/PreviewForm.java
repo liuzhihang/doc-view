@@ -18,8 +18,6 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
-import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -37,7 +35,6 @@ import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
 import com.liuzhihang.doc.view.utils.VelocityUtils;
-import org.intellij.plugins.markdown.ui.preview.html.MarkdownUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -65,16 +62,12 @@ public class PreviewForm {
     private JPanel rootJPanel;
     private JSplitPane viewSplitPane;
     private JScrollPane leftScrollPane;
-    private JPanel docPane;
+    private JPanel viewPane;
     private JList<String> catalogList;
     private JPanel previewPane;
     private JPanel rootToolPane;
-    private JLabel fullClassName;
-    private JPanel previewContentPane;
-    private JPanel previewToolPane;
-
-    private JPanel previewMarkdownPane;
-    private JPanel previewHtmlPane;
+    private JPanel previewEditorPane;
+    private JLabel docNameLabel;
 
     private EditorEx markdownEditor;
     private Document markdownDocument = EditorFactory.getInstance().createDocument("");
@@ -127,7 +120,7 @@ public class PreviewForm {
     public void popup() {
 
         // dialog 改成 popup, 第一个为根面板，第二个为焦点面板
-        JBPopupFactory.getInstance().createComponentPopupBuilder(rootJPanel, docPane)
+        JBPopupFactory.getInstance().createComponentPopupBuilder(rootJPanel, viewPane)
                 .setProject(project)
                 .setResizable(true)
                 .setMovable(true)
@@ -153,20 +146,18 @@ public class PreviewForm {
         GuiUtils.replaceJSplitPaneWithIDEASplitter(rootJPanel, true);
         // 边框
         rootJPanel.setBorder(JBUI.Borders.empty());
-        docPane.setBorder(JBUI.Borders.empty());
-
         leftScrollPane.setBorder(JBUI.Borders.emptyLeft(5));
         viewSplitPane.setBorder(JBUI.Borders.empty());
+        previewEditorPane.setBorder(JBUI.Borders.empty());
         previewPane.setBorder(JBUI.Borders.empty());
-        previewToolPane.setBorder(JBUI.Borders.empty());
-        previewContentPane.setBorder(JBUI.Borders.empty());
-
-        fullClassName.setBorder(JBUI.Borders.emptyLeft(5));
+        viewPane.setBorder(JBUI.Borders.empty());
+        docNameLabel.setBorder(JBUI.Borders.emptyLeft(5));
 
         catalogList.setBackground(UIUtil.getTextFieldBackground());
         leftScrollPane.setBackground(UIUtil.getTextFieldBackground());
 
         // 设置滚动条, 总是隐藏
+
 
         JBScrollBar jbScrollBar = new JBScrollBar();
         jbScrollBar.setBackground(UIUtil.getTextFieldBackground());
@@ -198,7 +189,6 @@ public class PreviewForm {
 
             @Override
             public boolean isSelected(@NotNull AnActionEvent e) {
-
                 return myIsPinned.get();
             }
 
@@ -249,11 +239,7 @@ public class PreviewForm {
 
         templateScrollPane.setHorizontalScrollBar(jbScrollBar);
 
-        // 初始化 previewMarkdownPane
-        previewMarkdownPane = new JPanel();
-        previewMarkdownPane.setBorder(JBUI.Borders.empty());
-
-        previewMarkdownPane.add(templateScrollPane, BorderLayout.CENTER);
+        previewPane.add(templateScrollPane, BorderLayout.CENTER);
     }
 
 
@@ -264,8 +250,9 @@ public class PreviewForm {
         leftGroup.add(new AnAction("Preview", "Preview markdown", AllIcons.Actions.Preview) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
-                // 预览文档
-                previewDoc();
+
+                NotificationUtils.infoNotify(DocViewBundle.message("notify.preview.success"), project);
+
             }
         });
 
@@ -281,17 +268,16 @@ public class PreviewForm {
 
         ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
                 .createActionToolbar("DocViewEditorLeftToolbar", leftGroup, true);
-        toolbar.setTargetComponent(previewToolPane);
+        toolbar.setTargetComponent(previewEditorPane);
         toolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
 
         toolbar.setForceMinimumSize(true);
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
 
-        previewToolPane.setBackground(markdownEditor.getBackgroundColor());
-        previewToolPane.add(toolbar.getComponent(), BorderLayout.WEST);
+        previewEditorPane.setBackground(markdownEditor.getBackgroundColor());
+        previewEditorPane.add(toolbar.getComponent(), BorderLayout.WEST);
     }
-
 
     private void initEditorRightToolbar() {
         DefaultActionGroup rightGroup = new DefaultActionGroup();
@@ -319,24 +305,20 @@ public class PreviewForm {
         // init toolbar
         ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
                 .createActionToolbar("DocViewEditorRightToolbar", rightGroup, true);
-        toolbar.setTargetComponent(previewToolPane);
+        toolbar.setTargetComponent(previewEditorPane);
         toolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
 
         toolbar.setForceMinimumSize(true);
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
 
-        previewToolPane.setBackground(markdownEditor.getBackgroundColor());
-        previewToolPane.add(toolbar.getComponent(), BorderLayout.EAST);
+        previewEditorPane.setBackground(markdownEditor.getBackgroundColor());
+        previewEditorPane.add(toolbar.getComponent(), BorderLayout.EAST);
 
     }
 
 
     private void buildDoc() {
-
-
-        previewContentPane.removeAll();
-        previewContentPane.add(previewMarkdownPane);
 
         catalogList.setListData(new Vector<>(docMap.keySet()));
 
@@ -346,7 +328,7 @@ public class PreviewForm {
 
             currentDocView = docMap.get(selectedValue);
 
-            fullClassName.setText(currentDocView.getFullClassName());
+            docNameLabel.setText(currentDocView.getFullClassName());
 
             // 将 docView 按照模版转换
             DocViewData docViewData = new DocViewData(currentDocView);
@@ -359,20 +341,15 @@ public class PreviewForm {
 
             WriteCommandAction.runWriteCommandAction(project, () -> markdownDocument.setText(currentMarkdownText));
 
+            // String html = MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project);
+            //
+            // html = "<html><head></head>" + html + "</html>";
+            //
+            // markdownHtmlPanel.setHtml(html, 0);
+            // textPane.setText(html);
+            // textPane.setCaretPosition(0);
+
         });
 
     }
-
-    /**
-     * 预览文档
-     */
-    private void previewDoc() {
-
-        // 生成对应 HTML
-
-        String htmlStr = MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project);
-
-
-    }
-
 }
