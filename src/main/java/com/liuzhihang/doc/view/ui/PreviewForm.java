@@ -123,6 +123,8 @@ public class PreviewForm {
                 .setResizable(true)
                 .setMovable(true)
 
+                .setModalContext(false)
+                .setRequestFocus(true)
                 .setBelongsToGlobalPopupStack(true)
                 .setDimensionServiceKey(null, DOC_VIEW_POPUP, true)
                 .setLocateWithinScreenBounds(false)
