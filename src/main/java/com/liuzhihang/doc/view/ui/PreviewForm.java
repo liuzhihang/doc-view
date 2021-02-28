@@ -127,35 +127,24 @@ public class PreviewForm {
     public void popup() {
 
         // dialog 改成 popup, 第一个为根面板，第二个为焦点面板
-        ComponentPopupBuilder popupBuilder = JBPopupFactory.getInstance().createComponentPopupBuilder(rootJPanel, docPane);
-
-        JBPopup popup = popupBuilder
+        JBPopupFactory.getInstance().createComponentPopupBuilder(rootJPanel, docPane)
                 .setProject(project)
-                // 上下文要给，否则窗口相关设置无效，默认值为 true
                 .setResizable(true)
-                .setTitle(null)
                 .setMovable(true)
-                // .setAdText("此处可以在底部设置一些广告内容")
-                // 是否在其他窗口打开时，关闭窗口，默认值 false
-                // .setCancelOnOtherWindowOpen(true)
-                // 是否可以使用ESC关闭窗口，默认值 true
-                // .setCancelKeyEnabled(false)
-                // 是否在外部点击时关闭窗口，可以通过设置此值来锁定窗口不消失 默认值 true
-                .setRequestFocus(true)
-                .setModalContext(false)
-                .setCancelOnClickOutside(false)
+
                 .setBelongsToGlobalPopupStack(true)
                 .setDimensionServiceKey(null, DOC_VIEW_POPUP, true)
                 .setLocateWithinScreenBounds(false)
-                // 点击窗口外部位置，并且当前窗口未固定，则关闭
+                // 鼠标点击外部时是否取消弹窗 外部单击, 未处于 pin 状态则可关闭
+                .setCancelOnMouseOutCallback(event -> event.getID() == MouseEvent.MOUSE_PRESSED && !myIsPinned.get())
 
-                .setCancelOnMouseOutCallback(event -> event.getID() == MouseEvent.MOUSE_PRESSED
-                        && event.getClickCount() > 0
-                        && !myIsPinned.get())
+                // 单击外部时取消弹窗
+                .setCancelOnClickOutside(false)
+                // 在其他窗口打开时取消
                 .setCancelOnOtherWindowOpen(false)
-                .createPopup();
-
-        popup.showCenteredInCurrentWindow(project);
+                .setCancelOnWindowDeactivation(false)
+                .createPopup()
+                .showCenteredInCurrentWindow(project);
     }
 
 
