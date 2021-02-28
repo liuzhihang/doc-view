@@ -12,6 +12,8 @@ public class DocView {
 
     private String fullClassName;
 
+    private String className;
+
     /**
      * 文档名称
      */
@@ -220,5 +222,13 @@ public class DocView {
 
     public void setFullClassName(String fullClassName) {
         this.fullClassName = fullClassName;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    public void setClassName(String className) {
+        this.className = className;
     }
 }

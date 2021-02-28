@@ -1,5 +1,8 @@
 package com.liuzhihang.doc.view.dto;
 
+import com.intellij.openapi.project.Project;
+import com.liuzhihang.doc.view.config.TemplateSettings;
+import com.liuzhihang.doc.view.utils.VelocityUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -77,6 +80,8 @@ public class DocViewData {
 
     private final String fullClassName;
 
+    private final String type;
+
     public DocViewData(DocView docView) {
 
         this.fullClassName = docView.getFullClassName();
@@ -84,12 +89,27 @@ public class DocViewData {
         this.desc = docView.getDesc();
         this.path = docView.getPath();
         this.method = docView.getMethod();
+        this.type = docView.getType();
         this.requestHeader = buildReqHeaderParam(docView.getHeaderList());
         this.requestParam = buildReqParam(docView.getReqParamList());
         this.requestBody = buildReqBodyParam(docView.getReqBodyList());
         this.requestExample = buildReqExample(docView.getReqExampleType(), docView.getReqExample());
         this.responseParam = buildRespBodyParam(docView.getRespBodyList());
         this.responseExample = buildRespExample(docView.getReqExampleType(), docView.getRespExample());
+
+    }
+
+
+    public static String buildMarkdownText(Project project, DocView docView) {
+
+        DocViewData docViewData = new DocViewData(docView);
+
+        if (docView.getType().equalsIgnoreCase("Dubbo")) {
+            return VelocityUtils.convert(TemplateSettings.getInstance(project).getDubboTemplate(), docViewData);
+        } else {
+            // 按照 Spring 模版
+            return VelocityUtils.convert(TemplateSettings.getInstance(project).getSpringTemplate(), docViewData);
+        }
     }
 
     private String buildRespExample(String respExampleType, String respExample) {
@@ -250,5 +270,9 @@ public class DocViewData {
 
     public String getFullClassName() {
         return fullClassName;
+    }
+
+    public String getType() {
+        return type;
     }
 }

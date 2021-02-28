@@ -96,6 +96,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
 
         DocView docView = new DocView();
         docView.setFullClassName(psiClass.getQualifiedName());
+        docView.setClassName(psiClass.getName());
         docView.setName(StringUtils.isBlank(name) ? psiMethod.getName() : name);
         docView.setDesc(desc);
         docView.setPath(path);

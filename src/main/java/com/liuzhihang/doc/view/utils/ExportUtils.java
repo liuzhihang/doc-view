@@ -92,4 +92,34 @@ public class ExportUtils {
 
     }
 
+    public static void allExportMarkdown(Project project, String className, Map<String, DocView> docMap) {
+
+        // 选择路径
+        FileChooserDescriptor fileChooserDescriptor = new FileChooserDescriptor(false, true, false, false, false, false);
+        VirtualFile chooser = FileChooser.chooseFile(fileChooserDescriptor, project, null);
+        if (chooser != null) {
+            String path = chooser.getPath();
+
+            File file = new File(path + "/" + className + ".md");
+
+            // 文件已存在，选择是否覆盖导出。
+            if (file.exists() && !DialogUtil.confirm(
+                    DocViewBundle.message("notify.export.file.exists"),
+                    DocViewBundle.message("notify.export.file.cover"))) {
+                return;
+            }
+            try {
+
+                for (String doc : docMap.keySet()) {
+                    FileUtil.writeToFile(file, DocViewData.buildMarkdownText(project, docMap.get(doc)), true);
+                }
+
+            } catch (IOException ioException) {
+                NotificationUtils.errorNotify(DocViewBundle.message("notify.export.fail"), project);
+            }
+
+        }
+
+        NotificationUtils.infoNotify(DocViewBundle.message("notify.export.success"), project);
+    }
 }

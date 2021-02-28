@@ -29,12 +29,10 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.SettingsConfigurable;
-import com.liuzhihang.doc.view.config.TemplateSettings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
-import com.liuzhihang.doc.view.utils.VelocityUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -120,7 +118,7 @@ public class PreviewForm {
     public void popup() {
 
         // dialog 改成 popup, 第一个为根面板，第二个为焦点面板
-        JBPopupFactory.getInstance().createComponentPopupBuilder(rootJPanel, viewPane)
+        JBPopupFactory.getInstance().createComponentPopupBuilder(rootJPanel, previewEditorPane)
                 .setProject(project)
                 .setResizable(true)
                 .setMovable(true)
@@ -282,6 +280,14 @@ public class PreviewForm {
     private void initEditorRightToolbar() {
         DefaultActionGroup rightGroup = new DefaultActionGroup();
 
+        rightGroup.add(new AnAction("Export All", "Export markdown", AllIcons.Nodes.ExtractedFolder) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+
+                ExportUtils.allExportMarkdown(project, currentDocView.getClassName(), docMap);
+            }
+        });
+
         rightGroup.add(new AnAction("Export", "Export markdown", AllIcons.ToolbarDecorator.Export) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
@@ -331,13 +337,7 @@ public class PreviewForm {
             docNameLabel.setText(currentDocView.getFullClassName());
 
             // 将 docView 按照模版转换
-            DocViewData docViewData = new DocViewData(currentDocView);
-            if (currentDocView.getType().equalsIgnoreCase("Dubbo")) {
-                currentMarkdownText = VelocityUtils.convert(TemplateSettings.getInstance(project).getDubboTemplate(), docViewData);
-            } else {
-                // 按照 Spring 模版
-                currentMarkdownText = VelocityUtils.convert(TemplateSettings.getInstance(project).getSpringTemplate(), docViewData);
-            }
+            currentMarkdownText = DocViewData.buildMarkdownText(project, currentDocView);
 
             WriteCommandAction.runWriteCommandAction(project, () -> markdownDocument.setText(currentMarkdownText));
 
