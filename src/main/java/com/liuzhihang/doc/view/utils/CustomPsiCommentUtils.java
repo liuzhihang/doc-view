@@ -114,7 +114,7 @@ public class CustomPsiCommentUtils {
             }
         }
 
-        return desc.toString();
+        return desc.toString().trim();
     }
 
 }

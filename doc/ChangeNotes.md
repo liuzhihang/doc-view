@@ -1,5 +1,9 @@
 # ChangeNotes
 
+## [v1.0.8](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.8) (2021-03-05)
+
+fix: 返回对象为集合的情况下, 返回示例错误.
+
 ## [v1.0.7](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.7) (2021-02-28)
 
 支持批量导出

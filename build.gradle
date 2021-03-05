@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.liuzhihang'
-version '1.0.7'
+version '1.0.8'
 
 JavaVersion.VERSION_11
 
@@ -23,7 +23,7 @@ dependencies {
 // 设置仅支持 IU
 intellij {
     version 'IU-2020.3'
-    plugins = ['java', 'markdown']
+    plugins = ['java']
     pluginName 'Doc View'
     updateSinceUntilBuild false
     sameSinceUntilBuild false

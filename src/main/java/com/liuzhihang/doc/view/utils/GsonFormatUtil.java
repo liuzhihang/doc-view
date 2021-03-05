@@ -1,6 +1,7 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonNull;
 import com.google.gson.internal.Streams;
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.Collection;
 
 /**
  * 对 Gson 进行修改主要是修改 newJsonWriter中的缩进
@@ -27,15 +29,29 @@ public class GsonFormatUtil {
         return writer.toString();
     }
 
+    public static String gsonFormat(Object src) {
+
+        Gson gson = new GsonBuilder().serializeNulls().create();
+
+        return gsonFormat(gson, src);
+    }
+
     @NotNull
-    public static String gsonFormat(Gson gson, Object src) throws IOException {
+    public static String gsonFormat(Gson gson, Object src) {
         if (src == null) {
             return gson.toJson(JsonNull.INSTANCE);
         }
-        StringWriter writer = new StringWriter();
-        JsonWriter jsonWriter = newJsonWriter(Streams.writerForAppendable(Streams.writerForAppendable(writer)));
-        gson.toJson(src, src.getClass(), jsonWriter);
-        return writer.toString();
+        try {
+            StringWriter writer = new StringWriter();
+            JsonWriter jsonWriter = newJsonWriter(Streams.writerForAppendable(Streams.writerForAppendable(writer)));
+            gson.toJson(src, src.getClass(), jsonWriter);
+            return writer.toString();
+        } catch (IOException e) {
+            if (src instanceof Collection) {
+                return "[]";
+            }
+            return "{}";
+        }
     }
 
     /**
@@ -54,5 +70,6 @@ public class GsonFormatUtil {
         jsonWriter.setSerializeNulls(false);
         return jsonWriter;
     }
+
 
 }

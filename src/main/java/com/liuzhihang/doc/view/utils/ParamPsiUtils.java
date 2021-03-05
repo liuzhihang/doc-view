@@ -1,7 +1,5 @@
 package com.liuzhihang.doc.view.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -13,7 +11,6 @@ import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.Body;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -223,23 +220,50 @@ public class ParamPsiUtils {
 
             PsiClass psiClass = PsiUtil.resolveClassInType(returnType);
             if (psiClass != null) {
-                for (PsiField field : psiClass.getAllFields()) {
+                if (InheritanceUtil.isInheritor(psiClass, CommonClassNames.JAVA_UTIL_COLLECTION)) {
+                    PsiType[] parameters = psiClassType.getParameters();
+                    if (parameters.length != 0) {
+                        PsiType psiType = parameters[0];
 
-                    if (settings.getExcludeFieldNames().contains(field.getName())) {
-                        continue;
-                    }
-                    // 排除掉被 static 修饰的字段
-                    if (CustomPsiUtils.hasModifierProperty(field, PsiModifier.STATIC)) {
-                        continue;
-                    }
+                        if (psiType instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(psiType.getPresentableText())) {
+                            return list;
+                        }
 
-                    Body requestParam = ParamPsiUtils.buildBodyParam(settings, field, psiClassType.getParameters());
-                    list.add(requestParam);
+                        // 泛型的类型
+                        PsiClass genericsPsiClass = PsiUtil.resolveClassInClassTypeOnly(psiType);
+
+                        if (genericsPsiClass != null) {
+                            return buildBodyList(settings, genericsPsiClass, null);
+                        }
+                    }
+                } else {
+                    return buildBodyList(settings, psiClass, psiClassType.getParameters());
                 }
             }
-
         } else {
             // 其他类型
+        }
+        return list;
+    }
+
+    @NotNull
+    private static List<Body> buildBodyList(Settings settings, @NotNull PsiClass psiClass, PsiType[] o) {
+
+        List<Body> list = new ArrayList<>();
+
+
+        for (PsiField field : psiClass.getAllFields()) {
+
+            if (settings.getExcludeFieldNames().contains(field.getName())) {
+                continue;
+            }
+            // 排除掉被 static 修饰的字段
+            if (CustomPsiUtils.hasModifierProperty(field, PsiModifier.STATIC)) {
+                continue;
+            }
+
+            Body requestParam = ParamPsiUtils.buildBodyParam(settings, field, o);
+            list.add(requestParam);
         }
         return list;
     }
@@ -257,12 +281,31 @@ public class ParamPsiUtils {
 
             PsiClass psiClass = PsiUtil.resolveClassInType(returnType);
             if (psiClass != null) {
-                Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, psiClassType.getParameters());
-                Gson gson = new GsonBuilder().serializeNulls().create();
-                try {
-                    return GsonFormatUtil.gsonFormat(gson, fieldMap);
-                } catch (IOException e) {
-                    return "{}";
+
+                if (InheritanceUtil.isInheritor(psiClass, CommonClassNames.JAVA_UTIL_COLLECTION)) {
+                    // 集合类型
+                    PsiType[] parameters = psiClassType.getParameters();
+
+                    if (parameters.length == 0) {
+                        return "[]";
+                    }
+
+                    PsiType psiType = parameters[0];
+
+                    if (psiType instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(psiType.getPresentableText())) {
+                        return "[]";
+                    }
+
+                    PsiClass iterableClass = PsiUtil.resolveClassInClassTypeOnly(psiType);
+                    Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(iterableClass, null);
+
+                    Object[] objectArr = {fieldMap};
+
+                    return GsonFormatUtil.gsonFormat(objectArr);
+                } else {
+                    Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, psiClassType.getParameters());
+
+                    return GsonFormatUtil.gsonFormat(fieldMap);
                 }
             }
         } else {

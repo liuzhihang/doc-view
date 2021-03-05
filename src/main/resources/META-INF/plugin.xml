@@ -10,7 +10,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
     <!-- 暂时不打开预览 -->
-    <depends>org.intellij.plugins.markdown</depends>
+    <!--<depends>org.intellij.plugins.markdown</depends>-->
 
     <!-- 兼容 IDEA 版本 -->
     <idea-version since-build="201.6668.113"/>

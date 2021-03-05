@@ -1,7 +1,5 @@
 package com.liuzhihang.doc.view.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.intellij.psi.*;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
@@ -11,7 +9,6 @@ import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.Body;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -150,13 +147,7 @@ public class DubboPsiUtils {
                     fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null);
                 }
             }
-
-            Gson gson = new GsonBuilder().serializeNulls().create();
-            try {
-                return GsonFormatUtil.gsonFormat(gson, fieldMap);
-            } catch (IOException e) {
-                return "{}";
-            }
+            return GsonFormatUtil.gsonFormat(fieldMap);
         }
 
         return "{}";

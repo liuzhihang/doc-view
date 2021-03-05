@@ -1,7 +1,5 @@
 package com.liuzhihang.doc.view.utils;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTypesUtil;
@@ -16,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -257,12 +254,7 @@ public class SpringPsiUtils {
             }
         }
 
-        Gson gson = new GsonBuilder().serializeNulls().create();
-        try {
-            return GsonFormatUtil.gsonFormat(gson, fieldMap);
-        } catch (IOException e) {
-            return "{}";
-        }
+        return GsonFormatUtil.gsonFormat(fieldMap);
 
     }
 

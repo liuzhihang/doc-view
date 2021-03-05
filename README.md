@@ -54,11 +54,9 @@ Doc View
 更新
 ----
 
-## [v1.0.7](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.5) (2021-02-28)
+## [v1.0.8](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.8) (2021-03-05)
 
-支持批量导出
-
-访问 [1.0.7 版本变化及已知问题](https://github.com/liuzhihang/doc-view/discussions/10) 参与互动讨论.
+fix: 返回对象为集合的情况下, 返回示例错误.
 
 [查看更多历史更新记录](./doc/ChangeNotes.md)
 
