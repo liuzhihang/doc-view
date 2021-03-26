@@ -22,11 +22,14 @@
         <projectService serviceImplementation="com.liuzhihang.doc.view.config.Settings"/>
         <!-- 模版设置 -->
         <projectService serviceImplementation="com.liuzhihang.doc.view.config.TemplateSettings"/>
+        <!-- 标签配置 -->
+        <projectService serviceImplementation="com.liuzhihang.doc.view.config.TagsSettings"/>
 
         <!-- 相关服务 -->
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.SpringDocViewServiceImpl"/>
 
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.DubboDocViewServiceImpl"/>
+        <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.WriterService"/>
 
         <!-- doc-view tool window 服务-->
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.ToolWindowServiceImpl"/>
@@ -55,42 +58,49 @@
 
     <actions>
         <!-- Add your actions here -->
-        <action id="liuzhihang.doc.view" class="com.liuzhihang.doc.view.action.EditorPreviewAction" text="Doc View">
+
+        <group id="liuzhihang.doc" popup="false" compact="true">
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
-        </action>
+            <action id="liuzhihang.doc.view" class="com.liuzhihang.doc.view.action.EditorPreviewAction"
+                    text="Doc View"/>
+            <action id="liuzhihang.doc.editor" class="com.liuzhihang.doc.view.action.EditorAction" text="Doc Editor"/>
+            <separator/>
+        </group>
+
+
         <!--<action id="liuzhihang.doc.view.project" class="com.liuzhihang.doc.view.action.ProjectViewPreviewAction"-->
         <!--        text="Doc View">-->
         <!--    <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>-->
         <!--</action>-->
 
         <!-- NavigatorActionsToolbar's actions -->
-        <action id="doc-view.refresh" class="com.liuzhihang.doc.view.action.toolbar.RefreshAction"
-                icon="/actions/refresh.svg">
-        </action>
-        <action id="doc-view.export" class="com.liuzhihang.doc.view.action.toolbar.ExportAction"
-                icon="/toolbarDecorator/export.svg">
-        </action>
-        <action id="doc-view.expandall" class="com.liuzhihang.doc.view.action.toolbar.ExpandallAction"
-                icon="/actions/expandall.svg">
-        </action>
-        <action id="doc-view.collapseall" class="com.liuzhihang.doc.view.action.toolbar.CollapseallAction"
-                icon="/actions/collapseall.svg">
-        </action>
-        <action id="doc-view.settings" class="com.liuzhihang.doc.view.action.toolbar.SettingsAction"
-                icon="/general/settings.svg">
-        </action>
-        <group id="doc-view.NavigatorActionsToolbar">
-            <reference id="doc-view.refresh"/>
-            <reference id="doc-view.export"/>
-            <separator/>
-            <reference id="doc-view.expandall"/>
-            <reference id="doc-view.collapseall"/>
-            <separator/>
-            <reference id="doc-view.settings"/>
-        </group>
+        <!--<action id="doc-view.refresh" class="com.liuzhihang.doc.view.action.toolbar.RefreshAction"-->
+        <!--        icon="/actions/refresh.svg">-->
+        <!--</action>-->
+        <!--<action id="doc-view.export" class="com.liuzhihang.doc.view.action.toolbar.ExportAction"-->
+        <!--        icon="/toolbarDecorator/export.svg">-->
+        <!--</action>-->
+        <!--<action id="doc-view.expandall" class="com.liuzhihang.doc.view.action.toolbar.ExpandallAction"-->
+        <!--        icon="/actions/expandall.svg">-->
+        <!--</action>-->
+        <!--<action id="doc-view.collapseall" class="com.liuzhihang.doc.view.action.toolbar.CollapseallAction"-->
+        <!--        icon="/actions/collapseall.svg">-->
+        <!--</action>-->
+        <!--<action id="doc-view.settings" class="com.liuzhihang.doc.view.action.toolbar.SettingsAction"-->
+        <!--        icon="/general/settings.svg">-->
+        <!--</action>-->
+        <!--<group id="doc-view.NavigatorActionsToolbar">-->
+        <!--    <reference id="doc-view.refresh"/>-->
+        <!--    <reference id="doc-view.export"/>-->
+        <!--    <separator/>-->
+        <!--    <reference id="doc-view.expandall"/>-->
+        <!--    <reference id="doc-view.collapseall"/>-->
+        <!--    <separator/>-->
+        <!--    <reference id="doc-view.settings"/>-->
+        <!--</group>-->
 
-        <group id="doc-view.NavigatorActionsMenu">
-            <reference id="doc-view.export"/>
-        </group>
+        <!--<group id="doc-view.NavigatorActionsMenu">-->
+        <!--    <reference id="doc-view.export"/>-->
+        <!--</group>-->
     </actions>
 </idea-plugin>

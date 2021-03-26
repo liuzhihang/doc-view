@@ -1,5 +1,6 @@
 package com.liuzhihang.doc.view.constant;
 
+import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NonNls;
 
 import java.util.HashMap;
@@ -19,6 +20,8 @@ public class FieldTypeConstant {
     @NonNls
     public static final Set<String> ANNOTATION_TYPES = new HashSet<>();
 
+    public static final Set<String> BASE_TYPE_SET = Sets.newHashSet("byte", "short", "int", "long", "char", "float",
+            "double", "boolean");
 
     static {
         // 包装数据类型

@@ -1,6 +1,7 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
@@ -349,11 +350,14 @@ public class SpringPsiUtils {
      * <p>
      * 不是构造方法, 且 公共 非静态, 有相关注解
      *
-     * @param settings
+     * @param project
      * @param psiMethod
      * @return true 不满足条件
      */
-    public static boolean isSpringMethod(Settings settings, @NotNull PsiMethod psiMethod) {
+    public static boolean isSpringMethod(Project project, @NotNull PsiMethod psiMethod) {
+
+        Settings settings = Settings.getInstance(project);
+
 
         return !psiMethod.isConstructor()
                 && CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.PUBLIC)

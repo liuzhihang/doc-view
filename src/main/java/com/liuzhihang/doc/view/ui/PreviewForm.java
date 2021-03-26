@@ -232,11 +232,6 @@ public class PreviewForm {
         markdownEditor.setBorder(JBUI.Borders.emptyLeft(5));
         JBScrollPane templateScrollPane = new JBScrollPane(markdownEditor.getComponent());
 
-        JBScrollBar jbScrollBar = new JBScrollBar();
-        jbScrollBar.setBackground(markdownEditor.getBackgroundColor());
-
-        templateScrollPane.setHorizontalScrollBar(jbScrollBar);
-
         previewPane.add(templateScrollPane, BorderLayout.CENTER);
     }
 
@@ -339,7 +334,11 @@ public class PreviewForm {
             // 将 docView 按照模版转换
             currentMarkdownText = DocViewData.buildMarkdownText(project, currentDocView);
 
-            WriteCommandAction.runWriteCommandAction(project, () -> markdownDocument.setText(currentMarkdownText));
+            WriteCommandAction.runWriteCommandAction(project, () -> {
+                // 光标放在顶部
+                markdownDocument.setText(currentMarkdownText);
+                // markdownEditor.set
+            });
 
             // String html = MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project);
             //

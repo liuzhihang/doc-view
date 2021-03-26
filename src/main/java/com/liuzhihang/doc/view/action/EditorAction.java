@@ -9,7 +9,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
-import com.liuzhihang.doc.view.service.DocViewService;
+import com.liuzhihang.doc.view.ui.DocEditorForm;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
@@ -17,12 +17,12 @@ import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 单个类或者方法中操作
+ * 编辑方法
  *
  * @author liuzhihang
  * @date 2020/2/26 21:57
  */
-public class EditorPreviewAction extends AnAction {
+public class EditorAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
@@ -45,22 +45,14 @@ public class EditorPreviewAction extends AnAction {
             return;
         }
 
-        // 目标类没有方法
-        PsiMethod[] methods = targetClass.getMethods();
+        // 当前方法
+        PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
 
-        if (methods.length == 0) {
-            NotificationUtils.errorNotify(DocViewBundle.message("notify.error.class.no.method"), project);
+        if (targetMethod == null) {
             return;
         }
 
-        DocViewService instance = DocViewService.getInstance(project, psiFile, editor, targetClass);
-
-        if (instance == null) {
-            NotificationUtils.errorNotify(DocViewBundle.message("notify.error.not.support"), project);
-            return;
-        }
-
-        instance.doPreview(project, psiFile, editor, targetClass);
+        DocEditorForm.getInstance(project, targetClass, targetMethod).show();
     }
 
 
@@ -102,12 +94,9 @@ public class EditorPreviewAction extends AnAction {
         if (AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
             PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
             // 过滤掉私有和静态方法以及没有相关注解的方法
-            if (targetMethod != null) {
-                if (!SpringPsiUtils.isSpringMethod(project, targetMethod)) {
-                    presentation.setEnabledAndVisible(false);
-                    return;
-                }
-
+            if (targetMethod == null || !SpringPsiUtils.isSpringMethod(project, targetMethod)) {
+                presentation.setEnabledAndVisible(false);
+                return;
             }
         }
 
@@ -115,10 +104,8 @@ public class EditorPreviewAction extends AnAction {
         if (targetClass.isInterface()) {
             PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
             // 过滤掉私有和静态方法以及没有相关注解的方法
-            if (targetMethod != null) {
-                if (!DubboPsiUtils.isDubboMethod(project, targetMethod)) {
-                    presentation.setEnabledAndVisible(false);
-                }
+            if (targetMethod == null || !DubboPsiUtils.isDubboMethod(project, targetMethod)) {
+                presentation.setEnabledAndVisible(false);
 
             }
         }

@@ -1,5 +1,6 @@
 package com.liuzhihang.doc.view.utils;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
@@ -26,11 +27,11 @@ public class DubboPsiUtils {
      * <p>
      * 不是构造方法, 且 公共 非静态, 有相关注解
      *
-     * @param settings
+     * @param project
      * @param psiMethod
      * @return true 不满足条件
      */
-    public static boolean isDubboMethod(Settings settings, @NotNull PsiMethod psiMethod) {
+    public static boolean isDubboMethod(Project project, @NotNull PsiMethod psiMethod) {
 
         PsiCodeBlock body = psiMethod.getBody();
 

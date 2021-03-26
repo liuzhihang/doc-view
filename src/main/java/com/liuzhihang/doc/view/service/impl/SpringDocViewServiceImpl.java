@@ -5,6 +5,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.config.TagsSettings;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.Header;
@@ -30,8 +31,6 @@ public class SpringDocViewServiceImpl implements DocViewService {
     @Override
     public void doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass) {
 
-        Settings settings = Settings.getInstance(project);
-
         // 当前方法
         PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
 
@@ -39,17 +38,17 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
         if (targetMethod != null) {
 
-            if (!SpringPsiUtils.isSpringMethod(settings, targetMethod)) {
+            if (!SpringPsiUtils.isSpringMethod(project, targetMethod)) {
                 NotificationUtils.errorNotify(DocViewBundle.message("notify.spring.error.method"), project);
                 return;
             }
 
-            DocView docView = buildClassMethodDoc(settings, targetClass, targetMethod);
+            DocView docView = buildClassMethodDoc(project, targetClass, targetMethod);
             docMap.put(docView.getName(), docView);
 
         } else {
             // 生成文档列表
-            docMap = buildClassDoc(settings, targetClass);
+            docMap = buildClassDoc(project, targetClass);
             if (docMap.size() == 0) {
                 NotificationUtils.errorNotify(DocViewBundle.message("notify.spring.error.no.method"), project);
                 return;
@@ -60,17 +59,17 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
     @NotNull
     @Override
-    public Map<String, DocView> buildClassDoc(Settings settings, @NotNull PsiClass psiClass) {
+    public Map<String, DocView> buildClassDoc(Project project, @NotNull PsiClass psiClass) {
 
         Map<String, DocView> docMap = new HashMap<>(32);
 
         for (PsiMethod method : psiClass.getMethods()) {
 
-            if (!SpringPsiUtils.isSpringMethod(settings, method)) {
+            if (!SpringPsiUtils.isSpringMethod(project, method)) {
                 continue;
             }
 
-            DocView docView = buildClassMethodDoc(settings, psiClass, method);
+            DocView docView = buildClassMethodDoc(project, psiClass, method);
             docMap.put(docView.getName(), docView);
         }
 
@@ -79,7 +78,11 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
     @NotNull
     @Override
-    public DocView buildClassMethodDoc(Settings settings, PsiClass psiClass, @NotNull PsiMethod psiMethod) {
+    public DocView buildClassMethodDoc(Project project, PsiClass psiClass, @NotNull PsiMethod psiMethod) {
+
+        Settings settings = Settings.getInstance(project);
+        TagsSettings tagsSettings = TagsSettings.getInstance(project);
+
 
         // 请求路径
         String path = SpringPsiUtils.getPath(psiClass, psiMethod);
@@ -87,10 +90,12 @@ public class SpringDocViewServiceImpl implements DocViewService {
         // 请求方式
         String method = SpringPsiUtils.getMethod(psiMethod);
 
-        // 文档注释
-        String desc = CustomPsiCommentUtils.getComment(psiMethod.getDocComment(), "description");
 
-        String name = CustomPsiCommentUtils.getComment(psiMethod.getDocComment(), "name", false);
+        // 文档注释
+        String desc = CustomPsiCommentUtils.getMethodComment(psiMethod.getDocComment());
+
+
+        String name = CustomPsiCommentUtils.getComment(psiMethod.getDocComment(), tagsSettings.getName());
 
 
         DocView docView = new DocView();
@@ -152,6 +157,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
             docView.setRespBodyList(respParamList);
 
             String bodyJson = ParamPsiUtils.getRespBodyJson(settings, returnType);
+
             docView.setRespExample(bodyJson);
         }
         return docView;

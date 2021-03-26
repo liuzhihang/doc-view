@@ -70,20 +70,19 @@ public interface DocViewService {
      * @return 生成结果
      */
     default Map<String, DocView> generatorDocView(Project project, PsiFile psiFile) {
-        Settings settings = Settings.getInstance(project);
         PsiClass targetClass = CustomPsiUtils.getTargetClass(psiFile);
         if (targetClass == null) {
             return new HashMap<>();
         }
         // 生成文档列表
-        return buildClassDoc(settings, targetClass);
+        return buildClassDoc(project, targetClass);
     }
 
     void doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass);
 
-    Map<String, DocView> buildClassDoc(Settings settings, @NotNull PsiClass psiClass);
+    Map<String, DocView> buildClassDoc(Project settings, @NotNull PsiClass psiClass);
 
     @NotNull
-    DocView buildClassMethodDoc(Settings settings, PsiClass psiClass, @NotNull PsiMethod psiMethod);
+    DocView buildClassMethodDoc(Project settings, PsiClass psiClass, @NotNull PsiMethod psiMethod);
 
 }

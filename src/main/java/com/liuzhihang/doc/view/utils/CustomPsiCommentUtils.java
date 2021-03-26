@@ -1,10 +1,17 @@
 package com.liuzhihang.doc.view.utils;
 
+import com.google.common.collect.Lists;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
+import com.intellij.psi.javadoc.PsiDocTagValue;
+import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * 从注释中解析注解的工具类
@@ -16,44 +23,7 @@ public class CustomPsiCommentUtils {
 
 
     /**
-     * 获取所有注释
-     *
-     * @param docComment
-     * @return
-     */
-    public static String getComment(PsiDocComment docComment) {
-
-        if (docComment == null) {
-            return "";
-        }
-
-
-        StringBuilder desc = new StringBuilder();
-
-        PsiElement[] descriptionElements = docComment.getDescriptionElements();
-
-        for (PsiElement descriptionElement : descriptionElements) {
-            if (StringUtils.isNotBlank(descriptionElement.getText())) {
-                // 替换回车符为 <br/> 防止出现列表参数混乱
-                desc.append(descriptionElement.getText()).append("<br/>");
-            }
-        }
-
-        String comment = desc.toString();
-
-        if (comment.endsWith("<br/>")) {
-            comment = comment.substring(0, comment.lastIndexOf("<br/>"));
-        }
-
-        return comment;
-
-    }
-
-
-    /**
      * 获取注释, 如果指定 tagName 则直接从 tagName 里面获取
-     * <p>
-     * 如果从 tagName 里面获取不到, 则直接获取全部注释
      *
      * @param docComment
      * @param tagName
@@ -62,59 +32,189 @@ public class CustomPsiCommentUtils {
     @NotNull
     public static String getComment(PsiDocComment docComment, String tagName) {
 
-        return getComment(docComment, tagName, true);
+        if (docComment != null) {
+            for (PsiElement element : docComment.getChildren()) {
+
+                if (!("PsiDocTag:" + tagName).equalsIgnoreCase(element.toString())) {
+                    continue;
+                }
+
+                return element.getText()
+                        .replaceAll("[/*]+", StringUtils.EMPTY)
+                        .replace(("PsiDocTag:" + tagName), StringUtils.EMPTY);
+
+            }
+        }
+
+        return "";
     }
 
     /**
-     * 获取注释, 如果指定 tagName 则直接从 tagName 里面获取, tag
+     * 获取注释, 没有 tag 的注释
      *
      * @param docComment
-     * @param tagName
-     * @param takeAll    tag 不存在时是否获取全部注释
      * @return
      */
     @NotNull
-    public static String getComment(PsiDocComment docComment, String tagName, boolean takeAll) {
+    public static String getComment(PsiDocComment docComment) {
 
-        if (docComment == null) {
-            return "";
-        }
+        StringBuilder sb = new StringBuilder();
 
+        if (docComment != null) {
+            for (PsiElement element : docComment.getChildren()) {
 
-        if (StringUtils.isBlank(tagName)) {
-            return "";
-        }
-
-        PsiDocTag psiDocTag = docComment.findTagByName(tagName);
-
-        // tag 不存在
-        if (psiDocTag == null) {
-
-            if (takeAll) {
-                return getComment(docComment);
-            } else {
-                return "";
-            }
-        }
-
-        StringBuilder desc = new StringBuilder();
-
-        PsiDocTag[] tags = docComment.getTags();
-        for (PsiDocTag tag : tags) {
-
-            if (tagName.equalsIgnoreCase(tag.getName())) {
-
-                PsiElement[] dataElements = tag.getDataElements();
-
-                for (PsiElement psiElement : dataElements) {
-                    desc.append(psiElement.getText());
+                if (!"PsiDocToken:DOC_COMMENT_DATA".equalsIgnoreCase(element.toString())) {
+                    continue;
+                }
+                if (sb.length() > 0) {
+                    sb.append(element.getText().replaceAll("[/* ]+", StringUtils.EMPTY)).append("<br/>");
+                } else {
+                    sb.append(element.getText().replaceAll("[/* ]+", StringUtils.EMPTY));
                 }
 
-                return desc.toString();
             }
         }
+        return sb.toString();
+    }
 
-        return desc.toString().trim();
+
+    @NotNull
+    public static String getMethodComment(PsiDocComment docComment) {
+        StringBuilder sb = new StringBuilder();
+
+        if (docComment != null) {
+            for (PsiElement element : docComment.getChildren()) {
+
+                if (!"PsiDocToken:DOC_COMMENT_DATA".equalsIgnoreCase(element.toString())) {
+                    continue;
+                }
+                if (sb.length() > 0) {
+                    sb.append(element.getText().replaceAll("[/* ]+", StringUtils.EMPTY)).append("\n");
+                } else {
+                    sb.append(element.getText().replaceAll("[/* ]+", StringUtils.EMPTY));
+                }
+
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 构建参数
+     *
+     * @param elements      元素
+     * @param paramNameList 参数名称数组
+     * @return {@link java.util.List<java.lang.String>}
+     */
+    @NotNull
+    public static List<String> buildParams(@NotNull List<PsiElement> elements, List<String> paramNameList) {
+
+        List<String> paramDocList = Lists.newArrayList();
+
+        for (Iterator<PsiElement> iterator = elements.iterator(); iterator.hasNext(); ) {
+            PsiElement element = iterator.next();
+            if (!"PsiDocTag:@param".equalsIgnoreCase(element.toString())) {
+                continue;
+            }
+            String paramName = null;
+            String paramData = null;
+            for (PsiElement child : element.getChildren()) {
+                if (StringUtils.isBlank(paramName) && "PsiElement(DOC_PARAMETER_REF)".equals(child.toString())) {
+                    paramName = StringUtils.trim(child.getText());
+                } else if (StringUtils.isBlank(paramData) && "PsiDocToken:DOC_COMMENT_DATA".equals(child.toString())) {
+                    paramData = StringUtils.trim(child.getText());
+                }
+            }
+            if (StringUtils.isBlank(paramName) || StringUtils.isBlank(paramData)) {
+                iterator.remove();
+                continue;
+            }
+            if (!paramNameList.contains(paramName)) {
+                iterator.remove();
+                continue;
+            }
+            paramNameList.remove(paramName);
+        }
+        for (String paramName : paramNameList) {
+            paramDocList.add("@param " + paramName);
+        }
+        return paramDocList;
+    }
+
+
+    /**
+     * 构建返回
+     *
+     * @param elements   元素
+     * @param returnName 返回名称
+     * @return {@link java.lang.String}
+     */
+    @Nullable
+    public static String buildReturn(@NotNull List<PsiElement> elements, String returnName) {
+        boolean isInsert = true;
+        for (Iterator<PsiElement> iterator = elements.iterator(); iterator.hasNext(); ) {
+            PsiElement element = iterator.next();
+            if (!"PsiDocTag:@return".equalsIgnoreCase(element.toString())) {
+                continue;
+            }
+            PsiDocTagValue value = ((PsiDocTag) element).getValueElement();
+            if (value == null || StringUtils.isBlank(value.getText())) {
+                iterator.remove();
+            } else if (returnName.length() <= 0 || "void".equals(returnName)) {
+                iterator.remove();
+            } else {
+                isInsert = false;
+            }
+        }
+        if (isInsert && returnName.length() > 0 && !"void".equals(returnName)) {
+            if (FieldTypeConstant.BASE_TYPE_SET.contains(returnName)) {
+                return "@return " + returnName;
+            } else {
+                return "@return {@link " + returnName + "}";
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 构建异常
+     *
+     * @param elements          元素
+     * @param exceptionNameList 异常名称数组
+     * @return {@link java.util.List<java.lang.String>}
+     */
+    @NotNull
+    public static List<String> buildException(@NotNull List<PsiElement> elements, List<String> exceptionNameList) {
+        List<String> paramDocList = Lists.newArrayList();
+        for (Iterator<PsiElement> iterator = elements.iterator(); iterator.hasNext(); ) {
+            PsiElement element = iterator.next();
+            if (!"PsiDocTag:@throws".equalsIgnoreCase(element.toString())
+                    && !"PsiDocTag:@exception".equalsIgnoreCase(element.toString())) {
+                continue;
+            }
+            String exceptionName = null;
+            String exceptionData = null;
+            for (PsiElement child : element.getChildren()) {
+                if (StringUtils.isBlank(exceptionName) && "PsiElement(DOC_TAG_VALUE_ELEMENT)".equals(child.toString())) {
+                    exceptionName = StringUtils.trim(child.getText());
+                } else if (StringUtils.isBlank(exceptionData) && "PsiDocToken:DOC_COMMENT_DATA".equals(child.toString())) {
+                    exceptionData = StringUtils.trim(child.getText());
+                }
+            }
+            if (StringUtils.isBlank(exceptionName) || StringUtils.isBlank(exceptionData)) {
+                iterator.remove();
+                continue;
+            }
+            if (!exceptionNameList.contains(exceptionName)) {
+                iterator.remove();
+                continue;
+            }
+            exceptionNameList.remove(exceptionName);
+        }
+        for (String exceptionName : exceptionNameList) {
+            paramDocList.add("@throws " + exceptionName);
+        }
+        return paramDocList;
     }
 
 }
