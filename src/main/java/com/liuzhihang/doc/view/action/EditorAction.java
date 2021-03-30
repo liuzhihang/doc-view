@@ -9,6 +9,8 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.dto.DocView;
+import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.ui.DocEditorForm;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
@@ -51,8 +53,16 @@ public class EditorAction extends AnAction {
         if (targetMethod == null) {
             return;
         }
+        // 解析请求参数
+        DocViewService docViewService = DocViewService.getDocViewService(project, targetClass);
 
-        DocEditorForm.getInstance(project, targetClass, targetMethod).show();
+        if (docViewService == null) {
+            return;
+        }
+
+        DocView docView = docViewService.buildClassMethodDoc(project, targetClass, targetMethod);
+
+        DocEditorForm.getInstance(project, targetClass, targetMethod, docView).show();
     }
 
 

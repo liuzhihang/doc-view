@@ -7,12 +7,13 @@ import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.util.ui.JBUI;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.TagsSettings;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
+import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.impl.WriterService;
 import com.liuzhihang.doc.view.utils.CustomPsiCommentUtils;
-import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
@@ -20,8 +21,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import java.util.*;
+import javax.swing.table.TableModel;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -50,13 +54,13 @@ public class DocEditorForm extends DialogWrapper {
     private JPanel methodPane;
     private JTextArea methodTextArea;
 
-    /**
-     * 请求参数
-     */
     private JScrollPane requestParamScrollPane;
     private JTable requestParamTable;
 
-    public static final List<String> titleList = Arrays.asList("参数名", "类型", "必选", "描述");
+    private JScrollPane responseParamScrollPane;
+    private JTable responseParamTable;
+
+    private DocView docView;
 
 
     private Project project;
@@ -65,11 +69,17 @@ public class DocEditorForm extends DialogWrapper {
 
     private WriterService writerService = ServiceManager.getService(WriterService.class);
 
-    protected DocEditorForm(@NotNull Project project, @NotNull PsiClass psiClass, @NotNull PsiMethod psiMethod) {
+
+    protected DocEditorForm(@NotNull Project project, @NotNull PsiClass psiClass,
+                            @NotNull PsiMethod psiMethod, @NotNull DocView docView) {
         super(project, true, DialogWrapper.IdeModalityType.PROJECT);
         this.project = project;
         this.psiClass = psiClass;
         this.psiMethod = psiMethod;
+        this.docView = docView;
+
+        this.nameText = docView.getName();
+        this.descText = docView.getDesc();
 
         namePane.setBorder(IdeBorderFactory.createTitledBorder(DocViewBundle.message("editor.name.title")));
         descJSPane.setBorder(IdeBorderFactory.createTitledBorder(DocViewBundle.message("editor.name.desc")));
@@ -81,6 +91,7 @@ public class DocEditorForm extends DialogWrapper {
 
         initBaseTabbedPane();
         initRequestParamTable();
+        initResponseParamTable();
     }
 
     private void initUI() {
@@ -89,46 +100,47 @@ public class DocEditorForm extends DialogWrapper {
     }
 
     @NotNull
-    @Contract("_, _, _ -> new")
-    public static DocEditorForm getInstance(@NotNull Project project, @NotNull PsiClass psiClass, @NotNull PsiMethod psiMethod) {
+    @Contract("_, _, _, _ -> new")
+    public static DocEditorForm getInstance(@NotNull Project project, @NotNull PsiClass psiClass,
+                                            @NotNull PsiMethod psiMethod, @NotNull DocView docView) {
 
-        return new DocEditorForm(project, psiClass, psiMethod);
+        return new DocEditorForm(project, psiClass, psiMethod, docView);
     }
 
 
     private void initBaseTabbedPane() {
 
-        TagsSettings tagsSettings = TagsSettings.getInstance(project);
-
-        String name = CustomPsiCommentUtils.getComment(psiMethod.getDocComment(), tagsSettings.getName());
-
-        if (StringUtils.isBlank(name)) {
-            name = psiMethod.getName();
-        }
-        nameText = name;
         nameTextArea.setText(nameText);
-
-        descText = CustomPsiCommentUtils.getMethodComment(psiMethod.getDocComment());
-
         descTextArea.setText(descText);
-
-        if (psiClass.isInterface()) {
-            pathTextArea.setText(psiClass.getName() + "#" + psiMethod.getName());
-            methodTextArea.setText("Dubbo");
-        } else {
-            pathTextArea.setText(SpringPsiUtils.getPath(psiClass, psiMethod));
-            methodTextArea.setText(SpringPsiUtils.getMethod(psiMethod));
-        }
+        pathTextArea.setText(docView.getPath());
+        methodTextArea.setText(docView.getMethod());
     }
 
     private void initRequestParamTable() {
 
-        Vector<String> vector = new Vector<>();
+        // 边框
+        responseParamScrollPane.setBorder(JBUI.Borders.empty());
+        responseParamTable.setBorder(JBUI.Borders.empty());
 
-        DefaultTableModel tableModel = (DefaultTableModel) requestParamTable.getModel();
+        ParamTableModel paramTableModel = new ParamTableModel(docView.getRespBodyList());
+        responseParamTable.setModel(paramTableModel);
 
-        // tableModel.setDataVector()
+        ParamTableUI.rowSetting(responseParamTable);
+        ParamTableUI.columnSetting(responseParamTable);
 
+    }
+
+    private void initResponseParamTable() {
+
+        // 边框
+        requestParamScrollPane.setBorder(JBUI.Borders.empty());
+        requestParamTable.setBorder(JBUI.Borders.empty());
+
+        ParamTableModel paramTableModel = new ParamTableModel(docView.getReqBodyList());
+        requestParamTable.setModel(paramTableModel);
+
+        ParamTableUI.rowSetting(requestParamTable);
+        ParamTableUI.columnSetting(requestParamTable);
 
     }
 
@@ -176,6 +188,14 @@ public class DocEditorForm extends DialogWrapper {
         PsiDocComment psiDocComment = factory.createDocCommentFromText(comment);
 
         writerService.write(project, psiMethod, psiDocComment);
+
+        // 写字段注释 遍历发生变化的
+        TableModel requestModel = requestParamTable.getModel();
+
+        for (int i = 0; i < requestModel.getRowCount(); i++) {
+            // requestModel.get
+        }
+
 
         super.doOKAction();
     }
