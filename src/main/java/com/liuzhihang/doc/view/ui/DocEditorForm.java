@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.table.TableModel;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -189,13 +188,7 @@ public class DocEditorForm extends DialogWrapper {
 
         writerService.write(project, psiMethod, psiDocComment);
 
-        // 写字段注释 遍历发生变化的
-        TableModel requestModel = requestParamTable.getModel();
-
-        for (int i = 0; i < requestModel.getRowCount(); i++) {
-            // requestModel.get
-        }
-
+        // TODO: 2021/3/31 字段注释
 
         super.doOKAction();
     }
@@ -245,12 +238,12 @@ public class DocEditorForm extends DialogWrapper {
 
         for (Iterator<PsiElement> iterator = elements.iterator(); iterator.hasNext(); ) {
             PsiElement element = iterator.next();
-            if (!("PsiDocTag:" + docName).equalsIgnoreCase(element.toString())) {
+            if (!("PsiDocTag:@" + docName).equalsIgnoreCase(element.toString())) {
                 continue;
             }
             if (!nameText.equals(nameTextArea.getText())) {
                 // 设置值
-                return docName + " " + nameTextArea.getText();
+                return "@" + docName + " " + nameTextArea.getText();
             }
 
         }
@@ -258,7 +251,7 @@ public class DocEditorForm extends DialogWrapper {
         // 执行到这里, 说明没找到 tag, 之前没有设置
         if (!psiMethod.getName().equals(nameTextArea.getText())) {
             // 设置值
-            return docName + " " + nameTextArea.getText();
+            return "@" + docName + " " + nameTextArea.getText();
         }
 
         return null;

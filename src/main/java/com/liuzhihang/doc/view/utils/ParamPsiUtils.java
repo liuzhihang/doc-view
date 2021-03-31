@@ -1,12 +1,15 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.config.TagsSettings;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.Body;
 import org.jetbrains.annotations.NotNull;
@@ -25,10 +28,10 @@ public class ParamPsiUtils {
     @NotNull
     public static Body buildBodyParam(@NotNull Settings settings, PsiField field, PsiType[] genericArr) {
 
-
         Body body = new Body();
-        body.setRequired(AnnotationUtil.isAnnotated(field, settings.getFieldRequiredAnnotationName(), 0));
+        body.setRequired(isRequired(field));
         body.setName(field.getName());
+        body.setParamPsiField(field);
 
         PsiType type = field.getType();
 
@@ -103,6 +106,35 @@ public class ParamPsiUtils {
         }
 
         return body;
+    }
+
+    /**
+     * 判断字段是否必填
+     *
+     * @param field
+     * @return
+     */
+    private static boolean isRequired(PsiField field) {
+
+        Project project = field.getProject();
+        // 判断是否必填
+        Settings setting = Settings.getInstance(project);
+        boolean annotated = AnnotationUtil.isAnnotated(field, setting.getFieldRequiredAnnotationName(), 0);
+
+        // 查看注释
+        TagsSettings tagsSettings = TagsSettings.getInstance(project);
+        PsiDocComment docComment = field.getDocComment();
+
+        if (docComment == null) {
+            return annotated;
+        }
+
+        PsiDocTag requiredTag = docComment.findTagByName(tagsSettings.getRequired());
+
+        // Swagger 注解
+
+
+        return annotated || requiredTag != null;
     }
 
 
@@ -247,7 +279,7 @@ public class ParamPsiUtils {
     }
 
     @NotNull
-    private static List<Body> buildBodyList(Settings settings, @NotNull PsiClass psiClass, PsiType[] o) {
+    public static List<Body> buildBodyList(Settings settings, @NotNull PsiClass psiClass, PsiType[] o) {
 
         List<Body> list = new ArrayList<>();
 

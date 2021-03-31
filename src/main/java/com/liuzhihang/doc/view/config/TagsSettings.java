@@ -19,7 +19,8 @@ import org.jetbrains.annotations.Nullable;
 public class TagsSettings implements PersistentStateComponent<TagsSettings> {
 
 
-    private String name = "@docName";
+    private String name = "docName";
+    private String required = "required";
 
 
     public static TagsSettings getInstance(@NotNull Project project) {
@@ -44,5 +45,13 @@ public class TagsSettings implements PersistentStateComponent<TagsSettings> {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getRequired() {
+        return required;
+    }
+
+    public void setRequired(String required) {
+        this.required = required;
     }
 }

@@ -41,7 +41,7 @@ public class CustomPsiCommentUtils {
 
                 return element.getText()
                         .replaceAll("[/*]+", StringUtils.EMPTY)
-                        .replace(("PsiDocTag:" + tagName), StringUtils.EMPTY);
+                        .replace(("PsiDocTag:@" + tagName), StringUtils.EMPTY);
 
             }
         }
@@ -66,18 +66,20 @@ public class CustomPsiCommentUtils {
                 if (!"PsiDocToken:DOC_COMMENT_DATA".equalsIgnoreCase(element.toString())) {
                     continue;
                 }
-                if (sb.length() > 0) {
-                    sb.append(element.getText().replaceAll("[/* ]+", StringUtils.EMPTY)).append("<br/>");
-                } else {
-                    sb.append(element.getText().replaceAll("[/* ]+", StringUtils.EMPTY));
-                }
+                // 原注释中的换行符移除
+                sb.append(element.getText().replaceAll("[/* \n]+", StringUtils.EMPTY));
 
             }
         }
         return sb.toString();
     }
 
-
+    /**
+     * 保留换行
+     *
+     * @param docComment
+     * @return
+     */
     @NotNull
     public static String getMethodComment(PsiDocComment docComment) {
         StringBuilder sb = new StringBuilder();
@@ -89,6 +91,7 @@ public class CustomPsiCommentUtils {
                     continue;
                 }
                 if (sb.length() > 0) {
+                    // 保留换行符
                     sb.append(element.getText().replaceAll("[/* ]+", StringUtils.EMPTY)).append("\n");
                 } else {
                     sb.append(element.getText().replaceAll("[/* ]+", StringUtils.EMPTY));

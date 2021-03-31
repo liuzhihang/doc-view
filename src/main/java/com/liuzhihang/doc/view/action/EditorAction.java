@@ -12,6 +12,7 @@ import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.ui.DocEditorForm;
+import com.liuzhihang.doc.view.ui.ParamDocEditorForm;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.NotificationUtils;
@@ -50,19 +51,21 @@ public class EditorAction extends AnAction {
         // 当前方法
         PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
 
-        if (targetMethod == null) {
-            return;
+        if (targetMethod != null) {
+            // 解析请求参数
+            DocViewService docViewService = DocViewService.getDocViewService(project, targetClass);
+
+            if (docViewService == null) {
+                return;
+            }
+
+            DocView docView = docViewService.buildClassMethodDoc(project, targetClass, targetMethod);
+
+            DocEditorForm.getInstance(project, targetClass, targetMethod, docView).show();
+        } else {
+            ParamDocEditorForm.getInstance(project, psiFile, editor, targetClass).popup();
         }
-        // 解析请求参数
-        DocViewService docViewService = DocViewService.getDocViewService(project, targetClass);
 
-        if (docViewService == null) {
-            return;
-        }
-
-        DocView docView = docViewService.buildClassMethodDoc(project, targetClass, targetMethod);
-
-        DocEditorForm.getInstance(project, targetClass, targetMethod, docView).show();
     }
 
 
@@ -93,33 +96,37 @@ public class EditorAction extends AnAction {
         }
 
         Settings settings = Settings.getInstance(project);
-
-        // 检查是否有 Controller 注解 且不是接口
-        if (!targetClass.isInterface() && !AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
-            presentation.setEnabledAndVisible(false);
-            return;
-        }
-
-        // Spring Controller 还需要检查方法是否满足条件
-        if (AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
-            PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
-            // 过滤掉私有和静态方法以及没有相关注解的方法
-            if (targetMethod == null || !SpringPsiUtils.isSpringMethod(project, targetMethod)) {
+        PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
+        if (targetMethod != null) {
+            // 当前方法不为空, 则必须在 Controller 或者接口中
+            // 检查是否有 Controller 注解 且不是接口
+            if (!targetClass.isInterface() && !AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
                 presentation.setEnabledAndVisible(false);
                 return;
             }
-        }
 
-        // Dubbo 接口 还需要检查方法是否满足条件
-        if (targetClass.isInterface()) {
-            PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
-            // 过滤掉私有和静态方法以及没有相关注解的方法
-            if (targetMethod == null || !DubboPsiUtils.isDubboMethod(project, targetMethod)) {
+            // Spring Controller 还需要检查方法是否满足条件
+            if (AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
+                // 过滤掉私有和静态方法以及没有相关注解的方法
+                if (!SpringPsiUtils.isSpringMethod(project, targetMethod)) {
+                    presentation.setEnabledAndVisible(false);
+                    return;
+                }
+            }
+            // Dubbo 接口 还需要检查方法是否满足条件
+            if (targetClass.isInterface()) {
+                // 过滤掉私有和静态方法以及没有相关注解的方法
+                if (!DubboPsiUtils.isDubboMethod(project, targetMethod)) {
+                    presentation.setEnabledAndVisible(false);
+
+                }
+            }
+
+        } else {
+            // 否则当做普通 Bean 进行处理, 普通 JavaBean 不能是接口和 controller
+            if (targetClass.isInterface() && AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
                 presentation.setEnabledAndVisible(false);
-
             }
         }
-
-
     }
 }

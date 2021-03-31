@@ -57,14 +57,16 @@ public class PreviewForm {
     public static final String DOC_VIEW_POPUP = "com.intellij.docview.popup";
     private static final AtomicBoolean myIsPinned = new AtomicBoolean(false);
 
-    private JPanel rootJPanel;
+    private JPanel rootPanel;
     private JSplitPane viewSplitPane;
     private JScrollPane leftScrollPane;
-    private JPanel viewPane;
+    private JPanel viewPanel;
     private JList<String> catalogList;
-    private JPanel previewPane;
-    private JPanel rootToolPane;
-    private JPanel previewEditorPane;
+    private JPanel previewPanel;
+
+    private JPanel headToolbarPanel;
+    private JPanel previewEditorToolbarPanel;
+
     private JLabel docNameLabel;
 
     private EditorEx markdownEditor;
@@ -88,7 +90,7 @@ public class PreviewForm {
 
         // UI调整
         initUI();
-        initRootToolbar();
+        initHeadToolbar();
         // 右侧文档
         initMarkdownEditor();
         initEditorLeftToolbar();
@@ -103,9 +105,9 @@ public class PreviewForm {
 
 
     private void addMouseListeners() {
-        WindowMoveListener windowMoveListener = new WindowMoveListener(rootJPanel);
-        rootJPanel.addMouseListener(windowMoveListener);
-        rootJPanel.addMouseMotionListener(windowMoveListener);
+        WindowMoveListener windowMoveListener = new WindowMoveListener(rootPanel);
+        rootPanel.addMouseListener(windowMoveListener);
+        rootPanel.addMouseMotionListener(windowMoveListener);
 
     }
 
@@ -118,7 +120,7 @@ public class PreviewForm {
     public void popup() {
 
         // dialog 改成 popup, 第一个为根面板，第二个为焦点面板
-        JBPopupFactory.getInstance().createComponentPopupBuilder(rootJPanel, previewEditorPane)
+        JBPopupFactory.getInstance().createComponentPopupBuilder(rootPanel, previewEditorToolbarPanel)
                 .setProject(project)
                 .setResizable(true)
                 .setMovable(true)
@@ -143,14 +145,14 @@ public class PreviewForm {
 
     private void initUI() {
 
-        GuiUtils.replaceJSplitPaneWithIDEASplitter(rootJPanel, true);
+        GuiUtils.replaceJSplitPaneWithIDEASplitter(rootPanel, true);
         // 边框
-        rootJPanel.setBorder(JBUI.Borders.empty());
+        rootPanel.setBorder(JBUI.Borders.empty());
         leftScrollPane.setBorder(JBUI.Borders.emptyLeft(5));
         viewSplitPane.setBorder(JBUI.Borders.empty());
-        previewEditorPane.setBorder(JBUI.Borders.empty());
-        previewPane.setBorder(JBUI.Borders.empty());
-        viewPane.setBorder(JBUI.Borders.empty());
+        previewEditorToolbarPanel.setBorder(JBUI.Borders.empty());
+        previewPanel.setBorder(JBUI.Borders.empty());
+        viewPanel.setBorder(JBUI.Borders.empty());
         docNameLabel.setBorder(JBUI.Borders.emptyLeft(5));
 
         catalogList.setBackground(UIUtil.getTextFieldBackground());
@@ -167,7 +169,7 @@ public class PreviewForm {
 
     }
 
-    private void initRootToolbar() {
+    private void initHeadToolbar() {
         DefaultActionGroup group = new DefaultActionGroup();
 
         group.add(new AnAction("Setting", "Doc view settings", AllIcons.General.GearPlain) {
@@ -199,13 +201,13 @@ public class PreviewForm {
 
         ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
                 .createActionToolbar("DocViewRootToolbar", group, true);
-        toolbar.setTargetComponent(rootToolPane);
+        toolbar.setTargetComponent(headToolbarPanel);
 
         toolbar.setForceMinimumSize(true);
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
 
-        rootToolPane.add(toolbar.getComponent(), BorderLayout.EAST);
+        headToolbarPanel.add(toolbar.getComponent(), BorderLayout.EAST);
     }
 
 
@@ -232,7 +234,7 @@ public class PreviewForm {
         markdownEditor.setBorder(JBUI.Borders.emptyLeft(5));
         JBScrollPane templateScrollPane = new JBScrollPane(markdownEditor.getComponent());
 
-        previewPane.add(templateScrollPane, BorderLayout.CENTER);
+        previewPanel.add(templateScrollPane, BorderLayout.CENTER);
     }
 
 
@@ -261,15 +263,15 @@ public class PreviewForm {
 
         ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
                 .createActionToolbar("DocViewEditorLeftToolbar", leftGroup, true);
-        toolbar.setTargetComponent(previewEditorPane);
+        toolbar.setTargetComponent(previewEditorToolbarPanel);
         toolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
 
         toolbar.setForceMinimumSize(true);
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
 
-        previewEditorPane.setBackground(markdownEditor.getBackgroundColor());
-        previewEditorPane.add(toolbar.getComponent(), BorderLayout.WEST);
+        previewEditorToolbarPanel.setBackground(markdownEditor.getBackgroundColor());
+        previewEditorToolbarPanel.add(toolbar.getComponent(), BorderLayout.WEST);
     }
 
     private void initEditorRightToolbar() {
@@ -306,15 +308,15 @@ public class PreviewForm {
         // init toolbar
         ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
                 .createActionToolbar("DocViewEditorRightToolbar", rightGroup, true);
-        toolbar.setTargetComponent(previewEditorPane);
+        toolbar.setTargetComponent(previewEditorToolbarPanel);
         toolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
 
         toolbar.setForceMinimumSize(true);
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
 
-        previewEditorPane.setBackground(markdownEditor.getBackgroundColor());
-        previewEditorPane.add(toolbar.getComponent(), BorderLayout.EAST);
+        previewEditorToolbarPanel.setBackground(markdownEditor.getBackgroundColor());
+        previewEditorToolbarPanel.add(toolbar.getComponent(), BorderLayout.EAST);
 
     }
 

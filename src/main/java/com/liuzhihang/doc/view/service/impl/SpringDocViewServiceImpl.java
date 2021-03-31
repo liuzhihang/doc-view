@@ -92,7 +92,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
 
         // 文档注释
-        String desc = CustomPsiCommentUtils.getMethodComment(psiMethod.getDocComment());
+        String desc = CustomPsiCommentUtils.getComment(psiMethod.getDocComment());
 
 
         String name = CustomPsiCommentUtils.getComment(psiMethod.getDocComment(), tagsSettings.getName());

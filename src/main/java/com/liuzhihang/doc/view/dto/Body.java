@@ -1,6 +1,8 @@
 package com.liuzhihang.doc.view.dto;
 
 
+import com.intellij.psi.PsiField;
+
 import java.util.List;
 
 /**
@@ -32,6 +34,10 @@ public class Body {
      */
     private String type;
 
+    /**
+     * 参数的 psiField
+     */
+    private PsiField paramPsiField;
 
     private List<Body> objectReqList;
     private List<Body> objectRespList;
@@ -91,5 +97,36 @@ public class Body {
 
     public void setObjectRespList(List<Body> objectRespList) {
         this.objectRespList = objectRespList;
+    }
+
+    public PsiField getParamPsiField() {
+        return paramPsiField;
+    }
+
+    public void setParamPsiField(PsiField paramPsiField) {
+        this.paramPsiField = paramPsiField;
+    }
+
+    @Override
+    public String toString() {
+        return "{\"Body\":{"
+                + "\"required\":"
+                + required
+                + ",\"name\":\""
+                + name + '\"'
+                + ",\"example\":\""
+                + example + '\"'
+                + ",\"desc\":\""
+                + desc + '\"'
+                + ",\"type\":\""
+                + type + '\"'
+                + ",\"paramPsiField\":"
+                + paramPsiField
+                + ",\"objectReqList\":"
+                + objectReqList
+                + ",\"objectRespList\":"
+                + objectRespList
+                + "}}";
+
     }
 }
