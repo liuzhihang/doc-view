@@ -18,6 +18,9 @@ Doc View
 - 复制 Markdown 文本剪贴板
 - 导出 Markdown 文件
 - 支持自定义 Markdown 模版
+- 批量导出
+- 支持界面编辑文档, 注释, 同时会保存回代码注释中
+- 支持在编辑实体界面, 将实体复制为 Json 字符串
 
 **注：因 API 问题，新插件仅支持 2020.1 和 2020.2 版本 。**
 
@@ -26,7 +29,6 @@ Doc View
 ----
 
 - [ ] 批量生成（当前仅支持单个类或者方法）
-- [ ] 批量导出
 - [ ] 面板支持查看 Markdown 源文本
 - [ ] 支持从 Swagger 注解获取字段相关信息
 - [ ] 支持 Setting 设置
@@ -38,25 +40,42 @@ Doc View
 
 ![1111-l7NaTW](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/1111-l7NaTW.gif)
 
+[更多截图演示](https://github.com/liuzhihang/doc-view/discussions/17)
 
 安装
 ----
+
 - **在线安装:**
-  - `File` -> `Setting` -> `Plugins` -> 搜索 `Doc View`
+    - `File` -> `Setting` -> `Plugins` -> 搜索 `Doc View`
 
 - **手动安装:**
-  - [下载插件](https://github.com/liuzhihang/doc-view/releases) -> `File` -> `Setting` -> `Plugins` -> `Install Plugin from Disk...`
+    - [下载插件](https://github.com/liuzhihang/doc-view/releases) -> `File` -> `Setting` -> `Plugins`
+      -> `Install Plugin from Disk...`
 
 使用
 ----
+
 - 右键菜单选择 `Doc View`
-            
+
 更新
 ----
 
-## [v1.0.8](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.8) (2021-03-05)
+## [v1.0.9](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.9) (2021-04-01)
 
-fix: 返回对象为集合的情况下, 返回示例错误.
+1. 支持在右键菜单选择 Doc Editor 直接编辑文档
+    1. 编辑接口文档名称
+    2. 编辑接口描述
+    3. 编辑字段是否必填
+    4. 编辑字段注释说明
+    5. 点击确定, 会回写到源文件的注释中
+2. 支持在 Entity 中通过邮件菜单选择Doc Editor 编辑字段信息
+    1. 编辑字段是否必填
+    2. 编辑字段注释说明
+    3. 点击确定, 会回写到源文件的注释中
+    4. 支持将 Entity 复制为 Json 字符串
+    5. 复制 Json 字符串时, 支持 Entity 中包含对象的转换
+3. 从 Doc View 预览界面直接跳转到编辑界面
+4. 一些设置说明
 
 [查看更多历史更新记录](./doc/ChangeNotes.md)
 
@@ -67,6 +86,7 @@ fix: 返回对象为集合的情况下, 返回示例错误.
 
 ![wechat-vxgNsq](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/wechat-vxgNsq.png)
 
+欢迎加我微信进群, 讨论技术或者对插件提出建议. (关注公众号 -> 找到我)
 
 小伙伴们
 ----

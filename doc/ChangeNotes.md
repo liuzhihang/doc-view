@@ -1,5 +1,18 @@
 # ChangeNotes
 
+## [v1.0.9](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.9) (2021-04-01)
+
+1. 支持 Doc Editor 直接编辑文档
+    1. 支持编辑注释
+    2. 支持编辑接口
+    3. 支持编辑请求/返回字段是否必填
+    4. 支持编辑请求/返回字段注释说明
+2. 支持在 Entity 中调用 Doc Editor
+    1. 编辑字段是否必填和注释说明
+    2. 复制 Entity 为 Json 字符串
+3. 从 Doc View 预览界面直接跳转到编辑界面
+4. 一些设置说明
+
 ## [v1.0.8](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.8) (2021-03-05)
 
 fix: 返回对象为集合的情况下, 返回示例错误.

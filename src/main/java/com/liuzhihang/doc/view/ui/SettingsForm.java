@@ -14,9 +14,11 @@ import javax.swing.*;
 public class SettingsForm {
 
     private JPanel rootPanel;
-    private JPanel titlePanel;
+    private JPanel docNamePanel;
 
     private LinkLabel<String> supportLinkLabel;
+    private JPanel docDescPanel;
+    private JPanel paramRequirePanel;
 
 
     public SettingsForm() {
@@ -27,8 +29,10 @@ public class SettingsForm {
 
         supportLinkLabel.setListener((source, data) -> new SupportForm().show(), null);
 
+        docNamePanel.setBorder(IdeBorderFactory.createTitledBorder("接口名称"));
+        docDescPanel.setBorder(IdeBorderFactory.createTitledBorder("接口描述"));
+        paramRequirePanel.setBorder(IdeBorderFactory.createTitledBorder("是否必填"));
 
-        titlePanel.setBorder(IdeBorderFactory.createTitledBorder("当前版本不支持配置!"));
 
     }
 

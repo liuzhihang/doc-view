@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.liuzhihang'
-version '1.0.8'
+version '1.0.9'
 
 JavaVersion.VERSION_11
 
