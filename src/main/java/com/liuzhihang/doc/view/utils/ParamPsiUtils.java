@@ -31,7 +31,7 @@ public class ParamPsiUtils {
         Body body = new Body();
         body.setRequired(isRequired(field));
         body.setName(field.getName());
-        body.setParamPsiField(field);
+        body.setPsiElement(field);
 
         PsiType type = field.getType();
 
@@ -62,7 +62,7 @@ public class ParamPsiUtils {
                     }
                 }
             }
-            body.setObjectReqList(list);
+            body.setBodyList(list);
         } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_MAP)) {
             // HashMap or Map
             List<Body> list = new ArrayList<>();
@@ -77,7 +77,7 @@ public class ParamPsiUtils {
                     }
                 }
             }
-            body.setObjectReqList(list);
+            body.setBodyList(list);
         } else {
             PsiClass psiClass;
             if (type.getPresentableText().equals("T") && genericArr != null && genericArr.length >= 1) {
@@ -102,7 +102,7 @@ public class ParamPsiUtils {
                     }
                 }
             }
-            body.setObjectReqList(list);
+            body.setBodyList(list);
         }
 
         return body;

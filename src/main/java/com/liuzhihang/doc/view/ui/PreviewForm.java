@@ -18,6 +18,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -36,7 +37,6 @@ import com.liuzhihang.doc.view.utils.NotificationUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -80,7 +80,10 @@ public class PreviewForm {
     private String currentMarkdownText;
     private DocView currentDocView;
 
-    public PreviewForm(@Nullable Project project, PsiFile psiFile, Editor editor, PsiClass psiClass, Map<String, DocView> docMap) {
+    private JBPopup popup;
+
+    public PreviewForm(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor,
+                       @NotNull PsiClass psiClass, @NotNull Map<String, DocView> docMap) {
 
         this.project = project;
         this.psiFile = psiFile;
@@ -113,14 +116,16 @@ public class PreviewForm {
 
     @NotNull
     @Contract("_, _, _, _, _ -> new")
-    public static PreviewForm getInstance(@Nullable Project project, PsiFile psiFile, Editor editor, PsiClass psiClass, Map<String, DocView> docMap) {
+    public static PreviewForm getInstance(@NotNull Project project, @NotNull PsiFile psiFile,
+                                          @NotNull Editor editor, @NotNull PsiClass psiClass,
+                                          @NotNull Map<String, DocView> docMap) {
         return new PreviewForm(project, psiFile, editor, psiClass, docMap);
     }
 
     public void popup() {
 
         // dialog 改成 popup, 第一个为根面板，第二个为焦点面板
-        JBPopupFactory.getInstance().createComponentPopupBuilder(rootPanel, previewEditorToolbarPanel)
+        popup = JBPopupFactory.getInstance().createComponentPopupBuilder(rootPanel, previewEditorToolbarPanel)
                 .setProject(project)
                 .setResizable(true)
                 .setMovable(true)
@@ -138,8 +143,8 @@ public class PreviewForm {
                 // 在其他窗口打开时取消
                 .setCancelOnOtherWindowOpen(false)
                 .setCancelOnWindowDeactivation(false)
-                .createPopup()
-                .showCenteredInCurrentWindow(project);
+                .createPopup();
+        popup.showCenteredInCurrentWindow(project);
     }
 
 
@@ -257,7 +262,13 @@ public class PreviewForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                NotificationUtils.infoNotify(DocViewBundle.message("notify.editor.success"), project);
+
+                DocEditorForm.getInstance(project, psiClass,
+                        currentDocView.getPsiMethod(),
+                        DocViewData.getInstance(currentDocView))
+                        .popup();
+
+                popup.cancel();
             }
         });
 

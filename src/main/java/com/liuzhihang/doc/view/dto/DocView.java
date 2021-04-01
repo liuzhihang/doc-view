@@ -1,5 +1,7 @@
 package com.liuzhihang.doc.view.dto;
 
+import com.intellij.psi.PsiMethod;
+
 import java.util.List;
 
 /**
@@ -9,6 +11,11 @@ import java.util.List;
  * @date 2020/2/28 10:32
  */
 public class DocView {
+
+    /**
+     * 当前接口的方法
+     */
+    private PsiMethod psiMethod;
 
     private String fullClassName;
 
@@ -230,5 +237,13 @@ public class DocView {
 
     public void setClassName(String className) {
         this.className = className;
+    }
+
+    public PsiMethod getPsiMethod() {
+        return psiMethod;
+    }
+
+    public void setPsiMethod(PsiMethod psiMethod) {
+        this.psiMethod = psiMethod;
     }
 }

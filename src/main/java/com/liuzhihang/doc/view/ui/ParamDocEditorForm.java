@@ -11,16 +11,22 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.ui.WindowMoveListener;
 import com.intellij.util.ui.JBUI;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.config.SettingsConfigurable;
 import com.liuzhihang.doc.view.config.TagsSettings;
 import com.liuzhihang.doc.view.dto.Body;
+import com.liuzhihang.doc.view.dto.DocViewData;
+import com.liuzhihang.doc.view.dto.ParamData;
 import com.liuzhihang.doc.view.service.impl.WriterService;
+import com.liuzhihang.doc.view.utils.GsonFormatUtil;
+import com.liuzhihang.doc.view.utils.NotificationUtils;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
@@ -29,6 +35,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import javax.swing.table.JTableHeader;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +47,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @date 2021/3/31 10:49
  */
 public class ParamDocEditorForm {
+
+    private final Project project;
+    private final PsiFile psiFile;
+    private final Editor editor;
+    private final PsiClass psiClass;
+
+    private final ParamTableModel paramTableModel;
+
     private JPanel rootPanel;
     private JPanel headToolbarPanel;
     private JPanel tailToolbarPanel;
@@ -47,21 +63,15 @@ public class ParamDocEditorForm {
     private JTable paramTable;
 
 
-    private ParamTableModel paramTableModel;
-
-    private Project project;
-    private PsiFile psiFile;
-    private Editor editor;
-    private PsiClass psiClass;
 
     private JBPopup popup;
 
 
     @NonNls
-    public static final String DOC_VIEW_POPUP = "com.intellij.docview.popup";
+    public static final String DOC_VIEW_POPUP = "com.intellij.docview.param.editor.popup";
     private static final AtomicBoolean myIsPinned = new AtomicBoolean(true);
 
-    private WriterService writerService = ServiceManager.getService(WriterService.class);
+    private final WriterService writerService = ServiceManager.getService(WriterService.class);
 
     public ParamDocEditorForm(@NotNull Project project, @NotNull PsiFile psiFile,
                               @NotNull Editor editor, @NotNull PsiClass psiClass) {
@@ -73,7 +83,7 @@ public class ParamDocEditorForm {
 
         List<Body> bodyList = ParamPsiUtils.buildBodyList(Settings.getInstance(project), psiClass, null);
 
-        paramTableModel = new ParamTableModel(bodyList);
+        paramTableModel = new ParamTableModel(DocViewData.buildBodyDataList(bodyList));
 
         // UI调整
         initUI();
@@ -82,6 +92,7 @@ public class ParamDocEditorForm {
         initTailRightToolbar();
 
         buildParamTable();
+        addMouseListeners();
     }
 
     @NotNull
@@ -89,6 +100,14 @@ public class ParamDocEditorForm {
     public static ParamDocEditorForm getInstance(@NotNull Project project, @NotNull PsiFile psiFile,
                                                  @NotNull Editor editor, @NotNull PsiClass psiClass) {
         return new ParamDocEditorForm(project, psiFile, editor, psiClass);
+    }
+
+
+    private void addMouseListeners() {
+        WindowMoveListener windowMoveListener = new WindowMoveListener(rootPanel);
+        rootPanel.addMouseListener(windowMoveListener);
+        rootPanel.addMouseMotionListener(windowMoveListener);
+
     }
 
     public void popup() {
@@ -167,7 +186,7 @@ public class ParamDocEditorForm {
         });
 
         ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
-                .createActionToolbar("ParamDocEditorHeadToolbar", group, true);
+                .createActionToolbar("ParamDocParamEditorHeadToolbar", group, true);
         toolbar.setTargetComponent(headToolbarPanel);
 
         toolbar.setForceMinimumSize(true);
@@ -184,9 +203,17 @@ public class ParamDocEditorForm {
 
         DefaultActionGroup rightGroup = new DefaultActionGroup();
 
-        rightGroup.add(new AnAction("Copy as json", "Copy as json", AllIcons.Actions.Copy) {
+        rightGroup.add(new AnAction("Copy as Json", "Copy as json", AllIcons.Actions.Copy) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
+
+                Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null);
+                String format = GsonFormatUtil.gsonFormat(fieldMap);
+                StringSelection selection = new StringSelection(format);
+                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                clipboard.setContents(selection, selection);
+                NotificationUtils.infoNotify(DocViewBundle.message("param.copy.success", psiClass.getName()), project);
+                popup.cancel();
             }
         });
 
@@ -205,7 +232,7 @@ public class ParamDocEditorForm {
 
         // init toolbar
         ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
-                .createActionToolbar("ParamDocEditorTailRightToolbar", rightGroup, true);
+                .createActionToolbar("ParamDocParamEditorTailRightToolbar", rightGroup, true);
         toolbar.setTargetComponent(tailToolbarPanel);
 
         toolbar.setForceMinimumSize(true);
@@ -223,28 +250,27 @@ public class ParamDocEditorForm {
 
         TagsSettings tagsSettings = TagsSettings.getInstance(project);
 
-        Map<PsiField, Body> modifyBodyMap = paramTableModel.getModifyBodyMap();
+        Map<PsiElement, ParamData> modifyBodyMap = paramTableModel.getModifyBodyMap();
 
-        for (PsiField psiField : modifyBodyMap.keySet()) {
-            Body body = modifyBodyMap.get(psiField);
+        for (PsiElement element : modifyBodyMap.keySet()) {
+            ParamData data = modifyBodyMap.get(element);
             String comment;
-            System.out.println(body.getDesc());
 
-            if (body.getRequired()) {
+            if (data.getRequired()) {
                 comment = "/** "
-                        + body.getDesc() + "\n"
+                        + data.getDesc() + "\n"
                         + "* @" + tagsSettings.getRequired()
                         + " */";
             } else {
                 comment = "/** "
-                        + body.getDesc()
+                        + data.getDesc()
                         + " */";
             }
 
 
             PsiElementFactory factory = PsiElementFactory.getInstance(project);
             PsiDocComment psiDocComment = factory.createDocCommentFromText(comment);
-            writerService.write(project, psiField, psiDocComment);
+            writerService.write(project, element, psiDocComment);
         }
     }
 

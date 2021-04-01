@@ -78,7 +78,7 @@ public interface DocViewService {
         return buildClassDoc(project, targetClass);
     }
 
-    void doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass);
+    void doPreview(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull PsiClass targetClass);
 
     Map<String, DocView> buildClassDoc(Project settings, @NotNull PsiClass psiClass);
 

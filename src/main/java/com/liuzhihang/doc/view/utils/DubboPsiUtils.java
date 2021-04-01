@@ -81,7 +81,7 @@ public class DubboPsiUtils {
                     }
                 }
 
-                body.setObjectReqList(bodyList);
+                body.setBodyList(bodyList);
 
             } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_MAP)) {
                 //  map
@@ -98,7 +98,7 @@ public class DubboPsiUtils {
                         }
                     }
                 }
-                body.setObjectReqList(bodyList);
+                body.setBodyList(bodyList);
 
             } else if (type instanceof PsiClassType) {
                 // 对象
@@ -113,7 +113,7 @@ public class DubboPsiUtils {
                         }
                     }
                 }
-                body.setObjectReqList(bodyList);
+                body.setBodyList(bodyList);
 
             } else {
                 // 未知类型

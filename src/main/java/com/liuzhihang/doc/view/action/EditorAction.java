@@ -10,6 +10,7 @@ import com.intellij.psi.PsiMethod;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.DocView;
+import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.ui.DocEditorForm;
 import com.liuzhihang.doc.view.ui.ParamDocEditorForm;
@@ -61,7 +62,7 @@ public class EditorAction extends AnAction {
 
             DocView docView = docViewService.buildClassMethodDoc(project, targetClass, targetMethod);
 
-            DocEditorForm.getInstance(project, targetClass, targetMethod, docView).show();
+            DocEditorForm.getInstance(project, targetClass, targetMethod, DocViewData.getInstance(docView)).popup();
         } else {
             ParamDocEditorForm.getInstance(project, psiFile, editor, targetClass).popup();
         }

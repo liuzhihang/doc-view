@@ -1,7 +1,7 @@
 package com.liuzhihang.doc.view.dto;
 
 
-import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiElement;
 
 import java.util.List;
 
@@ -10,6 +10,11 @@ import java.util.List;
  * @date 2020/2/27 16:39
  */
 public class Body {
+
+    /**
+     * 参数的 psiElement
+     */
+    private PsiElement psiElement;
 
     /**
      * 是否必须
@@ -34,13 +39,7 @@ public class Body {
      */
     private String type;
 
-    /**
-     * 参数的 psiField
-     */
-    private PsiField paramPsiField;
-
-    private List<Body> objectReqList;
-    private List<Body> objectRespList;
+    private List<Body> bodyList;
 
 
     public Boolean getRequired() {
@@ -83,50 +82,19 @@ public class Body {
         this.type = type;
     }
 
-    public List<Body> getObjectReqList() {
-        return objectReqList;
+    public List<Body> getBodyList() {
+        return bodyList;
     }
 
-    public void setObjectReqList(List<Body> objectReqList) {
-        this.objectReqList = objectReqList;
+    public void setBodyList(List<Body> bodyList) {
+        this.bodyList = bodyList;
     }
 
-    public List<Body> getObjectRespList() {
-        return objectRespList;
+    public PsiElement getPsiElement() {
+        return psiElement;
     }
 
-    public void setObjectRespList(List<Body> objectRespList) {
-        this.objectRespList = objectRespList;
-    }
-
-    public PsiField getParamPsiField() {
-        return paramPsiField;
-    }
-
-    public void setParamPsiField(PsiField paramPsiField) {
-        this.paramPsiField = paramPsiField;
-    }
-
-    @Override
-    public String toString() {
-        return "{\"Body\":{"
-                + "\"required\":"
-                + required
-                + ",\"name\":\""
-                + name + '\"'
-                + ",\"example\":\""
-                + example + '\"'
-                + ",\"desc\":\""
-                + desc + '\"'
-                + ",\"type\":\""
-                + type + '\"'
-                + ",\"paramPsiField\":"
-                + paramPsiField
-                + ",\"objectReqList\":"
-                + objectReqList
-                + ",\"objectRespList\":"
-                + objectRespList
-                + "}}";
-
+    public void setPsiElement(PsiElement psiElement) {
+        this.psiElement = psiElement;
     }
 }

@@ -1,10 +1,17 @@
 package com.liuzhihang.doc.view.dto;
 
+import com.intellij.psi.PsiElement;
+
 /**
  * @author liuzhihang
  * @date 2020/2/28 10:40
  */
 public class Header {
+
+    /**
+     * 节点
+     */
+    private PsiElement psiElement;
 
     /**
      * 是否必须 1必须 0非必须
@@ -55,5 +62,13 @@ public class Header {
 
     public void setDesc(String desc) {
         this.desc = desc;
+    }
+
+    public PsiElement getPsiElement() {
+        return psiElement;
+    }
+
+    public void setPsiElement(PsiElement psiElement) {
+        this.psiElement = psiElement;
     }
 }

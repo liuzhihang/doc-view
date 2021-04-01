@@ -1,7 +1,7 @@
 package com.liuzhihang.doc.view.ui;
 
-import com.intellij.psi.PsiField;
-import com.liuzhihang.doc.view.dto.Body;
+import com.intellij.psi.PsiElement;
+import com.liuzhihang.doc.view.dto.ParamData;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,28 +15,33 @@ import java.util.*;
  */
 public class ParamTableModel extends DefaultTableModel {
 
+    public static final Vector<String> titleList = new Vector<>(Arrays.asList("参数名", "类型", "必选", "描述"));
     private static final Logger log = LoggerFactory.getLogger(ParamTableModel.class);
 
-    public static final Vector<String> titleList = new Vector<>(Arrays.asList("参数名", "类型", "必选", "描述"));
+    private List<ParamData> paramList;
+    private Map<PsiElement, ParamData> modifyBodyMap = new HashMap<>();
 
-    private List<Body> bodyList;
-    private Map<PsiField, Body> modifyBodyMap = new HashMap<>();
+    /**
+     * 构造参数
+     * <p>
+     * Body 里面可能会嵌套
+     *
+     * @param bodyList
+     */
+    public ParamTableModel(List<ParamData> bodyList) {
 
-
-    public ParamTableModel(List<Body> bodyList) {
-
-        this.bodyList = bodyList;
+        this.paramList = bodyList;
 
         Vector<Vector<Object>> vector = new Vector<>();
 
         if (CollectionUtils.isNotEmpty(bodyList)) {
             // "参数名", "类型", "必选", "描述"
-            for (Body body : bodyList) {
+            for (ParamData data : bodyList) {
                 Vector<Object> sv = new Vector<>();
-                sv.add(body.getName());
-                sv.add(body.getType());
-                sv.add(body.getRequired());
-                sv.add(body.getDesc());
+                sv.add(data.getPrefix() + data.getName());
+                sv.add(data.getType());
+                sv.add(data.getRequired());
+                sv.add(data.getDesc());
                 vector.add(sv);
             }
         }
@@ -70,23 +75,23 @@ public class ParamTableModel extends DefaultTableModel {
             super.setValueAt(value, row, column);
         }
 
-        Body body = bodyList.get(row);
+        ParamData data = paramList.get(row);
 
         // 值发生了改变, 是否必选发生改变
         if (column == 2) {
             Boolean required = (Boolean) value;
-            if (!body.getRequired().equals(required)) {
-                body.setRequired(required);
-                modifyBodyMap.put(body.getParamPsiField(), body);
+            if (!data.getRequired().equals(required)) {
+                data.setRequired(required);
+                modifyBodyMap.put(data.getPsiElement(), data);
             }
 
         }
         // 注释发生改变
         if (column == 3) {
             String desc = (String) value;
-            if (!body.getDesc().equals(desc)) {
-                body.setDesc(desc);
-                modifyBodyMap.put(body.getParamPsiField(), body);
+            if (!data.getDesc().equals(desc)) {
+                data.setDesc(desc);
+                modifyBodyMap.put(data.getPsiElement(), data);
             }
         }
 
@@ -94,7 +99,7 @@ public class ParamTableModel extends DefaultTableModel {
         super.setValueAt(value, row, column);
     }
 
-    public Map<PsiField, Body> getModifyBodyMap() {
+    public Map<PsiElement, ParamData> getModifyBodyMap() {
         return modifyBodyMap;
     }
 }

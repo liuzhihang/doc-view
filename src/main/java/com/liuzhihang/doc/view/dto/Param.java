@@ -1,10 +1,18 @@
 package com.liuzhihang.doc.view.dto;
 
+import com.intellij.psi.PsiElement;
+
 /**
  * @author liuzhihang
  * @date 2020/2/27 16:39
  */
 public class Param {
+
+
+    /**
+     * 参数的 psiElement
+     */
+    private PsiElement psiElement;
 
     /**
      * 是否必须
@@ -23,7 +31,6 @@ public class Param {
      * 参数描述
      */
     private String desc;
-
 
     /**
      * 类型
@@ -69,5 +76,13 @@ public class Param {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public PsiElement getPsiElement() {
+        return psiElement;
+    }
+
+    public void setPsiElement(PsiElement psiElement) {
+        this.psiElement = psiElement;
     }
 }

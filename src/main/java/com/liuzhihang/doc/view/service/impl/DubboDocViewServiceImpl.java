@@ -28,7 +28,7 @@ import java.util.Map;
 public class DubboDocViewServiceImpl implements DocViewService {
 
     @Override
-    public void doPreview(@NotNull Project project, PsiFile psiFile, Editor editor, PsiClass targetClass) {
+    public void doPreview(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull PsiClass targetClass) {
 
         // 当前方法
         PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
@@ -59,7 +59,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
     }
 
     @Override
-    public Map<String, DocView> buildClassDoc(Project project, @NotNull PsiClass psiClass) {
+    public Map<String, DocView> buildClassDoc(@NotNull Project project, @NotNull PsiClass psiClass) {
 
         Map<String, DocView> docMap = new HashMap<>(32);
 
@@ -79,7 +79,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
 
     @NotNull
     @Override
-    public DocView buildClassMethodDoc(Project project, PsiClass psiClass, @NotNull PsiMethod psiMethod) {
+    public DocView buildClassMethodDoc(@NotNull Project project, @NotNull PsiClass psiClass, @NotNull PsiMethod psiMethod) {
 
         Settings settings = Settings.getInstance(project);
         TagsSettings tagsSettings = TagsSettings.getInstance(project);
@@ -96,6 +96,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
         String name = CustomPsiCommentUtils.getComment(psiMethod.getDocComment(), tagsSettings.getName());
 
         DocView docView = new DocView();
+        docView.setPsiMethod(psiMethod);
         docView.setFullClassName(psiClass.getQualifiedName());
         docView.setClassName(psiClass.getName());
         docView.setName(StringUtils.isBlank(name) ? psiMethod.getName() : name);
