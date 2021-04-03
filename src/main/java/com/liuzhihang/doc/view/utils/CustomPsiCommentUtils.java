@@ -35,13 +35,14 @@ public class CustomPsiCommentUtils {
         if (docComment != null) {
             for (PsiElement element : docComment.getChildren()) {
 
-                if (!("PsiDocTag:" + tagName).equalsIgnoreCase(element.toString())) {
+                if (!("PsiDocTag:@" + tagName).equalsIgnoreCase(element.toString())) {
                     continue;
                 }
 
                 return element.getText()
                         .replaceAll("[/*]+", StringUtils.EMPTY)
-                        .replace(("PsiDocTag:@" + tagName), StringUtils.EMPTY);
+                        .replace(("@" + tagName), StringUtils.EMPTY)
+                        .trim();
 
             }
         }
