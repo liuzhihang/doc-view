@@ -16,7 +16,7 @@ public class FieldTypeConstant {
 
 
     @NonNls
-    public static final Map<String, Object> FIELD_TYPE = new HashMap<>(16);
+    public static final Map<String, Object> FIELD_TYPE = new HashMap<>(64);
     @NonNls
     public static final Set<String> ANNOTATION_TYPES = new HashSet<>();
 

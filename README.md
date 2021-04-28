@@ -29,11 +29,8 @@ Doc View
 ----
 
 - [ ] 批量生成（当前仅支持单个类或者方法）
-- [ ] 面板支持查看 Markdown 源文本
 - [ ] 支持从 Swagger 注解获取字段相关信息
-- [ ] 支持 Setting 设置
 - [ ] 支持上传到 YApi
-- [ ] 支持 ToolWindow 查看
 
 演示
 ----
@@ -60,7 +57,7 @@ Doc View
 更新
 ----
 
-## [v1.0.9](https://github.com/liuzhihang/doc-view/releases/tag/v1.0.9) (2021-04-01)
+## [v1.1.0](https://github.com/liuzhihang/doc-view/releases/tag/v1.1.0) (2021-04-28)
 
 1. 支持在右键菜单选择 Doc Editor 直接编辑文档
     1. 编辑接口文档名称

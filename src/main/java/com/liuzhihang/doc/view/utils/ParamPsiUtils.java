@@ -79,19 +79,23 @@ public class ParamPsiUtils {
             }
             body.setBodyList(list);
         } else {
-            PsiClass psiClass;
+            PsiType psiType;
             if (type.getPresentableText().equals("T") && genericArr != null && genericArr.length >= 1) {
                 // T 泛型
-                PsiType psiType = genericArr[0];
-                psiClass = PsiUtil.resolveClassInClassTypeOnly(psiType);
+                psiType = genericArr[0];
             } else if (type.getPresentableText().equals("K") && genericArr != null && genericArr.length >= 2) {
                 // K 泛型
-                PsiType psiType = genericArr[1];
-                psiClass = PsiUtil.resolveClassInClassTypeOnly(psiType);
+                psiType = genericArr[1];
             } else {
-                psiClass = PsiUtil.resolveClassInClassTypeOnly(type);
+                psiType = type;
             }
 
+            if (FieldTypeConstant.FIELD_TYPE.containsKey(psiType.getPresentableText())) {
+                body.setType(psiType.getPresentableText());
+                return body;
+            }
+
+            PsiClass psiClass = PsiUtil.resolveClassInClassTypeOnly(psiType);
             List<Body> list = new ArrayList<>();
             if (psiClass != null && !psiClass.isEnum() && !psiClass.isInterface() && !psiClass.isAnnotationType()) {
                 for (PsiField psiField : psiClass.getAllFields()) {
@@ -210,7 +214,13 @@ public class ParamPsiUtils {
                             type = genericArr[1];
                         }
 
-                        fieldMap.put(name, getFieldsAndDefaultValue(PsiUtil.resolveClassInType(type), null));
+                        if (FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
+                            fieldMap.put(name, FieldTypeConstant.FIELD_TYPE.get(type.getPresentableText()));
+                        } else {
+                            fieldMap.put(name, getFieldsAndDefaultValue(PsiUtil.resolveClassInType(type), null));
+                        }
+
+
                     }
                 }
             }
