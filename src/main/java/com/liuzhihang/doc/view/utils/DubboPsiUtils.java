@@ -131,10 +131,10 @@ public class DubboPsiUtils {
 
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
 
-        Map<String, Object> fieldMap = new LinkedHashMap<>();
+        List<Map<String, Object>> fieldMapList = new ArrayList<>();
 
         for (PsiParameter parameter : parameters) {
-
+            Map<String, Object> fieldMap = new LinkedHashMap<>();
             String name = parameter.getName();
             PsiType type = parameter.getType();
 
@@ -148,9 +148,9 @@ public class DubboPsiUtils {
                     fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null);
                 }
             }
-            return GsonFormatUtil.gsonFormat(fieldMap);
+            fieldMapList.add(fieldMap);
         }
 
-        return "{}";
+        return GsonFormatUtil.gsonFormat(fieldMapList);
     }
 }
