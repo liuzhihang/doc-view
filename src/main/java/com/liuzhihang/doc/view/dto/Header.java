@@ -1,11 +1,13 @@
 package com.liuzhihang.doc.view.dto;
 
 import com.intellij.psi.PsiElement;
+import lombok.Data;
 
 /**
  * @author liuzhihang
  * @date 2020/2/28 10:40
  */
+@Data
 public class Header {
 
     /**
@@ -32,43 +34,5 @@ public class Header {
      */
     private String desc;
 
-    public Boolean getRequired() {
-        return required;
-    }
 
-    public void setRequired(Boolean required) {
-        this.required = required;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
-
-    public PsiElement getPsiElement() {
-        return psiElement;
-    }
-
-    public void setPsiElement(PsiElement psiElement) {
-        this.psiElement = psiElement;
-    }
 }

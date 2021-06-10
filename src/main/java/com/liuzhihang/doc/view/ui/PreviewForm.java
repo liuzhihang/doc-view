@@ -7,6 +7,7 @@ import com.intellij.lang.Language;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
@@ -32,8 +33,14 @@ import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.SettingsConfigurable;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
+import com.liuzhihang.doc.view.notification.DocViewNotification;
+import com.liuzhihang.doc.view.service.YApiService;
+import com.liuzhihang.doc.view.service.impl.YApiServiceImpl;
 import com.liuzhihang.doc.view.utils.ExportUtils;
-import com.liuzhihang.doc.view.utils.NotificationUtils;
+import org.intellij.plugins.markdown.settings.MarkdownApplicationSettings;
+import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanel;
+import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanelProvider;
+import org.intellij.plugins.markdown.ui.preview.html.MarkdownUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -56,16 +63,21 @@ public class PreviewForm {
     @NonNls
     public static final String DOC_VIEW_POPUP = "com.intellij.docview.popup";
     private static final AtomicBoolean myIsPinned = new AtomicBoolean(false);
+    private static final AtomicBoolean previewIsHtml = new AtomicBoolean(false);
 
     private JPanel rootPanel;
     private JSplitPane viewSplitPane;
     private JScrollPane leftScrollPane;
     private JPanel viewPanel;
     private JList<String> catalogList;
+    private JPanel menuToolbarPanel;
+
     private JPanel previewPanel;
+    private JBScrollPane markdownSourceScrollPanel;
+    private MarkdownHtmlPanel markdownHtmlPanel;
 
     private JPanel headToolbarPanel;
-    private JPanel previewEditorToolbarPanel;
+    private JPanel previewToolbarPanel;
 
     private JLabel docNameLabel;
 
@@ -77,7 +89,9 @@ public class PreviewForm {
     private PsiClass psiClass;
 
     private Map<String, DocView> docMap;
+
     private String currentMarkdownText;
+
     private DocView currentDocView;
 
     private JBPopup popup;
@@ -95,22 +109,28 @@ public class PreviewForm {
         initUI();
         initHeadToolbar();
         // 右侧文档
-        initMarkdownEditor();
-        initEditorLeftToolbar();
-        initEditorRightToolbar();
+        initMarkdownSourceScrollPanel();
+        initMarkdownHtmlPanel();
+        initPreviewPanel();
+        initPreviewLeftToolbar();
+        initPreviewRightToolbar();
+        initMenuToolbarPanelToolbar();
 
         // 生成文档
         buildDoc();
+
+
         catalogList.setSelectedIndex(0);
 
         addMouseListeners();
     }
 
-
     private void addMouseListeners() {
         WindowMoveListener windowMoveListener = new WindowMoveListener(rootPanel);
         rootPanel.addMouseListener(windowMoveListener);
         rootPanel.addMouseMotionListener(windowMoveListener);
+        headToolbarPanel.addMouseListener(windowMoveListener);
+        headToolbarPanel.addMouseMotionListener(windowMoveListener);
 
     }
 
@@ -125,7 +145,7 @@ public class PreviewForm {
     public void popup() {
 
         // dialog 改成 popup, 第一个为根面板，第二个为焦点面板
-        popup = JBPopupFactory.getInstance().createComponentPopupBuilder(rootPanel, previewEditorToolbarPanel)
+        popup = JBPopupFactory.getInstance().createComponentPopupBuilder(rootPanel, previewToolbarPanel)
                 .setProject(project)
                 .setResizable(true)
                 .setMovable(true)
@@ -155,7 +175,7 @@ public class PreviewForm {
         rootPanel.setBorder(JBUI.Borders.empty());
         leftScrollPane.setBorder(JBUI.Borders.emptyLeft(5));
         viewSplitPane.setBorder(JBUI.Borders.empty());
-        previewEditorToolbarPanel.setBorder(JBUI.Borders.empty());
+        previewToolbarPanel.setBorder(JBUI.Borders.empty());
         previewPanel.setBorder(JBUI.Borders.empty());
         viewPanel.setBorder(JBUI.Borders.empty());
         docNameLabel.setBorder(JBUI.Borders.emptyLeft(5));
@@ -216,7 +236,7 @@ public class PreviewForm {
     }
 
 
-    private void initMarkdownEditor() {
+    private void initMarkdownSourceScrollPanel() {
         // 会使用 velocity 渲染模版
         FileType fileType = FileTypeManager.getInstance().getFileTypeByExtension("md");
 
@@ -237,24 +257,69 @@ public class PreviewForm {
 
         markdownEditor.setHighlighter(editorHighlighter);
         markdownEditor.setBorder(JBUI.Borders.emptyLeft(5));
-        JBScrollPane templateScrollPane = new JBScrollPane(markdownEditor.getComponent());
+        markdownSourceScrollPanel = new JBScrollPane(markdownEditor.getComponent());
+    }
 
-        previewPanel.add(templateScrollPane, BorderLayout.CENTER);
+    private void initMarkdownHtmlPanel() {
+
+        MarkdownApplicationSettings settings = MarkdownApplicationSettings.getInstance();
+
+        MarkdownHtmlPanelProvider.ProviderInfo providerInfo = settings.getMarkdownPreviewSettings().getHtmlPanelProviderInfo();
+
+        MarkdownHtmlPanelProvider provider = MarkdownHtmlPanelProvider.createFromInfo(providerInfo);
+
+        markdownHtmlPanel = provider.createHtmlPanel();
     }
 
 
-    private void initEditorLeftToolbar() {
+    private void initPreviewPanel() {
+
+        if (previewIsHtml.get()) {
+            previewPanel.add(markdownHtmlPanel.getComponent(), BorderLayout.CENTER);
+        } else {
+            // 展示源码
+            previewPanel.add(markdownSourceScrollPanel, BorderLayout.CENTER);
+        }
+
+    }
+
+
+    private void initPreviewLeftToolbar() {
 
         DefaultActionGroup leftGroup = new DefaultActionGroup();
 
-        leftGroup.add(new AnAction("Preview", "Preview markdown", AllIcons.Actions.Preview) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
+        leftGroup.add(new ToggleAction("Preview", "Preview markdown", AllIcons.Actions.Preview) {
 
-                NotificationUtils.infoNotify(DocViewBundle.message("notify.preview.success"), project);
+            @Override
+            public boolean isDumbAware() {
+                return true;
+            }
+
+            @Override
+            public boolean isSelected(@NotNull AnActionEvent e) {
+                return previewIsHtml.get();
+            }
+
+            @Override
+            public void setSelected(@NotNull AnActionEvent e, boolean state) {
+                previewIsHtml.set(state);
+
+                if (state) {
+                    previewPanel.removeAll();
+                    previewPanel.repaint();
+                    previewPanel.add(markdownHtmlPanel.getComponent(), BorderLayout.CENTER);
+                    previewPanel.revalidate();
+                } else {
+                    // 展示源码
+                    previewPanel.removeAll();
+                    previewPanel.repaint();
+                    previewPanel.add(markdownSourceScrollPanel, BorderLayout.CENTER);
+                    previewPanel.revalidate();
+                }
 
             }
         });
+
 
         leftGroup.addSeparator();
 
@@ -262,10 +327,7 @@ public class PreviewForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-
-                DocEditorForm.getInstance(project, psiClass,
-                        currentDocView.getPsiMethod(),
-                        DocViewData.getInstance(currentDocView))
+                DocEditorForm.getInstance(project, psiClass, currentDocView.getPsiMethod(), DocViewData.getInstance(currentDocView))
                         .popup();
 
                 popup.cancel();
@@ -274,27 +336,32 @@ public class PreviewForm {
 
         ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
                 .createActionToolbar("DocViewEditorLeftToolbar", leftGroup, true);
-        toolbar.setTargetComponent(previewEditorToolbarPanel);
+        toolbar.setTargetComponent(previewToolbarPanel);
         toolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
 
         toolbar.setForceMinimumSize(true);
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
 
-        previewEditorToolbarPanel.setBackground(markdownEditor.getBackgroundColor());
-        previewEditorToolbarPanel.add(toolbar.getComponent(), BorderLayout.WEST);
+        previewToolbarPanel.setBackground(markdownEditor.getBackgroundColor());
+        previewToolbarPanel.add(toolbar.getComponent(), BorderLayout.WEST);
     }
 
-    private void initEditorRightToolbar() {
+    private void initPreviewRightToolbar() {
         DefaultActionGroup rightGroup = new DefaultActionGroup();
 
-        rightGroup.add(new AnAction("Export All", "Export markdown", AllIcons.Nodes.ExtractedFolder) {
+        rightGroup.add(new AnAction("Upload", "Upload To YApi", AllIcons.Actions.Upload) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                ExportUtils.allExportMarkdown(project, currentDocView.getClassName(), docMap);
+                // 上传到 yapi
+                YApiService service = ServiceManager.getService(YApiServiceImpl.class);
+                service.upload(project, currentDocView);
             }
         });
+
+
+        rightGroup.addSeparator();
 
         rightGroup.add(new AnAction("Export", "Export markdown", AllIcons.ToolbarDecorator.Export) {
             @Override
@@ -312,22 +379,61 @@ public class PreviewForm {
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 clipboard.setContents(selection, selection);
 
-                NotificationUtils.infoNotify(DocViewBundle.message("notify.copy.success", currentDocView.getName()), project);
+                DocViewNotification.notifyInfo(project, DocViewBundle.message("notify.copy.success", currentDocView.getName()));
             }
         });
 
         // init toolbar
         ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
                 .createActionToolbar("DocViewEditorRightToolbar", rightGroup, true);
-        toolbar.setTargetComponent(previewEditorToolbarPanel);
+        toolbar.setTargetComponent(previewToolbarPanel);
         toolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
 
         toolbar.setForceMinimumSize(true);
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
 
-        previewEditorToolbarPanel.setBackground(markdownEditor.getBackgroundColor());
-        previewEditorToolbarPanel.add(toolbar.getComponent(), BorderLayout.EAST);
+        previewToolbarPanel.setBackground(markdownEditor.getBackgroundColor());
+        previewToolbarPanel.add(toolbar.getComponent(), BorderLayout.EAST);
+
+    }
+
+    private void initMenuToolbarPanelToolbar() {
+
+        DefaultActionGroup menuGroup = new DefaultActionGroup();
+
+        menuGroup.add(new AnAction("Export All", "Export markdown", AllIcons.Ide.IncomingChangesOn) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+
+                ExportUtils.allExportMarkdown(project, currentDocView.getClassName(), docMap);
+            }
+        });
+        menuGroup.addSeparator();
+
+        menuGroup.add(new AnAction("Upload All", "Upload all To YApi", AllIcons.Ide.OutgoingChangesOn) {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+
+                // 上传到 yapi
+                YApiService service = ServiceManager.getService(YApiServiceImpl.class);
+                service.upload(project, docMap);
+            }
+        });
+
+
+        // init toolbar
+        ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
+                .createActionToolbar("DocViewMenuToolbar", menuGroup, true);
+        toolbar.setTargetComponent(menuToolbarPanel);
+        toolbar.getComponent().setBackground(UIUtil.getTextFieldBackground());
+
+        toolbar.setForceMinimumSize(true);
+        toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
+        Utils.setSmallerFontForChildren(toolbar);
+
+        menuToolbarPanel.setBackground(UIUtil.getTextFieldBackground());
+        menuToolbarPanel.add(toolbar.getComponent(), BorderLayout.WEST);
 
     }
 
@@ -347,21 +453,13 @@ public class PreviewForm {
             // 将 docView 按照模版转换
             currentMarkdownText = DocViewData.buildMarkdownText(project, currentDocView);
 
+            markdownHtmlPanel.setHtml(MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project), 0);
+
             WriteCommandAction.runWriteCommandAction(project, () -> {
                 // 光标放在顶部
                 markdownDocument.setText(currentMarkdownText);
-                // markdownEditor.set
             });
 
-            // String html = MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project);
-            //
-            // html = "<html><head></head>" + html + "</html>";
-            //
-            // markdownHtmlPanel.setHtml(html, 0);
-            // textPane.setText(html);
-            // textPane.setCaretPosition(0);
-
         });
-
     }
 }

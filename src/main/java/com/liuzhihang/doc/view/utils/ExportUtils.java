@@ -10,6 +10,7 @@ import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.TemplateSettings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
+import com.liuzhihang.doc.view.notification.DocViewNotification;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +35,7 @@ public class ExportUtils {
         VirtualFile chooser = FileChooser.chooseFile(fileChooserDescriptor, project, null);
         if (chooser != null) {
             if (chooser.getChildren().length > 0) {
-                NotificationUtils.errorNotify(DocViewBundle.message("notify.export.batch.file.use.empty"), project);
+                DocViewNotification.notifyError(project, DocViewBundle.message("notify.export.batch.file.use.empty"));
                 return;
             }
             // 文件夹路径
@@ -60,7 +61,7 @@ public class ExportUtils {
                     }
                 }
             }
-            NotificationUtils.infoNotify(DocViewBundle.message("notify.export.batch.count", success, fail), project);
+            DocViewNotification.notifyInfo(project, DocViewBundle.message("notify.export.batch.count", success, fail));
         }
     }
 
@@ -85,12 +86,12 @@ public class ExportUtils {
             try {
                 FileUtil.writeToFile(file, markdownText);
             } catch (IOException ioException) {
-                NotificationUtils.errorNotify(DocViewBundle.message("notify.export.fail"), project);
+                DocViewNotification.notifyError(project, DocViewBundle.message("notify.export.fail"));
             }
 
         }
 
-        NotificationUtils.infoNotify(DocViewBundle.message("notify.export.success"), project);
+        DocViewNotification.notifyInfo(project, DocViewBundle.message("notify.export.success"));
 
     }
 
@@ -118,11 +119,11 @@ public class ExportUtils {
                 }
 
             } catch (IOException ioException) {
-                NotificationUtils.errorNotify(DocViewBundle.message("notify.export.fail"), project);
+                DocViewNotification.notifyError(project, DocViewBundle.message("notify.export.fail"));
             }
 
         }
 
-        NotificationUtils.infoNotify(DocViewBundle.message("notify.export.success"), project);
+        DocViewNotification.notifyInfo(project, DocViewBundle.message("notify.export.success"));
     }
 }

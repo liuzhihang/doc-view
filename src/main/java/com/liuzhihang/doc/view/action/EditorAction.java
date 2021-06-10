@@ -11,12 +11,12 @@ import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
+import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.ui.DocEditorForm;
 import com.liuzhihang.doc.view.ui.ParamDocEditorForm;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
-import com.liuzhihang.doc.view.utils.NotificationUtils;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,7 +45,7 @@ public class EditorAction extends AnAction {
         PsiClass targetClass = CustomPsiUtils.getTargetClass(editor, psiFile);
 
         if (targetClass == null || targetClass.isAnnotationType() || targetClass.isEnum()) {
-            NotificationUtils.errorNotify(DocViewBundle.message("notify.error.class"), project);
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.error.class"));
             return;
         }
 
@@ -54,7 +54,7 @@ public class EditorAction extends AnAction {
 
         if (targetMethod != null) {
             // 解析请求参数
-            DocViewService docViewService = DocViewService.getDocViewService(project, targetClass);
+            DocViewService docViewService = DocViewService.getInstance(project, targetClass);
 
             if (docViewService == null) {
                 return;

@@ -15,7 +15,7 @@ import org.jetbrains.annotations.Nullable;
  * @author liuzhihang
  * @date 2020/11/22 13:51
  */
-@State(name = "TagsSettingsComment", storages = {@Storage("DocViewTagsSettings.xml")})
+@State(name = "DocViewTagsSettingsComment", storages = {@Storage("DocViewTagsSettings.xml")})
 public class TagsSettings implements PersistentStateComponent<TagsSettings> {
 
 

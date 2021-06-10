@@ -24,9 +24,9 @@ import com.liuzhihang.doc.view.config.TagsSettings;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.dto.ParamData;
+import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.impl.WriterService;
 import com.liuzhihang.doc.view.utils.GsonFormatUtil;
-import com.liuzhihang.doc.view.utils.NotificationUtils;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
@@ -212,7 +212,7 @@ public class ParamDocEditorForm {
                 StringSelection selection = new StringSelection(format);
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                 clipboard.setContents(selection, selection);
-                NotificationUtils.infoNotify(DocViewBundle.message("param.copy.success", psiClass.getName()), project);
+                DocViewNotification.notifyInfo(project, DocViewBundle.message("param.copy.success", psiClass.getName()));
                 popup.cancel();
             }
         });

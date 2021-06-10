@@ -352,9 +352,9 @@ public class SpringPsiUtils {
      *
      * @param project
      * @param psiMethod
-     * @return true 不满足条件
+     * @return true 是spring 方法
      */
-    public static boolean isSpringMethod(Project project, @NotNull PsiMethod psiMethod) {
+    public static boolean isSpringMethod(@NotNull Project project, @NotNull PsiMethod psiMethod) {
 
         Settings settings = Settings.getInstance(project);
 

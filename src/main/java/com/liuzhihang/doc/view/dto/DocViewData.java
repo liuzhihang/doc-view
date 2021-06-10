@@ -3,6 +3,7 @@ package com.liuzhihang.doc.view.dto;
 import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.config.TemplateSettings;
 import com.liuzhihang.doc.view.utils.VelocityUtils;
+import lombok.Data;
 import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
  * @author liuzhihang
  * @date 2020/11/21 16:39
  */
+@Data
 public class DocViewData {
 
     /**
@@ -270,67 +272,5 @@ public class DocViewData {
     }
 
 
-    public String getName() {
-        return name;
-    }
 
-    public String getDesc() {
-        return desc;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public String getMethod() {
-        return method;
-    }
-
-    public List<ParamData> getRequestHeaderDataList() {
-        return requestHeaderDataList;
-    }
-
-    public String getRequestHeader() {
-        return requestHeader;
-    }
-
-    public List<ParamData> getRequestParamDataList() {
-        return requestParamDataList;
-    }
-
-    public String getRequestParam() {
-        return requestParam;
-    }
-
-    public List<ParamData> getRequestBodyDataList() {
-        return requestBodyDataList;
-    }
-
-    public String getRequestBody() {
-        return requestBody;
-    }
-
-    public String getRequestExample() {
-        return requestExample;
-    }
-
-    public List<ParamData> getResponseParamDataList() {
-        return responseParamDataList;
-    }
-
-    public String getResponseParam() {
-        return responseParam;
-    }
-
-    public String getResponseExample() {
-        return responseExample;
-    }
-
-    public String getFullClassName() {
-        return fullClassName;
-    }
-
-    public String getType() {
-        return type;
-    }
 }

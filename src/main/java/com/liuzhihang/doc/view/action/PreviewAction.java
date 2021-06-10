@@ -9,12 +9,16 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.dto.DocView;
+import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewService;
+import com.liuzhihang.doc.view.ui.PreviewForm;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
-import com.liuzhihang.doc.view.utils.NotificationUtils;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 
 /**
  * 单个类或者方法中操作
@@ -22,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
  * @author liuzhihang
  * @date 2020/2/26 21:57
  */
-public class EditorPreviewAction extends AnAction {
+public class PreviewAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
@@ -41,7 +45,7 @@ public class EditorPreviewAction extends AnAction {
         PsiClass targetClass = CustomPsiUtils.getTargetClass(editor, psiFile);
 
         if (targetClass == null || targetClass.isAnnotationType() || targetClass.isEnum()) {
-            NotificationUtils.errorNotify(DocViewBundle.message("notify.error.class"), project);
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.error.class"));
             return;
         }
 
@@ -49,18 +53,25 @@ public class EditorPreviewAction extends AnAction {
         PsiMethod[] methods = targetClass.getMethods();
 
         if (methods.length == 0) {
-            NotificationUtils.errorNotify(DocViewBundle.message("notify.error.class.no.method"), project);
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.error.class.no.method"));
             return;
         }
 
-        DocViewService instance = DocViewService.getInstance(project, psiFile, editor, targetClass);
+        DocViewService docViewService = DocViewService.getInstance(project, targetClass);
 
-        if (instance == null) {
-            NotificationUtils.errorNotify(DocViewBundle.message("notify.error.not.support"), project);
+        if (docViewService == null) {
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.error.not.support"));
             return;
         }
 
-        instance.doPreview(project, psiFile, editor, targetClass);
+        Map<String, DocView> docViewMap = docViewService.buildDoc(project, psiFile, editor, targetClass);
+
+        if (docViewMap == null) {
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.error.not.support"));
+            return;
+        }
+
+        PreviewForm.getInstance(project, psiFile, editor, targetClass, docViewMap).popup();
     }
 
 

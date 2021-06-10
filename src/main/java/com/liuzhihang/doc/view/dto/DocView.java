@@ -1,6 +1,7 @@
 package com.liuzhihang.doc.view.dto;
 
 import com.intellij.psi.PsiMethod;
+import lombok.Data;
 
 import java.util.List;
 
@@ -10,6 +11,7 @@ import java.util.List;
  * @author liuzhihang
  * @date 2020/2/28 10:32
  */
+@Data
 public class DocView {
 
     /**
@@ -103,147 +105,5 @@ public class DocView {
     public DocView() {
     }
 
-    public String getType() {
-        return type;
-    }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
-
-    public List<String> getDomain() {
-        return domain;
-    }
-
-    public void setDomain(List<String> domain) {
-        this.domain = domain;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String getMethod() {
-        return method;
-    }
-
-    public void setMethod(String method) {
-        this.method = method;
-    }
-
-    public String getChangeLog() {
-        return changeLog;
-    }
-
-    public void setChangeLog(String changeLog) {
-        this.changeLog = changeLog;
-    }
-
-    public List<Header> getHeaderList() {
-        return headerList;
-    }
-
-    public void setHeaderList(List<Header> headerList) {
-        this.headerList = headerList;
-    }
-
-    public String getReqExampleType() {
-        return reqExampleType;
-    }
-
-    public void setReqExampleType(String reqExampleType) {
-        this.reqExampleType = reqExampleType;
-    }
-
-    public List<Body> getReqBodyList() {
-        return reqBodyList;
-    }
-
-    public void setReqBodyList(List<Body> reqBodyList) {
-        this.reqBodyList = reqBodyList;
-    }
-
-    public List<Body> getRespBodyList() {
-        return respBodyList;
-    }
-
-    public void setRespBodyList(List<Body> respBodyList) {
-        this.respBodyList = respBodyList;
-    }
-
-    public String getReqExample() {
-        return reqExample;
-    }
-
-    public void setReqExample(String reqExample) {
-        this.reqExample = reqExample;
-    }
-
-    public String getRespExample() {
-        return respExample;
-    }
-
-    public void setRespExample(String respExample) {
-        this.respExample = respExample;
-    }
-
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
-
-    public List<Param> getReqParamList() {
-        return reqParamList;
-    }
-
-    public void setReqParamList(List<Param> reqParamList) {
-        this.reqParamList = reqParamList;
-    }
-
-    public String getFullClassName() {
-        return fullClassName;
-    }
-
-    public void setFullClassName(String fullClassName) {
-        this.fullClassName = fullClassName;
-    }
-
-    public String getClassName() {
-        return className;
-    }
-
-    public void setClassName(String className) {
-        this.className = className;
-    }
-
-    public PsiMethod getPsiMethod() {
-        return psiMethod;
-    }
-
-    public void setPsiMethod(PsiMethod psiMethod) {
-        this.psiMethod = psiMethod;
-    }
 }

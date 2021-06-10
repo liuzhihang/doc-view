@@ -1,6 +1,7 @@
 package com.liuzhihang.doc.view.dto;
 
 import com.intellij.psi.PsiElement;
+import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
  * @author liuzhihang
  * @date 2020/2/27 16:39
  */
+@Data
 public class ParamData {
 
     /**
@@ -98,59 +100,4 @@ public class ParamData {
     }
 
 
-    public PsiElement getPsiElement() {
-        return psiElement;
-    }
-
-    public void setPsiElement(PsiElement psiElement) {
-        this.psiElement = psiElement;
-    }
-
-    public String getPrefix() {
-        return prefix;
-    }
-
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public Boolean getRequired() {
-        return required;
-    }
-
-    public void setRequired(Boolean required) {
-        this.required = required;
-    }
-
-    public String getExample() {
-        return example;
-    }
-
-    public void setExample(String example) {
-        this.example = example;
-    }
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
 }

@@ -11,5 +11,6 @@ import javax.swing.*;
 public class DocViewIcons {
 
     public static final Icon exportAll = IconLoader.getIcon("/icons/icon_export_all.svg", DocViewIcons.class);
+    public static final Icon submitDB = IconLoader.getIcon("/icons/submitDB.svg", DocViewIcons.class);
 
 }

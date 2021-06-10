@@ -23,7 +23,7 @@ import java.util.Set;
  * @author liuzhihang
  * @date 2020/2/27 19:02
  */
-@State(name = "SettingsComponent", storages = {@Storage("DocViewSettings.xml")})
+@State(name = "DocViewSettingsComponent", storages = {@Storage("DocViewSettings.xml")})
 public class Settings implements PersistentStateComponent<Settings> {
 
 

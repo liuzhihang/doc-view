@@ -24,30 +24,9 @@ import java.util.Map;
  */
 public interface DocViewService {
 
-    /**
-     * 获取接口生成 service
-     *
-     * @param project 项目参数
-     * @param psiFile PsiFile
-     * @return DocViewService
-     * @author lvgorice@gmail.com
-     * @since 1.0.4
-     */
-    static DocViewService getInstance(Project project, PsiFile psiFile) {
-        PsiClass targetClass = CustomPsiUtils.getTargetClass(psiFile);
-        if (targetClass == null) {
-            return null;
-        }
-        return getDocViewService(project, targetClass);
-    }
 
     @Nullable
-    static DocViewService getInstance(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull PsiClass targetClass) {
-        return getDocViewService(project, targetClass);
-    }
-
-    @Nullable
-    static DocViewService getDocViewService(@NotNull Project project, @NotNull PsiClass targetClass) {
+    static DocViewService getInstance(@NotNull Project project, @NotNull PsiClass targetClass) {
         // Dubbo
         if (targetClass.isInterface()) {
             return ServiceManager.getService(DubboDocViewServiceImpl.class);
@@ -62,23 +41,31 @@ public interface DocViewService {
         return null;
     }
 
-    /**
-     * 生成接口文档
-     *
-     * @param project 项目参数
-     * @param psiFile 当前操作文件
-     * @return 生成结果
-     */
-    default Map<String, DocView> generatorDocView(Project project, PsiFile psiFile) {
-        PsiClass targetClass = CustomPsiUtils.getTargetClass(psiFile);
-        if (targetClass == null) {
-            return new HashMap<>();
+    @Nullable
+    default Map<String, DocView> buildDoc(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull PsiClass targetClass) {
+
+        // 当前方法
+        PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
+
+        if (targetMethod != null && checkMethod(project, targetMethod)) {
+            DocView docView = buildClassMethodDoc(project, targetClass, targetMethod);
+            Map<String, DocView> docMap = new HashMap<>();
+            docMap.put(docView.getName(), docView);
+            return docMap;
         }
-        // 生成文档列表
-        return buildClassDoc(project, targetClass);
+
+        // 每个方法都要生成
+        if (targetMethod == null) {
+            // 生成文档列表
+            return buildClassDoc(project, targetClass);
+
+        }
+
+        return null;
+
     }
 
-    void doPreview(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull PsiClass targetClass);
+    boolean checkMethod(@NotNull Project project, @NotNull PsiMethod targetMethod);
 
     Map<String, DocView> buildClassDoc(Project settings, @NotNull PsiClass psiClass);
 

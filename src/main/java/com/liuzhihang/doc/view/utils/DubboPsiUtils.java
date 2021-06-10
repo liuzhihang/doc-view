@@ -29,7 +29,7 @@ public class DubboPsiUtils {
      *
      * @param project
      * @param psiMethod
-     * @return true 不满足条件
+     * @return true 是 dubbo 方法
      */
     public static boolean isDubboMethod(Project project, @NotNull PsiMethod psiMethod) {
 

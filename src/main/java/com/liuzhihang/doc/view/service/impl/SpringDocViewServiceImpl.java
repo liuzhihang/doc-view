@@ -1,9 +1,10 @@
 package com.liuzhihang.doc.view.service.impl;
 
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
-import com.liuzhihang.doc.view.DocViewBundle;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiType;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.config.TagsSettings;
 import com.liuzhihang.doc.view.dto.Body;
@@ -11,8 +12,10 @@ import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.Header;
 import com.liuzhihang.doc.view.dto.Param;
 import com.liuzhihang.doc.view.service.DocViewService;
-import com.liuzhihang.doc.view.ui.PreviewForm;
-import com.liuzhihang.doc.view.utils.*;
+import com.liuzhihang.doc.view.utils.CustomPsiCommentUtils;
+import com.liuzhihang.doc.view.utils.ParamPsiUtils;
+import com.liuzhihang.doc.view.utils.SpringHeaderUtils;
+import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,34 +30,9 @@ import java.util.Map;
  */
 public class SpringDocViewServiceImpl implements DocViewService {
 
-
     @Override
-    public void doPreview(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull PsiClass targetClass) {
-
-        // 当前方法
-        PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
-
-        Map<String, DocView> docMap = new HashMap<>();
-
-        if (targetMethod != null) {
-
-            if (!SpringPsiUtils.isSpringMethod(project, targetMethod)) {
-                NotificationUtils.errorNotify(DocViewBundle.message("notify.spring.error.method"), project);
-                return;
-            }
-
-            DocView docView = buildClassMethodDoc(project, targetClass, targetMethod);
-            docMap.put(docView.getName(), docView);
-
-        } else {
-            // 生成文档列表
-            docMap = buildClassDoc(project, targetClass);
-            if (docMap.size() == 0) {
-                NotificationUtils.errorNotify(DocViewBundle.message("notify.spring.error.no.method"), project);
-                return;
-            }
-        }
-        PreviewForm.getInstance(project, psiFile, editor, targetClass, docMap).popup();
+    public boolean checkMethod(@NotNull Project project, @NotNull PsiMethod targetMethod) {
+        return SpringPsiUtils.isSpringMethod(project, targetMethod);
     }
 
     @NotNull
