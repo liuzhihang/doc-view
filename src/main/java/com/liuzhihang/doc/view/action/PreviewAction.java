@@ -18,7 +18,7 @@ import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * 单个类或者方法中操作
@@ -64,14 +64,14 @@ public class PreviewAction extends AnAction {
             return;
         }
 
-        Map<String, DocView> docViewMap = docViewService.buildDoc(project, psiFile, editor, targetClass);
+        List<DocView> docViewList = docViewService.buildDoc(project, psiFile, editor, targetClass);
 
-        if (docViewMap == null) {
+        if (docViewList == null) {
             DocViewNotification.notifyError(project, DocViewBundle.message("notify.error.not.support"));
             return;
         }
 
-        PreviewForm.getInstance(project, psiFile, editor, targetClass, docViewMap).popup();
+        PreviewForm.getInstance(project, psiFile, editor, targetClass, docViewList).popup();
     }
 
 

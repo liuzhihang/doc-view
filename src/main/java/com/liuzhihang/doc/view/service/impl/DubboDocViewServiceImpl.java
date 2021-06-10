@@ -15,9 +15,8 @@ import com.liuzhihang.doc.view.utils.ParamPsiUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author liuzhihang
@@ -32,9 +31,9 @@ public class DubboDocViewServiceImpl implements DocViewService {
     }
 
     @Override
-    public Map<String, DocView> buildClassDoc(@NotNull Project project, @NotNull PsiClass psiClass) {
+    public List<DocView> buildClassDoc(@NotNull Project project, @NotNull PsiClass psiClass) {
 
-        Map<String, DocView> docMap = new HashMap<>(32);
+        List<DocView> docViewList = new LinkedList<>();
 
         for (PsiMethod method : psiClass.getMethods()) {
 
@@ -43,10 +42,10 @@ public class DubboDocViewServiceImpl implements DocViewService {
             }
 
             DocView docView = buildClassMethodDoc(project, psiClass, method);
-            docMap.put(docView.getName(), docView);
+            docViewList.add(docView);
         }
 
-        return docMap;
+        return docViewList;
 
     }
 

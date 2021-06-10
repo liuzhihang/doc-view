@@ -27,6 +27,7 @@ import com.intellij.ui.GuiUtils;
 import com.intellij.ui.WindowMoveListener;
 import com.intellij.ui.components.JBScrollBar;
 import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.jcef.JBCefApp;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
@@ -37,6 +38,7 @@ import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.YApiService;
 import com.liuzhihang.doc.view.service.impl.YApiServiceImpl;
 import com.liuzhihang.doc.view.utils.ExportUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.intellij.plugins.markdown.settings.MarkdownApplicationSettings;
 import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanel;
 import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanelProvider;
@@ -50,20 +52,34 @@ import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseEvent;
+import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 /**
  * @author liuzhihang
  * @date 2020/2/26 19:40
  */
+@Slf4j
 public class PreviewForm {
 
     @NonNls
     public static final String DOC_VIEW_POPUP = "com.intellij.docview.popup";
     private static final AtomicBoolean myIsPinned = new AtomicBoolean(false);
     private static final AtomicBoolean previewIsHtml = new AtomicBoolean(false);
+
+    private final Document markdownDocument = EditorFactory.getInstance().createDocument("");
+
+    private final Project project;
+    private final PsiFile psiFile;
+    private final Editor editor;
+    private final PsiClass psiClass;
+
+    private final List<DocView> docViewList;
+    private Map<String, DocView> docViewMap;
+
 
     private JPanel rootPanel;
     private JSplitPane viewSplitPane;
@@ -78,32 +94,21 @@ public class PreviewForm {
 
     private JPanel headToolbarPanel;
     private JPanel previewToolbarPanel;
-
     private JLabel docNameLabel;
-
     private EditorEx markdownEditor;
-    private Document markdownDocument = EditorFactory.getInstance().createDocument("");
-    private Project project;
-    private PsiFile psiFile;
-    private Editor editor;
-    private PsiClass psiClass;
-
-    private Map<String, DocView> docMap;
-
     private String currentMarkdownText;
 
     private DocView currentDocView;
-
     private JBPopup popup;
 
     public PreviewForm(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor,
-                       @NotNull PsiClass psiClass, @NotNull Map<String, DocView> docMap) {
+                       @NotNull PsiClass psiClass, @NotNull List<DocView> docViewList) {
 
         this.project = project;
         this.psiFile = psiFile;
         this.editor = editor;
         this.psiClass = psiClass;
-        this.docMap = docMap;
+        this.docViewList = docViewList;
 
         // UI调整
         initUI();
@@ -138,8 +143,8 @@ public class PreviewForm {
     @Contract("_, _, _, _, _ -> new")
     public static PreviewForm getInstance(@NotNull Project project, @NotNull PsiFile psiFile,
                                           @NotNull Editor editor, @NotNull PsiClass psiClass,
-                                          @NotNull Map<String, DocView> docMap) {
-        return new PreviewForm(project, psiFile, editor, psiClass, docMap);
+                                          @NotNull List<DocView> docViewList) {
+        return new PreviewForm(project, psiFile, editor, psiClass, docViewList);
     }
 
     public void popup() {
@@ -267,6 +272,14 @@ public class PreviewForm {
         MarkdownHtmlPanelProvider.ProviderInfo providerInfo = settings.getMarkdownPreviewSettings().getHtmlPanelProviderInfo();
 
         MarkdownHtmlPanelProvider provider = MarkdownHtmlPanelProvider.createFromInfo(providerInfo);
+        // xx
+
+        if (!JBCefApp.isSupported()) {
+            // Fallback to an alternative browser-less solution
+            // https://plugins.jetbrains.com/docs/intellij/jcef.html#jbcefapp
+            log.info("当前不支持 JCEF");
+            return;
+        }
 
         markdownHtmlPanel = provider.createHtmlPanel();
     }
@@ -274,7 +287,7 @@ public class PreviewForm {
 
     private void initPreviewPanel() {
 
-        if (previewIsHtml.get()) {
+        if (previewIsHtml.get() && JBCefApp.isSupported()) {
             previewPanel.add(markdownHtmlPanel.getComponent(), BorderLayout.CENTER);
         } else {
             // 展示源码
@@ -302,21 +315,26 @@ public class PreviewForm {
 
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
-                previewIsHtml.set(state);
 
-                if (state) {
-                    previewPanel.removeAll();
-                    previewPanel.repaint();
-                    previewPanel.add(markdownHtmlPanel.getComponent(), BorderLayout.CENTER);
-                    previewPanel.revalidate();
+                if (!JBCefApp.isSupported()) {
+                    // 不支持 JCEF 不允许预览
+                    previewIsHtml.set(false);
+                    DocViewNotification.notifyInfo(project, DocViewBundle.message("notify.not.support.jcef"));
                 } else {
-                    // 展示源码
-                    previewPanel.removeAll();
-                    previewPanel.repaint();
-                    previewPanel.add(markdownSourceScrollPanel, BorderLayout.CENTER);
-                    previewPanel.revalidate();
+                    previewIsHtml.set(state);
+                    if (state) {
+                        previewPanel.removeAll();
+                        previewPanel.repaint();
+                        previewPanel.add(markdownHtmlPanel.getComponent(), BorderLayout.CENTER);
+                        previewPanel.revalidate();
+                    } else {
+                        // 展示源码
+                        previewPanel.removeAll();
+                        previewPanel.repaint();
+                        previewPanel.add(markdownSourceScrollPanel, BorderLayout.CENTER);
+                        previewPanel.revalidate();
+                    }
                 }
-
             }
         });
 
@@ -406,7 +424,7 @@ public class PreviewForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                ExportUtils.allExportMarkdown(project, currentDocView.getClassName(), docMap);
+                ExportUtils.allExportMarkdown(project, currentDocView.getClassName(), docViewList);
             }
         });
         menuGroup.addSeparator();
@@ -417,7 +435,7 @@ public class PreviewForm {
 
                 // 上传到 yapi
                 YApiService service = ServiceManager.getService(YApiServiceImpl.class);
-                service.upload(project, docMap);
+                service.upload(project, docViewList);
             }
         });
 
@@ -440,20 +458,26 @@ public class PreviewForm {
 
     private void buildDoc() {
 
-        catalogList.setListData(new Vector<>(docMap.keySet()));
+        docViewMap = docViewList.stream().collect(Collectors.toMap(DocView::getName, docView -> docView));
+
+        Vector<String> nameVector = docViewList.stream().map(DocView::getName).collect(Collectors.toCollection(Vector::new));
+
+        catalogList.setListData(nameVector);
 
         catalogList.addListSelectionListener(catalog -> {
 
             String selectedValue = catalogList.getSelectedValue();
 
-            currentDocView = docMap.get(selectedValue);
+            currentDocView = docViewMap.get(selectedValue);
 
             docNameLabel.setText(currentDocView.getFullClassName());
 
             // 将 docView 按照模版转换
             currentMarkdownText = DocViewData.buildMarkdownText(project, currentDocView);
 
-            markdownHtmlPanel.setHtml(MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project), 0);
+            if (JBCefApp.isSupported()) {
+                markdownHtmlPanel.setHtml(MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project), 0);
+            }
 
             WriteCommandAction.runWriteCommandAction(project, () -> {
                 // 光标放在顶部

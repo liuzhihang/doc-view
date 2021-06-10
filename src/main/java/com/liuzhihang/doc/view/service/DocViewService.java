@@ -15,8 +15,8 @@ import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * @author liuzhihang
@@ -42,16 +42,18 @@ public interface DocViewService {
     }
 
     @Nullable
-    default Map<String, DocView> buildDoc(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull PsiClass targetClass) {
+    default List<DocView> buildDoc(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull PsiClass targetClass) {
 
         // 当前方法
         PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
 
         if (targetMethod != null && checkMethod(project, targetMethod)) {
             DocView docView = buildClassMethodDoc(project, targetClass, targetMethod);
-            Map<String, DocView> docMap = new HashMap<>();
-            docMap.put(docView.getName(), docView);
-            return docMap;
+
+            List<DocView> docViewList = new LinkedList<>();
+            docViewList.add(docView);
+
+            return docViewList;
         }
 
         // 每个方法都要生成
@@ -67,7 +69,7 @@ public interface DocViewService {
 
     boolean checkMethod(@NotNull Project project, @NotNull PsiMethod targetMethod);
 
-    Map<String, DocView> buildClassDoc(Project settings, @NotNull PsiClass psiClass);
+    List<DocView> buildClassDoc(Project settings, @NotNull PsiClass psiClass);
 
     @NotNull
     DocView buildClassMethodDoc(Project settings, PsiClass psiClass, @NotNull PsiMethod psiMethod);

@@ -9,28 +9,14 @@ Doc View
 特征
 ----
 
-- 生成接口文档
-    - 生成请求返回参数列表
-    - 生成请求返回参数示例
-- 支持 Spring Controller
-- 支持 Dubbo 接口
-- 支持 `validation` 相关注解
-- 复制 Markdown 文本剪贴板
-- 导出 Markdown 文件
-- 支持自定义 Markdown 模版
-- 批量导出
-- 支持界面编辑文档, 注释, 同时会保存回代码注释中
+- Controller/Dubbo 接口文档生成
+- 支持 validation、swagger 等注解
+- Markdown 接口查看、预览、复制、导出
+- 支持自定义生成接口的 Markdown 模版
+- 支持界面编辑文档、注释、并同步保存到代码注释中
 - 支持在编辑实体界面, 将实体复制为 Json 字符串
-
-**注：因 API 问题，新插件仅支持 2020.1 和 2020.2 版本 。**
-
-
-待办
-----
-
-- [ ] 批量生成（当前仅支持单个类或者方法）
-- [ ] 支持从 Swagger 注解获取字段相关信息
-- [ ] 支持上传到 YApi
+- 支持上传文档到 YApi
+- 支持自定义配置
 
 演示
 ----
@@ -57,24 +43,14 @@ Doc View
 更新
 ----
 
-## [v1.1.0](https://github.com/liuzhihang/doc-view/releases/tag/v1.1.0) (2021-04-28)
+## [v1.1.1](https://github.com/liuzhihang/doc-view/releases/tag/v1.1.1)
 
-1. 支持在右键菜单选择 Doc Editor 直接编辑文档
-    1. 编辑接口文档名称
-    2. 编辑接口描述
-    3. 编辑字段是否必填
-    4. 编辑字段注释说明
-    5. 点击确定, 会回写到源文件的注释中
-2. 支持在 Entity 中通过邮件菜单选择Doc Editor 编辑字段信息
-    1. 编辑字段是否必填
-    2. 编辑字段注释说明
-    3. 点击确定, 会回写到源文件的注释中
-    4. 支持将 Entity 复制为 Json 字符串
-    5. 复制 Json 字符串时, 支持 Entity 中包含对象的转换
-3. 从 Doc View 预览界面直接跳转到编辑界面
-4. 一些设置说明
+1. 新增支持上传文档到 YApi
+2. 新增支持 Markdown 预览
+3. 新增配置部分选项
+4. 其他部分优化
 
-[查看更多历史更新记录](./doc/ChangeNotes.md)
+[查看更多历史更新记录](https://github.com/liuzhihang/doc-view/releases)
 
 关于我
 ----
@@ -83,7 +59,6 @@ Doc View
 
 ![wechat-vxgNsq](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/wechat-vxgNsq.png)
 
-欢迎加我微信进群, 讨论技术或者对插件提出建议. (关注公众号 -> 找到我)
 
 小伙伴们
 ----

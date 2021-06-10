@@ -44,10 +44,10 @@ import java.util.stream.Collectors;
 public class YApiServiceImpl implements YApiService {
 
     @Override
-    public void upload(@NotNull Project project, @NotNull Map<String, DocView> docViewMap) {
+    public void upload(@NotNull Project project, @NotNull List<DocView> docViewList) {
 
 
-        for (DocView docView : docViewMap.values()) {
+        for (DocView docView : docViewList) {
             // 循环处理保存到 yapi
             upload(project, docView);
         }
@@ -92,10 +92,9 @@ public class YApiServiceImpl implements YApiService {
 
             facadeService.save(save);
 
-            String yapiInterfaceUrl = settings.getUrl() + "/project/" + settings.getUrl() + "/interface/api/cat_" + cat.getId();
+            String yapiInterfaceUrl = settings.getUrl() + "/project/" + settings.getProjectId() + "/interface/api/cat_" + cat.getId();
 
             DocViewNotification.notifyInfo(project, DocViewBundle.message("notify.yapi.upload.success", yapiInterfaceUrl));
-
         } catch (Exception e) {
             DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.upload.error"));
             log.error("上传单个文档失败:{}", docView, e);

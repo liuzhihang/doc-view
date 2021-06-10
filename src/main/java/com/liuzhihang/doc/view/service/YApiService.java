@@ -4,7 +4,7 @@ import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.dto.DocView;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author liuzhihang
@@ -17,9 +17,9 @@ public interface YApiService {
      * 上传到 yapi
      *
      * @param project
-     * @param docViewMap
+     * @param docViewList
      */
-    void upload(@NotNull Project project, @NotNull Map<String, DocView> docViewMap);
+    void upload(@NotNull Project project, @NotNull List<DocView> docViewList);
 
     /**
      * 上传到 yapi

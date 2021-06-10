@@ -14,6 +14,7 @@ import com.liuzhihang.doc.view.notification.DocViewNotification;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -95,7 +96,7 @@ public class ExportUtils {
 
     }
 
-    public static void allExportMarkdown(Project project, String className, Map<String, DocView> docMap) {
+    public static void allExportMarkdown(Project project, String className, List<DocView> docViewList) {
 
         // 选择路径
         FileChooserDescriptor fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
@@ -114,8 +115,8 @@ public class ExportUtils {
             }
             try {
 
-                for (String doc : docMap.keySet()) {
-                    FileUtil.writeToFile(file, DocViewData.buildMarkdownText(project, docMap.get(doc)), true);
+                for (DocView docView : docViewList) {
+                    FileUtil.writeToFile(file, DocViewData.buildMarkdownText(project, docView), true);
                 }
 
             } catch (IOException ioException) {

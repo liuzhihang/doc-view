@@ -21,10 +21,11 @@ import com.liuzhihang.doc.view.service.impl.YApiServiceImpl;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * YApi 上传
@@ -81,16 +82,16 @@ public class YApiUploadAction extends AnAction {
             return;
         }
 
-        Map<String, DocView> docViewMap = docViewService.buildDoc(project, psiFile, editor, targetClass);
+        List<DocView> docViewList = docViewService.buildDoc(project, psiFile, editor, targetClass);
 
-        if (docViewMap == null) {
+        if (CollectionUtils.isEmpty(docViewList)) {
             DocViewNotification.notifyError(project, DocViewBundle.message("notify.error.not.support"));
             return;
         }
 
         // 上传到 yapi
         YApiService service = ServiceManager.getService(YApiServiceImpl.class);
-        service.upload(project, docViewMap);
+        service.upload(project, docViewList);
     }
 
     /**
