@@ -20,7 +20,6 @@ import com.intellij.util.ui.JBUI;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.config.SettingsConfigurable;
-import com.liuzhihang.doc.view.config.TagsSettings;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.dto.ParamData;
@@ -81,7 +80,7 @@ public class ParamDocEditorForm {
         this.editor = editor;
         this.psiClass = psiClass;
 
-        List<Body> bodyList = ParamPsiUtils.buildBodyList(Settings.getInstance(project), psiClass, null);
+        List<Body> bodyList = ParamPsiUtils.buildBodyList(psiClass, null, Settings.getInstance(project));
 
         paramTableModel = new ParamTableModel(DocViewData.buildBodyDataList(bodyList));
 
@@ -207,7 +206,7 @@ public class ParamDocEditorForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null);
+                Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null, Settings.getInstance(project));
                 String format = GsonFormatUtil.gsonFormat(fieldMap);
                 StringSelection selection = new StringSelection(format);
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -248,7 +247,6 @@ public class ParamDocEditorForm {
      */
     private void generateComment() {
 
-        TagsSettings tagsSettings = TagsSettings.getInstance(project);
 
         Map<PsiElement, ParamData> modifyBodyMap = paramTableModel.getModifyBodyMap();
 
@@ -259,7 +257,7 @@ public class ParamDocEditorForm {
             if (data.getRequired()) {
                 comment = "/** "
                         + data.getDesc() + "\n"
-                        + "* @" + tagsSettings.getRequired()
+                        + "* @" + Settings.getInstance(project).getRequired()
                         + " */";
             } else {
                 comment = "/** "

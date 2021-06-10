@@ -22,8 +22,6 @@
         <projectService serviceImplementation="com.liuzhihang.doc.view.config.Settings"/>
         <!-- 模版设置 -->
         <projectService serviceImplementation="com.liuzhihang.doc.view.config.TemplateSettings"/>
-        <!-- 标签配置 -->
-        <projectService serviceImplementation="com.liuzhihang.doc.view.config.TagsSettings"/>
         <projectService serviceImplementation="com.liuzhihang.doc.view.config.YApiSettings"/>
 
         <!-- 相关服务 -->
@@ -70,6 +68,9 @@
             <action id="liuzhihang.doc.yapi.upload" class="com.liuzhihang.doc.view.action.YApiUploadAction"
                     text="Doc Upload To YApi"/>
             <separator/>
+
+            <action id="liuzhihang.doc.browser" class="com.liuzhihang.doc.view.action.WebBrowser" text="WebBrowser"/>
+
         </group>
 
 

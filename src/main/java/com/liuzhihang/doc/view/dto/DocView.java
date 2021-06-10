@@ -1,5 +1,6 @@
 package com.liuzhihang.doc.view.dto;
 
+import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import lombok.Data;
 
@@ -15,13 +16,19 @@ import java.util.List;
 public class DocView {
 
     /**
+     * 当前接口所在的类
+     */
+    private PsiClass psiClass;
+
+    /**
      * 当前接口的方法
      */
     private PsiMethod psiMethod;
 
-    private String fullClassName;
-
-    private String className;
+    /**
+     * 文档标题, 方法所属的类
+     */
+    private String docTitle;
 
     /**
      * 文档名称

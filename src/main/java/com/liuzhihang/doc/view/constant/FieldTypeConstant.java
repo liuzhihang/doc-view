@@ -12,8 +12,10 @@ import java.util.Set;
  * @author liuzhihang
  * @date 2020/3/4 20:35
  */
-public class FieldTypeConstant {
+public final class FieldTypeConstant {
 
+    private FieldTypeConstant() {
+    }
 
     @NonNls
     public static final Map<String, Object> FIELD_TYPE = new HashMap<>(64);

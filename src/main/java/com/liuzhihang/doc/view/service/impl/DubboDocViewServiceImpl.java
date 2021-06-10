@@ -5,14 +5,11 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiType;
 import com.liuzhihang.doc.view.config.Settings;
-import com.liuzhihang.doc.view.config.TagsSettings;
-import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.DocViewService;
-import com.liuzhihang.doc.view.utils.CustomPsiCommentUtils;
+import com.liuzhihang.doc.view.utils.DocViewUtils;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
@@ -54,52 +51,30 @@ public class DubboDocViewServiceImpl implements DocViewService {
     public DocView buildClassMethodDoc(@NotNull Project project, @NotNull PsiClass psiClass, @NotNull PsiMethod psiMethod) {
 
         Settings settings = Settings.getInstance(project);
-        TagsSettings tagsSettings = TagsSettings.getInstance(project);
-
-        // 请求路径
-        String path = psiClass.getName() + "#" + psiMethod.getName();
-
-        // 请求方式
-        String method = "Dubbo";
-
-        // 文档注释
-        String desc = CustomPsiCommentUtils.getComment(psiMethod.getDocComment());
-
-        String name = CustomPsiCommentUtils.getComment(psiMethod.getDocComment(), tagsSettings.getName());
 
         DocView docView = new DocView();
+        docView.setPsiClass(psiClass);
         docView.setPsiMethod(psiMethod);
-        docView.setFullClassName(psiClass.getQualifiedName());
-        docView.setClassName(psiClass.getName());
-        docView.setName(StringUtils.isBlank(name) ? psiMethod.getName() : name);
-        docView.setDesc(desc);
-        docView.setPath(path);
-        docView.setMethod(method);
+        docView.setDocTitle(DocViewUtils.getDocTitle(psiClass, settings));
+        docView.setName(DocViewUtils.methodName(psiMethod, settings));
+        docView.setDesc(DocViewUtils.methodDesc(psiMethod, settings));
+        docView.setPath(psiClass.getName() + "#" + psiMethod.getName());
+        docView.setMethod("Dubbo");
         // docView.setDomain();
         docView.setType("Dubbo");
 
-
         // 有参数
         if (psiMethod.hasParameters()) {
-
-            // 获取
-            List<Body> reqBody = DubboPsiUtils.buildBody(settings, psiMethod);
-            docView.setReqBodyList(reqBody);
+            docView.setReqBodyList(DubboPsiUtils.buildBody(psiMethod, settings));
             docView.setReqExampleType("json");
-
-            String bodyJson = DubboPsiUtils.getReqBodyJson(settings, psiMethod);
-            docView.setReqExample(bodyJson);
-
+            docView.setReqExample(DubboPsiUtils.getReqBodyJson(settings, psiMethod));
         }
 
         PsiType returnType = psiMethod.getReturnType();
         // 返回代码相同
         if (returnType != null && returnType.isValid() && !returnType.equalsToText("void")) {
-            List<Body> respParamList = ParamPsiUtils.buildRespBody(settings, returnType);
-            docView.setRespBodyList(respParamList);
-
-            String bodyJson = ParamPsiUtils.getRespBodyJson(settings, returnType);
-            docView.setRespExample(bodyJson);
+            docView.setRespBodyList(ParamPsiUtils.buildRespBody(returnType, settings));
+            docView.setRespExample(ParamPsiUtils.getRespBodyJson(settings, returnType));
         }
         return docView;
 

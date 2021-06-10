@@ -57,15 +57,15 @@ public class YApiServiceImpl implements YApiService {
     @Override
     public void upload(@NotNull Project project, @NotNull DocView docView) {
 
-        String catName = docView.getClassName();
+        String catName = docView.getPsiClass().getName();
 
         try {
             YApiSettings settings = YApiSettings.getInstance(project);
 
             YApiFacadeService facadeService = ServiceManager.getService(YApiFacadeServiceImpl.class);
 
+            assert catName != null;
             YApiCat cat = getOrAddCat(settings, catName);
-
 
             YapiSave save = new YapiSave();
             save.setYapiUrl(settings.getUrl());

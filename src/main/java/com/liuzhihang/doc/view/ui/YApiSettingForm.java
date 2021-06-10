@@ -2,40 +2,26 @@ package com.liuzhihang.doc.view.ui;
 
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.IdeBorderFactory;
-import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
-import com.intellij.util.ui.FormBuilder;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.YApiSettings;
 
 import javax.swing.*;
-import java.awt.*;
 
 public class YApiSettingForm {
     private JPanel rootPanel;
 
     private JPanel yapiProjectPanel;
-    private final JBTextField urlTextField = new JBTextField();
-    private final JBTextField projectIdTextField = new JBTextField();
-    private final JBTextField tokenTextField = new JBTextField();
+    private JBTextField urlTextField;
+    private JBTextField projectIdTextField;
+    private JBTextField tokenTextField;
 
 
     private final Project project;
 
     public YApiSettingForm(Project project) {
         this.project = project;
-
         yapiProjectPanel.setBorder(IdeBorderFactory.createTitledBorder(DocViewBundle.message("yapi.project.panel")));
-
-        JPanel panel = FormBuilder.createFormBuilder()
-                .addLabeledComponent(new JBLabel(DocViewBundle.message("yapi.url")), urlTextField, 1, false)
-                .addLabeledComponent(new JBLabel(DocViewBundle.message("yapi.project.id")), projectIdTextField, 1, false)
-                .addLabeledComponent(new JBLabel(DocViewBundle.message("yapi.token")), tokenTextField, 1, false)
-                .getPanel();
-
-        yapiProjectPanel.add(panel, BorderLayout.CENTER);
-
-
     }
 
     public JPanel getRootPanel() {

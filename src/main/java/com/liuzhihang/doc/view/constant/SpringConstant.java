@@ -4,7 +4,10 @@ package com.liuzhihang.doc.view.constant;
  * @author liuzhihang
  * @date 2020/3/4 13:44
  */
-public class AnnotationConstant {
+public final class SpringConstant {
+
+    private SpringConstant() {
+    }
 
     /**
      * controller

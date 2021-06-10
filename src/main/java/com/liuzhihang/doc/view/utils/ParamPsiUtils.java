@@ -1,15 +1,10 @@
 package com.liuzhihang.doc.view.utils;
 
-import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
-import com.intellij.psi.javadoc.PsiDocComment;
-import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.liuzhihang.doc.view.config.Settings;
-import com.liuzhihang.doc.view.config.TagsSettings;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.Body;
 import org.jetbrains.annotations.NotNull;
@@ -26,24 +21,16 @@ public class ParamPsiUtils {
 
 
     @NotNull
-    public static Body buildBodyParam(@NotNull Settings settings, PsiField field, PsiType[] genericArr) {
-
-        Body body = new Body();
-        body.setRequired(isRequired(field));
-        body.setName(field.getName());
-        body.setPsiElement(field);
+    public static Body buildBodyParam(PsiField field, PsiType[] genericArr, @NotNull Settings settings) {
 
         PsiType type = field.getType();
 
+        Body body = new Body();
+        body.setRequired(DocViewUtils.isRequired(field, settings));
+        body.setName(field.getName());
+        body.setPsiElement(field);
         body.setType(type.getPresentableText());
-
-        PsiDocComment docComment = field.getDocComment();
-
-        if (docComment != null) {
-            // param.setExample();
-            // 参数举例, 使用 tag 判断
-            body.setDesc(CustomPsiCommentUtils.getComment(docComment));
-        }
+        body.setDesc(DocViewUtils.fieldDesc(field, settings));
 
         if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
             return body;
@@ -54,10 +41,8 @@ public class ParamPsiUtils {
             PsiClass iterableClass = PsiUtil.resolveClassInClassTypeOnly(iterableType);
             if (iterableClass != null) {
                 for (PsiField psiField : iterableClass.getAllFields()) {
-                    if (!settings.getExcludeFieldNames().contains(psiField.getName())
-                            && !CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.STATIC)) {
-
-                        Body requestParam = buildBodyParam(settings, psiField, null);
+                    if (!DocViewUtils.isExcludeField(psiField, settings)) {
+                        Body requestParam = buildBodyParam(psiField, null, settings);
                         list.add(requestParam);
                     }
                 }
@@ -70,9 +55,8 @@ public class ParamPsiUtils {
             PsiClass iterableClass = PsiUtil.resolveClassInClassTypeOnly(matValueType);
             if (iterableClass != null) {
                 for (PsiField psiField : iterableClass.getAllFields()) {
-                    if (!settings.getExcludeFieldNames().contains(psiField.getName())
-                            && !CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.STATIC)) {
-                        Body requestParam = buildBodyParam(settings, psiField, null);
+                    if (!DocViewUtils.isExcludeField(psiField, settings)) {
+                        Body requestParam = buildBodyParam(psiField, null, settings);
                         list.add(requestParam);
                     }
                 }
@@ -99,9 +83,8 @@ public class ParamPsiUtils {
             List<Body> list = new ArrayList<>();
             if (psiClass != null && !psiClass.isEnum() && !psiClass.isInterface() && !psiClass.isAnnotationType()) {
                 for (PsiField psiField : psiClass.getAllFields()) {
-                    if (!settings.getExcludeFieldNames().contains(psiField.getName())
-                            && !CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.STATIC)) {
-                        Body requestParam = buildBodyParam(settings, psiField, null);
+                    if (!DocViewUtils.isExcludeField(psiField, settings)) {
+                        Body requestParam = buildBodyParam(psiField, null, settings);
                         list.add(requestParam);
                     }
                 }
@@ -113,56 +96,28 @@ public class ParamPsiUtils {
     }
 
     /**
-     * 判断字段是否必填
+     * 获取字段和字段的默认值
      *
-     * @param field
+     * @param psiClass
+     * @param genericArr
+     * @param settings
      * @return
      */
-    private static boolean isRequired(PsiField field) {
-
-        Project project = field.getProject();
-        // 判断是否必填
-        Settings setting = Settings.getInstance(project);
-        boolean annotated = AnnotationUtil.isAnnotated(field, setting.getFieldRequiredAnnotationName(), 0);
-
-        // 查看注释
-        TagsSettings tagsSettings = TagsSettings.getInstance(project);
-        PsiDocComment docComment = field.getDocComment();
-
-        if (docComment == null) {
-            return annotated;
-        }
-
-        PsiDocTag requiredTag = docComment.findTagByName(tagsSettings.getRequired());
-
-        // Swagger 注解
-
-
-        return annotated || requiredTag != null;
-    }
-
-
     @NotNull
-    public static Map<String, Object> getFieldsAndDefaultValue(PsiClass psiClass, PsiType[] genericArr) {
+    public static Map<String, Object> getFieldsAndDefaultValue(PsiClass psiClass, PsiType[] genericArr, @NotNull Settings settings) {
 
         Map<String, Object> fieldMap = new LinkedHashMap<>();
-        // Map<String, Object> commentFieldMap = new LinkedHashMap<>();
 
         if (psiClass != null && !psiClass.isEnum() && !psiClass.isInterface() && !psiClass.isAnnotationType()) {
             for (PsiField field : psiClass.getAllFields()) {
 
-                if (field.getModifierList() != null && field.getModifierList().hasModifierProperty(PsiModifier.STATIC)) {
+                if (DocViewUtils.isExcludeField(field, settings)) {
                     continue;
                 }
 
-
                 PsiType type = field.getType();
                 String name = field.getName();
-                // 判断注解 javax.annotation.Resource   org.springframework.beans.factory.annotation.Autowired
-                PsiAnnotation[] annotations = field.getAnnotations();
-                if (annotations.length > 0 && containsAnnotation(annotations)) {
-                    fieldMap.put(name, "");
-                } else if (type instanceof PsiPrimitiveType) {
+                if (type instanceof PsiPrimitiveType) {
                     // 基本类型
                     fieldMap.put(name, PsiTypesUtil.getDefaultValue(type));
                 } else {
@@ -181,7 +136,7 @@ public class ParamPsiUtils {
                         } else if (FieldTypeConstant.FIELD_TYPE.containsKey(deepTypeName)) {
                             list.add(FieldTypeConstant.FIELD_TYPE.get(deepTypeName));
                         } else {
-                            list.add(getFieldsAndDefaultValue(PsiUtil.resolveClassInType(deepType), null));
+                            list.add(getFieldsAndDefaultValue(PsiUtil.resolveClassInType(deepType), null, settings));
                         }
                         fieldMap.put(name, list);
                     } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_COLLECTION)) {
@@ -194,7 +149,7 @@ public class ParamPsiUtils {
                             if (FieldTypeConstant.FIELD_TYPE.containsKey(classTypeName)) {
                                 list.add(FieldTypeConstant.FIELD_TYPE.get(classTypeName));
                             } else {
-                                list.add(getFieldsAndDefaultValue(iterableClass, null));
+                                list.add(getFieldsAndDefaultValue(iterableClass, null, settings));
                             }
                         }
                         fieldMap.put(name, list);
@@ -217,7 +172,7 @@ public class ParamPsiUtils {
                         if (FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
                             fieldMap.put(name, FieldTypeConstant.FIELD_TYPE.get(type.getPresentableText()));
                         } else {
-                            fieldMap.put(name, getFieldsAndDefaultValue(PsiUtil.resolveClassInType(type), null));
+                            fieldMap.put(name, getFieldsAndDefaultValue(PsiUtil.resolveClassInType(type), null, settings));
                         }
 
 
@@ -228,24 +183,8 @@ public class ParamPsiUtils {
         return fieldMap;
     }
 
-    /**
-     * 是否包含指定的注解
-     *
-     * @param annotations
-     * @return
-     */
-    private static boolean containsAnnotation(@NotNull PsiAnnotation[] annotations) {
-        for (PsiAnnotation annotation : annotations) {
-            if (FieldTypeConstant.ANNOTATION_TYPES.contains(annotation.getQualifiedName())) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
     @NotNull
-    public static List<Body> buildRespBody(Settings settings, PsiType returnType) {
+    public static List<Body> buildRespBody(PsiType returnType, @NotNull Settings settings) {
 
         List<Body> list = new ArrayList<>();
         if (returnType instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(returnType.getPresentableText())) {
@@ -259,7 +198,6 @@ public class ParamPsiUtils {
             PsiClassType psiClassType = (PsiClassType) returnType;
 
             // 返回值可能是 Result<T> Result<T, K> 泛型的
-
             PsiClass psiClass = PsiUtil.resolveClassInType(returnType);
             if (psiClass != null) {
                 if (InheritanceUtil.isInheritor(psiClass, CommonClassNames.JAVA_UTIL_COLLECTION)) {
@@ -275,11 +213,11 @@ public class ParamPsiUtils {
                         PsiClass genericsPsiClass = PsiUtil.resolveClassInClassTypeOnly(psiType);
 
                         if (genericsPsiClass != null) {
-                            return buildBodyList(settings, genericsPsiClass, null);
+                            return buildBodyList(genericsPsiClass, null, settings);
                         }
                     }
                 } else {
-                    return buildBodyList(settings, psiClass, psiClassType.getParameters());
+                    return buildBodyList(psiClass, psiClassType.getParameters(), settings);
                 }
             }
         } else {
@@ -289,22 +227,18 @@ public class ParamPsiUtils {
     }
 
     @NotNull
-    public static List<Body> buildBodyList(Settings settings, @NotNull PsiClass psiClass, PsiType[] o) {
+    public static List<Body> buildBodyList(@NotNull PsiClass psiClass, PsiType[] o, @NotNull Settings settings) {
 
         List<Body> list = new ArrayList<>();
 
 
         for (PsiField field : psiClass.getAllFields()) {
 
-            if (settings.getExcludeFieldNames().contains(field.getName())) {
-                continue;
-            }
-            // 排除掉被 static 修饰的字段
-            if (CustomPsiUtils.hasModifierProperty(field, PsiModifier.STATIC)) {
+            if (DocViewUtils.isExcludeField(field, settings)) {
                 continue;
             }
 
-            Body requestParam = ParamPsiUtils.buildBodyParam(settings, field, o);
+            Body requestParam = ParamPsiUtils.buildBodyParam(field, o, settings);
             list.add(requestParam);
         }
         return list;
@@ -339,13 +273,13 @@ public class ParamPsiUtils {
                     }
 
                     PsiClass iterableClass = PsiUtil.resolveClassInClassTypeOnly(psiType);
-                    Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(iterableClass, null);
+                    Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(iterableClass, null, settings);
 
                     Object[] objectArr = {fieldMap};
 
                     return GsonFormatUtil.gsonFormat(objectArr);
                 } else {
-                    Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, psiClassType.getParameters());
+                    Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, psiClassType.getParameters(), settings);
 
                     return GsonFormatUtil.gsonFormat(fieldMap);
                 }

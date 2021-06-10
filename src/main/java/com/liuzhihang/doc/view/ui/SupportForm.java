@@ -36,6 +36,7 @@ public class SupportForm extends DialogWrapper {
         reportLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://github.com/liuzhihang/doc-view/issues");
         discussionsLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://github.com/liuzhihang/doc-view/discussions");
         websiteLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://docview.liuzhihang.com");
+
     }
 
     @Nullable

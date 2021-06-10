@@ -4,7 +4,10 @@ package com.liuzhihang.doc.view.constant;
  * @author liuzhihang
  * @date 2020/3/6 13:27
  */
-public class HeaderConstant {
+public final class HeaderConstant {
+
+    private HeaderConstant() {
+    }
 
     public static final String APPLICATION_JSON = "application/json";
 

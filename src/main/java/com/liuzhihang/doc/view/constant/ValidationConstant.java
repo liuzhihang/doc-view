@@ -4,7 +4,10 @@ package com.liuzhihang.doc.view.constant;
  * @author liuzhihang
  * @date 2020/3/4 22:34
  */
-public class ValidationConstant {
+public final class ValidationConstant {
+
+    private ValidationConstant() {
+    }
 
     public static final String VALID = "javax.validation.Valid";
 

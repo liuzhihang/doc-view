@@ -2,10 +2,13 @@ package com.liuzhihang.doc.view.ui;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.ui.IdeBorderFactory;
+import com.intellij.ui.ToolbarDecorator;
+import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.util.ui.JBUI;
 
 import javax.swing.*;
+import java.awt.*;
 
 /**
  * @author liuzhihang
@@ -19,6 +22,8 @@ public class SettingsForm {
     private LinkLabel<String> supportLinkLabel;
     private JPanel docDescPanel;
     private JPanel paramRequirePanel;
+    private JPanel docTitlePanel;
+    private JBList docTitleJBList;
 
 
     public SettingsForm() {
@@ -34,6 +39,21 @@ public class SettingsForm {
         paramRequirePanel.setBorder(IdeBorderFactory.createTitledBorder("是否必填"));
 
 
+        initDocTitle();
+
+    }
+
+    private void initDocTitle() {
+
+
+        docTitlePanel.add(ToolbarDecorator.createDecorator(docTitleJBList)
+                .setMoveUpAction(anActionButton -> {
+
+                })
+                .setMoveDownAction(anActionButton -> {
+
+                })
+                .createPanel(), BorderLayout.CENTER);
     }
 
     public JPanel getRootPanel() {

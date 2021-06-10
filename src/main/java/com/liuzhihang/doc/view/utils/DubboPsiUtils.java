@@ -44,18 +44,16 @@ public class DubboPsiUtils {
     }
 
     @NotNull
-    public static List<Body> buildBody(Settings settings, @NotNull PsiMethod psiMethod) {
+    public static List<Body> buildBody(@NotNull PsiMethod psiMethod, @NotNull Settings settings) {
 
 
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
-
 
         List<Body> list = new ArrayList<>();
 
         for (PsiParameter parameter : parameters) {
 
             PsiType type = parameter.getType();
-
             // 集合
             Body body = new Body();
             body.setRequired(false);
@@ -72,10 +70,8 @@ public class DubboPsiUtils {
                 PsiClass iterableClass = PsiUtil.resolveClassInClassTypeOnly(iterableType);
                 if (iterableClass != null) {
                     for (PsiField psiField : iterableClass.getAllFields()) {
-                        if (!settings.getExcludeFieldNames().contains(psiField.getName())
-                                && !CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.STATIC)) {
-
-                            Body requestParam = ParamPsiUtils.buildBodyParam(settings, psiField, null);
+                        if (!DocViewUtils.isExcludeField(psiField, settings)) {
+                            Body requestParam = ParamPsiUtils.buildBodyParam(psiField, null, settings);
                             bodyList.add(requestParam);
                         }
                     }
@@ -91,9 +87,8 @@ public class DubboPsiUtils {
                 PsiClass iterableClass = PsiUtil.resolveClassInClassTypeOnly(matValueType);
                 if (iterableClass != null) {
                     for (PsiField psiField : iterableClass.getAllFields()) {
-                        if (!settings.getExcludeFieldNames().contains(psiField.getName())
-                                && !CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.STATIC)) {
-                            Body requestParam = ParamPsiUtils.buildBodyParam(settings, psiField, null);
+                        if (!DocViewUtils.isExcludeField(psiField, settings)) {
+                            Body requestParam = ParamPsiUtils.buildBodyParam(psiField, null, settings);
                             bodyList.add(requestParam);
                         }
                     }
@@ -106,9 +101,8 @@ public class DubboPsiUtils {
                 List<Body> bodyList = new ArrayList<>();
                 if (psiClass != null && !psiClass.isEnum() && !psiClass.isInterface() && !psiClass.isAnnotationType()) {
                     for (PsiField psiField : psiClass.getAllFields()) {
-                        if (!settings.getExcludeFieldNames().contains(psiField.getName())
-                                && !CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.STATIC)) {
-                            Body requestParam = ParamPsiUtils.buildBodyParam(settings, psiField, null);
+                        if (!DocViewUtils.isExcludeField(psiField, settings)) {
+                            Body requestParam = ParamPsiUtils.buildBodyParam(psiField, null, settings);
                             bodyList.add(requestParam);
                         }
                     }
@@ -145,7 +139,7 @@ public class DubboPsiUtils {
             } else {
                 PsiClass psiClass = PsiUtil.resolveClassInType(type);
                 if (psiClass != null) {
-                    fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null);
+                    fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null, settings);
                 }
             }
             return GsonFormatUtil.gsonFormat(fieldMap);

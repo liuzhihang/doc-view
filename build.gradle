@@ -23,12 +23,18 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version 'IU-2021.1'
+    version '2021.1'
     plugins = ['java', 'markdown']
     pluginName 'Doc View'
     updateSinceUntilBuild false
     sameSinceUntilBuild false
 }
+
+runIde {
+    // 自动更新, 不适合 debug 模式
+    autoReloadPlugins true
+}
+
 patchPluginXml {
     pluginDescription(file(descriptionFile).text)
     changeNotes(file(changesFile).text)

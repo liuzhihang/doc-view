@@ -17,7 +17,6 @@ import com.intellij.ui.WindowMoveListener;
 import com.intellij.util.ui.JBUI;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.SettingsConfigurable;
-import com.liuzhihang.doc.view.config.TagsSettings;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.dto.ParamData;

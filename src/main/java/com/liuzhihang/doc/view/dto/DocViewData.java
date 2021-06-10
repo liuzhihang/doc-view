@@ -88,14 +88,10 @@ public class DocViewData {
      */
     private final String responseExample;
 
-
-    private final String fullClassName;
-
     private final String type;
 
     public DocViewData(DocView docView) {
 
-        this.fullClassName = docView.getFullClassName();
         this.name = docView.getName();
         this.desc = docView.getDesc();
         this.path = docView.getPath();

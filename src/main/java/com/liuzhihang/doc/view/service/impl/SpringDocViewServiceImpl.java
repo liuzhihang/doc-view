@@ -6,17 +6,13 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiType;
 import com.liuzhihang.doc.view.config.Settings;
-import com.liuzhihang.doc.view.config.TagsSettings;
-import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.Header;
-import com.liuzhihang.doc.view.dto.Param;
 import com.liuzhihang.doc.view.service.DocViewService;
-import com.liuzhihang.doc.view.utils.CustomPsiCommentUtils;
+import com.liuzhihang.doc.view.utils.DocViewUtils;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
 import com.liuzhihang.doc.view.utils.SpringHeaderUtils;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -58,31 +54,15 @@ public class SpringDocViewServiceImpl implements DocViewService {
     public DocView buildClassMethodDoc(@NotNull Project project, PsiClass psiClass, @NotNull PsiMethod psiMethod) {
 
         Settings settings = Settings.getInstance(project);
-        TagsSettings tagsSettings = TagsSettings.getInstance(project);
-
-
-        // 请求路径
-        String path = SpringPsiUtils.getPath(psiClass, psiMethod);
-
-        // 请求方式
-        String method = SpringPsiUtils.getMethod(psiMethod);
-
-
-        // 文档注释
-        String desc = CustomPsiCommentUtils.getComment(psiMethod.getDocComment());
-
-
-        String name = CustomPsiCommentUtils.getComment(psiMethod.getDocComment(), tagsSettings.getName());
-
 
         DocView docView = new DocView();
+        docView.setPsiClass(psiClass);
         docView.setPsiMethod(psiMethod);
-        docView.setFullClassName(psiClass.getQualifiedName());
-        docView.setClassName(psiClass.getName());
-        docView.setName(StringUtils.isBlank(name) ? psiMethod.getName() : name);
-        docView.setDesc(desc);
-        docView.setPath(path);
-        docView.setMethod(method);
+        docView.setDocTitle(DocViewUtils.getDocTitle(psiClass, settings));
+        docView.setName(DocViewUtils.methodName(psiMethod, settings));
+        docView.setDesc(DocViewUtils.methodDesc(psiMethod, settings));
+        docView.setPath(SpringPsiUtils.getPath(psiClass, psiMethod));
+        docView.setMethod(SpringPsiUtils.getMethod(psiMethod));
         // docView.setDomain();
         docView.setType("Spring");
 
@@ -96,24 +76,15 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
             if (requestBodyParam != null) {
                 // 有requestBody
-                Header jsonHeader = SpringHeaderUtils.buildJsonHeader();
-                headerList.add(jsonHeader);
-
-                List<Body> reqBody = SpringPsiUtils.buildBody(settings, requestBodyParam);
-                docView.setReqBodyList(reqBody);
-
-                String bodyJson = SpringPsiUtils.getReqBodyJson(settings, requestBodyParam);
-                docView.setReqExample(bodyJson);
+                headerList.add(SpringHeaderUtils.buildJsonHeader());
+                docView.setReqBodyList(SpringPsiUtils.buildBody(requestBodyParam, settings));
+                docView.setReqExample(SpringPsiUtils.getReqBodyJson(requestBodyParam, settings));
                 docView.setReqExampleType("json");
 
             } else {
-                Header formHeader = SpringHeaderUtils.buildFormHeader();
-                headerList.add(formHeader);
-                List<Param> requestParam = SpringPsiUtils.buildFormParam(settings, psiMethod);
-                docView.setReqParamList(requestParam);
-
-                String paramKV = SpringPsiUtils.getReqParamKV(requestParam);
-                docView.setReqExample(paramKV);
+                headerList.add(SpringHeaderUtils.buildFormHeader());
+                docView.setReqParamList(SpringPsiUtils.buildFormParam(settings, psiMethod));
+                docView.setReqExample(SpringPsiUtils.getReqParamKV(docView.getReqParamList()));
                 docView.setReqExampleType("form");
 
             }
@@ -123,20 +94,14 @@ public class SpringDocViewServiceImpl implements DocViewService {
             headerList.addAll(headers);
         } else {
             docView.setReqExampleType("form");
-            Header formHeader = SpringHeaderUtils.buildFormHeader();
-            headerList.add(formHeader);
+            headerList.add(SpringHeaderUtils.buildFormHeader());
         }
         docView.setHeaderList(headerList);
 
-
         PsiType returnType = psiMethod.getReturnType();
         if (returnType != null && returnType.isValid() && !returnType.equalsToText("void")) {
-            List<Body> respParamList = ParamPsiUtils.buildRespBody(settings, returnType);
-            docView.setRespBodyList(respParamList);
-
-            String bodyJson = ParamPsiUtils.getRespBodyJson(settings, returnType);
-
-            docView.setRespExample(bodyJson);
+            docView.setRespBodyList(ParamPsiUtils.buildRespBody(returnType, settings));
+            docView.setRespExample(ParamPsiUtils.getRespBodyJson(settings, returnType));
         }
         return docView;
     }

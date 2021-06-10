@@ -80,7 +80,6 @@ public class PreviewForm {
     private final List<DocView> docViewList;
     private Map<String, DocView> docViewMap;
 
-
     private JPanel rootPanel;
     private JSplitPane viewSplitPane;
     private JScrollPane leftScrollPane;
@@ -123,7 +122,6 @@ public class PreviewForm {
 
         // 生成文档
         buildDoc();
-
 
         catalogList.setSelectedIndex(0);
 
@@ -424,7 +422,7 @@ public class PreviewForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                ExportUtils.allExportMarkdown(project, currentDocView.getClassName(), docViewList);
+                ExportUtils.allExportMarkdown(project, currentDocView.getPsiClass().getName(), docViewList);
             }
         });
         menuGroup.addSeparator();
@@ -470,7 +468,7 @@ public class PreviewForm {
 
             currentDocView = docViewMap.get(selectedValue);
 
-            docNameLabel.setText(currentDocView.getFullClassName());
+            docNameLabel.setText(currentDocView.getPsiClass().getQualifiedName());
 
             // 将 docView 按照模版转换
             currentMarkdownText = DocViewData.buildMarkdownText(project, currentDocView);
