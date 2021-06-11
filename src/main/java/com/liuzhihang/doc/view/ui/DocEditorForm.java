@@ -16,6 +16,7 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.WindowMoveListener;
 import com.intellij.util.ui.JBUI;
 import com.liuzhihang.doc.view.DocViewBundle;
+import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.config.SettingsConfigurable;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.DocViewData;
@@ -267,7 +268,7 @@ public class DocEditorForm {
 
 
     @NotNull
-    private String generateFromNoneComment(TagsSettings tagsSettings,
+    private String generateFromNoneComment(Settings settings,
                                            List<String> paramNameList,
                                            String returnName,
                                            List<String> exceptionNameList) {
@@ -278,7 +279,7 @@ public class DocEditorForm {
         sb.append("*\n");
         sb.append("* ").append(descTextArea.getText()).append("\n");
         if (StringUtils.isNotBlank(nameTextArea.getText())) {
-            sb.append("* @").append(tagsSettings.getName()).append(" ").append(nameTextArea.getText()).append("\n");
+            sb.append("* @").append(settings.getNameTag()).append(" ").append(nameTextArea.getText()).append("\n");
         }
         for (String paramName : paramNameList) {
             sb.append("* @param ").append(paramName).append(" ").append(paramName).append("\n");
@@ -392,7 +393,7 @@ public class DocEditorForm {
 
     private void generateMethodComment() {
 
-        TagsSettings tagsSettings = TagsSettings.getInstance(project);
+        Settings settings = Settings.getInstance(project);
 
 
         PsiDocComment docComment = psiMethod.getDocComment();
@@ -408,12 +409,12 @@ public class DocEditorForm {
 
         if (docComment == null) {
             // 注释为空, 生成
-            comment = generateFromNoneComment(tagsSettings, paramNameList, returnName, exceptionNameList);
+            comment = generateFromNoneComment(settings, paramNameList, returnName, exceptionNameList);
 
         } else {
             List<PsiElement> elements = Lists.newArrayList(Objects.requireNonNull(psiMethod.getDocComment()).getChildren());
 
-            String docName = buildDocName(elements, tagsSettings.getName());
+            String docName = buildDocName(elements, settings.getNameTag());
 
             List<String> params = CustomPsiCommentUtils.buildParams(elements, paramNameList);
 
@@ -435,8 +436,6 @@ public class DocEditorForm {
      */
     private void generateComment(ParamTableModel paramTableModel) {
 
-        TagsSettings tagsSettings = TagsSettings.getInstance(project);
-
         Map<PsiElement, ParamData> modifyBodyMap = paramTableModel.getModifyBodyMap();
 
         for (PsiElement element : modifyBodyMap.keySet()) {
@@ -446,7 +445,7 @@ public class DocEditorForm {
             if (data.getRequired()) {
                 comment = "/** "
                         + data.getDesc() + "\n"
-                        + "* @" + tagsSettings.getRequired()
+                        + "* @" + Settings.getInstance(project).getRequired()
                         + " */";
             } else {
                 comment = "/** "

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="com.liuzhihang.doc.view.ui.SettingsForm">
-  <grid id="27dc6" binding="rootPanel" layout-manager="GridLayoutManager" row-count="5" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+  <grid id="27dc6" binding="rootPanel" layout-manager="GridLayoutManager" row-count="6" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="0" left="0" bottom="0" right="0"/>
     <constraints>
       <xy x="20" y="8" width="868" height="611"/>
@@ -11,7 +11,7 @@
       <grid id="fba49" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
-          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none"/>
@@ -31,62 +31,264 @@
           </component>
         </children>
       </grid>
-      <grid id="99bd7" binding="docNamePanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="99bd7" binding="namePanel" layout-manager="GridLayoutManager" row-count="1" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none" title=""/>
-        <children/>
+        <children>
+          <component id="aae19" class="javax.swing.JCheckBox" binding="nameSwagger3CheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.name.swagger3"/>
+              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.name.swagger3.tip"/>
+            </properties>
+          </component>
+          <hspacer id="d0a9c">
+            <constraints>
+              <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
+          <component id="6a932" class="javax.swing.JCheckBox" binding="nameSwaggerCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.name.swagger"/>
+              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.name.swagger.tip"/>
+            </properties>
+          </component>
+          <component id="ba8b4" class="javax.swing.JCheckBox" binding="nameCommentTagCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.name.comment.tag"/>
+              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.name.comment.tag.tip"/>
+            </properties>
+          </component>
+          <component id="47bb1" class="javax.swing.JCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="false"/>
+              <selected value="true"/>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.name.method"/>
+            </properties>
+          </component>
+        </children>
       </grid>
-      <grid id="702ad" binding="docDescPanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="702ad" binding="docDescPanel" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none"/>
-        <children/>
+        <children>
+          <component id="41bb6" class="javax.swing.JCheckBox" binding="descSwagger3CheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.desc.swagger3"/>
+              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.desc.swagger3.tip"/>
+            </properties>
+          </component>
+          <hspacer id="a7476">
+            <constraints>
+              <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
+          <component id="bf12b" class="javax.swing.JCheckBox" binding="descSwaggerCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.desc.swagger"/>
+              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.desc.swagger.tip"/>
+            </properties>
+          </component>
+          <component id="1fd0" class="javax.swing.JCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="false"/>
+              <selected value="true"/>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.desc.comment"/>
+            </properties>
+          </component>
+        </children>
       </grid>
-      <grid id="9f7a3" binding="paramRequirePanel" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="9f7a3" binding="requirePanel" layout-manager="GridLayoutManager" row-count="4" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
         <border type="none"/>
-        <children/>
+        <children>
+          <component id="530ff" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.required.validation"/>
+            </properties>
+          </component>
+          <component id="c5f41" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.required.lombok"/>
+            </properties>
+          </component>
+          <component id="ce5eb" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.required.swagger"/>
+            </properties>
+          </component>
+          <component id="bd8f6" class="javax.swing.JCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="false"/>
+              <selected value="true"/>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.required.validation.NotBlank"/>
+            </properties>
+          </component>
+          <component id="de30" class="javax.swing.JCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="false"/>
+              <selected value="true"/>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.required.validation.NotEmpty"/>
+            </properties>
+          </component>
+          <hspacer id="d77c1">
+            <constraints>
+              <grid row="0" column="4" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
+          <component id="13a28" class="javax.swing.JCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="false"/>
+              <selected value="true"/>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.required.validation.NotNull"/>
+            </properties>
+          </component>
+          <component id="78350" class="javax.swing.JCheckBox" default-binding="true">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="false"/>
+              <selected value="true"/>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.required.lombok.NonNull"/>
+            </properties>
+          </component>
+          <component id="a058" class="javax.swing.JCheckBox" default-binding="true">
+            <constraints>
+              <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="false"/>
+              <selected value="true"/>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.required.swagger3.Schema"/>
+              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.required.swagger3.Schema.tip"/>
+            </properties>
+          </component>
+          <component id="6b47d" class="javax.swing.JCheckBox" default-binding="true">
+            <constraints>
+              <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="false"/>
+              <selected value="true"/>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.required.swagger.ApiModelProperty"/>
+              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.required.swagger.ApiModelProperty.tip"/>
+            </properties>
+          </component>
+          <component id="c42b4" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.required.comment"/>
+            </properties>
+          </component>
+          <component id="d1ee9" class="javax.swing.JCheckBox" binding="requireCommentTagCheckBox" default-binding="true">
+            <constraints>
+              <grid row="3" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.required.comment.tag"/>
+              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.name.comment.tag.tip"/>
+            </properties>
+          </component>
+        </children>
       </grid>
-      <grid id="32ec7" binding="docTitlePanel" layout-manager="BorderLayout" hgap="0" vgap="0">
+      <grid id="c2db5" binding="titlePanel" layout-manager="GridLayoutManager" row-count="1" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties/>
-        <border type="none" title=""/>
+        <border type="none"/>
         <children>
-          <component id="5908b" class="javax.swing.JLabel">
-            <constraints border-constraint="West"/>
+          <component id="6667c" class="javax.swing.JCheckBox" binding="titleCommentTagCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
             <properties>
-              <text value="Label"/>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.title.comment.tag"/>
+              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.title.comment.tag.tip"/>
             </properties>
           </component>
-          <grid id="66ed6" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-            <margin top="0" left="0" bottom="0" right="0"/>
-            <constraints border-constraint="Center"/>
-            <properties/>
-            <border type="none"/>
-            <children>
-              <component id="75ae0" class="com.intellij.ui.components.JBList" binding="docTitleJBList">
-                <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties/>
-              </component>
-            </children>
-          </grid>
+          <hspacer id="bc8ad">
+            <constraints>
+              <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
+          <component id="1cc88" class="javax.swing.JCheckBox" binding="titleFullClassNameCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.title.full"/>
+            </properties>
+          </component>
+          <component id="68b8c" class="javax.swing.JCheckBox" binding="titleSimpleClassNameCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.title.simple"/>
+            </properties>
+          </component>
         </children>
       </grid>
+      <vspacer id="1ebad">
+        <constraints>
+          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </vspacer>
     </children>
   </grid>
 </form>

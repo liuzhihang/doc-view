@@ -109,7 +109,7 @@ public class EditorAction extends AnAction {
             // Spring Controller 还需要检查方法是否满足条件
             if (AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
                 // 过滤掉私有和静态方法以及没有相关注解的方法
-                if (!SpringPsiUtils.isSpringMethod(project, targetMethod)) {
+                if (!SpringPsiUtils.isSpringMethod(targetMethod)) {
                     presentation.setEnabledAndVisible(false);
                     return;
                 }
@@ -117,7 +117,7 @@ public class EditorAction extends AnAction {
             // Dubbo 接口 还需要检查方法是否满足条件
             if (targetClass.isInterface()) {
                 // 过滤掉私有和静态方法以及没有相关注解的方法
-                if (!DubboPsiUtils.isDubboMethod(project, targetMethod)) {
+                if (!DubboPsiUtils.isDubboMethod(targetMethod)) {
                     presentation.setEnabledAndVisible(false);
 
                 }

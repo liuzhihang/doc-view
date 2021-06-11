@@ -80,7 +80,7 @@ public class ParamDocEditorForm {
         this.editor = editor;
         this.psiClass = psiClass;
 
-        List<Body> bodyList = ParamPsiUtils.buildBodyList(psiClass, null, Settings.getInstance(project));
+        List<Body> bodyList = ParamPsiUtils.buildBodyList(psiClass, null);
 
         paramTableModel = new ParamTableModel(DocViewData.buildBodyDataList(bodyList));
 
@@ -206,7 +206,7 @@ public class ParamDocEditorForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null, Settings.getInstance(project));
+                Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null);
                 String format = GsonFormatUtil.gsonFormat(fieldMap);
                 StringSelection selection = new StringSelection(format);
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();

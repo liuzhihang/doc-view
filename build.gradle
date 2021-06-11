@@ -30,11 +30,6 @@ intellij {
     sameSinceUntilBuild false
 }
 
-runIde {
-    // 自动更新, 不适合 debug 模式
-    autoReloadPlugins true
-}
-
 patchPluginXml {
     pluginDescription(file(descriptionFile).text)
     changeNotes(file(changesFile).text)

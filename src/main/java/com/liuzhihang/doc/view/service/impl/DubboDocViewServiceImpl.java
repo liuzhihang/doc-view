@@ -24,7 +24,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
 
     @Override
     public boolean checkMethod(@NotNull Project project, @NotNull PsiMethod targetMethod) {
-        return DubboPsiUtils.isDubboMethod(project, targetMethod);
+        return DubboPsiUtils.isDubboMethod(targetMethod);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
 
         for (PsiMethod method : psiClass.getMethods()) {
 
-            if (!DubboPsiUtils.isDubboMethod(project, method)) {
+            if (!DubboPsiUtils.isDubboMethod(method)) {
                 continue;
             }
 
@@ -55,9 +55,9 @@ public class DubboDocViewServiceImpl implements DocViewService {
         DocView docView = new DocView();
         docView.setPsiClass(psiClass);
         docView.setPsiMethod(psiMethod);
-        docView.setDocTitle(DocViewUtils.getDocTitle(psiClass, settings));
-        docView.setName(DocViewUtils.methodName(psiMethod, settings));
-        docView.setDesc(DocViewUtils.methodDesc(psiMethod, settings));
+        docView.setDocTitle(DocViewUtils.getTitle(psiClass));
+        docView.setName(DocViewUtils.getName(psiMethod));
+        docView.setDesc(DocViewUtils.getMethodDesc(psiMethod));
         docView.setPath(psiClass.getName() + "#" + psiMethod.getName());
         docView.setMethod("Dubbo");
         // docView.setDomain();
@@ -65,16 +65,16 @@ public class DubboDocViewServiceImpl implements DocViewService {
 
         // 有参数
         if (psiMethod.hasParameters()) {
-            docView.setReqBodyList(DubboPsiUtils.buildBody(psiMethod, settings));
+            docView.setReqBodyList(DubboPsiUtils.buildBody(psiMethod));
             docView.setReqExampleType("json");
-            docView.setReqExample(DubboPsiUtils.getReqBodyJson(settings, psiMethod));
+            docView.setReqExample(DubboPsiUtils.getReqBodyJson(psiMethod));
         }
 
         PsiType returnType = psiMethod.getReturnType();
         // 返回代码相同
         if (returnType != null && returnType.isValid() && !returnType.equalsToText("void")) {
-            docView.setRespBodyList(ParamPsiUtils.buildRespBody(returnType, settings));
-            docView.setRespExample(ParamPsiUtils.getRespBodyJson(settings, returnType));
+            docView.setRespBodyList(ParamPsiUtils.buildRespBody(returnType));
+            docView.setRespExample(ParamPsiUtils.getRespBodyJson(returnType));
         }
         return docView;
 

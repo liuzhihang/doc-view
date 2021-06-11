@@ -1,11 +1,9 @@
 package com.liuzhihang.doc.view.utils;
 
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
-import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.Body;
 import org.jetbrains.annotations.NotNull;
@@ -27,11 +25,10 @@ public class DubboPsiUtils {
      * <p>
      * 不是构造方法, 且 公共 非静态, 有相关注解
      *
-     * @param project
      * @param psiMethod
      * @return true 是 dubbo 方法
      */
-    public static boolean isDubboMethod(Project project, @NotNull PsiMethod psiMethod) {
+    public static boolean isDubboMethod(@NotNull PsiMethod psiMethod) {
 
         PsiCodeBlock body = psiMethod.getBody();
 
@@ -44,7 +41,7 @@ public class DubboPsiUtils {
     }
 
     @NotNull
-    public static List<Body> buildBody(@NotNull PsiMethod psiMethod, @NotNull Settings settings) {
+    public static List<Body> buildBody(@NotNull PsiMethod psiMethod) {
 
 
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
@@ -70,8 +67,8 @@ public class DubboPsiUtils {
                 PsiClass iterableClass = PsiUtil.resolveClassInClassTypeOnly(iterableType);
                 if (iterableClass != null) {
                     for (PsiField psiField : iterableClass.getAllFields()) {
-                        if (!DocViewUtils.isExcludeField(psiField, settings)) {
-                            Body requestParam = ParamPsiUtils.buildBodyParam(psiField, null, settings);
+                        if (!DocViewUtils.isExcludeField(psiField)) {
+                            Body requestParam = ParamPsiUtils.buildBodyParam(psiField, null);
                             bodyList.add(requestParam);
                         }
                     }
@@ -87,8 +84,8 @@ public class DubboPsiUtils {
                 PsiClass iterableClass = PsiUtil.resolveClassInClassTypeOnly(matValueType);
                 if (iterableClass != null) {
                     for (PsiField psiField : iterableClass.getAllFields()) {
-                        if (!DocViewUtils.isExcludeField(psiField, settings)) {
-                            Body requestParam = ParamPsiUtils.buildBodyParam(psiField, null, settings);
+                        if (!DocViewUtils.isExcludeField(psiField)) {
+                            Body requestParam = ParamPsiUtils.buildBodyParam(psiField, null);
                             bodyList.add(requestParam);
                         }
                     }
@@ -101,8 +98,8 @@ public class DubboPsiUtils {
                 List<Body> bodyList = new ArrayList<>();
                 if (psiClass != null && !psiClass.isEnum() && !psiClass.isInterface() && !psiClass.isAnnotationType()) {
                     for (PsiField psiField : psiClass.getAllFields()) {
-                        if (!DocViewUtils.isExcludeField(psiField, settings)) {
-                            Body requestParam = ParamPsiUtils.buildBodyParam(psiField, null, settings);
+                        if (!DocViewUtils.isExcludeField(psiField)) {
+                            Body requestParam = ParamPsiUtils.buildBodyParam(psiField, null);
                             bodyList.add(requestParam);
                         }
                     }
@@ -121,7 +118,7 @@ public class DubboPsiUtils {
     }
 
     @NotNull
-    public static String getReqBodyJson(Settings settings, @NotNull PsiMethod psiMethod) {
+    public static String getReqBodyJson(@NotNull PsiMethod psiMethod) {
 
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
 
@@ -139,7 +136,7 @@ public class DubboPsiUtils {
             } else {
                 PsiClass psiClass = PsiUtil.resolveClassInType(type);
                 if (psiClass != null) {
-                    fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null, settings);
+                    fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null);
                 }
             }
             return GsonFormatUtil.gsonFormat(fieldMap);

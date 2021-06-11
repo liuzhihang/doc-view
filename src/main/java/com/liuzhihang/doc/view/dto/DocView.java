@@ -31,6 +31,22 @@ public class DocView {
     private String docTitle;
 
     /**
+     * 接口方法所属类的标签
+     * <p>
+     * swagger @Api(tags = {"用户接口相关", "用户11"})
+     * swagger3 @Tags
+     */
+    private String[] classTags;
+
+    /**
+     * 接口方法的标签
+     * <p>
+     * swagger @ApiOperation(value = "查询用户", tags = "用户接口 xxx")
+     * swagger3 @Operation(summary = "用户接口 1", tags = "测试")
+     */
+    private String[] tags;
+
+    /**
      * 文档名称
      */
     private String name;

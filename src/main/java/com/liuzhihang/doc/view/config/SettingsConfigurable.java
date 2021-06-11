@@ -2,6 +2,7 @@ package com.liuzhihang.doc.view.config;
 
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
+import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.ui.SettingsForm;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +16,14 @@ import javax.swing.*;
  */
 public class SettingsConfigurable implements SearchableConfigurable {
 
+
+    private final Project project;
+
+    private SettingsForm settingsForm;
+
+    public SettingsConfigurable(@NotNull Project project) {
+        this.project = project;
+    }
 
     @NotNull
     @Override
@@ -32,18 +41,26 @@ public class SettingsConfigurable implements SearchableConfigurable {
     @Override
     public JComponent createComponent() {
 
-        return new SettingsForm().getRootPanel();
+        settingsForm = new SettingsForm(project);
+
+        return settingsForm.getRootPanel();
     }
 
     @Override
     public boolean isModified() {
-        return false;
+
+        return settingsForm.isModified();
     }
 
     @Override
     public void apply() throws ConfigurationException {
 
+        settingsForm.apply();
     }
 
+    @Override
+    public void reset() {
+        settingsForm.reset();
+    }
 
 }

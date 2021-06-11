@@ -1,6 +1,5 @@
 package com.liuzhihang.doc.view.config;
 
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
@@ -21,7 +20,7 @@ public class TemplateConfigurable implements SearchableConfigurable {
 
     private TemplateSettingForm templateSettingForm;
 
-    private Project project;
+    private final Project project;
 
     public TemplateConfigurable(@NotNull Project project) {
         this.project = project;

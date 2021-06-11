@@ -1,7 +1,6 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
@@ -148,12 +147,11 @@ public class SpringPsiUtils {
     /**
      * 构建 Header
      *
-     * @param settings
      * @param psiMethod
      * @return
      */
     @NotNull
-    public static List<Header> buildHeader(Settings settings, @NotNull PsiMethod psiMethod) {
+    public static List<Header> buildHeader(@NotNull PsiMethod psiMethod) {
 
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
 
@@ -183,18 +181,17 @@ public class SpringPsiUtils {
      * 构建 body
      *
      * @param parameter
-     * @param settings
      * @return
      */
     @Nullable
-    public static List<Body> buildBody(@NotNull PsiParameter parameter, @NotNull Settings settings) {
+    public static List<Body> buildBody(@NotNull PsiParameter parameter) {
 
         PsiType type = parameter.getType();
 
         // 基本类型
         if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
             List<Body> list = new ArrayList<>();
-            list.add(buildBodyFromParameter(parameter, settings));
+            list.add(buildBodyFromParameter(parameter));
             return list;
         } else {
             PsiClass psiClass = PsiUtil.resolveClassInType(type);
@@ -205,11 +202,11 @@ public class SpringPsiUtils {
                 for (PsiField field : psiClass.getAllFields()) {
 
                     // 通用排除字段
-                    if (DocViewUtils.isExcludeField(field, settings)) {
+                    if (DocViewUtils.isExcludeField(field)) {
                         continue;
                     }
 
-                    Body requestParam = ParamPsiUtils.buildBodyParam(field, null, settings);
+                    Body requestParam = ParamPsiUtils.buildBodyParam(field, null);
                     list.add(requestParam);
                 }
                 return list;
@@ -222,10 +219,10 @@ public class SpringPsiUtils {
 
 
     @NotNull
-    private static Body buildBodyFromParameter(PsiParameter parameter, @NotNull Settings settings) {
+    private static Body buildBodyFromParameter(PsiParameter parameter) {
 
         Body body = new Body();
-        body.setRequired(DocViewUtils.isRequired(parameter, settings));
+        body.setRequired(DocViewUtils.isRequired(parameter));
         body.setName(parameter.getName());
         body.setType(parameter.getType().getPresentableText());
 
@@ -247,7 +244,7 @@ public class SpringPsiUtils {
         } else {
             PsiClass psiClass = PsiUtil.resolveClassInType(type);
             if (psiClass != null) {
-                fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null, settings);
+                fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null);
             }
         }
 
@@ -279,7 +276,7 @@ public class SpringPsiUtils {
     }
 
 
-    public static List<Param> buildFormParam(Settings settings, PsiMethod psiMethod) {
+    public static List<Param> buildFormParam(PsiMethod psiMethod) {
 
         if (!psiMethod.hasParameters()) {
             return null;
@@ -301,7 +298,7 @@ public class SpringPsiUtils {
             PsiType type = parameter.getType();
 
             if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
-                list.add(buildPramFromParameter(settings, parameter));
+                list.add(buildPramFromParameter(parameter));
             }
             // 在 param 中不存在对象类型
         }
@@ -310,7 +307,7 @@ public class SpringPsiUtils {
     }
 
     @NotNull
-    private static Param buildPramFromParameter(@NotNull Settings settings, PsiParameter parameter) {
+    private static Param buildPramFromParameter(PsiParameter parameter) {
 
         Param param = new Param();
         param.setRequired(false);
@@ -346,13 +343,12 @@ public class SpringPsiUtils {
      * <p>
      * 不是构造方法, 且 公共 非静态, 有相关注解
      *
-     * @param project
      * @param psiMethod
      * @return true 是spring 方法
      */
-    public static boolean isSpringMethod(@NotNull Project project, @NotNull PsiMethod psiMethod) {
+    public static boolean isSpringMethod(@NotNull PsiMethod psiMethod) {
 
-        Settings settings = Settings.getInstance(project);
+        Settings settings = Settings.getInstance(psiMethod.getProject());
 
 
         return !psiMethod.isConstructor()

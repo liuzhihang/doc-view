@@ -4,7 +4,6 @@ import com.google.common.collect.Sets;
 import org.jetbrains.annotations.NonNls;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -19,8 +18,6 @@ public final class FieldTypeConstant {
 
     @NonNls
     public static final Map<String, Object> FIELD_TYPE = new HashMap<>(64);
-    @NonNls
-    public static final Set<String> ANNOTATION_TYPES = new HashSet<>();
 
     public static final Set<String> BASE_TYPE_SET = Sets.newHashSet("byte", "short", "int", "long", "char", "float",
             "double", "boolean");
@@ -41,10 +38,5 @@ public final class FieldTypeConstant {
         FIELD_TYPE.put("LocalDate", null);
         FIELD_TYPE.put("LocalTime", null);
         FIELD_TYPE.put("LocalDateTime", null);
-
-
-        // 注解过滤
-        ANNOTATION_TYPES.add("javax.annotation.Resource");
-        ANNOTATION_TYPES.add("org.springframework.beans.factory.annotation.Autowired");
     }
 }

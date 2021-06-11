@@ -114,7 +114,7 @@ public class PreviewAction extends AnAction {
             PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
             // 过滤掉私有和静态方法以及没有相关注解的方法
             if (targetMethod != null) {
-                if (!SpringPsiUtils.isSpringMethod(project, targetMethod)) {
+                if (!SpringPsiUtils.isSpringMethod(targetMethod)) {
                     presentation.setEnabledAndVisible(false);
                     return;
                 }
@@ -127,7 +127,7 @@ public class PreviewAction extends AnAction {
             PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
             // 过滤掉私有和静态方法以及没有相关注解的方法
             if (targetMethod != null) {
-                if (!DubboPsiUtils.isDubboMethod(project, targetMethod)) {
+                if (!DubboPsiUtils.isDubboMethod(targetMethod)) {
                     presentation.setEnabledAndVisible(false);
                 }
 

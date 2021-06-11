@@ -6,6 +6,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.liuzhihang.doc.view.constant.LombokConstant;
 import com.liuzhihang.doc.view.constant.SpringConstant;
 import com.liuzhihang.doc.view.constant.ValidationConstant;
 import lombok.Data;
@@ -28,9 +29,33 @@ import java.util.Set;
 @State(name = "DocViewSettingsComponent", storages = {@Storage("DocViewSettings.xml")})
 public class Settings implements PersistentStateComponent<Settings> {
 
+    /**
+     * DocView 的 注释 tag 统一使用 DocView 当做前缀, 防止和用户自身的注释 tag 冲突
+     */
+    private String titleTag = "DocView.Title";
+    private Boolean titleUseCommentTag = true;
+    private Boolean titleUseFullClassName = true;
+    private Boolean titleUseSimpleClassName = true;
 
-    private String name = "docName";
-    private String required = "required";
+    /**
+     * 接口名字
+     */
+    private String nameTag = "DocView.Name";
+    private Boolean nameUseSwagger3 = true;
+    private Boolean nameUseSwagger = true;
+    private Boolean nameUseCommentTag = true;
+
+    /**
+     * 文档描述
+     */
+    private Boolean descUseSwagger3 = true;
+    private Boolean descUseSwagger = true;
+
+    /**
+     * 字段是否必填
+     */
+    private String required = "DocView.Required";
+    private Boolean requiredUseCommentTag = true;
 
     /**
      * 包含类注解名称
@@ -66,10 +91,11 @@ public class Settings implements PersistentStateComponent<Settings> {
     /**
      * 字段必填注解
      */
-    private Set<String> fieldRequiredAnnotationName = new HashSet<>() {{
+    private Set<String> requiredFieldAnnotation = new HashSet<>() {{
         add(ValidationConstant.NOT_BLANK);
         add(ValidationConstant.NOT_EMPTY);
         add(ValidationConstant.NOT_NULL);
+        add(LombokConstant.NON_NULL);
     }};
 
     /**
@@ -77,6 +103,16 @@ public class Settings implements PersistentStateComponent<Settings> {
      */
     private Set<String> excludeFieldNames = new HashSet<>() {{
         add("serialVersionUID");
+    }};
+
+    /**
+     * 被注解的字段需要过滤掉
+     */
+    private Set<String> excludeFieldAnnotation = new HashSet<>() {{
+        add("javax.annotation.Resource");
+        add("org.springframework.beans.factory.annotation.Autowired");
+        add("org.apache.dubbo.config.annotation.Reference");
+        add("org.apache.dubbo.config.annotation.DubboReference");
     }};
 
     public static Settings getInstance(@NotNull Project project) {

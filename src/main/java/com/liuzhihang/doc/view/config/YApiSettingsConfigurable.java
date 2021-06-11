@@ -20,7 +20,7 @@ public class YApiSettingsConfigurable implements SearchableConfigurable {
 
     private YApiSettingForm yApiSettingForm;
 
-    private Project project;
+    private final Project project;
 
     public YApiSettingsConfigurable(@NotNull Project project) {
         this.project = project;
