@@ -84,7 +84,7 @@ public class DocViewUtils {
             if (tagAnnotation != null) {
                 PsiAnnotationMemberValue value = tagAnnotation.findAttributeValue("name");
                 if (value != null) {
-                    return value.getText();
+                    return value.getText().replace("\"", "");
                 }
             }
         }
@@ -94,7 +94,7 @@ public class DocViewUtils {
             if (apiAnnotation != null) {
                 PsiAnnotationMemberValue value = apiAnnotation.findAttributeValue("value");
                 if (value != null) {
-                    return value.getText();
+                    return value.getText().replace("\"", "");
                 }
             }
         }
@@ -129,7 +129,7 @@ public class DocViewUtils {
             if (operationAnnotation != null) {
                 PsiAnnotationMemberValue value = operationAnnotation.findAttributeValue("description");
                 if (value != null) {
-                    return value.getText();
+                    return value.getText().replace("\"", "");
                 }
             }
         }
@@ -139,7 +139,7 @@ public class DocViewUtils {
             if (apiOperationAnnotation != null) {
                 PsiAnnotationMemberValue value = apiOperationAnnotation.findAttributeValue("notes");
                 if (value != null) {
-                    return value.getText();
+                    return value.getText().replace("\"", "");
                 }
             }
         }

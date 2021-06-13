@@ -69,7 +69,8 @@
                     text="Doc Upload To YApi"/>
             <separator/>
 
-            <action id="liuzhihang.doc.browser" class="com.liuzhihang.doc.view.action.WebBrowser" text="WebBrowser"/>
+            <!-- 测试 JCEF 的浏览器 -->
+            <!--<action id="liuzhihang.doc.browser" class="com.liuzhihang.doc.view.action.WebBrowser" text="WebBrowser"/>-->
 
         </group>
 

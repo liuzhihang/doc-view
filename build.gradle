@@ -19,11 +19,12 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
+//    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.9.0'
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version '2021.1'
+    version '2020.3'
     plugins = ['java', 'markdown']
     pluginName 'Doc View'
     updateSinceUntilBuild false

@@ -32,6 +32,8 @@ import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.SettingsConfigurable;
+import com.liuzhihang.doc.view.config.YApiSettings;
+import com.liuzhihang.doc.view.config.YApiSettingsConfigurable;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
@@ -39,6 +41,7 @@ import com.liuzhihang.doc.view.service.YApiService;
 import com.liuzhihang.doc.view.service.impl.YApiServiceImpl;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.intellij.plugins.markdown.settings.MarkdownApplicationSettings;
 import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanel;
 import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanelProvider;
@@ -203,6 +206,7 @@ public class PreviewForm {
         group.add(new AnAction("Setting", "Doc view settings", AllIcons.General.GearPlain) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
+                popup.cancel();
                 ShowSettingsUtil.getInstance().showSettingsDialog(e.getProject(), SettingsConfigurable.class);
             }
         });
@@ -343,10 +347,10 @@ public class PreviewForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
+                popup.cancel();
                 DocEditorForm.getInstance(project, psiClass, currentDocView.getPsiMethod(), DocViewData.getInstance(currentDocView))
                         .popup();
 
-                popup.cancel();
             }
         });
 
@@ -370,6 +374,21 @@ public class PreviewForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
+                YApiSettings apiSettings = YApiSettings.getInstance(project);
+
+                if (StringUtils.isBlank(apiSettings.getUrl())
+                        || apiSettings.getProjectId() == null
+                        || StringUtils.isBlank(apiSettings.getToken())) {
+                    // 说明没有配置 YApi 上传地址, 跳转到配置页面
+                    DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.info.settings"));
+                    ShowSettingsUtil.getInstance().showSettingsDialog(e.getProject(), YApiSettingsConfigurable.class);
+
+                    popup.cancel();
+
+                    return;
+                }
+
+
                 // 上传到 yapi
                 YApiService service = ServiceManager.getService(YApiServiceImpl.class);
                 service.upload(project, currentDocView);
@@ -382,6 +401,8 @@ public class PreviewForm {
         rightGroup.add(new AnAction("Export", "Export markdown", AllIcons.ToolbarDecorator.Export) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
+
+                popup.cancel();
 
                 ExportUtils.exportMarkdown(project, currentDocView.getName(), currentMarkdownText);
             }
@@ -422,6 +443,7 @@ public class PreviewForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
+                popup.cancel();
                 ExportUtils.allExportMarkdown(project, currentDocView.getPsiClass().getName(), docViewList);
             }
         });
@@ -430,6 +452,20 @@ public class PreviewForm {
         menuGroup.add(new AnAction("Upload All", "Upload all To YApi", AllIcons.Ide.OutgoingChangesOn) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
+
+                YApiSettings apiSettings = YApiSettings.getInstance(project);
+
+                if (StringUtils.isBlank(apiSettings.getUrl())
+                        || apiSettings.getProjectId() == null
+                        || StringUtils.isBlank(apiSettings.getToken())) {
+                    // 说明没有配置 YApi 上传地址, 跳转到配置页面
+                    DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.info.settings"));
+                    ShowSettingsUtil.getInstance().showSettingsDialog(e.getProject(), YApiSettingsConfigurable.class);
+
+                    popup.cancel();
+
+                    return;
+                }
 
                 // 上传到 yapi
                 YApiService service = ServiceManager.getService(YApiServiceImpl.class);

@@ -8,8 +8,9 @@ import com.liuzhihang.doc.view.facade.YApiFacadeService;
 import com.liuzhihang.doc.view.facade.dto.YApiCat;
 import com.liuzhihang.doc.view.facade.dto.YApiResponse;
 import com.liuzhihang.doc.view.facade.dto.YapiSave;
-import com.liuzhihang.doc.view.utils.OkHttp3Utils;
+import com.liuzhihang.doc.view.utils.HttpUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -26,7 +27,11 @@ public class YApiFacadeServiceImpl implements YApiFacadeService {
     @Override
     public void save(YapiSave save) throws Exception {
 
-        String resp = OkHttp3Utils.doPostJson(save.getYapiUrl() + "/api/interface/save", gson.toJson(save));
+        String resp = HttpUtils.post(save.getYapiUrl() + "/api/interface/save", gson.toJson(save));
+
+        if (StringUtils.isBlank(resp)) {
+            throw new Exception("YApi 接口返回失败");
+        }
 
         JsonObject jsonObject = gson.fromJson(resp, JsonObject.class);
 
@@ -42,7 +47,7 @@ public class YApiFacadeServiceImpl implements YApiFacadeService {
                 "?project_id=" + projectId +
                 "&token=" + token;
 
-        String resp = OkHttp3Utils.doGet(url, null);
+        String resp = HttpUtils.get(url);
 
         Type jsonType = new TypeToken<YApiResponse<List<YApiCat>>>() {
         }.getType();
@@ -58,14 +63,18 @@ public class YApiFacadeServiceImpl implements YApiFacadeService {
     @Override
     public YApiCat addCat(YApiCat cat) throws Exception {
 
-        String resp = OkHttp3Utils.doPostJson(cat.getYapiUrl() + "/api/interface/add_cat", gson.toJson(cat));
+        String resp = HttpUtils.post(cat.getYapiUrl() + "/api/interface/add_cat", gson.toJson(cat));
+
+        if (StringUtils.isBlank(resp)) {
+            throw new Exception("YApi 接口返回失败");
+        }
 
         Type jsonType = new TypeToken<YApiResponse<YApiCat>>() {
         }.getType();
 
         YApiResponse<YApiCat> response = gson.fromJson(resp, jsonType);
 
-        if (response.getErrcode() != 0) {
+        if (response == null || response.getErrcode() != 0) {
             throw new Exception("YApi 接口返回失败");
         }
         return response.getData();

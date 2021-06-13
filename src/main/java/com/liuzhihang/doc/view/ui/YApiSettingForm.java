@@ -1,5 +1,6 @@
 package com.liuzhihang.doc.view.ui;
 
+import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBTextField;
@@ -48,23 +49,29 @@ public class YApiSettingForm {
         return false;
     }
 
-    public void apply() {
-        YApiSettings settings = YApiSettings.getInstance(project);
-        String urlTextFieldText = urlTextField.getText();
+    public void apply() throws ConfigurationException {
+        try {
+            YApiSettings settings = YApiSettings.getInstance(project);
+            String urlTextFieldText = urlTextField.getText();
 
-        if (urlTextFieldText.endsWith("/")) {
-            settings.setUrl(urlTextFieldText.substring(0, urlTextFieldText.length() - 1));
-        } else {
-            settings.setUrl(urlTextFieldText);
+            if (urlTextFieldText.endsWith("/")) {
+                settings.setUrl(urlTextFieldText.substring(0, urlTextFieldText.length() - 1));
+            } else {
+                settings.setUrl(urlTextFieldText);
+            }
+            settings.setProjectId(Long.parseLong(projectIdTextField.getText()));
+            settings.setToken(tokenTextField.getText());
+        } catch (NumberFormatException e) {
+            throw new ConfigurationException("projectId 需要是数字");
         }
-        settings.setProjectId(Long.parseLong(projectIdTextField.getText()));
-        settings.setToken(tokenTextField.getText());
     }
 
     public void reset() {
         YApiSettings settings = YApiSettings.getInstance(project);
         urlTextField.setText(settings.getUrl());
-        projectIdTextField.setText(settings.getProjectId().toString());
+        if (settings.getProjectId() != null) {
+            projectIdTextField.setText(settings.getProjectId().toString());
+        }
         tokenTextField.setText(settings.getToken());
     }
 
