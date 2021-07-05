@@ -6,8 +6,10 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBTextField;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.YApiSettings;
+import com.liuzhihang.doc.view.notification.DocViewNotification;
 
 import javax.swing.*;
+import java.util.regex.Pattern;
 
 public class YApiSettingForm {
     private JPanel rootPanel;
@@ -38,7 +40,14 @@ public class YApiSettingForm {
             return true;
         }
 
-        if (Long.parseLong(projectIdTextField.getText()) != settings.getProjectId()) {
+        String projectId = projectIdTextField.getText().trim();
+
+
+        if (!Pattern.compile("^?[0-9]+").matcher(projectId).matches()) {
+            return false;
+        }
+
+        if (Long.parseLong(projectId) != settings.getProjectId()) {
             return true;
         }
 
@@ -59,10 +68,17 @@ public class YApiSettingForm {
             } else {
                 settings.setUrl(urlTextFieldText);
             }
-            settings.setProjectId(Long.parseLong(projectIdTextField.getText()));
+
+            String projectId = projectIdTextField.getText().trim();
+            if (Pattern.compile("^?[0-9]+").matcher(projectId).matches()) {
+                settings.setProjectId(Long.parseLong(projectId));
+            } else {
+                DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.project.id"));
+            }
+
             settings.setToken(tokenTextField.getText());
         } catch (NumberFormatException e) {
-            throw new ConfigurationException("projectId 需要是数字");
+            throw new ConfigurationException(DocViewBundle.message("notify.yapi.project.id"));
         }
     }
 

@@ -43,12 +43,9 @@ Doc View
 更新
 ----
 
-## [v1.1.1](https://github.com/liuzhihang/doc-view/releases/tag/v1.1.1)
+## [v1.1.2](https://github.com/liuzhihang/doc-view/releases/tag/v1.1.2)
 
-1. 新增支持上传文档到 YApi
-2. 新增支持 Markdown 预览
-3. 新增配置部分选项
-4. 其他部分优化
+1. FixBug:#20
 
 [查看更多历史更新记录](https://github.com/liuzhihang/doc-view/releases)
 
