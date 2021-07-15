@@ -4,6 +4,7 @@ package com.liuzhihang.doc.view.dto;
 import com.intellij.psi.PsiElement;
 import lombok.Data;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -41,8 +42,17 @@ public class Body {
      */
     private String type;
 
-    private List<Body> bodyList;
+    /**
+     * 初始化时创建集合
+     */
+    private List<Body> childList = new LinkedList<>();
 
+    private Body parent;
 
+    /**
+     * 当类型是类时, 全路径
+     * 如果是 HashMap 则是内部泛型的类型
+     */
+    private String qualifiedNameForClassType;
 
 }

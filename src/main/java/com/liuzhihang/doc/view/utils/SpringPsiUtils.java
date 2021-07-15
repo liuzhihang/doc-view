@@ -12,7 +12,6 @@ import com.liuzhihang.doc.view.dto.Header;
 import com.liuzhihang.doc.view.dto.Param;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -20,7 +19,7 @@ import java.util.*;
  * @author liuzhihang
  * @date 2020/3/4 19:45
  */
-public class SpringPsiUtils {
+public class SpringPsiUtils extends ParamPsiUtils {
 
     @NotNull
     public static String getMethod(PsiMethod psiMethod) {
@@ -136,6 +135,12 @@ public class SpringPsiUtils {
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
 
         for (PsiParameter parameter : parameters) {
+
+            // 通用排除字段
+            if (DocViewUtils.isExcludeParameter(parameter)) {
+                continue;
+            }
+
             if (AnnotationUtil.isAnnotated(parameter, SpringConstant.REQUEST_BODY, 0)) {
                 return parameter;
             }
@@ -183,21 +188,29 @@ public class SpringPsiUtils {
      * @param parameter
      * @return
      */
-    @Nullable
-    public static List<Body> buildBody(@NotNull PsiParameter parameter) {
+    @NotNull
+    public static Body buildBody(@NotNull PsiParameter parameter) {
+
+        Body root = new Body();
 
         PsiType type = parameter.getType();
-
         // 基本类型
         if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
-            List<Body> list = new ArrayList<>();
-            list.add(buildBodyFromParameter(parameter));
-            return list;
+
+            Body body = new Body();
+            body.setRequired(DocViewUtils.isRequired(parameter));
+            body.setName(parameter.getName());
+            body.setType(parameter.getType().getPresentableText());
+            body.setParent(root);
+
+            // 子集合只有一个
+            root.getChildList().add(body);
+
         } else {
             PsiClass psiClass = PsiUtil.resolveClassInType(type);
             if (psiClass != null) {
 
-                List<Body> list = new ArrayList<>();
+                root.setQualifiedNameForClassType(psiClass.getQualifiedName());
 
                 for (PsiField field : psiClass.getAllFields()) {
 
@@ -205,28 +218,13 @@ public class SpringPsiUtils {
                     if (DocViewUtils.isExcludeField(field)) {
                         continue;
                     }
-
-                    Body requestParam = ParamPsiUtils.buildBodyParam(field, null);
-                    list.add(requestParam);
+                    ParamPsiUtils.buildBodyParam(field, null, root);
                 }
-                return list;
 
             }
         }
 
-        return null;
-    }
-
-
-    @NotNull
-    private static Body buildBodyFromParameter(PsiParameter parameter) {
-
-        Body body = new Body();
-        body.setRequired(DocViewUtils.isRequired(parameter));
-        body.setName(parameter.getName());
-        body.setType(parameter.getType().getPresentableText());
-
-        return body;
+        return root;
     }
 
 

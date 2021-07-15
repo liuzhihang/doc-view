@@ -106,6 +106,15 @@ public class Settings implements PersistentStateComponent<Settings> {
     }};
 
     /**
+     * 排除字段
+     */
+    private Set<String> excludeParameterType = new HashSet<>() {{
+        add("org.springframework.core.io.InputStreamSource");
+        add("javax.servlet.ServletResponse");
+        add("javax.servlet.ServletRequest");
+    }};
+
+    /**
      * 被注解的字段需要过滤掉
      */
     private Set<String> excludeFieldAnnotation = new HashSet<>() {{

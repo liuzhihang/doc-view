@@ -86,12 +86,12 @@ public class DocView {
     /**
      * 请求参数
      */
-    private List<Body> reqBodyList;
+    private Body reqRootBody;
 
     /**
      * 返回参数
      */
-    private List<Body> respBodyList;
+    private Body respRootBody;
 
 
     /**

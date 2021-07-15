@@ -104,11 +104,11 @@ public class DocViewData {
         this.requestParamDataList = buildReqParamDataList(docView.getReqParamList());
         this.requestParam = buildReqParam(requestParamDataList);
 
-        this.requestBodyDataList = buildBodyDataList(docView.getReqBodyList());
+        this.requestBodyDataList = buildBodyDataList(docView.getReqRootBody().getChildList());
         this.requestBody = buildBodyParam(requestBodyDataList);
         this.requestExample = buildReqExample(docView.getReqExampleType(), docView.getReqExample());
 
-        this.responseParamDataList = buildBodyDataList(docView.getRespBodyList());
+        this.responseParamDataList = buildBodyDataList(docView.getRespRootBody().getChildList());
         this.responseParam = buildBodyParam(responseParamDataList);
         this.responseExample = buildRespExample(docView.getReqExampleType(), docView.getRespExample());
 
@@ -134,8 +134,8 @@ public class DocViewData {
             paramData.setPrefix(prefix);
             dataList.add(paramData);
 
-            if (CollectionUtils.isNotEmpty(body.getBodyList())) {
-                buildBodyDataList(dataList, body.getBodyList(), prefix + "-->");
+            if (CollectionUtils.isNotEmpty(body.getChildList())) {
+                buildBodyDataList(dataList, body.getChildList(), prefix + "-->");
             }
         }
     }

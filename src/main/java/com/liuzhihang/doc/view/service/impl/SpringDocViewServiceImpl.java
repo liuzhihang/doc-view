@@ -77,7 +77,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
             if (requestBodyParam != null) {
                 // 有requestBody
                 headerList.add(SpringHeaderUtils.buildJsonHeader());
-                docView.setReqBodyList(SpringPsiUtils.buildBody(requestBodyParam));
+                docView.setReqRootBody(SpringPsiUtils.buildBody(requestBodyParam));
                 docView.setReqExample(SpringPsiUtils.getReqBodyJson(requestBodyParam, settings));
                 docView.setReqExampleType("json");
 
@@ -100,7 +100,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
         PsiType returnType = psiMethod.getReturnType();
         if (returnType != null && returnType.isValid() && !returnType.equalsToText("void")) {
-            docView.setRespBodyList(ParamPsiUtils.buildRespBody(returnType));
+            docView.setRespRootBody(ParamPsiUtils.buildRespBody(returnType));
             docView.setRespExample(ParamPsiUtils.getRespBodyJson(returnType));
         }
         return docView;

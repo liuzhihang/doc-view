@@ -43,11 +43,7 @@ Doc View
 更新
 ----
 
-## [v1.1.2](https://github.com/liuzhihang/doc-view/releases/tag/v1.1.2)
-
-1. FixBug:#20
-
-[查看更多历史更新记录](https://github.com/liuzhihang/doc-view/releases)
+[查看历史更新记录](https://github.com/liuzhihang/doc-view/releases)
 
 关于我
 ----

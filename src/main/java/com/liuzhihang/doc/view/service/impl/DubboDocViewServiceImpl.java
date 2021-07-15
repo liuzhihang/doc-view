@@ -65,7 +65,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
 
         // 有参数
         if (psiMethod.hasParameters()) {
-            docView.setReqBodyList(DubboPsiUtils.buildBody(psiMethod));
+            docView.setReqRootBody(DubboPsiUtils.buildBody(psiMethod));
             docView.setReqExampleType("json");
             docView.setReqExample(DubboPsiUtils.getReqBodyJson(psiMethod));
         }
@@ -73,7 +73,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
         PsiType returnType = psiMethod.getReturnType();
         // 返回代码相同
         if (returnType != null && returnType.isValid() && !returnType.equalsToText("void")) {
-            docView.setRespBodyList(ParamPsiUtils.buildRespBody(returnType));
+            docView.setRespRootBody(ParamPsiUtils.buildRespBody(returnType));
             docView.setRespExample(ParamPsiUtils.getRespBodyJson(returnType));
         }
         return docView;

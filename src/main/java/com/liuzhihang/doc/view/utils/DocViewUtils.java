@@ -4,10 +4,13 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
+import com.intellij.psi.util.InheritanceUtil;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.constant.SwaggerConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.Set;
 
 /**
  * DocView 通用处理类
@@ -170,6 +173,36 @@ public class DocViewUtils {
 
         // 排除部分注解的字段
         if (AnnotationUtil.isAnnotated(psiField, settings.getExcludeFieldAnnotation(), 0)) {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    /**
+     * 判断是否是需要排除的字段
+     *
+     * @param psiParameter
+     * @return
+     */
+    @NotNull
+    public static boolean isExcludeParameter(@NotNull PsiParameter psiParameter) {
+
+        Settings settings = Settings.getInstance(psiParameter.getProject());
+
+        PsiType parameterType = psiParameter.getType();
+
+        Set<String> excludeParameterTypeSet = settings.getExcludeParameterType();
+
+        for (String excludeParameterType : excludeParameterTypeSet) {
+
+            if (InheritanceUtil.isInheritor(parameterType, excludeParameterType)) {
+                return true;
+            }
+        }
+
+        if (settings.getExcludeFieldNames().contains(psiParameter.getName())) {
             return true;
         }
 

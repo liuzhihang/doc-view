@@ -81,13 +81,13 @@ public class YApiServiceImpl implements YApiService {
             save.setReqHeaders(buildReqHeaders(docView.getHeaderList()));
             save.setReqQuery(buildReqQuery(docView.getReqParamList()));
             save.setResBodyType("json");
-            save.setResBody(buildJsonSchema(docView.getRespBodyList()));
+            save.setResBody(buildJsonSchema(docView.getRespRootBody().getChildList()));
             save.setDesc(docView.getDesc());
             save.setTitle(docView.getName());
 
             if (docView.getReqExampleType().equals("json")) {
                 save.setReqBodyIsJsonSchema(true);
-                save.setReqBodyOther(buildJsonSchema(docView.getReqBodyList()));
+                save.setReqBodyOther(buildJsonSchema(docView.getReqRootBody().getChildList()));
             }
 
             facadeService.save(save);
@@ -150,7 +150,7 @@ public class YApiServiceImpl implements YApiService {
             // mock 数据先不填充
 
             // 设置 body
-            if (CollectionUtils.isNotEmpty(body.getBodyList()) && body.getPsiElement() instanceof PsiField) {
+            if (CollectionUtils.isNotEmpty(body.getChildList()) && body.getPsiElement() instanceof PsiField) {
 
                 PsiField field = (PsiField) body.getPsiElement();
                 PsiType type = field.getType();
@@ -164,7 +164,7 @@ public class YApiServiceImpl implements YApiService {
                     List<String> itermRequiredList = new LinkedList<>();
                     Map<String, Object> iterm = new LinkedHashMap<>();
                     Map<String, Object> itermProperties = new LinkedHashMap<>();
-                    buildProperties(itermRequiredList, itermProperties, body.getBodyList());
+                    buildProperties(itermRequiredList, itermProperties, body.getChildList());
                     iterm.put("type", "object");
                     iterm.put("required", itermRequiredList);
                     iterm.put("description", body.getType());
@@ -180,7 +180,7 @@ public class YApiServiceImpl implements YApiService {
                     List<String> objectRequiredList = new LinkedList<>();
                     Map<String, Object> objectProperties = new LinkedHashMap<>();
 
-                    buildProperties(objectRequiredList, objectProperties, body.getBodyList());
+                    buildProperties(objectRequiredList, objectProperties, body.getChildList());
                     innerProperties.put("type", "object");
                     innerProperties.put("required", objectRequiredList);
                     innerProperties.put("description", body.getType());

@@ -37,7 +37,6 @@ import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseEvent;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -80,9 +79,13 @@ public class ParamDocEditorForm {
         this.editor = editor;
         this.psiClass = psiClass;
 
-        List<Body> bodyList = ParamPsiUtils.buildBodyList(psiClass, null);
+        Body root = new Body();
+        root.setQualifiedNameForClassType(psiClass.getQualifiedName());
 
-        paramTableModel = new ParamTableModel(DocViewData.buildBodyDataList(bodyList));
+
+        ParamPsiUtils.buildBodyList(psiClass, null, root);
+
+        paramTableModel = new ParamTableModel(DocViewData.buildBodyDataList(root.getChildList()));
 
         // UI调整
         initUI();
