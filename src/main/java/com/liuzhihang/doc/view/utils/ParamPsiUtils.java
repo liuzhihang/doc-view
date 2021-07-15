@@ -160,7 +160,7 @@ public class ParamPsiUtils {
 
                         LinkedList<String> temp = new LinkedList<>(qualifiedNameList);
                         if (classInType != null && hasContainQualifiedName(temp, classInType.getQualifiedName())) {
-                            list.add("Object for" + classInType.getName());
+                            list.add("Object for " + classInType.getName());
                         } else {
                             list.add(getFieldsAndDefaultValue(classInType, null, temp));
                         }
@@ -180,7 +180,7 @@ public class ParamPsiUtils {
                             // 参数类型为对象 校验是否递归
                             LinkedList<String> temp = new LinkedList<>(qualifiedNameList);
                             if (hasContainQualifiedName(temp, iterableClass.getQualifiedName())) {
-                                list.add("Object for" + iterableClass.getName());
+                                list.add("Object for " + iterableClass.getName());
                             } else {
                                 list.add(getFieldsAndDefaultValue(iterableClass, null, temp));
                             }
@@ -213,7 +213,7 @@ public class ParamPsiUtils {
 
                         LinkedList<String> temp = new LinkedList<>(qualifiedNameList);
                         if (classInType != null && hasContainQualifiedName(temp, classInType.getQualifiedName())) {
-                            fieldMap.put(name, "Object for" + classInType.getName());
+                            fieldMap.put(name, "Object for " + classInType.getName());
                         } else {
                             fieldMap.put(name, getFieldsAndDefaultValue(PsiUtil.resolveClassInType(type), null, temp));
                         }
