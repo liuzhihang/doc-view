@@ -61,8 +61,8 @@ public class YApiServiceImpl implements YApiService {
         String catName = docView.getDocTitle();
 
         // 全类名过长
-        if (Settings.getInstance(project).getTitleUseFullClassName()) {
-            catName = catName.substring(catName.lastIndexOf('.'));
+        if (Settings.getInstance(project).getTitleUseFullClassName() && catName.contains(".")) {
+            catName = catName.substring(catName.lastIndexOf("."));
         }
 
 
