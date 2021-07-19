@@ -519,7 +519,7 @@ public class PreviewForm {
 
             currentDocView = docViewMap.get(selectedValue);
 
-            docNameLabel.setText(currentDocView.getPsiClass().getQualifiedName());
+            docNameLabel.setText(currentDocView.getDocTitle());
 
             // 将 docView 按照模版转换
             currentMarkdownText = DocViewData.buildMarkdownText(project, currentDocView);
