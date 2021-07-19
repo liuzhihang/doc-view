@@ -10,6 +10,7 @@ import com.intellij.psi.PsiPrimitiveType;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.util.InheritanceUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
+import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.config.YApiSettings;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.Body;
@@ -57,14 +58,19 @@ public class YApiServiceImpl implements YApiService {
     @Override
     public void upload(@NotNull Project project, @NotNull DocView docView) {
 
-        String catName = docView.getPsiClass().getName();
+        String catName = docView.getDocTitle();
+
+        // 全类名过长
+        if (Settings.getInstance(project).getTitleUseFullClassName()) {
+            catName = catName.substring(catName.lastIndexOf('.'));
+        }
+
 
         try {
             YApiSettings settings = YApiSettings.getInstance(project);
 
             YApiFacadeService facadeService = ServiceManager.getService(YApiFacadeServiceImpl.class);
 
-            assert catName != null;
             YApiCat cat = getOrAddCat(settings, catName);
 
             YapiSave save = new YapiSave();
