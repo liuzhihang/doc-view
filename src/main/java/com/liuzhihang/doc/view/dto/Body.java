@@ -2,7 +2,8 @@ package com.liuzhihang.doc.view.dto;
 
 
 import com.intellij.psi.PsiElement;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -11,7 +12,8 @@ import java.util.List;
  * @author liuzhihang
  * @date 2020/2/27 16:39
  */
-@Data
+@Getter
+@Setter
 public class Body {
 
     /**

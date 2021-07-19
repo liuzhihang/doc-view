@@ -33,11 +33,13 @@ public class SettingsForm {
     private JCheckBox titleCommentTagCheckBox;
     private JCheckBox titleFullClassNameCheckBox;
     private JCheckBox titleSimpleClassNameCheckBox;
+    private JCheckBox titleClassCommentCheckBox;
 
     private JPanel namePanel;
     private JCheckBox nameSwagger3CheckBox;
     private JCheckBox nameSwaggerCheckBox;
     private JCheckBox nameCommentTagCheckBox;
+    private JCheckBox nameMethodCommentCheckBox;
 
     private JPanel docDescPanel;
     private JCheckBox descSwagger3CheckBox;
@@ -45,6 +47,7 @@ public class SettingsForm {
 
     private JPanel requirePanel;
     private JCheckBox requireCommentTagCheckBox;
+
 
     public SettingsForm(@NotNull Project project) {
 
@@ -91,9 +94,11 @@ public class SettingsForm {
         return titleCommentTagCheckBox.isSelected() != settings.getTitleUseCommentTag()
                 || titleFullClassNameCheckBox.isSelected() != settings.getTitleUseFullClassName()
                 || titleSimpleClassNameCheckBox.isSelected() != settings.getTitleUseSimpleClassName()
+                || titleClassCommentCheckBox.isSelected() != settings.getTitleClassComment()
                 || nameSwagger3CheckBox.isSelected() != settings.getNameUseSwagger3()
                 || nameSwaggerCheckBox.isSelected() != settings.getNameUseSwagger()
                 || nameCommentTagCheckBox.isSelected() != settings.getNameUseCommentTag()
+                || nameMethodCommentCheckBox.isSelected() != settings.getNameMethodComment()
                 || descSwagger3CheckBox.isSelected() != settings.getDescUseSwagger3()
                 || descSwaggerCheckBox.isSelected() != settings.getDescUseSwagger()
                 || requireCommentTagCheckBox.isSelected() != settings.getRequiredUseCommentTag();
@@ -105,9 +110,11 @@ public class SettingsForm {
         settings.setTitleUseCommentTag(titleCommentTagCheckBox.isSelected());
         settings.setTitleUseFullClassName(titleFullClassNameCheckBox.isSelected());
         settings.setTitleUseSimpleClassName(titleSimpleClassNameCheckBox.isSelected());
+        settings.setTitleClassComment(titleClassCommentCheckBox.isSelected());
         settings.setNameUseSwagger3(nameSwagger3CheckBox.isSelected());
         settings.setNameUseSwagger(nameSwaggerCheckBox.isSelected());
         settings.setNameUseCommentTag(nameCommentTagCheckBox.isSelected());
+        settings.setNameMethodComment(nameMethodCommentCheckBox.isSelected());
         settings.setDescUseSwagger3(descSwagger3CheckBox.isSelected());
         settings.setDescUseSwagger(descSwaggerCheckBox.isSelected());
         settings.setRequiredUseCommentTag(requireCommentTagCheckBox.isSelected());
@@ -117,11 +124,13 @@ public class SettingsForm {
     public void reset() {
         Settings settings = Settings.getInstance(project);
         titleCommentTagCheckBox.setSelected(settings.getTitleUseCommentTag());
+        titleClassCommentCheckBox.setSelected(settings.getTitleClassComment());
         titleFullClassNameCheckBox.setSelected(settings.getTitleUseFullClassName());
         titleSimpleClassNameCheckBox.setSelected(settings.getTitleUseSimpleClassName());
         nameSwagger3CheckBox.setSelected(settings.getNameUseSwagger3());
         nameSwaggerCheckBox.setSelected(settings.getNameUseSwagger());
         nameCommentTagCheckBox.setSelected(settings.getNameUseCommentTag());
+        nameMethodCommentCheckBox.setSelected(settings.getNameMethodComment());
         descSwagger3CheckBox.setSelected(settings.getDescUseSwagger3());
         descSwaggerCheckBox.setSelected(settings.getDescUseSwagger());
         requireCommentTagCheckBox.setSelected(settings.getRequiredUseCommentTag());

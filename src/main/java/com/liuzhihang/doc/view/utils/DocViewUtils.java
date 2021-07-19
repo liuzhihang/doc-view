@@ -48,6 +48,16 @@ public class DocViewUtils {
             }
         }
 
+        if (settings.getTitleClassComment()) {
+            // 获取类注释
+
+            String comment = CustomPsiCommentUtils.getComment(psiClass.getDocComment());
+
+            if (StringUtils.isNotBlank(comment)) {
+                return comment;
+            }
+        }
+
         if (settings.getTitleUseFullClassName()) {
             // 获取全类名
             String fullClassName = psiClass.getQualifiedName();
@@ -110,6 +120,17 @@ public class DocViewUtils {
                 return comment;
             }
         }
+
+        if (settings.getNameMethodComment()) {
+            // 获取类注释
+
+            String comment = CustomPsiCommentUtils.getComment(psiMethod.getDocComment());
+
+            if (StringUtils.isNotBlank(comment)) {
+                return comment;
+            }
+        }
+
         return psiMethod.getName();
     }
 

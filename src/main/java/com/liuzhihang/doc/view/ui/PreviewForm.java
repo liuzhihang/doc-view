@@ -55,11 +55,12 @@ import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseEvent;
+import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 /**
  * @author liuzhihang
@@ -492,9 +493,23 @@ public class PreviewForm {
 
     private void buildDoc() {
 
-        docViewMap = docViewList.stream().collect(Collectors.toMap(DocView::getName, docView -> docView));
+        // 取注释之后,可能会重复名字,不能用 stream
+        docViewMap = new HashMap<>();
+        Vector<String> nameVector = new Vector<>();
 
-        Vector<String> nameVector = docViewList.stream().map(DocView::getName).collect(Collectors.toCollection(Vector::new));
+        for (DocView docView : docViewList) {
+
+            if (nameVector.contains(docView.getName())) {
+                String name = docView.getName() + "-" + LocalTime.now().getNano();
+                docViewMap.put(name, docView);
+                nameVector.add(name);
+            } else {
+                docViewMap.put(docView.getName(), docView);
+                nameVector.add(docView.getName());
+            }
+
+        }
+
 
         catalogList.setListData(nameVector);
 
