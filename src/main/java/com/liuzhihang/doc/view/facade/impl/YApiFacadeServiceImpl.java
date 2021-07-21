@@ -30,13 +30,13 @@ public class YApiFacadeServiceImpl implements YApiFacadeService {
         String resp = HttpUtils.post(save.getYapiUrl() + "/api/interface/save", gson.toJson(save));
 
         if (StringUtils.isBlank(resp)) {
-            throw new Exception("YApi 接口返回失败");
+            throw new Exception("YApi 接口返回为空");
         }
 
         JsonObject jsonObject = gson.fromJson(resp, JsonObject.class);
 
         if (jsonObject.get("errcode").getAsInt() != 0) {
-            throw new Exception("YApi 接口返回失败");
+            throw new Exception("YApi 接口返回失败:" + resp);
         }
     }
 
@@ -55,7 +55,7 @@ public class YApiFacadeServiceImpl implements YApiFacadeService {
         YApiResponse<List<YApiCat>> response = gson.fromJson(resp, jsonType);
 
         if (response.getErrcode() != 0) {
-            throw new Exception("YApi 接口返回失败");
+            throw new Exception("YApi 接口返回失败:" + resp);
         }
         return response.getData();
     }
@@ -66,7 +66,7 @@ public class YApiFacadeServiceImpl implements YApiFacadeService {
         String resp = HttpUtils.post(cat.getYapiUrl() + "/api/interface/add_cat", gson.toJson(cat));
 
         if (StringUtils.isBlank(resp)) {
-            throw new Exception("YApi 接口返回失败");
+            throw new Exception("YApi 接口返回为空");
         }
 
         Type jsonType = new TypeToken<YApiResponse<YApiCat>>() {
@@ -75,7 +75,7 @@ public class YApiFacadeServiceImpl implements YApiFacadeService {
         YApiResponse<YApiCat> response = gson.fromJson(resp, jsonType);
 
         if (response == null || response.getErrcode() != 0) {
-            throw new Exception("YApi 接口返回失败");
+            throw new Exception("YApi 接口返回失败:" + resp);
         }
         return response.getData();
 
