@@ -329,7 +329,6 @@ public class ParamPsiUtils {
     @NotNull
     public static String getRespBodyJson(PsiType returnType) {
 
-
         if (returnType instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(returnType.getPresentableText())) {
             return "";
         } else if (returnType instanceof PsiClassType) {
@@ -338,22 +337,30 @@ public class ParamPsiUtils {
 
             PsiClass psiClass = PsiUtil.resolveClassInType(returnType);
             if (psiClass != null) {
-
+                // 返回类型是集合
                 if (InheritanceUtil.isInheritor(psiClass, CommonClassNames.JAVA_UTIL_COLLECTION)) {
-                    // 集合类型
-                    PsiType[] parameters = psiClassType.getParameters();
 
-                    if (parameters.length == 0) {
+                    // 获取泛型
+                    PsiType iterableType = PsiUtil.extractIterableTypeParameter(psiClassType, false);
+
+                    if (iterableType == null) {
                         return "[]";
                     }
 
-                    PsiType psiType = parameters[0];
 
-                    if (psiType instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(psiType.getPresentableText())) {
+                    if (iterableType instanceof PsiPrimitiveType) {
                         return "[]";
                     }
 
-                    PsiClass iterableClass = PsiUtil.resolveClassInClassTypeOnly(psiType);
+                    if (CommonClassNames.JAVA_LANG_STRING_SHORT.equals(iterableType.getPresentableText())) {
+                        return "[\"\"]";
+                    }
+
+                    if (FieldTypeConstant.FIELD_TYPE.containsKey(iterableType.getPresentableText())) {
+                        return "[\"\"]";
+                    }
+
+                    PsiClass iterableClass = PsiUtil.resolveClassInClassTypeOnly(iterableType);
                     Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(iterableClass, null);
 
                     Object[] objectArr = {fieldMap};
