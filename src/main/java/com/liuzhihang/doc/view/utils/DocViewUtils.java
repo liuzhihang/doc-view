@@ -74,7 +74,7 @@ public class DocViewUtils {
             }
         }
 
-        return "";
+        return "DocView";
     }
 
     /**
