@@ -24,7 +24,7 @@ dependencies {
 intellij {
     version '2021.1'
     plugins = ['java', 'markdown']
-    pluginName 'DocView'
+    pluginName 'Doc View'
     updateSinceUntilBuild false
     sameSinceUntilBuild false
 }
