@@ -21,6 +21,8 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
+import com.intellij.openapi.ui.popup.PopupStep;
+import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.GuiUtils;
@@ -31,13 +33,13 @@ import com.intellij.ui.jcef.JBCefApp;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.config.SettingsConfigurable;
-import com.liuzhihang.doc.view.config.YApiSettings;
-import com.liuzhihang.doc.view.config.YApiSettingsConfigurable;
+import com.liuzhihang.doc.view.config.*;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
+import com.liuzhihang.doc.view.service.ShowDocService;
 import com.liuzhihang.doc.view.service.YApiService;
+import com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl;
 import com.liuzhihang.doc.view.service.impl.YApiServiceImpl;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +51,7 @@ import org.intellij.plugins.markdown.ui.preview.html.MarkdownUtil;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
@@ -375,27 +378,39 @@ public class PreviewForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                YApiSettings apiSettings = YApiSettings.getInstance(project);
+                Point location = previewToolbarPanel.getLocationOnScreen();
+                location.x = MouseInfo.getPointerInfo().getLocation().x;
+                location.y += previewToolbarPanel.getHeight();
 
-                if (StringUtils.isBlank(apiSettings.getUrl())
-                        || apiSettings.getProjectId() == null
-                        || StringUtils.isBlank(apiSettings.getToken())) {
-                    // 说明没有配置 YApi 上传地址, 跳转到配置页面
-                    DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.info.settings"));
-                    ShowSettingsUtil.getInstance().showSettingsDialog(e.getProject(), YApiSettingsConfigurable.class);
+                myIsPinned.set(true);
 
-                    popup.cancel();
+                JBPopupFactory.getInstance()
+                        .createListPopup(new BaseListPopupStep<>(null, "YApi", "ShowDoc") {
 
-                    return;
-                }
+                            @Override
+                            public @NotNull String getTextFor(String value) {
+                                return "Upload to " + value;
+                            }
 
+                            @Override
+                            public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
 
-                // 上传到 yapi
-                YApiService service = ServiceManager.getService(YApiServiceImpl.class);
-                service.upload(project, currentDocView);
+                                if (selectedValue.equals("YApi")) {
+                                    // 上传到 yapi
+                                    checkYApiSettings();
+                                    YApiService service = ServiceManager.getService(YApiServiceImpl.class);
+                                    service.upload(project, currentDocView);
+                                } else if (selectedValue.equals("ShowDoc")) {
+                                    // 上传到 ShowDoc
+                                    checkShowDocSettings();
+                                    ShowDocService service = ServiceManager.getService(ShowDocServiceImpl.class);
+                                    service.upload(project, currentDocView);
+                                }
+                                return FINAL_CHOICE;
+                            }
+                        }).showInScreenCoordinates(previewToolbarPanel, location);
             }
         });
-
 
         rightGroup.addSeparator();
 
@@ -436,6 +451,35 @@ public class PreviewForm {
 
     }
 
+    private void checkYApiSettings() {
+        YApiSettings apiSettings = YApiSettings.getInstance(project);
+
+        if (StringUtils.isBlank(apiSettings.getUrl())
+                || apiSettings.getProjectId() == null
+                || StringUtils.isBlank(apiSettings.getToken())) {
+            // 说明没有配置 YApi 上传地址, 跳转到配置页面
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.info.settings"));
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, YApiSettingsConfigurable.class);
+
+            popup.cancel();
+        }
+    }
+
+    private void checkShowDocSettings() {
+        ShowDocSettings apiSettings = ShowDocSettings.getInstance(project);
+
+        if (StringUtils.isBlank(apiSettings.getUrl())
+                || StringUtils.isBlank(apiSettings.getApiKey())
+                || StringUtils.isBlank(apiSettings.getApiToken())) {
+            // 说明没有配置 ShowDoc 上传地址, 跳转到配置页面
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.showdoc.info.settings"));
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, ShowDocSettingsConfigurable.class);
+
+            popup.cancel();
+        }
+    }
+
+
     private void initMenuToolbarPanelToolbar() {
 
         DefaultActionGroup menuGroup = new DefaultActionGroup();
@@ -453,24 +497,36 @@ public class PreviewForm {
         menuGroup.add(new AnAction("Upload All", "Upload all To YApi", AllIcons.Ide.OutgoingChangesOn) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
+                Point location = previewToolbarPanel.getLocationOnScreen();
+                location.x = MouseInfo.getPointerInfo().getLocation().x;
+                location.y += previewToolbarPanel.getHeight();
 
-                YApiSettings apiSettings = YApiSettings.getInstance(project);
+                JBPopupFactory.getInstance()
+                        .createListPopup(new BaseListPopupStep<>(null, "YApi", "ShowDoc") {
+                            @Override
+                            public @NotNull String getTextFor(String value) {
+                                return "Upload to " + value;
+                            }
 
-                if (StringUtils.isBlank(apiSettings.getUrl())
-                        || apiSettings.getProjectId() == null
-                        || StringUtils.isBlank(apiSettings.getToken())) {
-                    // 说明没有配置 YApi 上传地址, 跳转到配置页面
-                    DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.info.settings"));
-                    ShowSettingsUtil.getInstance().showSettingsDialog(e.getProject(), YApiSettingsConfigurable.class);
+                            @Override
+                            public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
 
-                    popup.cancel();
+                                if (selectedValue.equals("YApi")) {
+                                    // 上传到 yapi
+                                    checkYApiSettings();
+                                    YApiService service = ServiceManager.getService(YApiServiceImpl.class);
+                                    service.upload(project, docViewList);
+                                } else if (selectedValue.equals("ShowDoc")) {
+                                    // 上传到 ShowDoc
+                                    checkShowDocSettings();
+                                    ShowDocService service = ServiceManager.getService(ShowDocServiceImpl.class);
+                                    service.upload(project, docViewList);
+                                }
 
-                    return;
-                }
 
-                // 上传到 yapi
-                YApiService service = ServiceManager.getService(YApiServiceImpl.class);
-                service.upload(project, docViewList);
+                                return FINAL_CHOICE;
+                            }
+                        }).showInScreenCoordinates(previewToolbarPanel, location);
             }
         });
 
@@ -536,3 +592,4 @@ public class PreviewForm {
         });
     }
 }
+

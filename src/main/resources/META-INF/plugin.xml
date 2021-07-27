@@ -23,6 +23,7 @@
         <!-- 模版设置 -->
         <projectService serviceImplementation="com.liuzhihang.doc.view.config.TemplateSettings"/>
         <projectService serviceImplementation="com.liuzhihang.doc.view.config.YApiSettings"/>
+        <projectService serviceImplementation="com.liuzhihang.doc.view.config.ShowDocSettings"/>
 
         <!-- 相关服务 -->
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.SpringDocViewServiceImpl"/>
@@ -32,6 +33,8 @@
 
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.YApiServiceImpl"/>
         <applicationService serviceImplementation="com.liuzhihang.doc.view.facade.impl.YApiFacadeServiceImpl"/>
+        <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl"/>
+        <applicationService serviceImplementation="com.liuzhihang.doc.view.facade.impl.ShowDocFacadeServiceImpl"/>
 
         <!-- 配置为项目等级 全局为 applicationConfigurable -->
         <projectConfigurable instance="com.liuzhihang.doc.view.config.SettingsConfigurable"
@@ -52,6 +55,13 @@
                              displayName="YApi Settings"
                              nonDefaultProject="true"/>
 
+        <projectConfigurable instance="com.liuzhihang.doc.view.config.ShowDocSettingsConfigurable"
+                             id="liuzhihang.api.doc.ShowDocSettingsConfigurable"
+                             groupId="liuzhihang.api.doc.SettingsConfigurable"
+                             displayName="ShowDoc Settings"
+                             nonDefaultProject="true"/>
+
+
         <!-- 2020.3 需要使用 notificationGroup 配置通知 -->
         <notificationGroup id="doc-view.NotificationGroup" displayType="BALLOON"/>
 
@@ -65,20 +75,20 @@
             <action id="liuzhihang.doc.view" class="com.liuzhihang.doc.view.action.PreviewAction"
                     text="Doc View"/>
             <action id="liuzhihang.doc.editor" class="com.liuzhihang.doc.view.action.EditorAction" text="Doc Editor"/>
-            <action id="liuzhihang.doc.yapi.upload" class="com.liuzhihang.doc.view.action.YApiUploadAction"
-                    text="Doc Upload To YApi"/>
-            <separator/>
 
             <!-- 测试 JCEF 的浏览器 -->
             <!--<action id="liuzhihang.doc.browser" class="com.liuzhihang.doc.view.action.WebBrowser" text="WebBrowser"/>-->
-
         </group>
 
+        <group id="liuzhihang.doc.upload" text="Doc Upload" popup="true">
+            <add-to-group group-id="liuzhihang.doc" anchor="last"/>
+            <action id="liuzhihang.doc.yapi.upload" class="com.liuzhihang.doc.view.action.YApiUploadAction"
+                    text="Upload To YApi"/>
 
-        <!--<action id="liuzhihang.doc.view.project" class="com.liuzhihang.doc.view.action.ProjectViewPreviewAction"-->
-        <!--        text="Doc View">-->
-        <!--    <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>-->
-        <!--</action>-->
+            <action id="liuzhihang.doc.showdoc.upload" class="com.liuzhihang.doc.view.action.ShowDocUploadAction"
+                    text="Upload To ShowDoc"/>
+        </group>
+
 
     </actions>
 </idea-plugin>
