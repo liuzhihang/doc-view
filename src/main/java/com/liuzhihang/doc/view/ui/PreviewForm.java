@@ -501,6 +501,8 @@ public class PreviewForm {
                 location.x = MouseInfo.getPointerInfo().getLocation().x;
                 location.y += previewToolbarPanel.getHeight();
 
+                myIsPinned.set(true);
+
                 JBPopupFactory.getInstance()
                         .createListPopup(new BaseListPopupStep<>(null, "YApi", "ShowDoc") {
                             @Override
