@@ -20,7 +20,7 @@ import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.config.SettingsConfigurable;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.DocViewData;
-import com.liuzhihang.doc.view.dto.ParamData;
+import com.liuzhihang.doc.view.dto.DocViewParamData;
 import com.liuzhihang.doc.view.service.impl.WriterService;
 import com.liuzhihang.doc.view.utils.CustomPsiCommentUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -177,7 +177,7 @@ public class DocEditorForm {
         responseParamScrollPane.setBorder(JBUI.Borders.empty());
         responseParamTable.setBorder(JBUI.Borders.empty());
 
-        ParamTableModel paramTableModel = new ParamTableModel(docViewData.getResponseParamDataList());
+        ParamTableModel paramTableModel = new ParamTableModel(docViewData.getResponseDocViewParamDataList());
         responseParamTable.setModel(paramTableModel);
 
         ParamTableUI.rowSetting(responseParamTable);
@@ -436,10 +436,10 @@ public class DocEditorForm {
      */
     private void generateComment(ParamTableModel paramTableModel) {
 
-        Map<PsiElement, ParamData> modifyBodyMap = paramTableModel.getModifyBodyMap();
+        Map<PsiElement, DocViewParamData> modifyBodyMap = paramTableModel.getModifyBodyMap();
 
         for (PsiElement element : modifyBodyMap.keySet()) {
-            ParamData data = modifyBodyMap.get(element);
+            DocViewParamData data = modifyBodyMap.get(element);
             String comment;
 
             if (data.getRequired()) {

@@ -116,7 +116,7 @@ public class ExportUtils {
             try {
 
                 for (DocView docView : docViewList) {
-                    FileUtil.writeToFile(file, DocViewData.buildMarkdownText(project, docView), true);
+                    FileUtil.writeToFile(file, DocViewData.markdownText(project, docView), true);
                 }
 
             } catch (IOException ioException) {

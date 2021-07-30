@@ -17,14 +17,7 @@
         </constraints>
         <properties/>
         <border type="none"/>
-        <children>
-          <component id="ffb83" class="javax.swing.JTable" binding="paramTable" default-binding="true">
-            <constraints/>
-            <properties>
-              <rowHeight value="25"/>
-            </properties>
-          </component>
-        </children>
+        <children/>
       </scrollpane>
       <grid id="b4c14" binding="tailToolbarPanel" layout-manager="BorderLayout" hgap="0" vgap="0">
         <constraints>

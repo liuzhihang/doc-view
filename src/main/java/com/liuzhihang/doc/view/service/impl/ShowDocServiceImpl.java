@@ -55,7 +55,7 @@ public class ShowDocServiceImpl implements ShowDocService {
             request.setApiToken(settings.getApiToken());
             request.setCatName(catName);
             request.setPageTitle(docView.getName());
-            request.setPageContent(DocViewData.buildMarkdownText(project, docView));
+            request.setPageContent(DocViewData.markdownText(project, docView));
 
             ShowDocFacadeService facadeService = ServiceManager.getService(ShowDocFacadeServiceImpl.class);
             ShowDocUpdateResponse response = facadeService.updateByApi(request);

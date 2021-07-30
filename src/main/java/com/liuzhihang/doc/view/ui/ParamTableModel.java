@@ -1,7 +1,7 @@
 package com.liuzhihang.doc.view.ui;
 
 import com.intellij.psi.PsiElement;
-import com.liuzhihang.doc.view.dto.ParamData;
+import com.liuzhihang.doc.view.dto.DocViewParamData;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +18,8 @@ public class ParamTableModel extends DefaultTableModel {
     public static final Vector<String> titleList = new Vector<>(Arrays.asList("参数名", "类型", "必选", "描述"));
     private static final Logger log = LoggerFactory.getLogger(ParamTableModel.class);
 
-    private List<ParamData> paramList;
-    private Map<PsiElement, ParamData> modifyBodyMap = new HashMap<>();
+    private List<DocViewParamData> paramList;
+    private Map<PsiElement, DocViewParamData> modifyBodyMap = new HashMap<>();
 
     /**
      * 构造参数
@@ -28,7 +28,7 @@ public class ParamTableModel extends DefaultTableModel {
      *
      * @param bodyList
      */
-    public ParamTableModel(List<ParamData> bodyList) {
+    public ParamTableModel(List<DocViewParamData> bodyList) {
 
         this.paramList = bodyList;
 
@@ -36,7 +36,7 @@ public class ParamTableModel extends DefaultTableModel {
 
         if (CollectionUtils.isNotEmpty(bodyList)) {
             // "参数名", "类型", "必选", "描述"
-            for (ParamData data : bodyList) {
+            for (DocViewParamData data : bodyList) {
                 Vector<Object> sv = new Vector<>();
                 sv.add(data.getPrefix() + data.getName());
                 sv.add(data.getType());
@@ -75,7 +75,7 @@ public class ParamTableModel extends DefaultTableModel {
             super.setValueAt(value, row, column);
         }
 
-        ParamData data = paramList.get(row);
+        DocViewParamData data = paramList.get(row);
 
         // 值发生了改变, 是否必选发生改变
         if (column == 2) {
@@ -99,7 +99,7 @@ public class ParamTableModel extends DefaultTableModel {
         super.setValueAt(value, row, column);
     }
 
-    public Map<PsiElement, ParamData> getModifyBodyMap() {
+    public Map<PsiElement, DocViewParamData> getModifyBodyMap() {
         return modifyBodyMap;
     }
 }

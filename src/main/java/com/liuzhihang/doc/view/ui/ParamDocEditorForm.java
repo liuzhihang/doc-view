@@ -11,34 +11,37 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementFactory;
 import com.intellij.psi.PsiFile;
-import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.ui.JBColor;
 import com.intellij.ui.WindowMoveListener;
 import com.intellij.util.ui.JBUI;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.config.SettingsConfigurable;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocViewData;
-import com.liuzhihang.doc.view.dto.ParamData;
+import com.liuzhihang.doc.view.dto.DocViewParamData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.impl.WriterService;
+import com.liuzhihang.doc.view.ui.treetable.ParamTreeTableModel;
 import com.liuzhihang.doc.view.utils.GsonFormatUtil;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
+import org.jdesktop.swingx.JXTreeTable;
+import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.table.JTableHeader;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 /**
  * @author liuzhihang
@@ -51,19 +54,17 @@ public class ParamDocEditorForm {
     private final Editor editor;
     private final PsiClass psiClass;
 
-    private final ParamTableModel paramTableModel;
+    // private final ParamTableModel paramTableModel;
 
     private JPanel rootPanel;
     private JPanel headToolbarPanel;
     private JPanel tailToolbarPanel;
 
     private JScrollPane paramScrollPane;
-    private JTable paramTable;
-
-
 
     private JBPopup popup;
 
+    private ArrayList<DefaultMutableTreeTableNode> defaultMutableTreeTableNodeList;
 
     @NonNls
     public static final String DOC_VIEW_POPUP = "com.intellij.docview.param.editor.popup";
@@ -79,23 +80,16 @@ public class ParamDocEditorForm {
         this.editor = editor;
         this.psiClass = psiClass;
 
-        Body root = new Body();
-        root.setQualifiedNameForClassType(psiClass.getQualifiedName());
-
-
-        ParamPsiUtils.buildBodyList(psiClass, null, root);
-
-        paramTableModel = new ParamTableModel(DocViewData.buildBodyDataList(root.getChildList()));
-
         // UI调整
         initUI();
         initHeadToolbar();
         initTailLeftToolbar();
         initTailRightToolbar();
 
-        buildParamTable();
+        initParamTable();
         addMouseListeners();
     }
+
 
     @NotNull
     @Contract("_, _, _, _ -> new")
@@ -140,13 +134,8 @@ public class ParamDocEditorForm {
 
 
     private void initUI() {
-        // 禁止头部重排
-        JTableHeader tableHeader = paramTable.getTableHeader();
-        tableHeader.setReorderingAllowed(false);
-
         // 边框
         paramScrollPane.setBorder(JBUI.Borders.empty());
-        paramTable.setBorder(JBUI.Borders.empty());
     }
 
     private void initHeadToolbar() {
@@ -223,9 +212,6 @@ public class ParamDocEditorForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                if (paramTable.isEditing()) {
-                    paramTable.getCellEditor().stopCellEditing();
-                }
                 generateComment();
                 popup.cancel();
             }
@@ -251,28 +237,28 @@ public class ParamDocEditorForm {
     private void generateComment() {
 
 
-        Map<PsiElement, ParamData> modifyBodyMap = paramTableModel.getModifyBodyMap();
-
-        for (PsiElement element : modifyBodyMap.keySet()) {
-            ParamData data = modifyBodyMap.get(element);
-            String comment;
-
-            if (data.getRequired()) {
-                comment = "/** "
-                        + data.getDesc() + "\n"
-                        + "* @" + Settings.getInstance(project).getRequired()
-                        + " */";
-            } else {
-                comment = "/** "
-                        + data.getDesc()
-                        + " */";
-            }
-
-
-            PsiElementFactory factory = PsiElementFactory.getInstance(project);
-            PsiDocComment psiDocComment = factory.createDocCommentFromText(comment);
-            writerService.write(project, element, psiDocComment);
-        }
+        // Map<PsiElement, DocViewParamData> modifyBodyMap = paramTableModel.getModifyBodyMap();
+        //
+        // for (PsiElement element : modifyBodyMap.keySet()) {
+        //     DocViewParamData data = modifyBodyMap.get(element);
+        //     String comment;
+        //
+        //     if (data.getRequired()) {
+        //         comment = "/** "
+        //                 + data.getDesc() + "\n"
+        //                 + "* @" + Settings.getInstance(project).getRequired()
+        //                 + " */";
+        //     } else {
+        //         comment = "/** "
+        //                 + data.getDesc()
+        //                 + " */";
+        //     }
+        //
+        //
+        //     PsiElementFactory factory = PsiElementFactory.getInstance(project);
+        //     PsiDocComment psiDocComment = factory.createDocCommentFromText(comment);
+        //     writerService.write(project, element, psiDocComment);
+        // }
     }
 
     private void initTailLeftToolbar() {
@@ -280,19 +266,61 @@ public class ParamDocEditorForm {
     }
 
 
-    private void buildParamTable() {
+    private void initParamTable() {
+
+        Body rootBody = new Body();
+        rootBody.setQualifiedNameForClassType(psiClass.getQualifiedName());
+        ParamPsiUtils.buildBodyList(psiClass, null, rootBody);
+
+        List<DocViewParamData> dataList = DocViewData.buildBodyDataList(rootBody.getChildList());
+
+        DocViewParamData paramData = new DocViewParamData();
 
 
-        paramTable.setModel(paramTableModel);
+        defaultMutableTreeTableNodeList = new ArrayList<>();
 
-        ParamTableUI.rowSetting(paramTable);
-        ParamTableUI.columnSetting(paramTable);
+        DefaultMutableTreeTableNode rootNode = new DefaultMutableTreeTableNode(paramData);
+        createTreeData(rootNode, dataList);
 
-        // 数据改变监听
-        paramTableModel.addTableModelListener(e -> {
+        // ParamTreeTableModel paramTreeTableModel = new ParamTreeTableModel(rootNode);
 
-            ParamTableModel model = (ParamTableModel) e.getSource();
-        });
+        JXTreeTable treeTable = new JXTreeTable(new ParamTreeTableModel(rootNode));
+
+        treeTable.getColumnModel().getColumn(0).setPreferredWidth(150);
+        treeTable.expandAll();
+        treeTable.setCellSelectionEnabled(false);
+        treeTable.setRowHeight(30);
+        treeTable.setLeafIcon(null);
+        treeTable.setCollapsedIcon(null);
+        treeTable.setExpandedIcon(null);
+        treeTable.setOpenIcon(null);
+        treeTable.setClosedIcon(null);
+        treeTable.setSelectionBackground(JBColor.WHITE);
+        treeTable.setSelectionForeground(JBColor.WHITE);
+
+        final DefaultListSelectionModel defaultListSelectionModel = new DefaultListSelectionModel();
+        treeTable.setSelectionModel(defaultListSelectionModel);
+
+        defaultListSelectionModel.setSelectionMode(SINGLE_SELECTION);
+        defaultListSelectionModel.addListSelectionListener(e -> defaultListSelectionModel.clearSelection());
+
+        // TreeTableModel treeTableModel = new ListTreeTableModel();
+
+        paramScrollPane.setViewportView(treeTable);
+
+    }
+
+
+    private void createTreeData(DefaultMutableTreeTableNode rootNode, @NotNull List<DocViewParamData> dataList) {
+
+        for (DocViewParamData data : dataList) {
+            DefaultMutableTreeTableNode node = new DefaultMutableTreeTableNode(data);
+            rootNode.add(node);
+            defaultMutableTreeTableNodeList.add(node);
+            if (data.getChildList() != null && data.getChildList().size() > 0) {
+                createTreeData(node, data.getChildList());
+            }
+        }
 
     }
 

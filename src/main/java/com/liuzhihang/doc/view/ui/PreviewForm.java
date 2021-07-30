@@ -1,5 +1,8 @@
 package com.liuzhihang.doc.view.ui;
 
+import com.intellij.execution.ExecutionException;
+import com.intellij.execution.configurations.GeneralCommandLine;
+import com.intellij.execution.util.ExecUtil;
 import com.intellij.find.editorHeaderActions.Utils;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.HighlighterFactory;
@@ -59,10 +62,8 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseEvent;
 import java.time.LocalTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -418,9 +419,66 @@ public class PreviewForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                popup.cancel();
+                Point location = previewToolbarPanel.getLocationOnScreen();
+                location.x = MouseInfo.getPointerInfo().getLocation().x;
+                location.y += previewToolbarPanel.getHeight();
 
-                ExportUtils.exportMarkdown(project, currentDocView.getName(), currentMarkdownText);
+                myIsPinned.set(true);
+
+                JBPopupFactory.getInstance()
+                        .createListPopup(new BaseListPopupStep<>(null, "Markdown", "Docx", "PDF", "HTML") {
+
+                            @Override
+                            public @NotNull String getTextFor(String value) {
+                                return "Export to " + value;
+                            }
+
+                            @Override
+                            public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
+
+                                if (selectedValue.equals("Markdown")) {
+
+                                    ExportUtils.exportMarkdown(project, currentDocView.getName(), currentMarkdownText);
+
+                                } else if (selectedValue.equals("Docx")) {
+
+
+                                    //       val commandLine = mutableListOf(
+                                    //         "pandoc",
+                                    //         srcFile.path,
+                                    //         "-f",
+                                    //         MarkdownFileType.INSTANCE.name.toLowerCase(),
+                                    //         "-t",
+                                    //         formatDescription.extension,
+                                    //         "-o",
+                                    //         targetFile
+                                    //       )
+                                    //       if (FileUtil.exists(refFile)) {
+                                    //         commandLine.add("--reference-doc=$refFile")
+                                    //       }
+
+
+                                    List<String> command = new ArrayList<>();
+                                    command.add("");
+
+                                    GeneralCommandLine commandLine = new GeneralCommandLine();
+
+                                    try {
+                                        ExecUtil.execAndGetOutput(commandLine);
+                                    } catch (ExecutionException ex) {
+                                        ex.printStackTrace();
+                                    }
+
+
+                                } else if (selectedValue.equals("PDF")) {
+
+                                } else if (selectedValue.equals("HTML")) {
+
+                                }
+                                return FINAL_CHOICE;
+                            }
+                        }).showInScreenCoordinates(previewToolbarPanel, location);
+
             }
         });
 
@@ -580,7 +638,7 @@ public class PreviewForm {
             docNameLabel.setText(currentDocView.getDocTitle());
 
             // 将 docView 按照模版转换
-            currentMarkdownText = DocViewData.buildMarkdownText(project, currentDocView);
+            currentMarkdownText = DocViewData.markdownText(project, currentDocView);
 
             if (JBCefApp.isSupported()) {
                 markdownHtmlPanel.setHtml(MarkdownUtil.INSTANCE.generateMarkdownHtml(psiFile.getVirtualFile(), currentMarkdownText, project), 0);
