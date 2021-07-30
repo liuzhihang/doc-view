@@ -3,7 +3,7 @@ package com.liuzhihang.doc.view.dto;
 import com.intellij.psi.PsiElement;
 import lombok.Data;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,6 +53,6 @@ public class DocViewParamData {
     /**
      * 子
      */
-    private List<DocViewParamData> childList = new LinkedList<>();
+    private List<DocViewParamData> childList = new ArrayList<>();
 
 }
