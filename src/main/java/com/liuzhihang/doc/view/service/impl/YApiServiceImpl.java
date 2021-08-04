@@ -62,7 +62,7 @@ public class YApiServiceImpl implements YApiService {
 
         // 全类名过长
         if (Settings.getInstance(project).getTitleUseFullClassName() && catName.contains(".")) {
-            catName = catName.substring(catName.lastIndexOf("."));
+            catName = catName.substring(catName.lastIndexOf(".") + 1);
         }
 
 
@@ -78,8 +78,15 @@ public class YApiServiceImpl implements YApiService {
             save.setToken(settings.getToken());
             save.setProjectId(settings.getProjectId());
             save.setCatId(cat.getId());
-            save.setPath(docView.getPath());
-            save.setMethod(docView.getMethod());
+
+            if (docView.getMethod().equals("Dubbo")) {
+                // dubbo 接口处理
+                save.setPath("/Dubbo/" + docView.getName());
+                save.setMethod("POST");
+            } else {
+                save.setMethod(docView.getMethod());
+                save.setPath(docView.getPath());
+            }
             // 枚举: raw,form,json
             save.setReqBodyType(docView.getReqExampleType());
             save.setReqBodyForm(new ArrayList<>());
@@ -88,7 +95,7 @@ public class YApiServiceImpl implements YApiService {
             save.setReqQuery(buildReqQuery(docView.getReqParamList()));
             save.setResBodyType("json");
             save.setResBody(buildJsonSchema(docView.getRespRootBody().getChildList()));
-            save.setDesc(docView.getDesc());
+            save.setDesc(buildDesc(docView));
             save.setTitle(docView.getName());
 
             if (docView.getReqExampleType().equals("json")) {
@@ -106,6 +113,24 @@ public class YApiServiceImpl implements YApiService {
             log.error("上传单个文档失败:{}", docView, e);
         }
 
+    }
+
+    /**
+     * 构造描述信息
+     *
+     * @param docView
+     * @return
+     */
+    @NotNull
+    private String buildDesc(DocView docView) {
+
+
+        return "**接口描述:**\n"
+                + docView.getDesc() + "\n\n"
+                + "**请求示例:**\n"
+                + docView.getReqExample() + "\n\n"
+                + "**返回示例:**\n\n"
+                + docView.getRespExample();
     }
 
     /**

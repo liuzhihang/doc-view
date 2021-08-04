@@ -292,8 +292,7 @@ public class DocEditorForm {
             }
         }
         for (String exceptionName : exceptionNameList) {
-            sb.append("* @throws ").append(exceptionName).append(" ")
-                    .append(exceptionName).append("\n");
+            sb.append("* @throws ").append(exceptionName).append("\n");
         }
         sb.append("*/\n");
 

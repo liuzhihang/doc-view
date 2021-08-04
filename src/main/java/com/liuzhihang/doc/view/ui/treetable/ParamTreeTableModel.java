@@ -85,7 +85,7 @@ public class ParamTreeTableModel extends DefaultTreeTableModel {
                 DocViewParamData docViewParamData = (DocViewParamData) userObject;
 
                 if (column == 2) {
-                    docViewParamData.setRequired((Boolean) value);
+                    docViewParamData.setRequired(String.valueOf(value).equalsIgnoreCase("true"));
                 } else if (column == 3) {
                     docViewParamData.setDesc(String.valueOf(value));
                 }

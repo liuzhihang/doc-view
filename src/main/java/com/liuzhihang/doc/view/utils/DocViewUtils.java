@@ -268,7 +268,8 @@ public class DocViewUtils {
             PsiDocComment docComment = psiField.getDocComment();
 
             if (docComment == null) {
-                return true;
+                // 没有注释, 非必填
+                return false;
             }
 
             PsiDocTag requiredTag = docComment.findTagByName(settings.getRequired());

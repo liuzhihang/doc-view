@@ -98,6 +98,13 @@ public class EditorAction extends AnAction {
 
         Settings settings = Settings.getInstance(project);
         PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
+
+
+        if (targetMethod == null && AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
+            presentation.setEnabledAndVisible(false);
+            return;
+        }
+
         if (targetMethod != null) {
             // 当前方法不为空, 则必须在 Controller 或者接口中
             // 检查是否有 Controller 注解 且不是接口

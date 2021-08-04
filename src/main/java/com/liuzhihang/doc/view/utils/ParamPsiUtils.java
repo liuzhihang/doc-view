@@ -19,8 +19,14 @@ import java.util.*;
  */
 public class ParamPsiUtils {
 
-
-    public static void buildBodyParam(PsiField field, PsiType[] genericArr, Body parent) {
+    /**
+     * 生成 body
+     *
+     * @param field
+     * @param genericMap key 是泛型 value 是对应的类型
+     * @param parent
+     */
+    public static void buildBodyParam(PsiField field, Map<String, PsiType> genericMap, Body parent) {
 
         PsiType type = field.getType();
 
@@ -44,22 +50,33 @@ public class ParamPsiUtils {
         if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_COLLECTION)) {
             // List Set or HashSet
             PsiType iterableType = PsiUtil.extractIterableTypeParameter(type, false);
+
+            if (iterableType instanceof PsiPrimitiveType
+                    || iterableType == null
+                    || FieldTypeConstant.FIELD_TYPE.containsKey(iterableType.getPresentableText())) {
+                return;
+            }
+
             childClass = PsiUtil.resolveClassInClassTypeOnly(iterableType);
+
         } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_MAP)) {
             // HashMap or Map
             PsiType matValueType = PsiUtil.substituteTypeParameter(type, CommonClassNames.JAVA_UTIL_MAP, 1, false);
+
+            if (matValueType instanceof PsiPrimitiveType
+                    || matValueType == null
+                    || FieldTypeConstant.FIELD_TYPE.containsKey(matValueType.getPresentableText())) {
+                return;
+            }
+
             childClass = PsiUtil.resolveClassInClassTypeOnly(matValueType);
         } else {
-            PsiType psiType;
-            if (type.getPresentableText().equals("T") && genericArr != null && genericArr.length >= 1) {
-                // T 泛型
-                psiType = genericArr[0];
-            } else if (type.getPresentableText().equals("K") && genericArr != null && genericArr.length >= 2) {
-                // K 泛型
-                psiType = genericArr[1];
-            } else {
-                psiType = type;
+
+            if (genericMap == null) {
+                return;
             }
+            PsiType psiType = genericMap.get(type.getPresentableText());
+
             if (FieldTypeConstant.FIELD_TYPE.containsKey(psiType.getPresentableText())) {
                 body.setType(psiType.getPresentableText());
                 return;
@@ -112,11 +129,11 @@ public class ParamPsiUtils {
 
     /**
      * @param psiClass
-     * @param genericArr
+     * @param genericMap
      * @param qualifiedNameList 根节点到当前节点的链表
      * @return
      */
-    public static Map<String, Object> getFieldsAndDefaultValue(PsiClass psiClass, PsiType[] genericArr, LinkedList<String> qualifiedNameList) {
+    public static Map<String, Object> getFieldsAndDefaultValue(PsiClass psiClass, Map<String, PsiType> genericMap, LinkedList<String> qualifiedNameList) {
 
         Map<String, Object> fieldMap = new LinkedHashMap<>();
 
@@ -196,12 +213,8 @@ public class ParamPsiUtils {
                     fieldMap.put(name, "");
                 } else {
 
-                    if (type.getPresentableText().equals("T") && genericArr != null && genericArr.length >= 1) {
-                        // T 泛型
-                        type = genericArr[0];
-                    } else if (type.getPresentableText().equals("K") && genericArr != null && genericArr.length >= 2) {
-                        // K 泛型
-                        type = genericArr[1];
+                    if (genericMap != null) {
+                        type = genericMap.get(type.getPresentableText());
                     }
 
                     if (FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
@@ -250,13 +263,13 @@ public class ParamPsiUtils {
      * 获取字段和字段的默认值
      *
      * @param psiClass
-     * @param genericArr
+     * @param genericMap
      * @return
      */
     @NotNull
-    public static Map<String, Object> getFieldsAndDefaultValue(PsiClass psiClass, PsiType[] genericArr) {
+    public static Map<String, Object> getFieldsAndDefaultValue(PsiClass psiClass, Map<String, PsiType> genericMap) {
 
-        return getFieldsAndDefaultValue(psiClass, genericArr, new LinkedList<String>());
+        return getFieldsAndDefaultValue(psiClass, genericMap, new LinkedList<>());
     }
 
     @NotNull
@@ -280,7 +293,7 @@ public class ParamPsiUtils {
 
             PsiClassType psiClassType = (PsiClassType) returnType;
 
-            // 返回值可能是 Result<T> Result<T, K> 泛型的
+
             PsiClass psiClass = PsiUtil.resolveClassInType(returnType);
             if (psiClass != null) {
 
@@ -303,7 +316,12 @@ public class ParamPsiUtils {
                         }
                     }
                 } else {
-                    buildBodyList(psiClass, psiClassType.getParameters(), root);
+                    // 返回值可能是带泛型的, psiClassType.getParameters() 获取到的
+
+                    Map<String, PsiType> genericMap = CustomPsiUtils.getGenericMap(psiClass, psiClassType);
+
+                    buildBodyList(psiClass, genericMap, root);
+
                 }
             }
         } else {
@@ -312,7 +330,7 @@ public class ParamPsiUtils {
         return root;
     }
 
-    public static void buildBodyList(@NotNull PsiClass psiClass, PsiType[] o, Body parent) {
+    public static void buildBodyList(@NotNull PsiClass psiClass, Map<String, PsiType> genericMap, Body parent) {
 
         for (PsiField field : psiClass.getAllFields()) {
 
@@ -320,7 +338,7 @@ public class ParamPsiUtils {
                 continue;
             }
 
-            ParamPsiUtils.buildBodyParam(field, o, parent);
+            ParamPsiUtils.buildBodyParam(field, genericMap, parent);
         }
 
     }
@@ -367,7 +385,10 @@ public class ParamPsiUtils {
 
                     return GsonFormatUtil.gsonFormat(objectArr);
                 } else {
-                    Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, psiClassType.getParameters());
+
+                    Map<String, PsiType> genericMap = CustomPsiUtils.getGenericMap(psiClass, psiClassType);
+
+                    Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, genericMap);
 
                     return GsonFormatUtil.gsonFormat(fieldMap);
                 }

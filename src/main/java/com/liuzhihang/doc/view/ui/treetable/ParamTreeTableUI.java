@@ -3,18 +3,20 @@ package com.liuzhihang.doc.view.ui.treetable;
 import com.intellij.ui.Gray;
 import com.intellij.ui.JBColor;
 import com.intellij.util.ui.UIUtil;
+import org.jdesktop.swingx.JXTreeTable;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
+
 /**
  * @author liuzhihang
  * @date 2021/3/30 10:16
  */
 public class ParamTreeTableUI {
-
 
     public static final DefaultTableCellRenderer RENDERER = new DefaultTableCellRenderer() {
         @Override
@@ -42,31 +44,34 @@ public class ParamTreeTableUI {
     };
 
     /**
-     * 行设置
-     * <p>
-     * 1. 设置每行的颜色
+     * 对 treeTable 进行渲染
      *
-     * @param table
+     * @param treeTable
      */
-    public static void rowSetting(JTable table) {
-        for (int i = 0; i < table.getColumnCount(); i++) {
-            table.getColumn(table.getColumnName(i)).setCellRenderer(RENDERER);
+    public static void render(JXTreeTable treeTable) {
+
+        treeTable.getColumnModel().getColumn(0).setPreferredWidth(150);
+        treeTable.setRowHeight(30);
+        treeTable.setLeafIcon(null);
+        treeTable.setOpenIcon(null);
+        treeTable.setClosedIcon(null);
+
+        final DefaultListSelectionModel defaultListSelectionModel = new DefaultListSelectionModel();
+        treeTable.setSelectionModel(defaultListSelectionModel);
+
+        defaultListSelectionModel.setSelectionMode(SINGLE_SELECTION);
+        defaultListSelectionModel.addListSelectionListener(e -> defaultListSelectionModel.clearSelection());
+
+
+        for (int i = 0; i < treeTable.getColumnCount(); i++) {
+            treeTable.getColumn(treeTable.getColumnName(i)).setCellRenderer(RENDERER);
         }
-    }
 
-    /**
-     * 列设置
-     * <p>
-     * 1. 设置单元格格式
-     *
-     * @param table
-     */
-    public static void columnSetting(JTable table) {
 
-        for (int i = 0; i < table.getColumnCount(); i++) {
+        for (int i = 0; i < treeTable.getColumnCount(); i++) {
 
             // 根据 列名 获取 表格列
-            TableColumn tableColumn = table.getColumn("选择");
+            TableColumn tableColumn = treeTable.getColumn("必选");
             // 设置 表格列 的 单元格编辑器
             tableColumn.setCellEditor(new DefaultCellEditor(new JComboBox<>(new Boolean[]{true, false})));
 

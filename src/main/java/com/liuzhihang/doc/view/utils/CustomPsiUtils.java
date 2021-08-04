@@ -6,6 +6,9 @@ import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author liuzhihang
  * @date 2020/3/4 16:18
@@ -64,7 +67,7 @@ public class CustomPsiUtils {
      * @return
      * @see PsiModifier
      */
-    public static boolean hasModifierProperty(PsiMethod psiMethod, String modifier) {
+    public static boolean hasModifierProperty(@NotNull PsiMethod psiMethod, String modifier) {
 
         PsiModifierList modifierList = psiMethod.getModifierList();
 
@@ -78,7 +81,7 @@ public class CustomPsiUtils {
      * @param modifier
      * @return
      */
-    public static boolean hasModifierProperty(PsiField psiField, String modifier) {
+    public static boolean hasModifierProperty(@NotNull PsiField psiField, String modifier) {
 
         PsiModifierList modifierList = psiField.getModifierList();
 
@@ -88,6 +91,31 @@ public class CustomPsiUtils {
 
 
         return modifierList.hasModifierProperty(modifier);
+    }
+
+
+    public static @Nullable Map<String, PsiType> getGenericMap(@NotNull PsiClass psiClass, PsiClassType psiClassType) {
+
+        if (!psiClass.hasTypeParameters()) {
+            // 无泛型
+            return null;
+        }
+        PsiTypeParameter[] typeParameters = psiClass.getTypeParameters();
+        PsiType[] typeArr = psiClassType.getParameters();
+
+        if (typeParameters.length != typeArr.length) {
+            return null;
+        }
+
+        Map<String, PsiType> hashMap = new HashMap<>();
+
+
+        for (int i = 0; i < typeParameters.length; i++) {
+
+            hashMap.put(typeParameters[i].getName(), typeArr[i]);
+        }
+        return hashMap;
+
     }
 
 

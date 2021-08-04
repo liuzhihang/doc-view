@@ -12,7 +12,6 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
-import com.intellij.ui.JBColor;
 import com.intellij.ui.WindowMoveListener;
 import com.intellij.util.ui.JBUI;
 import com.liuzhihang.doc.view.DocViewBundle;
@@ -23,6 +22,7 @@ import com.liuzhihang.doc.view.dto.DocViewParamData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.impl.WriterService;
 import com.liuzhihang.doc.view.ui.treetable.ParamTreeTableModel;
+import com.liuzhihang.doc.view.ui.treetable.ParamTreeTableUI;
 import com.liuzhihang.doc.view.utils.GsonFormatUtil;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
 import org.jdesktop.swingx.JXTreeTable;
@@ -40,8 +40,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 /**
  * @author liuzhihang
@@ -282,29 +280,9 @@ public class ParamDocEditorForm {
         DefaultMutableTreeTableNode rootNode = new DefaultMutableTreeTableNode(paramData);
         createTreeData(rootNode, dataList);
 
-        // ParamTreeTableModel paramTreeTableModel = new ParamTreeTableModel(rootNode);
-
         JXTreeTable treeTable = new JXTreeTable(new ParamTreeTableModel(rootNode));
 
-        treeTable.getColumnModel().getColumn(0).setPreferredWidth(150);
-        treeTable.expandAll();
-        treeTable.setCellSelectionEnabled(false);
-        treeTable.setRowHeight(30);
-        treeTable.setLeafIcon(null);
-        treeTable.setCollapsedIcon(null);
-        treeTable.setExpandedIcon(null);
-        treeTable.setOpenIcon(null);
-        treeTable.setClosedIcon(null);
-        treeTable.setSelectionBackground(JBColor.WHITE);
-        treeTable.setSelectionForeground(JBColor.WHITE);
-
-        final DefaultListSelectionModel defaultListSelectionModel = new DefaultListSelectionModel();
-        treeTable.setSelectionModel(defaultListSelectionModel);
-
-        defaultListSelectionModel.setSelectionMode(SINGLE_SELECTION);
-        defaultListSelectionModel.addListSelectionListener(e -> defaultListSelectionModel.clearSelection());
-
-        // TreeTableModel treeTableModel = new ListTreeTableModel();
+        ParamTreeTableUI.render(treeTable);
 
         paramScrollPane.setViewportView(treeTable);
 
@@ -323,5 +301,4 @@ public class ParamDocEditorForm {
         }
 
     }
-
 }

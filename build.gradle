@@ -1,6 +1,6 @@
 plugins {
+    id 'org.jetbrains.intellij' version '1.1.4'
     id 'java'
-    id 'org.jetbrains.intellij' version '0.7.3'
 }
 
 group 'com.liuzhihang'
@@ -15,25 +15,31 @@ repositories {
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
+    implementation group: 'org.swinglabs.swingx', name: 'swingx-core', version: '1.6.5-1'
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version '2021.2'
-    plugins = ['java', 'markdown']
-    pluginName 'Doc View'
-    updateSinceUntilBuild false
-    sameSinceUntilBuild false
+    version = '2021.2'
+    plugins = ['com.intellij.java', 'markdown']
+    pluginName = 'Doc View'
+    updateSinceUntilBuild = false
+    sameSinceUntilBuild = false
 }
 
 patchPluginXml {
-    pluginDescription(file(descriptionFile).text)
-    changeNotes(file(changesFile).text)
+    pluginDescription = file(descriptionFile).text
+    changeNotes = file(changesFile).text
 }
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
+}
+
+test {
+    useJUnitPlatform()
 }
