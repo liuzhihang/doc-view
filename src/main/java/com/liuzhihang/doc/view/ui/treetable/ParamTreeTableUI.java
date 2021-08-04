@@ -19,6 +19,7 @@ import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 public class ParamTreeTableUI {
 
     public static final DefaultTableCellRenderer RENDERER = new DefaultTableCellRenderer() {
+
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
 
@@ -64,7 +65,7 @@ public class ParamTreeTableUI {
 
 
         for (int i = 0; i < treeTable.getColumnCount(); i++) {
-            treeTable.getColumn(treeTable.getColumnName(i)).setCellRenderer(RENDERER);
+            treeTable.getColumn(i).setCellRenderer(RENDERER);
         }
 
 
