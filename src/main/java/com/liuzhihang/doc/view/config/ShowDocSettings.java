@@ -6,6 +6,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.liuzhihang.doc.view.constant.Constant;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -17,7 +18,7 @@ import org.jetbrains.annotations.Nullable;
  * @date 2020/11/22 13:51
  */
 @Data
-@State(name = "DocViewShowDocSettingsComment", storages = {@Storage("DocViewShowDocSettings.xml")})
+@State(name = "DocViewShowDocSettingsComment", storages = {@Storage(Constant.DOC_VIEW + "/ShowDocSettings.xml")})
 public class ShowDocSettings implements PersistentStateComponent<ShowDocSettings> {
 
     private String url;

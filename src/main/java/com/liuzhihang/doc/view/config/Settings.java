@@ -6,6 +6,7 @@ import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.liuzhihang.doc.view.constant.Constant;
 import com.liuzhihang.doc.view.constant.LombokConstant;
 import com.liuzhihang.doc.view.constant.SpringConstant;
 import com.liuzhihang.doc.view.constant.ValidationConstant;
@@ -26,7 +27,7 @@ import java.util.Set;
  * @date 2020/2/27 19:02
  */
 @Data
-@State(name = "DocViewSettingsComponent", storages = {@Storage("DocViewSettings.xml")})
+@State(name = "DocViewSettingsComponent", storages = {@Storage(Constant.DOC_VIEW + "/settings.xml")})
 public class Settings implements PersistentStateComponent<Settings> {
 
     /**

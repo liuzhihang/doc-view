@@ -1,8 +1,5 @@
 package com.liuzhihang.doc.view.ui;
 
-import com.intellij.execution.ExecutionException;
-import com.intellij.execution.configurations.GeneralCommandLine;
-import com.intellij.execution.util.ExecUtil;
 import com.intellij.find.editorHeaderActions.Utils;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.highlighter.HighlighterFactory;
@@ -62,8 +59,10 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseEvent;
 import java.time.LocalTime;
+import java.util.HashMap;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
+import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -419,65 +418,8 @@ public class PreviewForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                Point location = previewToolbarPanel.getLocationOnScreen();
-                location.x = MouseInfo.getPointerInfo().getLocation().x;
-                location.y += previewToolbarPanel.getHeight();
-
-                myIsPinned.set(true);
-
-                JBPopupFactory.getInstance()
-                        .createListPopup(new BaseListPopupStep<>(null, "Markdown", "Docx", "PDF", "HTML") {
-
-                            @Override
-                            public @NotNull String getTextFor(String value) {
-                                return "Export to " + value;
-                            }
-
-                            @Override
-                            public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
-
-                                if (selectedValue.equals("Markdown")) {
-
-                                    ExportUtils.exportMarkdown(project, currentDocView.getName(), currentMarkdownText);
-
-                                } else if (selectedValue.equals("Docx")) {
-
-
-                                    //       val commandLine = mutableListOf(
-                                    //         "pandoc",
-                                    //         srcFile.path,
-                                    //         "-f",
-                                    //         MarkdownFileType.INSTANCE.name.toLowerCase(),
-                                    //         "-t",
-                                    //         formatDescription.extension,
-                                    //         "-o",
-                                    //         targetFile
-                                    //       )
-                                    //       if (FileUtil.exists(refFile)) {
-                                    //         commandLine.add("--reference-doc=$refFile")
-                                    //       }
-
-
-                                    List<String> command = new ArrayList<>();
-                                    command.add("");
-
-                                    GeneralCommandLine commandLine = new GeneralCommandLine();
-
-                                    try {
-                                        ExecUtil.execAndGetOutput(commandLine);
-                                    } catch (ExecutionException ex) {
-                                        ex.printStackTrace();
-                                    }
-
-
-                                } else if (selectedValue.equals("PDF")) {
-
-                                } else if (selectedValue.equals("HTML")) {
-
-                                }
-                                return FINAL_CHOICE;
-                            }
-                        }).showInScreenCoordinates(previewToolbarPanel, location);
+                popup.cancel();
+                ExportUtils.exportMarkdown(project, currentDocView.getName(), currentMarkdownText);
 
             }
         });
@@ -547,7 +489,7 @@ public class PreviewForm {
             public void actionPerformed(@NotNull AnActionEvent e) {
 
                 popup.cancel();
-                ExportUtils.allExportMarkdown(project, currentDocView.getPsiClass().getName(), docViewList);
+                ExportUtils.batchExportMarkdown(project, currentDocView.getPsiClass().getName(), docViewList);
             }
         });
         menuGroup.addSeparator();

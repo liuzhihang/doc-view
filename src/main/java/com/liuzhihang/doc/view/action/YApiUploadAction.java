@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -45,9 +46,10 @@ public class YApiUploadAction extends AnAction {
         Editor editor = e.getData(CommonDataKeys.EDITOR);
 
 
-        if (editor == null || project == null || psiFile == null) {
+        if (editor == null || project == null || psiFile == null || DumbService.isDumb(project)) {
             return;
         }
+
         // 获取Java类或者接口
         PsiClass targetClass = CustomPsiUtils.getTargetClass(editor, psiFile);
 
@@ -108,10 +110,11 @@ public class YApiUploadAction extends AnAction {
 
         Presentation presentation = e.getPresentation();
 
-        if (editor == null || project == null || psiFile == null) {
+        if (editor == null || project == null || psiFile == null || DumbService.isDumb(project)) {
             presentation.setEnabledAndVisible(false);
             return;
         }
+
 
         PsiClass targetClass = CustomPsiUtils.getTargetClass(editor, psiFile);
 

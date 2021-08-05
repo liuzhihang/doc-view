@@ -123,14 +123,7 @@
                 </constraints>
                 <properties/>
                 <border type="none"/>
-                <children>
-                  <component id="2cd9" class="javax.swing.JTable" binding="requestParamTable">
-                    <constraints/>
-                    <properties>
-                      <rowHeight value="25"/>
-                    </properties>
-                  </component>
-                </children>
+                <children/>
               </scrollpane>
             </children>
           </grid>
@@ -148,14 +141,7 @@
                 </constraints>
                 <properties/>
                 <border type="none"/>
-                <children>
-                  <component id="d1c3c" class="javax.swing.JTable" binding="responseParamTable" default-binding="true">
-                    <constraints/>
-                    <properties>
-                      <rowHeight value="25"/>
-                    </properties>
-                  </component>
-                </children>
+                <children/>
               </scrollpane>
             </children>
           </grid>

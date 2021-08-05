@@ -3,6 +3,7 @@ package com.liuzhihang.doc.view.action;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.Editor;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
@@ -37,10 +38,10 @@ public class EditorAction extends AnAction {
         PsiFile psiFile = e.getData(CommonDataKeys.PSI_FILE);
         Editor editor = e.getData(CommonDataKeys.EDITOR);
 
-
-        if (editor == null || project == null || psiFile == null) {
+        if (editor == null || project == null || psiFile == null || DumbService.isDumb(project)) {
             return;
         }
+
         // 获取Java类或者接口
         PsiClass targetClass = CustomPsiUtils.getTargetClass(editor, psiFile);
 
@@ -84,7 +85,7 @@ public class EditorAction extends AnAction {
 
         Presentation presentation = e.getPresentation();
 
-        if (editor == null || project == null || psiFile == null) {
+        if (editor == null || project == null || psiFile == null || DumbService.isDumb(project)) {
             presentation.setEnabledAndVisible(false);
             return;
         }

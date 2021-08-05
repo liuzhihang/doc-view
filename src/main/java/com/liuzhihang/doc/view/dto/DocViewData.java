@@ -80,7 +80,7 @@ public class DocViewData {
     /**
      * 返回参数
      */
-    private final List<DocViewParamData> responseDocViewParamDataList;
+    private final List<DocViewParamData> responseParamDataList;
     private final String responseParam;
 
 
@@ -109,8 +109,8 @@ public class DocViewData {
         this.requestBody = paramMarkdown(requestBodyDataList);
         this.requestExample = buildReqExample(docView.getReqExampleType(), docView.getReqExample());
 
-        this.responseDocViewParamDataList = buildBodyDataList(docView.getRespRootBody().getChildList());
-        this.responseParam = paramMarkdown(responseDocViewParamDataList);
+        this.responseParamDataList = buildBodyDataList(docView.getRespRootBody().getChildList());
+        this.responseParam = paramMarkdown(responseParamDataList);
         this.responseExample = buildRespExample(docView.getReqExampleType(), docView.getRespExample());
 
     }

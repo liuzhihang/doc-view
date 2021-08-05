@@ -1,10 +1,14 @@
 package com.liuzhihang.doc.view.ui.treetable;
 
 
+import com.intellij.psi.PsiElement;
 import com.liuzhihang.doc.view.dto.DocViewParamData;
 import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
 import org.jdesktop.swingx.treetable.DefaultTreeTableModel;
 import org.jdesktop.swingx.treetable.TreeTableNode;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 字段树列表
@@ -15,6 +19,11 @@ import org.jdesktop.swingx.treetable.TreeTableNode;
 public class ParamTreeTableModel extends DefaultTreeTableModel {
 
     public static final String[] names = {"参数名", "类型", "必选", "描述"};
+
+    /**
+     * 修改集合
+     */
+    private Map<PsiElement, DocViewParamData> modifiedMap = new HashMap<>();
 
     public ParamTreeTableModel(TreeTableNode node) {
 
@@ -82,12 +91,14 @@ public class ParamTreeTableModel extends DefaultTreeTableModel {
             Object userObject = ((DefaultMutableTreeTableNode) node).getUserObject();
             if (userObject instanceof DocViewParamData) {
                 // "参数名", "类型", "必选", "描述"
-                DocViewParamData docViewParamData = (DocViewParamData) userObject;
+                DocViewParamData data = (DocViewParamData) userObject;
 
                 if (column == 2) {
-                    docViewParamData.setRequired(String.valueOf(value).equalsIgnoreCase("true"));
+                    data.setRequired(String.valueOf(value).equalsIgnoreCase("true"));
+                    modifiedMap.put(data.getPsiElement(), data);
                 } else if (column == 3) {
-                    docViewParamData.setDesc(String.valueOf(value));
+                    data.setDesc(String.valueOf(value));
+                    modifiedMap.put(data.getPsiElement(), data);
                 }
 
             }
@@ -110,4 +121,8 @@ public class ParamTreeTableModel extends DefaultTreeTableModel {
     }
 
 
+    public Map<PsiElement, DocViewParamData> getModifiedMap() {
+
+        return modifiedMap;
+    }
 }
