@@ -7,7 +7,6 @@ import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.constant.Constant;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,7 +16,7 @@ import org.jetbrains.annotations.Nullable;
  * @author liuzhihang
  * @date 2020/11/22 13:51
  */
-@State(name = "TemplateSettingsComponent", storages = {@Storage(Constant.DOC_VIEW + "/TemplateSettings.xml")})
+@State(name = "TemplateSettingsComponent", storages = {@Storage("DocViewTemplateSettings.xml")})
 public class TemplateSettings implements PersistentStateComponent<TemplateSettings> {
 
     /**

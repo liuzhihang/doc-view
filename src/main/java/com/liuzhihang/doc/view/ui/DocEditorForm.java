@@ -38,8 +38,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
-import java.util.*;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -384,8 +386,10 @@ public class DocEditorForm {
                     responseTreeTable.getCellEditor().stopCellEditing();
                 }
                 generateMethodComment();
-                generateComment((ParamTreeTableModel) requestTreeTable.getTreeTableModel());
-                generateComment((ParamTreeTableModel) requestTreeTable.getTreeTableModel());
+
+                DocViewUtils.writeComment(project, ((ParamTreeTableModel) requestTreeTable.getTreeTableModel()).getModifiedMap());
+                DocViewUtils.writeComment(project, ((ParamTreeTableModel) responseTreeTable.getTreeTableModel()).getModifiedMap());
+
                 popup.cancel();
             }
         });
@@ -446,38 +450,6 @@ public class DocEditorForm {
 
         writerService.write(project, psiMethod, psiDocComment);
 
-    }
-
-    /**
-     * 变动的字段生成注释
-     *
-     * @param paramTreeTableModel
-     */
-    private void generateComment(ParamTreeTableModel paramTreeTableModel) {
-
-        Map<PsiElement, DocViewParamData> modifyBodyMap = paramTreeTableModel.getModifiedMap();
-
-        for (PsiElement element : modifyBodyMap.keySet()) {
-            DocViewParamData data = modifyBodyMap.get(element);
-            String comment;
-
-            // 原来有注解, 则不添加注释
-            if (!DocViewUtils.isRequired((PsiField) element) && data.getRequired()) {
-                comment = "/** "
-                        + data.getDesc() + "\n"
-                        + "* @" + Settings.getInstance(project).getRequired()
-                        + " */";
-            } else {
-                comment = "/** "
-                        + data.getDesc()
-                        + " */";
-            }
-
-
-            PsiElementFactory factory = PsiElementFactory.getInstance(project);
-            PsiDocComment psiDocComment = factory.createDocCommentFromText(comment);
-            writerService.write(project, element, psiDocComment);
-        }
     }
 
 }

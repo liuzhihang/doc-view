@@ -4,24 +4,21 @@ import com.intellij.find.editorHeaderActions.Utils;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.psi.*;
-import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiFile;
 import com.intellij.ui.WindowMoveListener;
 import com.intellij.util.ui.JBUI;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.config.SettingsConfigurable;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.dto.DocViewParamData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
-import com.liuzhihang.doc.view.service.impl.WriterService;
 import com.liuzhihang.doc.view.ui.treetable.ParamTreeTableModel;
 import com.liuzhihang.doc.view.ui.treetable.ParamTreeTableUtils;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
@@ -66,8 +63,6 @@ public class ParamDocEditorForm {
     @NonNls
     public static final String DOC_VIEW_POPUP = "com.intellij.docview.param.editor.popup";
     private static final AtomicBoolean myIsPinned = new AtomicBoolean(true);
-
-    private final WriterService writerService = ServiceManager.getService(WriterService.class);
 
     public ParamDocEditorForm(@NotNull Project project, @NotNull PsiFile psiFile,
                               @NotNull Editor editor, @NotNull PsiClass psiClass) {
@@ -211,7 +206,7 @@ public class ParamDocEditorForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                generateComment();
+                DocViewUtils.writeComment(project, treeTableModel.getModifiedMap());
                 popup.cancel();
             }
         });
@@ -228,37 +223,6 @@ public class ParamDocEditorForm {
 
         tailToolbarPanel.add(toolbar.getComponent(), BorderLayout.EAST);
 
-    }
-
-    /**
-     * 变动的字段生成注释
-     */
-    private void generateComment() {
-
-
-        Map<PsiElement, DocViewParamData> modifyBodyMap = treeTableModel.getModifiedMap();
-
-        for (PsiElement element : modifyBodyMap.keySet()) {
-            DocViewParamData data = modifyBodyMap.get(element);
-            String comment;
-
-            // 不修改原有注解
-            if (!DocViewUtils.isRequired((PsiField) element) && data.getRequired()) {
-                comment = "/** "
-                        + data.getDesc() + "\n"
-                        + "* @" + Settings.getInstance(project).getRequired()
-                        + " */";
-            } else {
-                comment = "/** "
-                        + data.getDesc()
-                        + " */";
-            }
-
-
-            PsiElementFactory factory = PsiElementFactory.getInstance(project);
-            PsiDocComment psiDocComment = factory.createDocCommentFromText(comment);
-            writerService.write(project, element, psiDocComment);
-        }
     }
 
     private void initTailLeftToolbar() {

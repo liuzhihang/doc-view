@@ -1,15 +1,21 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
+import com.intellij.openapi.command.WriteCommandAction;
+import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.util.InheritanceUtil;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.constant.SwaggerConstant;
+import com.liuzhihang.doc.view.dto.DocViewParamData;
+import com.liuzhihang.doc.view.service.impl.WriterService;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -294,12 +300,31 @@ public class DocViewUtils {
 
     /**
      * 获取字段的描述
+     * <p>
+     * 优先从 swagger 中获取注释
      *
      * @param psiField
      * @return
      */
     @NotNull
     public static String fieldDesc(@NotNull PsiField psiField) {
+
+        // swagger v3 @Schema
+        PsiAnnotation schemaAnnotation = psiField.getAnnotation(SwaggerConstant.SCHEMA);
+        if (schemaAnnotation != null) {
+            PsiAnnotationMemberValue value = schemaAnnotation.findAttributeValue("description");
+            if (value != null && StringUtils.isNotBlank(value.getText())) {
+                return value.getText().replace("\"", "");
+            }
+        }
+        // swagger @ApiModelProperty
+        PsiAnnotation apiModelPropertyAnnotation = psiField.getAnnotation(SwaggerConstant.API_MODEL_PROPERTY);
+        if (apiModelPropertyAnnotation != null) {
+            PsiAnnotationMemberValue value = apiModelPropertyAnnotation.findAttributeValue("value");
+            if (value != null && StringUtils.isNotBlank(value.getText())) {
+                return value.getText().replace("\"", "");
+            }
+        }
 
         PsiDocComment docComment = psiField.getDocComment();
 
@@ -310,4 +335,86 @@ public class DocViewUtils {
         }
         return "";
     }
+
+    /**
+     * 变动的字段生成注释
+     */
+    public static void writeComment(Project project, @NotNull Map<PsiElement, DocViewParamData> modifyBodyMap) {
+
+        for (PsiElement element : modifyBodyMap.keySet()) {
+            DocViewParamData data = modifyBodyMap.get(element);
+            String comment;
+
+            PsiField psiField = (PsiField) element;
+
+            // swagger v3 @Schema 直接修改属性
+            PsiAnnotation schemaAnnotation = psiField.getAnnotation(SwaggerConstant.SCHEMA);
+            if (schemaAnnotation != null) {
+                String annotationText = "";
+
+                if (StringUtils.isNotBlank(data.getDesc()) && data.getRequired()) {
+                    annotationText = "@Schema(description = \"" + data.getDesc() + "\", required = true)";
+                } else if (StringUtils.isNotBlank(data.getDesc()) && !data.getRequired()) {
+                    annotationText = "@Schema(description = \"" + data.getDesc() + "\")";
+                } else if (StringUtils.isBlank(data.getDesc()) && data.getRequired()) {
+                    annotationText = "@Schema(required = true)";
+                }
+
+                if (StringUtils.isNotBlank(annotationText)) {
+                    final PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
+                    PsiAnnotation newAnnotation = elementFactory.createAnnotationFromText(annotationText, psiField);
+
+                    WriteCommandAction.runWriteCommandAction(project, () -> {
+                        schemaAnnotation.replace(newAnnotation);
+                    });
+
+                }
+                return;
+            }
+            // swagger @ApiModelProperty 直接修改属性
+            PsiAnnotation apiModelPropertyAnnotation = psiField.getAnnotation(SwaggerConstant.API_MODEL_PROPERTY);
+            if (apiModelPropertyAnnotation != null) {
+
+                String annotationText = "";
+
+                if (StringUtils.isNotBlank(data.getDesc()) && data.getRequired()) {
+                    annotationText = "@ApiModelProperty(value = \"" + data.getDesc() + "\", required = true)";
+                } else if (StringUtils.isNotBlank(data.getDesc()) && !data.getRequired()) {
+                    annotationText = "@ApiModelProperty(\"" + data.getDesc() + "\")";
+                } else if (StringUtils.isBlank(data.getDesc()) && data.getRequired()) {
+                    annotationText = "@ApiModelProperty(required = true)";
+                }
+
+                if (StringUtils.isNotBlank(annotationText)) {
+                    final PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
+                    PsiAnnotation newAnnotation = elementFactory.createAnnotationFromText(annotationText, psiField);
+                    // 调用生成逻辑
+                    WriteCommandAction.runWriteCommandAction(project, () -> {
+                        apiModelPropertyAnnotation.replace(newAnnotation);
+                    });
+
+                }
+                return;
+            }
+
+            // 不修改原有注解
+            if (!DocViewUtils.isRequired(psiField) && data.getRequired()) {
+                comment = "/** "
+                        + data.getDesc() + "\n"
+                        + "* @" + Settings.getInstance(project).getRequired()
+                        + " */";
+            } else {
+                comment = "/** "
+                        + data.getDesc()
+                        + " */";
+            }
+
+
+            PsiElementFactory factory = PsiElementFactory.getInstance(project);
+            PsiDocComment psiDocComment = factory.createDocCommentFromText(comment);
+            ServiceManager.getService(WriterService.class).write(project, element, psiDocComment);
+        }
+    }
+
+
 }
