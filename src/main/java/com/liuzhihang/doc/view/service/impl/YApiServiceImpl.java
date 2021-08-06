@@ -81,7 +81,7 @@ public class YApiServiceImpl implements YApiService {
 
             if (docView.getMethod().equals("Dubbo")) {
                 // dubbo 接口处理
-                save.setPath("/Dubbo/" + docView.getName());
+                save.setPath("/Dubbo/" + docView.getPsiMethod().getName());
                 save.setMethod("POST");
             } else {
                 save.setMethod(docView.getMethod());
@@ -95,7 +95,7 @@ public class YApiServiceImpl implements YApiService {
             save.setReqQuery(buildReqQuery(docView.getReqParamList()));
             save.setResBodyType("json");
             save.setResBody(buildJsonSchema(docView.getRespRootBody().getChildList()));
-            save.setDesc(buildDesc(docView));
+            save.setMarkdown(buildDesc(docView));
             save.setTitle(docView.getName());
 
             if (docView.getReqExampleType().equals("json")) {
@@ -109,7 +109,7 @@ public class YApiServiceImpl implements YApiService {
 
             DocViewNotification.notifyInfo(project, DocViewBundle.message("notify.yapi.upload.success", yapiInterfaceUrl));
         } catch (Exception e) {
-            DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.upload.error"));
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.upload.error", e.getMessage()));
             log.error("上传单个文档失败:{}", docView, e);
         }
 
@@ -125,9 +125,11 @@ public class YApiServiceImpl implements YApiService {
     private String buildDesc(DocView docView) {
 
 
-        return "**接口描述:**\n"
+        return "**接口名称:**\n\n"
+                + docView.getName() + "\n\n"
+                + "**接口描述:**\n\n"
                 + docView.getDesc() + "\n\n"
-                + "**请求示例:**\n"
+                + "**请求示例:**\n\n"
                 + docView.getReqExample() + "\n\n"
                 + "**返回示例:**\n\n"
                 + docView.getRespExample();

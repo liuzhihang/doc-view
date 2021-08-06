@@ -150,6 +150,7 @@ public class DocEditorForm {
                 .setCancelOnClickOutside(false)
                 // 在其他窗口打开时取消
                 .setCancelOnOtherWindowOpen(false)
+                .setMinSize(new Dimension(600, 380))
                 .setCancelOnWindowDeactivation(false)
                 .createPopup();
         popup.showCenteredInCurrentWindow(project);

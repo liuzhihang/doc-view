@@ -1,6 +1,7 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.google.common.collect.Lists;
+import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
@@ -30,7 +31,7 @@ public class CustomPsiCommentUtils {
      * @return
      */
     @NotNull
-    public static String getComment(PsiDocComment docComment, String tagName) {
+    public static String getDocComment(PsiDocComment docComment, String tagName) {
 
         if (docComment != null) {
             for (PsiElement element : docComment.getChildren()) {
@@ -57,7 +58,7 @@ public class CustomPsiCommentUtils {
      * @return
      */
     @NotNull
-    public static String getComment(PsiDocComment docComment) {
+    public static String getDocComment(PsiDocComment docComment) {
 
         StringBuilder sb = new StringBuilder();
 
@@ -74,6 +75,19 @@ public class CustomPsiCommentUtils {
         }
         return sb.toString();
     }
+
+    @NotNull
+    public static String getComment(PsiComment psiComment) {
+
+
+        if (psiComment != null && StringUtils.isNotBlank(psiComment.getText())) {
+            // 原注释中的换行符移除
+            return psiComment.getText().replace("/", StringUtils.EMPTY).trim();
+
+        }
+        return "";
+    }
+
 
     /**
      * 保留换行

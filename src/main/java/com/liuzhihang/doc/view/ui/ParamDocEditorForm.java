@@ -50,7 +50,7 @@ public class ParamDocEditorForm {
     private final Editor editor;
     private final PsiClass psiClass;
 
-    private ParamTreeTableModel treeTableModel;
+    private JXTreeTable treeTable;
 
     private JPanel rootPanel;
     private JPanel headToolbarPanel;
@@ -118,6 +118,7 @@ public class ParamDocEditorForm {
                 .setCancelOnClickOutside(false)
                 // 在其他窗口打开时取消
                 .setCancelOnOtherWindowOpen(false)
+                .setMinSize(new Dimension(600, 380))
                 .setCancelOnWindowDeactivation(false)
                 .createPopup();
         popup.showCenteredInCurrentWindow(project);
@@ -206,7 +207,11 @@ public class ParamDocEditorForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                DocViewUtils.writeComment(project, treeTableModel.getModifiedMap());
+                if (treeTable.isEditing()) {
+                    treeTable.getCellEditor().stopCellEditing();
+                }
+
+                DocViewUtils.writeComment(project, ((ParamTreeTableModel) treeTable.getTreeTableModel()).getModifiedMap());
                 popup.cancel();
             }
         });
@@ -243,17 +248,13 @@ public class ParamDocEditorForm {
         DefaultMutableTreeTableNode rootNode = new DefaultMutableTreeTableNode(paramData);
         ParamTreeTableUtils.createTreeData(rootNode, dataList);
 
-        treeTableModel = new ParamTreeTableModel(rootNode);
-
-        JXTreeTable treeTable = new JXTreeTable(treeTableModel);
+        treeTable = new JXTreeTable(new ParamTreeTableModel(rootNode));
 
         ParamTreeTableUtils.render(treeTable);
 
         paramScrollPane.setViewportView(treeTable);
 
     }
-
-
 
 
 }

@@ -8,6 +8,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.util.InheritanceUtil;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.constant.SwaggerConstant;
 import com.liuzhihang.doc.view.dto.DocViewParamData;
@@ -47,7 +48,7 @@ public class DocViewUtils {
 
         if (settings.getTitleUseCommentTag()) {
             // 注释 @DocView.Title
-            String docTitleTagValue = CustomPsiCommentUtils.getComment(psiClass.getDocComment(), settings.getTitleTag());
+            String docTitleTagValue = CustomPsiCommentUtils.getDocComment(psiClass.getDocComment(), settings.getTitleTag());
 
             if (StringUtils.isNotBlank(docTitleTagValue)) {
                 return docTitleTagValue;
@@ -57,7 +58,7 @@ public class DocViewUtils {
         if (settings.getTitleClassComment()) {
             // 获取类注释
 
-            String comment = CustomPsiCommentUtils.getComment(psiClass.getDocComment());
+            String comment = CustomPsiCommentUtils.getDocComment(psiClass.getDocComment());
 
             if (StringUtils.isNotBlank(comment)) {
                 return comment;
@@ -120,7 +121,7 @@ public class DocViewUtils {
 
         // 注释上的 tag
         if (settings.getNameUseCommentTag()) {
-            String comment = CustomPsiCommentUtils.getComment(psiMethod.getDocComment(), settings.getNameTag());
+            String comment = CustomPsiCommentUtils.getDocComment(psiMethod.getDocComment(), settings.getNameTag());
 
             if (StringUtils.isNotBlank(comment)) {
                 return comment;
@@ -130,7 +131,7 @@ public class DocViewUtils {
         if (settings.getNameMethodComment()) {
             // 获取类注释
 
-            String comment = CustomPsiCommentUtils.getComment(psiMethod.getDocComment());
+            String comment = CustomPsiCommentUtils.getDocComment(psiMethod.getDocComment());
 
             if (StringUtils.isNotBlank(comment)) {
                 return comment;
@@ -175,7 +176,7 @@ public class DocViewUtils {
         }
         // 最后从注释中获取
 
-        return CustomPsiCommentUtils.getComment(psiMethod.getDocComment());
+        return CustomPsiCommentUtils.getDocComment(psiMethod.getDocComment());
     }
 
 
@@ -326,12 +327,16 @@ public class DocViewUtils {
             }
         }
 
-        PsiDocComment docComment = psiField.getDocComment();
 
-        if (docComment != null) {
+        PsiComment comment = PsiTreeUtil.findChildOfType(psiField, PsiComment.class);
+
+        if (comment != null) {
             // param.setExample();
             // 参数举例, 使用 tag 判断
-            return CustomPsiCommentUtils.getComment(docComment);
+            if (comment instanceof PsiDocComment) {
+                return CustomPsiCommentUtils.getDocComment((PsiDocComment) comment);
+            }
+            return CustomPsiCommentUtils.getComment(comment);
         }
         return "";
     }
@@ -343,7 +348,7 @@ public class DocViewUtils {
 
         for (PsiElement element : modifyBodyMap.keySet()) {
             DocViewParamData data = modifyBodyMap.get(element);
-            String comment;
+            String docComment;
 
             PsiField psiField = (PsiField) element;
 
@@ -399,20 +404,27 @@ public class DocViewUtils {
 
             // 不修改原有注解
             if (!DocViewUtils.isRequired(psiField) && data.getRequired()) {
-                comment = "/** "
+                docComment = "/** "
                         + data.getDesc() + "\n"
                         + "* @" + Settings.getInstance(project).getRequired()
                         + " */";
             } else {
-                comment = "/** "
+                docComment = "/** "
                         + data.getDesc()
                         + " */";
             }
 
+            PsiComment comment = PsiTreeUtil.findChildOfType(psiField, PsiComment.class);
+
+            if (comment != null && !(comment instanceof PsiDocComment)) {
+                WriteCommandAction.runWriteCommandAction(project, comment::delete);
+            }
 
             PsiElementFactory factory = PsiElementFactory.getInstance(project);
-            PsiDocComment psiDocComment = factory.createDocCommentFromText(comment);
+            PsiDocComment psiDocComment = factory.createDocCommentFromText(docComment);
             ServiceManager.getService(WriterService.class).write(project, element, psiDocComment);
+
+
         }
     }
 

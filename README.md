@@ -9,20 +9,21 @@ Doc View
 特征
 ----
 
-- Controller/Dubbo 接口文档生成
-- 支持 validation、swagger 等注解
-- Markdown 接口查看、预览、复制、导出
-- 支持自定义生成接口的 Markdown 模版
-- 支持界面编辑文档、注释、并同步保存到代码注释中
-- 支持在编辑实体界面, 将实体复制为 Json 字符串
-- 支持上传文档到 YApi
-- 支持上传文档到 ShowDoc
-- 支持自定义配置
+- [x] Controller/Dubbo 接口文档生成
+- [x] 支持 validation、swagger 等注解
+- [x] Markdown 接口查看、预览、复制、导出
+- [x] 支持自定义生成接口的 Markdown 模版
+- [x] 支持界面编辑文档、注释、并同步保存到代码注释或 Swagger 注解中
+- [x] 支持在编辑实体界面, 将实体复制为 Json 字符串
+- [x] 支持上传文档到 YApi
+- [x] 支持上传文档到 ShowDoc
+- [x] 支持自定义配置
 
 演示
 ----
 
-![1111-l7NaTW](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/1111-l7NaTW.gif)
+![](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/122-zbZ9ps.gif)
+![](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/0YyY3m-CQdmD6.gif)
 
 [更多截图演示](https://github.com/liuzhihang/doc-view/discussions/17)
 

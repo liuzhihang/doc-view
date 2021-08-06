@@ -26,7 +26,6 @@ public class YApiSettings implements PersistentStateComponent<YApiSettings> {
 
     private String token;
 
-
     public static YApiSettings getInstance(@NotNull Project project) {
         return ServiceManager.getService(project, YApiSettings.class);
     }

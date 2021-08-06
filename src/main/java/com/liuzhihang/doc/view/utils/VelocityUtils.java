@@ -1,7 +1,6 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.liuzhihang.doc.view.dto.DocViewData;
-import org.apache.commons.collections.ExtendedProperties;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
@@ -41,7 +40,7 @@ public class VelocityUtils {
         velocityContext.put("DocView", data);
         boolean isSuccess = engine.evaluate(velocityContext, writer, VM_LOG_TAG, template);
         if (!isSuccess) {
-
+            return "ERROR";
         }
 
 
