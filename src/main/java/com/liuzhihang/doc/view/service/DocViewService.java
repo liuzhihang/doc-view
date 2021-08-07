@@ -27,12 +27,18 @@ public interface DocViewService {
 
     @Nullable
     static DocViewService getInstance(@NotNull Project project, @NotNull PsiClass targetClass) {
+        Settings settings = Settings.getInstance(project);
+
+        //spring cloud 的 feign client
+        if (targetClass.isInterface() && AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
+            return ServiceManager.getService(SpringDocViewServiceImpl.class);
+        }
+
+        // todo-zhangdd: 2021/8/7 直接使用是否是接口来判断是否是dubbo 不太合适
         // Dubbo
         if (targetClass.isInterface()) {
             return ServiceManager.getService(DubboDocViewServiceImpl.class);
         }
-
-        Settings settings = Settings.getInstance(project);
 
         // Spring
         if (AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
