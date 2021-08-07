@@ -14,6 +14,7 @@ public final class SpringConstant {
      */
     public static final String CONTROLLER = "org.springframework.stereotype.Controller";
     public static final String REST_CONTROLLER = "org.springframework.web.bind.annotation.RestController";
+    public static final String FEIGN_CLIENT="org.springframework.cloud.openfeign.FeignClient";
 
     /**
      * mapping

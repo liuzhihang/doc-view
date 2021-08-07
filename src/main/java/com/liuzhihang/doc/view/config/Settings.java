@@ -65,6 +65,7 @@ public class Settings implements PersistentStateComponent<Settings> {
     private Set<String> containClassAnnotationName = new HashSet<>() {{
         add(SpringConstant.CONTROLLER);
         add(SpringConstant.REST_CONTROLLER);
+        add(SpringConstant.FEIGN_CLIENT);
     }};
 
     /**
