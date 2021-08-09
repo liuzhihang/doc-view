@@ -54,10 +54,11 @@ public class TreeTableTest {
         DefaultMutableTreeNode child2 = new CustomNode("I am child name2", "I am child value");
         DefaultMutableTreeNode child3 = new CustomNode("I am child name3", "I am child value");
 
-
+        System.out.println(second.getAllowsChildren());
         second.add(child1);
         second.add(child2);
         second.add(child3);
+        System.out.println(second.getChildCount());
 
         ListTreeTableModel model = new ListTreeTableModel(root, columns);
         TreeTable treeTable = new TreeTable(model) {

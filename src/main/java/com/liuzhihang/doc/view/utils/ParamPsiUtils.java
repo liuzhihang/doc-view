@@ -300,6 +300,18 @@ public class ParamPsiUtils {
                 root.setQualifiedNameForClassType(psiClass.getQualifiedName());
 
                 if (InheritanceUtil.isInheritor(psiClass, CommonClassNames.JAVA_UTIL_COLLECTION)) {
+
+                    Body collectionBody = new Body();
+                    collectionBody.setRequired(true);
+                    collectionBody.setName("");
+                    collectionBody.setPsiElement(psiClass);
+                    collectionBody.setType(returnType.getPresentableText());
+                    collectionBody.setDesc("");
+                    collectionBody.setParent(root);
+
+                    root.getChildList().add(collectionBody);
+
+
                     PsiType[] parameters = psiClassType.getParameters();
                     if (parameters.length != 0) {
                         PsiType psiType = parameters[0];
@@ -312,7 +324,7 @@ public class ParamPsiUtils {
                         PsiClass genericsPsiClass = PsiUtil.resolveClassInClassTypeOnly(psiType);
 
                         if (genericsPsiClass != null) {
-                            buildBodyList(genericsPsiClass, null, root);
+                            buildBodyList(genericsPsiClass, null, collectionBody);
                         }
                     }
                 } else {

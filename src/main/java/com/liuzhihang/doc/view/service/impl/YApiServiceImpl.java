@@ -4,10 +4,7 @@ import com.google.gson.Gson;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.CommonClassNames;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiPrimitiveType;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
 import com.intellij.psi.util.InheritanceUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
@@ -220,6 +217,20 @@ public class YApiServiceImpl implements YApiService {
                     innerProperties.put("properties", objectProperties);
                 }
 
+            } else if (body.getPsiElement() instanceof PsiClass && InheritanceUtil.isInheritor((PsiClass) body.getPsiElement(), CommonClassNames.JAVA_UTIL_COLLECTION)) {
+                // 返回参数是 List<User>
+                List<String> itermRequiredList = new LinkedList<>();
+                Map<String, Object> iterm = new LinkedHashMap<>();
+                Map<String, Object> itermProperties = new LinkedHashMap<>();
+                buildProperties(itermRequiredList, itermProperties, body.getChildList());
+                iterm.put("type", "object");
+                iterm.put("required", itermRequiredList);
+                iterm.put("description", body.getType());
+                iterm.put("properties", itermProperties);
+
+                innerProperties.put("type", "array");
+                innerProperties.put("description", body.getType());
+                innerProperties.put("items", iterm);
 
             } else {
                 // 基础类型
