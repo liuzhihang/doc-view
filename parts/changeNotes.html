@@ -3,30 +3,22 @@
 
 <h4>English introduction</h4>
 <ul>
-    <li>1.1.7
+    <li>1.1.8
         <ol>
-            <li>Doc Editor UI adjusted to tree list</li>
-            <li>Doc Editor supports required and description of Swagger annotations</li>
-            <li>Modify the situation that the Dubbo interface cannot upload YApi</li>
-            <li>Fix String type field parsing error</li>
-            <li>Modify the condition that no comment fields are required by default</li>
-            <li>Support parsing field line comments and converting them to Java Doc comments after editing</li>
-            <li>Fixes for some other problems</li>
+            <li>fix: When the data type returned by the interface definition is a collection, the identity of the
+                collection is lost.
+            </li>
+            <li>merge: Support feign client</li>
         </ol>
     </li>
     <li><a href="https://github.com/liuzhihang/doc-view/blob/master/doc/ChangeNotes.md">More records</a></li>
 </ul>
 <h4>中文介绍</h4>
 <ul>
-    <li>1.1.7
+    <li>1.1.8
         <ol>
-            <li>Doc Editor UI 调整为树列表</li>
-            <li>Doc Editor 支持 Swagger 注解的必填和描述</li>
-            <li>修改 Dubbo 接口无法上传 YApi 的情况</li>
-            <li>修复 String 类型字段解析错误</li>
-            <li>修改无注释字段默认必填的情况</li>
-            <li>支持解析字段行注释,并在编辑后转换为 Java Doc 注释</li>
-            <li>其他一些问题的修复</li>
+            <li>fix: 当接口定义返回的数据类型是集合时，集合的标识丢失</li>
+            <li>merge: 支持spring cloud 的 feign client</li>
             <li>备注:当前版本使用 swingx-core 依赖生成 TreeTable, 导致插件包占用空间变大, 需要后期调整, 具体可参考:
                 https://youtrack.jetbrains.com/issue/IDEA-275249 ,如果小伙伴有其他解决方式, 希望可以联系我,或者提 Issue.
             </li>
