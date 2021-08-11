@@ -217,20 +217,34 @@ public class YApiServiceImpl implements YApiService {
                     innerProperties.put("properties", objectProperties);
                 }
 
-            } else if (body.getPsiElement() instanceof PsiClass && InheritanceUtil.isInheritor((PsiClass) body.getPsiElement(), CommonClassNames.JAVA_UTIL_COLLECTION)) {
-                // 返回参数是 List<User>
-                List<String> itermRequiredList = new LinkedList<>();
-                Map<String, Object> iterm = new LinkedHashMap<>();
-                Map<String, Object> itermProperties = new LinkedHashMap<>();
-                buildProperties(itermRequiredList, itermProperties, body.getChildList());
-                iterm.put("type", "object");
-                iterm.put("required", itermRequiredList);
-                iterm.put("description", body.getType());
-                iterm.put("properties", itermProperties);
+            } else if (body.getPsiElement() instanceof PsiClass) {
 
-                innerProperties.put("type", "array");
-                innerProperties.put("description", body.getType());
-                innerProperties.put("items", iterm);
+                if (InheritanceUtil.isInheritor((PsiClass) body.getPsiElement(), CommonClassNames.JAVA_UTIL_COLLECTION)) {
+                    // 参数是 List<User>
+                    List<String> itermRequiredList = new LinkedList<>();
+                    Map<String, Object> iterm = new LinkedHashMap<>();
+                    Map<String, Object> itermProperties = new LinkedHashMap<>();
+                    buildProperties(itermRequiredList, itermProperties, body.getChildList());
+                    iterm.put("type", "object");
+                    iterm.put("required", itermRequiredList);
+                    iterm.put("description", body.getType());
+                    iterm.put("properties", itermProperties);
+
+                    innerProperties.put("type", "array");
+                    innerProperties.put("description", body.getType());
+                    innerProperties.put("items", iterm);
+                } else {
+                    // InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_MAP)
+                    List<String> objectRequiredList = new LinkedList<>();
+                    Map<String, Object> objectProperties = new LinkedHashMap<>();
+
+                    buildProperties(objectRequiredList, objectProperties, body.getChildList());
+                    innerProperties.put("type", "object");
+                    innerProperties.put("required", objectRequiredList);
+                    innerProperties.put("description", body.getType());
+                    innerProperties.put("properties", objectProperties);
+
+                }
 
             } else {
                 // 基础类型

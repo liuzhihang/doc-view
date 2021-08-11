@@ -69,13 +69,21 @@ public class DubboPsiUtils {
             } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_COLLECTION)) {
                 PsiType iterableType = PsiUtil.extractIterableTypeParameter(type, false);
                 childClass = PsiUtil.resolveClassInClassTypeOnly(iterableType);
+
+                body.setPsiElement(childClass);
+
             } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_MAP)) {
                 //  map
                 PsiType matValueType = PsiUtil.substituteTypeParameter(type, CommonClassNames.JAVA_UTIL_MAP, 1, false);
                 childClass = PsiUtil.resolveClassInClassTypeOnly(matValueType);
+
+                body.setPsiElement(childClass);
+
             } else if (type instanceof PsiClassType) {
                 // 对象
                 childClass = PsiUtil.resolveClassInClassTypeOnly(type);
+
+                body.setPsiElement(childClass);
 
             } else {
                 // 未知类型
