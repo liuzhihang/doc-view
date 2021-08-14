@@ -59,6 +59,16 @@ public class ParamPsiUtils {
 
             childClass = PsiUtil.resolveClassInClassTypeOnly(iterableType);
 
+            if (genericMap != null) {
+                PsiType psiType = genericMap.get(iterableType.getPresentableText());
+                if (FieldTypeConstant.FIELD_TYPE.containsKey(psiType.getPresentableText())) {
+                    body.setType(psiType.getPresentableText());
+                    return;
+                }
+                childClass = PsiUtil.resolveClassInClassTypeOnly(psiType);
+            }
+
+
         } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_MAP)) {
             // HashMap or Map
             PsiType matValueType = PsiUtil.substituteTypeParameter(type, CommonClassNames.JAVA_UTIL_MAP, 1, false);
