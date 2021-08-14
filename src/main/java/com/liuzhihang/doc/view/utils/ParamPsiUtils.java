@@ -90,6 +90,10 @@ public class ParamPsiUtils {
                 return;
             }
             PsiType psiType = genericMap.get(type.getPresentableText());
+           // todo-zhangdd: 2021/8/14 如果范型是个集合 ,当前方法最好对 各个类型的处理做个单一对应的处理方法来实现
+            if (InheritanceUtil.isInheritor(psiType, CommonClassNames.JAVA_UTIL_COLLECTION)) {
+
+            }
             childClassType = (PsiClassType) psiType;
 
             if (FieldTypeConstant.FIELD_TYPE.containsKey(psiType.getPresentableText())) {
