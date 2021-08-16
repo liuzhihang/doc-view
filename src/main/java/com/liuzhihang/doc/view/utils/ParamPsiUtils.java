@@ -46,10 +46,12 @@ public class ParamPsiUtils {
         // 字段如果是类, 则会继续对当前 body 进行设置 child
 
         PsiClass childClass;
+        PsiClassType childClassType = null;
 
         if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_COLLECTION)) {
             // List Set or HashSet
             PsiType iterableType = PsiUtil.extractIterableTypeParameter(type, false);
+            childClassType = (PsiClassType) iterableType;
 
             if (iterableType instanceof PsiPrimitiveType
                     || iterableType == null
@@ -59,9 +61,21 @@ public class ParamPsiUtils {
 
             childClass = PsiUtil.resolveClassInClassTypeOnly(iterableType);
 
+            if (genericMap != null) {
+                PsiType psiType = genericMap.get(iterableType.getPresentableText());
+                childClassType = (PsiClassType) psiType;
+                if (FieldTypeConstant.FIELD_TYPE.containsKey(psiType.getPresentableText())) {
+                    body.setType(psiType.getPresentableText());
+                    return;
+                }
+                childClass = PsiUtil.resolveClassInClassTypeOnly(psiType);
+            }
+
+
         } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_MAP)) {
             // HashMap or Map
             PsiType matValueType = PsiUtil.substituteTypeParameter(type, CommonClassNames.JAVA_UTIL_MAP, 1, false);
+            childClassType = (PsiClassType) matValueType;
 
             if (matValueType instanceof PsiPrimitiveType
                     || matValueType == null
@@ -76,6 +90,11 @@ public class ParamPsiUtils {
                 return;
             }
             PsiType psiType = genericMap.get(type.getPresentableText());
+           // todo-zhangdd: 2021/8/14 如果范型是个集合 ,当前方法最好对 各个类型的处理做个单一对应的处理方法来实现
+            if (InheritanceUtil.isInheritor(psiType, CommonClassNames.JAVA_UTIL_COLLECTION)) {
+
+            }
+            childClassType = (PsiClassType) psiType;
 
             if (FieldTypeConstant.FIELD_TYPE.containsKey(psiType.getPresentableText())) {
                 body.setType(psiType.getPresentableText());
@@ -98,9 +117,11 @@ public class ParamPsiUtils {
             body.setQualifiedNameForClassType(qualifiedName);
         }
 
+        Map<String, PsiType> map = CustomPsiUtils.getGenericMap(childClass, childClassType);
+
         for (PsiField psiField : childClass.getAllFields()) {
             if (!DocViewUtils.isExcludeField(psiField)) {
-                buildBodyParam(psiField, null, body);
+                buildBodyParam(psiField, map, body);
             }
         }
     }
