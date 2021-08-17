@@ -3,6 +3,7 @@ package com.liuzhihang.doc.view.utils;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,9 +95,18 @@ public class CustomPsiUtils {
     }
 
 
-    public static @Nullable Map<String, PsiType> getGenericMap(@NotNull PsiClass psiClass, PsiClassType psiClassType) {
+    /**
+     * 获取泛型Map, 将泛型的 参数和实际指定的泛型进行对应
+     *
+     * @param psiClassType 实际返回的填写泛型的代码 Result<User>
+     * @return key 是 泛型参数 T K , value 是实际参数中写的类型
+     */
+    public static @Nullable Map<String, PsiType> getGenericsMap(@NotNull PsiClassType psiClassType) {
 
-        if (!psiClass.hasTypeParameters()) {
+        // 转换为原始类 Result<T>
+        PsiClass psiClass = PsiUtil.resolveClassInClassTypeOnly(psiClassType);
+
+        if (psiClass == null || !psiClass.hasTypeParameters()) {
             // 无泛型
             return null;
         }

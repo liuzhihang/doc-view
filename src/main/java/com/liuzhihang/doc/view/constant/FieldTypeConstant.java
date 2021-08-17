@@ -22,6 +22,12 @@ public final class FieldTypeConstant {
     public static final Set<String> BASE_TYPE_SET = Sets.newHashSet("byte", "short", "int", "long", "char", "float",
             "double", "boolean");
 
+    /**
+     * 包装类型 & String
+     */
+    public static final Set<String> PACKAGE_TYPE_SET = Sets.newHashSet("Byte", "Short", "Integer", "Long", "Float", "Double",
+            "Boolean", "String");
+
     static {
         // 包装数据类型
         FIELD_TYPE.put("Byte", 0);
