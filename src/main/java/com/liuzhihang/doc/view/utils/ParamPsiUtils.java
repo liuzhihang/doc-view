@@ -80,7 +80,7 @@ public class ParamPsiUtils {
             // 集合参数构建, 集合就一个参数, 泛型 E
             fieldGenericsMap = CustomPsiUtils.getGenericsMap((PsiClassType) iterableType);
             parentBody = buildFieldGenericsBody("E", childClass, body);
-            parent.getChildList().add(parentBody);
+
 
         } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_MAP)) {
             // HashMap or Map 的泛型获取 value
@@ -95,8 +95,7 @@ public class ParamPsiUtils {
                 return;
             }
 
-            Body matKeyBody = buildFieldGenericsBody("key", matKeyClass, body);
-            parent.getChildList().add(matKeyBody);
+            buildFieldGenericsBody("key", matKeyClass, body);
 
             // Value
             PsiType matValueType = PsiUtil.substituteTypeParameter(type, CommonClassNames.JAVA_UTIL_MAP, 1, false);
@@ -111,7 +110,7 @@ public class ParamPsiUtils {
 
             fieldGenericsMap = CustomPsiUtils.getGenericsMap((PsiClassType) matValueType);
             parentBody = buildFieldGenericsBody("value", childClass, body);
-            parent.getChildList().add(parentBody);
+
 
         } else if (fieldClass.isEnum() || fieldClass.isInterface() || fieldClass.isAnnotationType()) {
             // 字段是类, 也可能带泛型
@@ -142,6 +141,7 @@ public class ParamPsiUtils {
         listBody.setDesc("");
         listBody.setParent(parent);
 
+        parent.getChildList().add(listBody);
         return listBody;
     }
 
