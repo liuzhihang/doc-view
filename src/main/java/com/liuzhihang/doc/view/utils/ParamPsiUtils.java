@@ -1,6 +1,7 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
@@ -30,11 +31,6 @@ public class ParamPsiUtils {
 
         PsiType type = field.getType();
 
-        // 如果是泛型, 且泛型字段是当前字段, 将当前字段类型替换为泛型类型
-        if (genericsMap != null && genericsMap.containsKey(type.getPresentableText())) {
-            type = genericsMap.get(type.getPresentableText());
-        }
-
         Body body = new Body();
         body.setRequired(DocViewUtils.isRequired(field));
         body.setName(field.getName());
@@ -47,6 +43,12 @@ public class ParamPsiUtils {
         if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
             return;
         }
+
+        // 提前替换字段比如 T -> UserDTO   List<T> -> List<UserDTO>
+        // 如果是泛型, 且泛型字段是当前字段, 将当前字段类型替换为泛型类型, 替换完之后重新设置 body 的 type
+        type = replaceFieldType(genericsMap, type);
+        body.setType(type.getPresentableText());
+
         // 剩下都是 PsiClass 类型处理
         PsiClass fieldClass = PsiUtil.resolveClassInClassTypeOnly(type);
 
@@ -79,7 +81,7 @@ public class ParamPsiUtils {
             }
             // 集合参数构建, 集合就一个参数, 泛型 E
             fieldGenericsMap = CustomPsiUtils.getGenericsMap((PsiClassType) iterableType);
-            parentBody = buildFieldGenericsBody("E", childClass, body);
+            parentBody = buildFieldGenericsBody("element", childClass, body);
 
 
         } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_MAP)) {
@@ -129,6 +131,68 @@ public class ParamPsiUtils {
             }
         }
 
+    }
+
+    /**
+     * 判断当前字段是否含有泛型, 从泛型映射表中替换字段类型
+     * <p>
+     * 替换字段比如 T -> UserDTO   List<T> -> List<UserDTO>
+     *
+     * @param genericsMap 含有泛型的 Map
+     * @param type        当前字段的类型
+     * @return
+     */
+    private static PsiType replaceFieldType(Map<String, PsiType> genericsMap, PsiType type) {
+
+        if (genericsMap == null || genericsMap.isEmpty()) {
+            return type;
+        }
+
+        if (!(type instanceof PsiClassType)) {
+            return type;
+        }
+
+        if (!(type instanceof PsiClassReferenceType)) {
+            return type;
+        }
+
+        // 当前字段的类型就是泛型 private T data;
+        if (genericsMap.containsKey(type.getPresentableText())) {
+            return genericsMap.get(type.getPresentableText());
+        }
+
+        // 当前字段含有泛型 List<T> -> List<UserDTO>
+        PsiClass fieldClass = PsiUtil.resolveClassInClassTypeOnly(type);
+
+        if (fieldClass == null || !fieldClass.hasTypeParameters()) {
+            return type;
+        }
+
+        PsiType[] parameters = ((PsiClassType) type).getParameters();
+
+        List<PsiType> psiTypeList = new ArrayList<>();
+        // 替换泛型为实际类型
+        for (PsiType psiType : parameters) {
+
+            if (genericsMap.get(psiType.getPresentableText()) == null) {
+                psiTypeList.add(psiType);
+            } else {
+                psiTypeList.add(genericsMap.get(psiType.getPresentableText()));
+            }
+        }
+
+        if (!psiTypeList.isEmpty()) {
+
+            PsiType[] psiTypes = new PsiType[psiTypeList.size()];
+
+            for (int i = 0; i < psiTypeList.size(); i++) {
+                psiTypes[i] = psiTypeList.get(i);
+            }
+
+            return PsiElementFactory.getInstance(fieldClass.getProject()).createType(fieldClass, psiTypes);
+        }
+
+        return type;
     }
 
     @NotNull
@@ -201,17 +265,14 @@ public class ParamPsiUtils {
             PsiType type = field.getType();
             String name = field.getName();
 
-            // 如果是泛型, 且泛型字段是当前字段, 将当前字段类型替换为泛型类型
-            if (genericMap != null && genericMap.containsKey(type.getPresentableText())) {
-                type = genericMap.get(type.getPresentableText());
-            }
-
-
             if (type instanceof PsiPrimitiveType) {
                 // 基本类型
                 fieldMap.put(name, PsiTypesUtil.getDefaultValue(type));
                 continue;
             }
+
+            // 如果是泛型, 且泛型字段是当前字段, 将当前字段类型替换为泛型类型
+            type = replaceFieldType(genericMap, type);
 
             // 引用类型
             String fieldTypeName = type.getPresentableText();
