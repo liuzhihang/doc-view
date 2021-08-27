@@ -4,7 +4,6 @@ import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.config.ShowDocSettings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
@@ -42,18 +41,11 @@ public class ShowDocServiceImpl implements ShowDocService {
         try {
             ShowDocSettings settings = ShowDocSettings.getInstance(project);
 
-            String catName = docView.getDocTitle();
-
-            // 全类名过长
-            if (Settings.getInstance(project).getTitleUseFullClassName() && catName.contains(".")) {
-                catName = catName.substring(catName.lastIndexOf("."));
-            }
-
             ShowDocUpdateRequest request = new ShowDocUpdateRequest();
             request.setShowDocUrl(settings.getUrl());
             request.setApiKey(settings.getApiKey());
             request.setApiToken(settings.getApiToken());
-            request.setCatName(catName);
+            request.setCatName(docView.getDocTitle());
             request.setPageTitle(docView.getName());
             request.setPageContent(DocViewData.markdownText(project, docView));
 

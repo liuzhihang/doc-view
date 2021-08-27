@@ -276,18 +276,10 @@
           </hspacer>
           <component id="1cc88" class="javax.swing.JCheckBox" binding="titleFullClassNameCheckBox" default-binding="true">
             <constraints>
-              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <text resource-bundle="messages/DocViewBundle" key="settings.doc.title.full"/>
-            </properties>
-          </component>
-          <component id="68b8c" class="javax.swing.JCheckBox" binding="titleSimpleClassNameCheckBox" default-binding="true">
-            <constraints>
               <grid row="0" column="3" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="messages/DocViewBundle" key="settings.doc.title.simple"/>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.title.full"/>
             </properties>
           </component>
           <component id="9a331" class="javax.swing.JCheckBox" binding="titleClassCommentCheckBox" default-binding="true">
@@ -306,6 +298,14 @@
               <enabled value="false"/>
               <selected value="true"/>
               <text value="DocView"/>
+            </properties>
+          </component>
+          <component id="68b8c" class="javax.swing.JCheckBox" binding="titleSimpleClassNameCheckBox" default-binding="true">
+            <constraints>
+              <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.title.simple"/>
             </properties>
           </component>
         </children>

@@ -41,7 +41,6 @@ public class CustomPsiCommentUtils {
                 }
 
                 return element.getText()
-                        .replaceAll("[/*]+", StringUtils.EMPTY)
                         .replace(("@" + tagName), StringUtils.EMPTY)
                         .trim();
 
@@ -69,7 +68,7 @@ public class CustomPsiCommentUtils {
                     continue;
                 }
                 // 原注释中的换行符移除
-                sb.append(element.getText().replaceAll("[/* \n]+", StringUtils.EMPTY));
+                sb.append(element.getText().replaceAll("[* \n]+", StringUtils.EMPTY));
 
             }
         }
