@@ -2,6 +2,7 @@ package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
@@ -314,7 +315,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
             PsiType type = parameter.getType();
 
             if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
-                list.add(buildPramFromParameter(parameter));
+                list.add(buildPramFromParameter(psiMethod, parameter));
             } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_COLLECTION)) {
             } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_MAP)) {
             } else {
@@ -358,7 +359,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
 
 
     @NotNull
-    private static Param buildPramFromParameter(PsiParameter parameter) {
+    private static Param buildPramFromParameter(PsiMethod psiMethod, PsiParameter parameter) {
 
         Param param = new Param();
         param.setRequired(false);
@@ -382,8 +383,14 @@ public class SpringPsiUtils extends ParamPsiUtils {
         }
 
         param.setName(parameter.getName());
-        String fieldTypeName = parameter.getType().getPresentableText();
-        param.setType(fieldTypeName);
+        param.setType(parameter.getType().getPresentableText());
+
+        // 备注需要从注释中获取
+        PsiDocComment docComment = psiMethod.getDocComment();
+        if (docComment != null) {
+            param.setDesc(CustomPsiCommentUtils.getMethodParam(docComment, parameter));
+        }
+
 
         return param;
     }

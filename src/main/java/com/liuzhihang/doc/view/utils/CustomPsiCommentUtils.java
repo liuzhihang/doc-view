@@ -3,6 +3,7 @@ package com.liuzhihang.doc.view.utils;
 import com.google.common.collect.Lists;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiParameter;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.javadoc.PsiDocTagValue;
@@ -49,6 +50,34 @@ public class CustomPsiCommentUtils {
 
         return "";
     }
+
+    /**
+     * 获取方法字段的注释
+     *
+     * @param docComment
+     * @param parameter
+     * @return
+     */
+    @NotNull
+    public static String getMethodParam(PsiDocComment docComment, @NotNull PsiParameter parameter) {
+
+        if (docComment != null) {
+            for (PsiElement element : docComment.getChildren()) {
+
+                if (!("PsiDocTag:@param").equalsIgnoreCase(element.toString())) {
+                    continue;
+                }
+
+                if (element.getText().startsWith("@param " + parameter.getName())) {
+                    return element.getText().substring(("@param " + parameter.getName()).length(), element.getText().indexOf("\n"));
+                }
+
+            }
+        }
+
+        return "";
+    }
+
 
     /**
      * 获取注释, 没有 tag 的注释

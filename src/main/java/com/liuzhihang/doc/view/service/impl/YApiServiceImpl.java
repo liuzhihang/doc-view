@@ -118,9 +118,13 @@ public class YApiServiceImpl implements YApiService {
                 + "**接口描述:**\n\n"
                 + docView.getDesc() + "\n\n"
                 + "**请求示例:**\n\n"
-                + docView.getReqExample() + "\n\n"
+                + "```" + docView.getReqExampleType() + "\n" +
+                (docView.getReqExample() == null ? "" : docView.getReqExample()) + "\n" +
+                "```" + "\n\n"
                 + "**返回示例:**\n\n"
-                + docView.getRespExample();
+                + "```json\n" +
+                (docView.getRespExample() == null ? "" : docView.getRespExample()) + "\n" +
+                "```\n\n";
     }
 
     /**
