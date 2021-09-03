@@ -23,7 +23,7 @@ public class DocViewParamData {
     /**
      * 前缀
      */
-    private String prefix;
+    private String prefix = "";
 
     /**
      * 参数名
