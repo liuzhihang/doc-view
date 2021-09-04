@@ -61,6 +61,8 @@ Doc View
 感谢以下小伙伴的参与:
 
 [lvgo](https://github.com/lvgocc)
+[知一](https://github.com/zh-d-d)
+[大斌](https://github.com/dabinaa)
 
 
 
