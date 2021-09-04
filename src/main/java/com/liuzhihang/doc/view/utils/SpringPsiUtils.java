@@ -2,6 +2,8 @@ package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.psi.*;
+import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.liuzhihang.doc.view.config.Settings;
@@ -97,7 +99,11 @@ public class SpringPsiUtils extends ParamPsiUtils {
         }
         String value = AnnotationUtil.getStringAttributeValue(annotation, "value");
         if (value != null) {
-            return value;
+            if (value.startsWith("/")) {
+                return value;
+            } else {
+                return "/" + value;
+            }
         }
         return "";
     }
@@ -282,30 +288,78 @@ public class SpringPsiUtils extends ParamPsiUtils {
 
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
 
+        Set<String> paramNameSet = new HashSet<>();
         List<Param> list = new ArrayList<>();
         for (PsiParameter parameter : parameters) {
 
+            // 有 @RequestBody 注解
             if (AnnotationUtil.isAnnotated(parameter, SpringConstant.REQUEST_BODY, 0)) {
                 continue;
             }
 
+            // 有 @RequestHeader 注解
             if (AnnotationUtil.isAnnotated(parameter, SpringConstant.REQUEST_HEADER, 0)) {
+                continue;
+            }
+
+            // 需要排除的字段
+            if (DocViewUtils.isExcludeParameter(parameter)) {
+                continue;
+            }
+
+            // 已经包含该字段
+            if (!paramNameSet.add(parameter.getName())) {
                 continue;
             }
 
             PsiType type = parameter.getType();
 
             if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
-                list.add(buildPramFromParameter(parameter));
+                list.add(buildPramFromParameter(psiMethod, parameter));
+            } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_COLLECTION)) {
+            } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_MAP)) {
+            } else {
+                PsiClass fieldClass = PsiUtil.resolveClassInClassTypeOnly(type);
+                if (fieldClass == null) {
+                    continue;
+                }
+                // 参数是类, get 请求只有一层
+                PsiField[] psiFields = fieldClass.getAllFields();
+                for (PsiField field : psiFields) {
+                    // 已经包含该字段
+                    if (!paramNameSet.add(field.getName())) {
+                        continue;
+                    }
+
+                    if (field.getType() instanceof PsiPrimitiveType
+                            || FieldTypeConstant.FIELD_TYPE.containsKey(field.getType().getPresentableText())) {
+                        list.add(buildPramFromField(field));
+                    }
+
+                }
             }
-            // 在 param 中不存在对象类型
+
         }
         return list;
 
     }
 
     @NotNull
-    private static Param buildPramFromParameter(PsiParameter parameter) {
+    private static Param buildPramFromField(PsiField field) {
+
+        Param param = new Param();
+        param.setPsiElement(field);
+        param.setRequired(DocViewUtils.isRequired(field));
+        param.setName(field.getName());
+        param.setDesc(DocViewUtils.fieldDesc(field));
+        param.setType(field.getType().getPresentableText());
+
+        return param;
+    }
+
+
+    @NotNull
+    private static Param buildPramFromParameter(PsiMethod psiMethod, PsiParameter parameter) {
 
         Param param = new Param();
         param.setRequired(false);
@@ -329,8 +383,14 @@ public class SpringPsiUtils extends ParamPsiUtils {
         }
 
         param.setName(parameter.getName());
-        String fieldTypeName = parameter.getType().getPresentableText();
-        param.setType(fieldTypeName);
+        param.setType(parameter.getType().getPresentableText());
+
+        // 备注需要从注释中获取
+        PsiDocComment docComment = psiMethod.getDocComment();
+        if (docComment != null) {
+            param.setDesc(CustomPsiCommentUtils.getMethodParam(docComment, parameter));
+        }
+
 
         return param;
     }

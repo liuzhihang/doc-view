@@ -75,7 +75,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
             PsiParameter requestBodyParam = SpringPsiUtils.getRequestBodyParam(psiMethod);
 
             if (requestBodyParam != null) {
-                // 有requestBody
+                // 有requestBody, 则 Content-Type: application/json
                 headerList.add(SpringHeaderUtils.buildJsonHeader());
                 docView.setReqRootBody(SpringPsiUtils.buildBody(requestBodyParam));
                 docView.setReqExample(SpringPsiUtils.getReqBodyJson(requestBodyParam, settings));
@@ -83,11 +83,10 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
             } else {
                 headerList.add(SpringHeaderUtils.buildFormHeader());
-                docView.setReqParamList(SpringPsiUtils.buildFormParam(psiMethod));
-                docView.setReqExample(SpringPsiUtils.getReqParamKV(docView.getReqParamList()));
                 docView.setReqExampleType("form");
-
+                docView.setReqExample(SpringPsiUtils.getReqParamKV(docView.getReqParamList()));
             }
+            docView.setReqParamList(SpringPsiUtils.buildFormParam(psiMethod));
 
             // 处理 header
             List<Header> headers = SpringPsiUtils.buildHeader(psiMethod);
