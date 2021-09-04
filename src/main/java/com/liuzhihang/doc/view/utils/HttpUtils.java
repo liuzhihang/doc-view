@@ -26,11 +26,10 @@ public class HttpUtils {
      */
     public static String get(String url) throws IOException {
         try {
-
             HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
             connection.connect();
             // 获取输入流
-            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8));
             String line;
             StringBuilder sb = new StringBuilder();
             while ((line = br.readLine()) != null) {
