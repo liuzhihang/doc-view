@@ -7,7 +7,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.InheritanceUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.config.YApiSettings;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.Body;
@@ -55,20 +54,12 @@ public class YApiServiceImpl implements YApiService {
     @Override
     public void upload(@NotNull Project project, @NotNull DocView docView) {
 
-        String catName = docView.getDocTitle();
-
-        // 全类名过长
-        if (Settings.getInstance(project).getTitleUseFullClassName() && catName.contains(".")) {
-            catName = catName.substring(catName.lastIndexOf(".") + 1);
-        }
-
-
         try {
             YApiSettings settings = YApiSettings.getInstance(project);
 
             YApiFacadeService facadeService = ServiceManager.getService(YApiFacadeServiceImpl.class);
 
-            YApiCat cat = getOrAddCat(settings, catName);
+            YApiCat cat = getOrAddCat(settings, docView.getDocTitle());
 
             YapiSave save = new YapiSave();
             save.setYapiUrl(settings.getUrl());
@@ -127,9 +118,13 @@ public class YApiServiceImpl implements YApiService {
                 + "**接口描述:**\n\n"
                 + docView.getDesc() + "\n\n"
                 + "**请求示例:**\n\n"
-                + docView.getReqExample() + "\n\n"
+                + "```" + docView.getReqExampleType() + "\n" +
+                (docView.getReqExample() == null ? "" : docView.getReqExample()) + "\n" +
+                "```" + "\n\n"
                 + "**返回示例:**\n\n"
-                + docView.getRespExample();
+                + "```json\n" +
+                (docView.getRespExample() == null ? "" : docView.getRespExample()) + "\n" +
+                "```\n\n";
     }
 
     /**

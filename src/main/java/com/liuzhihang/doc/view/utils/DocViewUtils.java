@@ -65,19 +65,19 @@ public class DocViewUtils {
             }
         }
 
+        if (settings.getTitleUseSimpleClassName()) {
+            String className = psiClass.getName();
+            if (StringUtils.isNotBlank(className)) {
+                return className;
+            }
+        }
+
         if (settings.getTitleUseFullClassName()) {
             // 获取全类名
             String fullClassName = psiClass.getQualifiedName();
 
             if (StringUtils.isNotBlank(fullClassName)) {
                 return fullClassName;
-            }
-        }
-
-        if (settings.getTitleUseSimpleClassName()) {
-            String className = psiClass.getName();
-            if (StringUtils.isNotBlank(className)) {
-                return className;
             }
         }
 

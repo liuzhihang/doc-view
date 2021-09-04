@@ -35,8 +35,8 @@ public class Settings implements PersistentStateComponent<Settings> {
     private String titleTag = "DocView.Title";
     private Boolean titleUseCommentTag = true;
     private Boolean titleClassComment = true;
-    private Boolean titleUseFullClassName = true;
     private Boolean titleUseSimpleClassName = true;
+    private Boolean titleUseFullClassName = true;
 
     /**
      * 接口名字

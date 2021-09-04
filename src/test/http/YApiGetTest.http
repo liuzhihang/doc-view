@@ -1,0 +1,44 @@
+###
+POST http://apidoc.xxx.com:3000/api/interface/save
+Content-Type: application/json
+
+{
+  "yapiUrl": "http://apidoc.opaydev.com:3000",
+  "token": "33622ea7067e12c0d632e1362a2eec5964175bc3bd601bb12d5696e8ee38126c",
+  "projectId": 116,
+  "id": null,
+  "catid": 1649,
+  "path": "/user/requestParamUserAc11",
+  "method": "GET",
+  "req_body_type": "form",
+  "req_body_other": null,
+  "req_body_is_json_schema": true,
+  "req_body_form": [
+    {
+      "name": "userId",
+      "type": "String",
+      "example": null,
+      "desc": "",
+      "required": "0"
+    }
+  ],
+  "req_params": [],
+  "req_headers": [
+    {
+      "name": "Content-Type",
+      "example": null,
+      "desc": "application/x-www-form-urlencoded",
+      "value": "application/x-www-form-urlencoded",
+      "required": "1"
+    }
+  ],
+  "req_query": [],
+  "res_body_type": "json",
+  "res_body": "{\"description\":\" \",\"type\":\"object\",\"title\":\" \",\"required\":[],\"properties\":{\"code\":{\"type\":{},\"description\":\"响应码\"},\"msg\":{\"type\":{},\"description\":\"响应信息\"},\"data\":{\"type\":{},\"description\":\"响应数据\"}}}",
+  "desc": "",
+  "title": "requestParamUser111",
+  "switch_notice": false,
+  "status": "undone",
+  "res_body_is_json_schema": true,
+  "markdown": "**接口名称:**\n\nrequestParamUser111\n\n**接口描述:**\n\n\n\n**请求示例:**\n\nnull\n\n**返回示例:**\n\n{\n    \"code\": \"\",\n    \"msg\": \"\",\n    \"data\": {\n        \"userId\": \"\"\n    }\n}"
+}
