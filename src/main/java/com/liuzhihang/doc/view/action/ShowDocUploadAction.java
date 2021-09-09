@@ -12,6 +12,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.config.ShowDocSettings;
 import com.liuzhihang.doc.view.config.ShowDocSettingsConfigurable;
 import com.liuzhihang.doc.view.config.YApiSettings;
 import com.liuzhihang.doc.view.dto.DocView;
@@ -70,11 +71,11 @@ public class ShowDocUploadAction extends AnAction {
             return;
         }
 
-        YApiSettings apiSettings = YApiSettings.getInstance(project);
+        ShowDocSettings apiSettings = ShowDocSettings.getInstance(project);
 
         if (StringUtils.isBlank(apiSettings.getUrl())
-                || apiSettings.getProjectId() == null
-                || StringUtils.isBlank(apiSettings.getToken())) {
+                || StringUtils.isBlank(apiSettings.getApiKey())
+                || StringUtils.isBlank(apiSettings.getApiToken())) {
             DocViewNotification.notifyError(project, DocViewBundle.message("notify.showdoc.info.settings"));
             ShowSettingsUtil.getInstance().showSettingsDialog(e.getProject(), ShowDocSettingsConfigurable.class);
             return;
