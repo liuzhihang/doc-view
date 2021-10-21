@@ -65,6 +65,11 @@ public class Settings implements PersistentStateComponent<Settings> {
     private Boolean mergeExport = true;
 
     /**
+     * 是否显示边栏标记
+     */
+    private Boolean lineMarker = true;
+
+    /**
      * 包含类注解名称
      */
     private Set<String> containClassAnnotationName = new HashSet<>() {{

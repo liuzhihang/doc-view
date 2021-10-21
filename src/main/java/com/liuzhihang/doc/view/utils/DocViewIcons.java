@@ -5,12 +5,13 @@ import com.intellij.openapi.util.IconLoader;
 import javax.swing.*;
 
 /**
+ * 图标管理
+ *
  * @author liuzhihang
  * @date 2021/2/28 14:49
  */
-public class DocViewIcons {
+public interface DocViewIcons {
 
-    public static final Icon exportAll = IconLoader.getIcon("/icons/icon_export_all.svg", DocViewIcons.class);
-    public static final Icon submitDB = IconLoader.getIcon("/icons/submitDB.svg", DocViewIcons.class);
+    Icon DOC_VIEW = IconLoader.getIcon("/icons/doc.svg", DocViewIcons.class);
 
 }

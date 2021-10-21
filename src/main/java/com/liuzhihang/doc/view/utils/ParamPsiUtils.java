@@ -467,7 +467,7 @@ public class ParamPsiUtils {
 
     public static void buildBodyList(@NotNull PsiClass psiClass, Map<String, PsiType> genericMap, Body parent) {
 
-        for (PsiField field : psiClass.getAllFields()) {
+        for (PsiField field : psiClass.getFields()) {
 
             if (DocViewUtils.isExcludeField(field)) {
                 continue;

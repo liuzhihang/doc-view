@@ -74,7 +74,7 @@ public class PreviewAction extends AnAction {
             return;
         }
 
-        PreviewForm.getInstance(project, psiFile, editor, targetClass, docViewList).popup();
+        PreviewForm.getInstance(project, psiFile, targetClass, docViewList).popup();
     }
 
 

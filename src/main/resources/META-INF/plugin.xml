@@ -36,6 +36,10 @@
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl"/>
         <applicationService serviceImplementation="com.liuzhihang.doc.view.facade.impl.ShowDocFacadeServiceImpl"/>
 
+        <!-- provider -->
+        <codeInsight.lineMarkerProvider language="JAVA"
+                                        implementationClass="com.liuzhihang.doc.view.provider.DocViewLineMarkerProvider"/>
+
         <!-- 配置为项目等级 全局为 applicationConfigurable -->
         <projectConfigurable instance="com.liuzhihang.doc.view.config.SettingsConfigurable"
                              id="liuzhihang.api.doc.SettingsConfigurable"

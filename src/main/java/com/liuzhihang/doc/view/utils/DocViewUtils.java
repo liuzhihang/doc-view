@@ -199,6 +199,10 @@ public class DocViewUtils {
             return true;
         }
 
+        if (CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.TRANSIENT)) {
+            return true;
+        }
+
         // 排除部分注解的字段
         if (AnnotationUtil.isAnnotated(psiField, settings.getExcludeFieldAnnotation(), 0)) {
             return true;

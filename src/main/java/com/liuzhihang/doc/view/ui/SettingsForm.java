@@ -23,6 +23,7 @@ public class SettingsForm {
     private static final TitledBorder descTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.desc"));
     private static final TitledBorder requiredTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.required"));
     private static final TitledBorder exportTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.export"));
+    private static final TitledBorder lineMarkerTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.line.marker"));
 
     private final Project project;
 
@@ -53,6 +54,10 @@ public class SettingsForm {
     private JCheckBox mergeExportCheckBox;
 
 
+    private JPanel lineMarkerPanel;
+    private JCheckBox lineMarkerCheckBox;
+
+
     public SettingsForm(@NotNull Project project) {
 
         this.project = project;
@@ -74,6 +79,7 @@ public class SettingsForm {
         docDescPanel.setBorder(descTitleBorder);
         requirePanel.setBorder(requiredTitleBorder);
         exportPanel.setBorder(exportTitleBorder);
+        lineMarkerPanel.setBorder(lineMarkerTitleBorder);
     }
 
 
@@ -92,7 +98,8 @@ public class SettingsForm {
                 || descSwagger3CheckBox.isSelected() != settings.getDescUseSwagger3()
                 || descSwaggerCheckBox.isSelected() != settings.getDescUseSwagger()
                 || requireCommentTagCheckBox.isSelected() != settings.getRequiredUseCommentTag()
-                || mergeExportCheckBox.isSelected() != settings.getMergeExport();
+                || mergeExportCheckBox.isSelected() != settings.getMergeExport()
+                || lineMarkerCheckBox.isSelected() != settings.getLineMarker();
     }
 
     public void apply() {
@@ -110,6 +117,7 @@ public class SettingsForm {
         settings.setDescUseSwagger(descSwaggerCheckBox.isSelected());
         settings.setRequiredUseCommentTag(requireCommentTagCheckBox.isSelected());
         settings.setMergeExport(mergeExportCheckBox.isSelected());
+        settings.setLineMarker(lineMarkerCheckBox.isSelected());
 
     }
 
@@ -127,6 +135,7 @@ public class SettingsForm {
         descSwaggerCheckBox.setSelected(settings.getDescUseSwagger());
         requireCommentTagCheckBox.setSelected(settings.getRequiredUseCommentTag());
         mergeExportCheckBox.setSelected(settings.getMergeExport());
+        lineMarkerCheckBox.setSelected(settings.getLineMarker());
 
     }
 

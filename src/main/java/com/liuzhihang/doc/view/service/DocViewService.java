@@ -75,9 +75,9 @@ public interface DocViewService {
 
     boolean checkMethod(@NotNull Project project, @NotNull PsiMethod targetMethod);
 
-    List<DocView> buildClassDoc(Project settings, @NotNull PsiClass psiClass);
+    List<DocView> buildClassDoc(Project project, @NotNull PsiClass psiClass);
 
     @NotNull
-    DocView buildClassMethodDoc(Project settings, PsiClass psiClass, @NotNull PsiMethod psiMethod);
+    DocView buildClassMethodDoc(Project project, PsiClass psiClass, @NotNull PsiMethod psiMethod);
 
 }

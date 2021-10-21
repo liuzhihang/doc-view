@@ -9,7 +9,6 @@ import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.EditorSettings;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
@@ -81,7 +80,6 @@ public class PreviewForm {
 
     private final Project project;
     private final PsiFile psiFile;
-    private final Editor editor;
     private final PsiClass psiClass;
 
     private final List<DocView> docViewList;
@@ -107,12 +105,11 @@ public class PreviewForm {
     private DocView currentDocView;
     private JBPopup popup;
 
-    public PreviewForm(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor,
+    public PreviewForm(@NotNull Project project, @NotNull PsiFile psiFile,
                        @NotNull PsiClass psiClass, @NotNull List<DocView> docViewList) {
 
         this.project = project;
         this.psiFile = psiFile;
-        this.editor = editor;
         this.psiClass = psiClass;
         this.docViewList = docViewList;
 
@@ -145,11 +142,11 @@ public class PreviewForm {
     }
 
     @NotNull
-    @Contract("_, _, _, _, _ -> new")
+    @Contract("_, _, _, _ -> new")
     public static PreviewForm getInstance(@NotNull Project project, @NotNull PsiFile psiFile,
-                                          @NotNull Editor editor, @NotNull PsiClass psiClass,
+                                          @NotNull PsiClass psiClass,
                                           @NotNull List<DocView> docViewList) {
-        return new PreviewForm(project, psiFile, editor, psiClass, docViewList);
+        return new PreviewForm(project, psiFile, psiClass, docViewList);
     }
 
     public void popup() {
