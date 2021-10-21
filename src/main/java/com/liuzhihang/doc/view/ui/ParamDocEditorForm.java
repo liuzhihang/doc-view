@@ -21,6 +21,7 @@ import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.dto.DocViewParamData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.ui.treeview.ParamTreeTableView;
+import com.liuzhihang.doc.view.utils.DocViewUtils;
 import com.liuzhihang.doc.view.utils.GsonFormatUtil;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
 import org.jetbrains.annotations.Contract;
@@ -209,7 +210,7 @@ public class ParamDocEditorForm {
                     tableView.getCellEditor().stopCellEditing();
                 }
 
-                // DocViewUtils.writeComment(project, ((ParamTreeTableModel) tableView.getTreeTableModel()).getModifiedMap());
+                DocViewUtils.writeComment(project, tableView.getModifiedMap());
                 popup.cancel();
             }
         });

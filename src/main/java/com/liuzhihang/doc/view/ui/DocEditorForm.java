@@ -23,14 +23,12 @@ import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.dto.DocViewParamData;
 import com.liuzhihang.doc.view.service.impl.WriterService;
-import com.liuzhihang.doc.view.ui.treetable.ParamTreeTableModel;
-import com.liuzhihang.doc.view.ui.treetable.ParamTreeTableUtils;
 import com.liuzhihang.doc.view.ui.treeview.ParamTreeTableView;
 import com.liuzhihang.doc.view.utils.CustomPsiCommentUtils;
+import com.liuzhihang.doc.view.utils.DocViewUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jdesktop.swingx.JXTreeTable;
-import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -186,17 +184,13 @@ public class DocEditorForm {
         // 边框
         responseParamScrollPane.setBorder(JBUI.Borders.empty());
 
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode();
 
-        DocViewParamData paramData = new DocViewParamData();
+        convertToTreeNode(root, docViewData.getResponseParamDataList());
 
-        DefaultMutableTreeTableNode rootNode = new DefaultMutableTreeTableNode(paramData);
-        ParamTreeTableUtils.createTreeData(rootNode, docViewData.getResponseParamDataList());
+        ListTreeTableModelOnColumns model = new ListTreeTableModelOnColumns(root, ParamTreeTableView.COLUMN_INFOS);
 
-        ParamTreeTableModel treeTableModel = new ParamTreeTableModel(rootNode);
-
-        requestTreeTable = new JXTreeTable(treeTableModel);
-
-        ParamTreeTableUtils.render(requestTreeTable);
+        tableView = new ParamTreeTableView(model);
 
         responseParamScrollPane.setViewportView(requestTreeTable);
 
@@ -400,8 +394,7 @@ public class DocEditorForm {
                 }
                 generateMethodComment();
 
-                // DocViewUtils.writeComment(project, ((ParamTreeTableModel) requestTreeTable.getTreeTableModel()).getModifiedMap());
-                // DocViewUtils.writeComment(project, ((ParamTreeTableModel) tableView.getTreeTableModel()).getModifiedMap());
+                DocViewUtils.writeComment(project, tableView.getModifiedMap());
 
                 popup.cancel();
             }

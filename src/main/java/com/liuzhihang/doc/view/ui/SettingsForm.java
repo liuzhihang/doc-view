@@ -22,6 +22,7 @@ public class SettingsForm {
     private static final TitledBorder nameTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.name"));
     private static final TitledBorder descTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.desc"));
     private static final TitledBorder requiredTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.required"));
+    private static final TitledBorder exportTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.export"));
 
     private final Project project;
 
@@ -48,6 +49,9 @@ public class SettingsForm {
     private JPanel requirePanel;
     private JCheckBox requireCommentTagCheckBox;
 
+    private JPanel exportPanel;
+    private JCheckBox mergeExportCheckBox;
+
 
     public SettingsForm(@NotNull Project project) {
 
@@ -58,34 +62,20 @@ public class SettingsForm {
 
         supportLinkLabel.setListener((source, data) -> new SupportForm().show(), null);
 
-        initTitle();
-        initName();
-        initDesc();
-        initRequired();
+        initTitleBorder();
 
     }
 
 
-    private void initTitle() {
+    private void initTitleBorder() {
 
         titlePanel.setBorder(titleTitleBorder);
-    }
-
-    private void initName() {
-
         namePanel.setBorder(nameTitleBorder);
-    }
-
-    private void initDesc() {
-
         docDescPanel.setBorder(descTitleBorder);
-    }
-
-    private void initRequired() {
-
         requirePanel.setBorder(requiredTitleBorder);
-
+        exportPanel.setBorder(exportTitleBorder);
     }
+
 
     public boolean isModified() {
 
@@ -101,7 +91,8 @@ public class SettingsForm {
                 || nameMethodCommentCheckBox.isSelected() != settings.getNameMethodComment()
                 || descSwagger3CheckBox.isSelected() != settings.getDescUseSwagger3()
                 || descSwaggerCheckBox.isSelected() != settings.getDescUseSwagger()
-                || requireCommentTagCheckBox.isSelected() != settings.getRequiredUseCommentTag();
+                || requireCommentTagCheckBox.isSelected() != settings.getRequiredUseCommentTag()
+                || mergeExportCheckBox.isSelected() != settings.getMergeExport();
     }
 
     public void apply() {
@@ -118,6 +109,7 @@ public class SettingsForm {
         settings.setDescUseSwagger3(descSwagger3CheckBox.isSelected());
         settings.setDescUseSwagger(descSwaggerCheckBox.isSelected());
         settings.setRequiredUseCommentTag(requireCommentTagCheckBox.isSelected());
+        settings.setMergeExport(mergeExportCheckBox.isSelected());
 
     }
 
@@ -134,6 +126,7 @@ public class SettingsForm {
         descSwagger3CheckBox.setSelected(settings.getDescUseSwagger3());
         descSwaggerCheckBox.setSelected(settings.getDescUseSwagger());
         requireCommentTagCheckBox.setSelected(settings.getRequiredUseCommentTag());
+        mergeExportCheckBox.setSelected(settings.getMergeExport());
 
     }
 
