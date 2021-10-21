@@ -56,6 +56,7 @@ public class SettingsForm {
 
     private JPanel lineMarkerPanel;
     private JCheckBox lineMarkerCheckBox;
+    private JCheckBox interfaceLineMakerCheckBox;
 
 
     public SettingsForm(@NotNull Project project) {
@@ -68,9 +69,7 @@ public class SettingsForm {
         supportLinkLabel.setListener((source, data) -> new SupportForm().show(), null);
 
         initTitleBorder();
-
     }
-
 
     private void initTitleBorder() {
 
@@ -82,10 +81,14 @@ public class SettingsForm {
         lineMarkerPanel.setBorder(lineMarkerTitleBorder);
     }
 
-
     public boolean isModified() {
 
         Settings settings = Settings.getInstance(project);
+
+        if (!lineMarkerCheckBox.isSelected()) {
+            interfaceLineMakerCheckBox.setEnabled(false);
+        }
+
 
         return titleCommentTagCheckBox.isSelected() != settings.getTitleUseCommentTag()
                 || titleFullClassNameCheckBox.isSelected() != settings.getTitleUseFullClassName()
@@ -99,7 +102,8 @@ public class SettingsForm {
                 || descSwaggerCheckBox.isSelected() != settings.getDescUseSwagger()
                 || requireCommentTagCheckBox.isSelected() != settings.getRequiredUseCommentTag()
                 || mergeExportCheckBox.isSelected() != settings.getMergeExport()
-                || lineMarkerCheckBox.isSelected() != settings.getLineMarker();
+                || lineMarkerCheckBox.isSelected() != settings.getLineMarker()
+                || interfaceLineMakerCheckBox.isSelected() != settings.getInterfaceLineMaker();
     }
 
     public void apply() {
@@ -118,6 +122,11 @@ public class SettingsForm {
         settings.setRequiredUseCommentTag(requireCommentTagCheckBox.isSelected());
         settings.setMergeExport(mergeExportCheckBox.isSelected());
         settings.setLineMarker(lineMarkerCheckBox.isSelected());
+        settings.setInterfaceLineMaker(interfaceLineMakerCheckBox.isSelected());
+
+        if (!lineMarkerCheckBox.isSelected()) {
+            interfaceLineMakerCheckBox.setEnabled(false);
+        }
 
     }
 
@@ -136,6 +145,11 @@ public class SettingsForm {
         requireCommentTagCheckBox.setSelected(settings.getRequiredUseCommentTag());
         mergeExportCheckBox.setSelected(settings.getMergeExport());
         lineMarkerCheckBox.setSelected(settings.getLineMarker());
+        interfaceLineMakerCheckBox.setSelected(settings.getInterfaceLineMaker());
+
+        if (!lineMarkerCheckBox.isSelected()) {
+            interfaceLineMakerCheckBox.setEnabled(false);
+        }
 
     }
 

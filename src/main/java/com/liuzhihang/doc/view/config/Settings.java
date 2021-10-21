@@ -68,6 +68,7 @@ public class Settings implements PersistentStateComponent<Settings> {
      * 是否显示边栏标记
      */
     private Boolean lineMarker = true;
+    private Boolean interfaceLineMaker = false;
 
     /**
      * 包含类注解名称
