@@ -28,7 +28,6 @@ import com.liuzhihang.doc.view.utils.CustomPsiCommentUtils;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jdesktop.swingx.JXTreeTable;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -83,7 +82,6 @@ public class DocEditorForm {
     private JTextArea methodTextArea;
 
     private JScrollPane requestParamScrollPane;
-    private JXTreeTable requestTreeTable;
 
     private JScrollPane responseParamScrollPane;
     private ParamTreeTableView tableView;
@@ -192,7 +190,7 @@ public class DocEditorForm {
 
         tableView = new ParamTreeTableView(model);
 
-        responseParamScrollPane.setViewportView(requestTreeTable);
+        responseParamScrollPane.setViewportView(tableView);
 
     }
 
@@ -386,8 +384,8 @@ public class DocEditorForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                if (requestTreeTable.isEditing()) {
-                    requestTreeTable.getCellEditor().stopCellEditing();
+                if (tableView.isEditing()) {
+                    tableView.getCellEditor().stopCellEditing();
                 }
                 if (tableView.isEditing()) {
                     tableView.getCellEditor().stopCellEditing();

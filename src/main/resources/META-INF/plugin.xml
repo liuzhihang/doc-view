@@ -68,6 +68,13 @@
                              displayName="ShowDoc Settings"
                              nonDefaultProject="true"/>
 
+        <toolWindow id="Doc View"
+                    icon="/icons/doc.svg"
+                    anchor="bottom"
+                    secondary="false"
+                    doNotActivateOnStart="true"
+                    order="last"
+                    factoryClass="com.liuzhihang.doc.view.factory.DocViewToolWindowFactory"/>
 
         <!-- 2020.3 需要使用 notificationGroup 配置通知 -->
         <notificationGroup id="doc-view.NotificationGroup" displayType="BALLOON"/>
