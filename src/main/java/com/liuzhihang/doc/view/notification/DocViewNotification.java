@@ -1,6 +1,5 @@
 package com.liuzhihang.doc.view.notification;
 
-import com.intellij.ide.BrowserUtil;
 import com.intellij.notification.*;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
@@ -47,21 +46,14 @@ public class DocViewNotification {
      */
     public static void uploadSuccess(Project project, String docPlatform, String link) {
 
-        String title = DocViewBundle.message("notify.upload.success.title", docPlatform);
+        String info = DocViewBundle.message("notify.upload.success.info", docPlatform);
         String linkText = DocViewBundle.message("notify.upload.success.link.text");
         String copy = DocViewBundle.message("notify.upload.success.link.copy");
 
         notificationGroup
-                .createNotification(title, NotificationType.INFORMATION)
+                .createNotification(DocViewBundle.message("title"), info, NotificationType.INFORMATION)
                 .setIcon(DocViewIcons.DOC_VIEW)
-                .addAction(new NotificationAction(linkText) {
-                    @Override
-                    public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
-                        notification.expire();
-                        BrowserUtil.browse(link);
-
-                    }
-                })
+                .addAction(new BrowseNotificationAction(linkText, link))
                 .addAction(new NotificationAction(copy) {
                     @Override
                     public void actionPerformed(@NotNull AnActionEvent e, @NotNull Notification notification) {
@@ -72,6 +64,20 @@ public class DocViewNotification {
                     }
                 })
                 .notify(project);
+    }
+
+
+    public static void startupNotification(@NotNull Project project) {
+
+        notificationGroup
+                .createNotification(DocViewBundle.message("title"), DocViewBundle.message("notify.start"), NotificationType.INFORMATION)
+                .setIcon(DocViewIcons.DOC_VIEW)
+                .addAction(new BrowseNotificationAction("Star", DocViewBundle.message("github")))
+                .addAction(new BrowseNotificationAction("Wiki", DocViewBundle.message("wiki")))
+                .addAction(new BrowseNotificationAction("Feedback", DocViewBundle.message("issues")))
+                .addAction(new BrowseNotificationAction("Other", DocViewBundle.message("toolkit")))
+                .notify(project);
+
     }
 
 }
