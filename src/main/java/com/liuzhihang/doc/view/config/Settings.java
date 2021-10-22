@@ -138,6 +138,14 @@ public class Settings implements PersistentStateComponent<Settings> {
         add("org.apache.dubbo.config.annotation.DubboReference");
     }};
 
+    /**
+     * 被注解的字段需要过滤掉
+     */
+    private Set<String> excludeClassPackage = new HashSet<>() {{
+        add("com.baomidou.mybatisplus");
+    }};
+
+
     public static Settings getInstance(@NotNull Project project) {
         return ServiceManager.getService(project, Settings.class);
     }

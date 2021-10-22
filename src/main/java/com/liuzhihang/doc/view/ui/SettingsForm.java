@@ -85,9 +85,7 @@ public class SettingsForm {
 
         Settings settings = Settings.getInstance(project);
 
-        if (!lineMarkerCheckBox.isSelected()) {
-            interfaceLineMakerCheckBox.setEnabled(false);
-        }
+        interfaceLineMakerCheckBox.setEnabled(lineMarkerCheckBox.isSelected());
 
 
         return titleCommentTagCheckBox.isSelected() != settings.getTitleUseCommentTag()
@@ -124,9 +122,8 @@ public class SettingsForm {
         settings.setLineMarker(lineMarkerCheckBox.isSelected());
         settings.setInterfaceLineMaker(interfaceLineMakerCheckBox.isSelected());
 
-        if (!lineMarkerCheckBox.isSelected()) {
-            interfaceLineMakerCheckBox.setEnabled(false);
-        }
+        interfaceLineMakerCheckBox.setEnabled(lineMarkerCheckBox.isSelected());
+
 
     }
 
@@ -147,12 +144,9 @@ public class SettingsForm {
         lineMarkerCheckBox.setSelected(settings.getLineMarker());
         interfaceLineMakerCheckBox.setSelected(settings.getInterfaceLineMaker());
 
-        if (!lineMarkerCheckBox.isSelected()) {
-            interfaceLineMakerCheckBox.setEnabled(false);
-        }
+        interfaceLineMakerCheckBox.setEnabled(lineMarkerCheckBox.isSelected());
 
     }
-
 
     public JPanel getRootPanel() {
         return rootPanel;

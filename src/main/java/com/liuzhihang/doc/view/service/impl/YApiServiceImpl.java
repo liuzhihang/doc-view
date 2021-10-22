@@ -95,7 +95,7 @@ public class YApiServiceImpl implements YApiService {
 
             String yapiInterfaceUrl = settings.getUrl() + "/project/" + settings.getProjectId() + "/interface/api/cat_" + cat.getId();
 
-            DocViewNotification.notifyInfo(project, DocViewBundle.message("notify.yapi.upload.success", yapiInterfaceUrl));
+            DocViewNotification.uploadSuccess(project, "YApi", yapiInterfaceUrl);
         } catch (Exception e) {
             DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.upload.error", e.getMessage()));
             log.error("上传单个文档失败:{}", docView, e);

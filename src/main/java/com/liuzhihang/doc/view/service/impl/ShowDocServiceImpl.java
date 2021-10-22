@@ -56,7 +56,7 @@ public class ShowDocServiceImpl implements ShowDocService {
 
             String showDocInterfaceUrl = settings.getUrl() + "/" + data.getItemId() + "/" + data.getPageId();
 
-            DocViewNotification.notifyInfo(project, DocViewBundle.message("notify.showdoc.upload.success", showDocInterfaceUrl));
+            DocViewNotification.uploadSuccess(project, "ShowDoc", showDocInterfaceUrl);
         } catch (Exception e) {
             DocViewNotification.notifyError(project, DocViewBundle.message("notify.showdoc.upload.error"));
             log.error("上传单个文档失败:{}", docView, e);

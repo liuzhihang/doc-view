@@ -184,7 +184,7 @@ public class DocViewUtils {
      * 判断是否是需要排除的字段
      *
      * @param psiField
-     * @return
+     * @return 需要排除字段, 返回 true
      */
     @NotNull
     public static boolean isExcludeField(@NotNull PsiField psiField) {
@@ -199,14 +199,46 @@ public class DocViewUtils {
             return true;
         }
 
-        if (CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.TRANSIENT)) {
-            return true;
-        }
+        // if (CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.TRANSIENT)) {
+        //     return true;
+        // }
 
         // 排除部分注解的字段
         if (AnnotationUtil.isAnnotated(psiField, settings.getExcludeFieldAnnotation(), 0)) {
             return true;
         }
+
+        PsiClass containingClass = psiField.getContainingClass();
+        if (containingClass == null) {
+            return true;
+        }
+
+
+        return excludeClassPackage(containingClass, settings);
+    }
+
+    /**
+     * 是否在需要排除的包内
+     *
+     * @param psiClass
+     * @param settings
+     * @return 需要排除 返回 true
+     */
+    private static boolean excludeClassPackage(@NotNull PsiClass psiClass, @NotNull Settings settings) {
+
+        String qualifiedName = psiClass.getQualifiedName();
+
+        if (qualifiedName == null) {
+            return true;
+        }
+
+        for (String packagePrefix : settings.getExcludeClassPackage()) {
+
+            if (qualifiedName.startsWith(packagePrefix)) {
+                return true;
+            }
+        }
+
 
         return false;
     }
