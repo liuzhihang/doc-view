@@ -4,7 +4,7 @@ import com.intellij.notification.*;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.utils.DocViewIcons;
+import icons.DocViewIcons;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;

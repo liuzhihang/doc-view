@@ -1,6 +1,5 @@
 package com.liuzhihang.doc.view.provider;
 
-import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.impl.JavaLineMarkerProvider;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
@@ -13,7 +12,9 @@ import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.ui.PreviewForm;
-import com.liuzhihang.doc.view.utils.DocViewIcons;
+import com.liuzhihang.doc.view.utils.DocViewUtils;
+import com.liuzhihang.doc.view.utils.SpringPsiUtils;
+import icons.DocViewIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +34,7 @@ public class DocViewLineMarkerProvider extends JavaLineMarkerProvider {
 
     @Override
     public LineMarkerInfo<PsiElement> getLineMarkerInfo(@NotNull PsiElement element) {
+
 
         Project project = element.getProject();
 
@@ -94,16 +96,18 @@ public class DocViewLineMarkerProvider extends JavaLineMarkerProvider {
     @Nullable
     private DocViewService checkShowLineMarker(Project project, Settings settings, PsiClass psiClass) {
 
+        if (psiClass.isAnnotationType() || psiClass.isEnum()) {
+            return null;
+        }
+
         if (psiClass.isInterface() && !settings.getInterfaceLineMaker()) {
             return null;
         }
 
-        if (!psiClass.isInterface() && !AnnotationUtil.isAnnotated(psiClass, settings.getContainClassAnnotationName(), 0)) {
+        if (!SpringPsiUtils.isSpringClass(psiClass)) {
             return null;
         }
-        if (psiClass.isAnnotationType() || psiClass.isEnum()) {
-            return null;
-        }
+
         return DocViewService.getInstance(project, psiClass);
     }
 
@@ -114,17 +118,27 @@ public class DocViewLineMarkerProvider extends JavaLineMarkerProvider {
         PsiClass psiClass = (PsiClass) element.getParent();
         PsiFile psiFile = element.getContainingFile();
 
-        PsiMethod[] methods = psiClass.getMethods();
-        if (methods.length == 0) {
-            return null;
-        }
-
         DocViewService docViewService = checkShowLineMarker(project, settings, psiClass);
 
         if (docViewService == null) {
             return null;
         }
 
+        PsiMethod[] methods = psiClass.getAllMethods();
+
+        if (methods.length == 0) {
+            return null;
+        }
+
+        int docViewMethodCount = 0;
+        for (PsiMethod method : methods) {
+            if (DocViewUtils.isDocViewMethod(method)) {
+                docViewMethodCount++;
+            }
+        }
+        if (docViewMethodCount == 0) {
+            return null;
+        }
 
         return new LineMarkerInfo<>(element, element.getTextRange(),
                 DocViewIcons.DOC_VIEW,

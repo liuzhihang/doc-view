@@ -1,4 +1,4 @@
-package com.liuzhihang.doc.view.utils;
+package icons;
 
 import com.intellij.openapi.util.IconLoader;
 

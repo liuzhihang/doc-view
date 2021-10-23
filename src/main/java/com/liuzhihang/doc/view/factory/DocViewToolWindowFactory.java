@@ -6,7 +6,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
-import com.liuzhihang.doc.view.ui.DocViewToolWindowForm;
+import com.liuzhihang.doc.view.ui.window.DocViewToolWindowPanel;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -18,7 +18,7 @@ public class DocViewToolWindowFactory implements ToolWindowFactory, DumbAware {
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
 
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-        Content content = contentFactory.createContent(new DocViewToolWindowForm(project).createCenterPanel(), "Doc View", false);
+        Content content = contentFactory.createContent(new DocViewToolWindowPanel(project), "", false);
         toolWindow.getContentManager().addContent(content);
 
     }

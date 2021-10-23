@@ -69,8 +69,8 @@
                              nonDefaultProject="true"/>
 
         <toolWindow id="Doc View"
-                    icon="/icons/doc.svg"
-                    anchor="bottom"
+                    icon="DocViewIcons.DOC_VIEW"
+                    anchor="right"
                     secondary="false"
                     doNotActivateOnStart="true"
                     order="last"
@@ -101,6 +101,43 @@
 
             <action id="liuzhihang.doc.showdoc.upload" class="com.liuzhihang.doc.view.action.ShowDocUploadAction"
                     text="Upload To ShowDoc"/>
+        </group>
+
+
+        <group id="liuzhihang.doc.tool.window.toolbar.action">
+
+            <action id="liuzhihang.doc.tool.window.toolbar.action.refresh"
+                    class="com.liuzhihang.doc.view.action.window.WindowRefreshAction"
+                    text="Refresh" description="Refresh" icon="AllIcons.Actions.Refresh"/>
+            <action id="liuzhihang.doc.tool.window.toolbar.action.filter"
+                    class="com.liuzhihang.doc.view.action.window.WindowFilterAction"
+                    text="Filter" description="Filter" icon="AllIcons.General.Filter"/>
+            <action id="liuzhihang.doc.tool.window.toolbar.action.search"
+                    class="com.liuzhihang.doc.view.action.window.WindowSearchAction"
+                    text="Search" description="Search" icon="AllIcons.Actions.Search"/>
+
+            <separator/>
+            <action id="liuzhihang.doc.tool.window.toolbar.action.export"
+                    class="com.liuzhihang.doc.view.action.window.WindowExportAction"
+                    text="Export" description="Export" icon="AllIcons.ToolbarDecorator.Export"/>
+            <action id="liuzhihang.doc.tool.window.toolbar.action.upload"
+                    class="com.liuzhihang.doc.view.action.window.WindowUploadAction"
+                    text="Upload" description="Collapse" icon="AllIcons.Actions.Upload"/>
+
+            <separator/>
+            <action id="liuzhihang.doc.tool.window.toolbar.action.expand"
+                    class="com.liuzhihang.doc.view.action.window.WindowExpandAction"
+                    text="Expand" description="Expand" icon="AllIcons.Actions.Expandall"/>
+            <action id="liuzhihang.doc.tool.window.toolbar.action.collapse"
+                    class="com.liuzhihang.doc.view.action.window.WindowCollapseAction"
+                    text="Collapse" description="Collapse" icon="AllIcons.Actions.Collapseall"/>
+
+            <separator/>
+            <action id="liuzhihang.doc.tool.window.toolbar.action.setting"
+                    class="com.liuzhihang.doc.view.action.window.WindowSettingsAction"
+                    text="Settings" description="Settings" icon="AllIcons.General.Settings"/>
+            <separator/>
+
         </group>
 
 

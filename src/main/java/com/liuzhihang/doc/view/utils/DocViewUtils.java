@@ -15,6 +15,7 @@ import com.liuzhihang.doc.view.dto.DocViewParamData;
 import com.liuzhihang.doc.view.service.impl.WriterService;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +32,63 @@ public class DocViewUtils {
 
     private DocViewUtils() {
     }
+
+    /**
+     * 判断是否是 DocView  的类
+     *
+     * @param psiClass
+     * @return
+     */
+    public static boolean isDocViewClass(@Nullable PsiClass psiClass) {
+
+        if (psiClass == null || psiClass.isAnnotationType() || psiClass.isEnum()) {
+            return false;
+        }
+
+        // Spring Controller 还需要检查方法是否满足条件
+        if (SpringPsiUtils.isSpringClass(psiClass)) {
+            return true;
+        }
+
+        // Dubbo 接口 还需要检查方法是否满足条件
+        if (DubboPsiUtils.isDubboClass(psiClass)) {
+            return true;
+        }
+
+        if (FeignPsiUtil.isFeignClass(psiClass)) {
+            return true;
+        }
+
+        // 其他判断在下面添加
+
+        return false;
+    }
+
+    /**
+     * 判断当前方法是不是 Doc View 的方法
+     *
+     * @param psiMethod
+     * @return
+     */
+    public static boolean isDocViewMethod(@Nullable PsiMethod psiMethod) {
+
+        if (psiMethod == null) {
+            return false;
+        }
+
+        if (SpringPsiUtils.isSpringMethod(psiMethod)) {
+            return true;
+        }
+
+        if (DubboPsiUtils.isDubboMethod(psiMethod)) {
+            return true;
+        }
+
+        // 其他判断在下面添加
+
+        return false;
+    }
+
 
     /**
      * 匿名类和内部类可能返回 null

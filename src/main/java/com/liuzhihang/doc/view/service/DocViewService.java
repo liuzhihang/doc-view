@@ -1,6 +1,5 @@
 package com.liuzhihang.doc.view.service;
 
-import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
@@ -12,6 +11,9 @@ import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.impl.DubboDocViewServiceImpl;
 import com.liuzhihang.doc.view.service.impl.SpringDocViewServiceImpl;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
+import com.liuzhihang.doc.view.utils.DubboPsiUtils;
+import com.liuzhihang.doc.view.utils.FeignPsiUtil;
+import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,18 +32,17 @@ public interface DocViewService {
         Settings settings = Settings.getInstance(project);
 
         //spring cloud 的 feign client
-        if (targetClass.isInterface() && AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
+        if (FeignPsiUtil.isFeignClass(targetClass)) {
             return ServiceManager.getService(SpringDocViewServiceImpl.class);
         }
 
-        // todo-zhangdd: 2021/8/7 直接使用是否是接口来判断是否是dubbo 不太合适
         // Dubbo
-        if (targetClass.isInterface()) {
+        if (DubboPsiUtils.isDubboClass(targetClass)) {
             return ServiceManager.getService(DubboDocViewServiceImpl.class);
         }
 
         // Spring
-        if (AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
+        if (SpringPsiUtils.isSpringClass(targetClass)) {
             return ServiceManager.getService(SpringDocViewServiceImpl.class);
         }
         return null;
