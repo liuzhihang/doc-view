@@ -79,6 +79,7 @@
         <!-- 2020.3 需要使用 notificationGroup 配置通知 -->
         <notificationGroup id="doc-view.NotificationGroup" displayType="BALLOON"/>
 
+
     </extensions>
 
     <actions>
@@ -103,38 +104,62 @@
                     text="Upload To ShowDoc"/>
         </group>
 
+        <!-- preview 界面目录左下角toolbar -->
+        <group id="liuzhihang.doc.preview.toolbar.menu">
+            <action id="liuzhihang.doc.preview.toolbar.menu.export"
+                    class="com.liuzhihang.doc.view.action.toolbar.preview.MenuExportAllAction"
+                    text="Export All" description="Export markdown" icon="AllIcons.Ide.IncomingChangesOn"/>
+            <action id="liuzhihang.doc.preview.toolbar.menu.upload"
+                    class="com.liuzhihang.doc.view.action.toolbar.preview.MenuUploadAllAction"
+                    text="Upload All" description="Upload all doc view" icon="AllIcons.Ide.OutgoingChangesOn"/>
+        </group>
 
+        <!-- preview 界面目录右下角 右侧toolbar -->
+        <group id="liuzhihang.doc.preview.toolbar.right">
+            <action id="liuzhihang.doc.preview.toolbar.right.upload"
+                    class="com.liuzhihang.doc.view.action.toolbar.preview.PreviewRightUploadAction"
+                    text="Upload" description="Upload doc view" icon="AllIcons.Actions.Upload"/>
+            <action id="liuzhihang.doc.preview.toolbar.right.export"
+                    class="com.liuzhihang.doc.view.action.toolbar.preview.PreviewRightExportAction"
+                    text="Export" description="Export markdown" icon="AllIcons.ToolbarDecorator.Export"/>
+            <action id="liuzhihang.doc.preview.toolbar.toolbar.copy"
+                    class="com.liuzhihang.doc.view.action.toolbar.preview.PreviewRightCopyAction"
+                    text="Copy" description="Copy" icon="AllIcons.Actions.Copy"/>
+        </group>
+
+
+        <!-- ToolWindow 的工具栏  -->
         <group id="liuzhihang.doc.tool.window.toolbar.action">
 
             <action id="liuzhihang.doc.tool.window.toolbar.action.refresh"
-                    class="com.liuzhihang.doc.view.action.window.WindowRefreshAction"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.WindowRefreshAction"
                     text="Refresh" description="Refresh" icon="AllIcons.Actions.Refresh"/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.filter"
-                    class="com.liuzhihang.doc.view.action.window.WindowFilterAction"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.WindowFilterAction"
                     text="Filter" description="Filter" icon="AllIcons.General.Filter"/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.search"
-                    class="com.liuzhihang.doc.view.action.window.WindowSearchAction"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.WindowSearchAction"
                     text="Search" description="Search" icon="AllIcons.Actions.Search"/>
 
             <separator/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.export"
-                    class="com.liuzhihang.doc.view.action.window.WindowExportAction"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.WindowExportAction"
                     text="Export" description="Export" icon="AllIcons.ToolbarDecorator.Export"/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.upload"
-                    class="com.liuzhihang.doc.view.action.window.WindowUploadAction"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.WindowUploadAction"
                     text="Upload" description="Collapse" icon="AllIcons.Actions.Upload"/>
 
             <separator/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.expand"
-                    class="com.liuzhihang.doc.view.action.window.WindowExpandAction"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.WindowExpandAction"
                     text="Expand" description="Expand" icon="AllIcons.Actions.Expandall"/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.collapse"
-                    class="com.liuzhihang.doc.view.action.window.WindowCollapseAction"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.WindowCollapseAction"
                     text="Collapse" description="Collapse" icon="AllIcons.Actions.Collapseall"/>
 
             <separator/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.setting"
-                    class="com.liuzhihang.doc.view.action.window.WindowSettingsAction"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.WindowSettingsAction"
                     text="Settings" description="Settings" icon="AllIcons.General.Settings"/>
             <separator/>
 

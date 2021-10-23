@@ -4,6 +4,9 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
@@ -15,7 +18,7 @@ import com.liuzhihang.doc.view.config.YApiSettingsConfigurable;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewService;
-import com.liuzhihang.doc.view.service.YApiService;
+import com.liuzhihang.doc.view.service.DocViewUploadService;
 import com.liuzhihang.doc.view.service.impl.YApiServiceImpl;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
@@ -89,8 +92,16 @@ public class YApiUploadAction extends AnAction {
         }
 
         // 上传到 yapi
-        YApiService service = ServiceManager.getService(YApiServiceImpl.class);
-        service.upload(project, docViewList);
+        DocViewUploadService service = ServiceManager.getService(YApiServiceImpl.class);
+
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View upload", true) {
+            @Override
+            public void run(@NotNull ProgressIndicator progressIndicator) {
+                service.upload(project, docViewList);
+            }
+        });
+
+
     }
 
     /**

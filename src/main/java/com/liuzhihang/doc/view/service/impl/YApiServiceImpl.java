@@ -20,7 +20,7 @@ import com.liuzhihang.doc.view.facade.dto.YApiQuery;
 import com.liuzhihang.doc.view.facade.dto.YapiSave;
 import com.liuzhihang.doc.view.facade.impl.YApiFacadeServiceImpl;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
-import com.liuzhihang.doc.view.service.YApiService;
+import com.liuzhihang.doc.view.service.DocViewUploadService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
-public class YApiServiceImpl implements YApiService {
+public class YApiServiceImpl implements DocViewUploadService {
 
     @Override
     public void upload(@NotNull Project project, @NotNull List<DocView> docViewList) {

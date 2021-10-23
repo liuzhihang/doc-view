@@ -7,14 +7,16 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
+ * 上传到 showDoc
+ *
  * @author liuzhihang
- * @date 2021/6/8 23:56
+ * @date 2021/7/27 12:00
  */
-public interface YApiService {
+public interface DocViewUploadService {
 
 
     /**
-     * 上传到 yapi
+     * 上传到 showDoc
      *
      * @param project
      * @param docViewList
@@ -22,7 +24,7 @@ public interface YApiService {
     void upload(@NotNull Project project, @NotNull List<DocView> docViewList);
 
     /**
-     * 上传到 yapi
+     * 上传到 showDoc
      *
      * @param project
      * @param docView

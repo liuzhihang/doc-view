@@ -7,7 +7,6 @@ import com.intellij.lang.Language;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
 import com.intellij.openapi.editor.EditorSettings;
@@ -20,8 +19,6 @@ import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
-import com.intellij.openapi.ui.popup.PopupStep;
-import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.GuiUtils;
@@ -32,17 +29,12 @@ import com.intellij.ui.jcef.JBCefApp;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.config.*;
+import com.liuzhihang.doc.view.config.SettingsConfigurable;
+import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
-import com.liuzhihang.doc.view.service.ShowDocService;
-import com.liuzhihang.doc.view.service.YApiService;
-import com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl;
-import com.liuzhihang.doc.view.service.impl.YApiServiceImpl;
-import com.liuzhihang.doc.view.utils.ExportUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.intellij.plugins.markdown.settings.MarkdownApplicationSettings;
 import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanel;
 import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanelProvider;
@@ -54,8 +46,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseEvent;
 import java.time.LocalTime;
 import java.util.HashMap;
@@ -69,11 +59,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @date 2020/2/26 19:40
  */
 @Slf4j
-public class PreviewForm {
+public class PreviewForm implements DataProvider {
 
     @NonNls
     public static final String DOC_VIEW_POPUP = "com.intellij.docview.popup";
-    private static final AtomicBoolean myIsPinned = new AtomicBoolean(false);
+    public static final AtomicBoolean myIsPinned = new AtomicBoolean(false);
     private static final AtomicBoolean previewIsHtml = new AtomicBoolean(false);
 
     private final Document markdownDocument = EditorFactory.getInstance().createDocument("");
@@ -370,180 +360,42 @@ public class PreviewForm {
     }
 
     private void initPreviewRightToolbar() {
-        DefaultActionGroup rightGroup = new DefaultActionGroup();
 
-        rightGroup.add(new AnAction("Upload", "Upload To YApi", AllIcons.Actions.Upload) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-
-                Point location = previewToolbarPanel.getLocationOnScreen();
-                location.x = MouseInfo.getPointerInfo().getLocation().x;
-                location.y += previewToolbarPanel.getHeight();
-
-                myIsPinned.set(true);
-
-                JBPopupFactory.getInstance()
-                        .createListPopup(new BaseListPopupStep<>(null, "YApi", "ShowDoc") {
-
-                            @Override
-                            public @NotNull String getTextFor(String value) {
-                                return "Upload to " + value;
-                            }
-
-                            @Override
-                            public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
-
-                                if (selectedValue.equals("YApi")) {
-                                    // 上传到 yapi
-                                    checkYApiSettings();
-                                    YApiService service = ServiceManager.getService(YApiServiceImpl.class);
-                                    service.upload(project, currentDocView);
-                                } else if (selectedValue.equals("ShowDoc")) {
-                                    // 上传到 ShowDoc
-                                    checkShowDocSettings();
-                                    ShowDocService service = ServiceManager.getService(ShowDocServiceImpl.class);
-                                    service.upload(project, currentDocView);
-                                }
-                                return FINAL_CHOICE;
-                            }
-                        }).showInScreenCoordinates(previewToolbarPanel, location);
-            }
-        });
-
-        rightGroup.addSeparator();
-
-        rightGroup.add(new AnAction("Export", "Export markdown", AllIcons.ToolbarDecorator.Export) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-
-                popup.cancel();
-                ExportUtils.exportMarkdown(project, currentDocView.getName(), currentMarkdownText);
-
-            }
-        });
-
-        rightGroup.add(new AnAction("Copy", "Copy to clipboard", AllIcons.Actions.Copy) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-
-                StringSelection selection = new StringSelection(currentMarkdownText);
-                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                clipboard.setContents(selection, selection);
-
-                DocViewNotification.notifyInfo(project, DocViewBundle.message("notify.copy.success", currentDocView.getName()));
-            }
-        });
+        final ActionManager actionManager = ActionManager.getInstance();
 
         // init toolbar
-        ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
-                .createActionToolbar("DocViewEditorRightToolbar", rightGroup, true);
+        ActionToolbar toolbar = actionManager
+                .createActionToolbar("DocViewEditorRightToolbar",
+                        (DefaultActionGroup) actionManager.getAction("liuzhihang.doc.preview.toolbar.right"),
+                        true);
         toolbar.setTargetComponent(previewToolbarPanel);
         toolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
 
-        toolbar.setForceMinimumSize(true);
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
-        Utils.setSmallerFontForChildren(toolbar);
+        Utils.setSmallerFontForChildren(toolbar.getComponent());
 
         previewToolbarPanel.setBackground(markdownEditor.getBackgroundColor());
         previewToolbarPanel.add(toolbar.getComponent(), BorderLayout.EAST);
 
     }
 
-    private void checkYApiSettings() {
-        YApiSettings apiSettings = YApiSettings.getInstance(project);
-
-        if (StringUtils.isBlank(apiSettings.getUrl())
-                || apiSettings.getProjectId() == null
-                || StringUtils.isBlank(apiSettings.getToken())) {
-            // 说明没有配置 YApi 上传地址, 跳转到配置页面
-            DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.info.settings"));
-            ShowSettingsUtil.getInstance().showSettingsDialog(project, YApiSettingsConfigurable.class);
-
-            popup.cancel();
-        }
-    }
-
-    private void checkShowDocSettings() {
-        ShowDocSettings apiSettings = ShowDocSettings.getInstance(project);
-
-        if (StringUtils.isBlank(apiSettings.getUrl())
-                || StringUtils.isBlank(apiSettings.getApiKey())
-                || StringUtils.isBlank(apiSettings.getApiToken())) {
-            // 说明没有配置 ShowDoc 上传地址, 跳转到配置页面
-            DocViewNotification.notifyError(project, DocViewBundle.message("notify.showdoc.info.settings"));
-            ShowSettingsUtil.getInstance().showSettingsDialog(project, ShowDocSettingsConfigurable.class);
-
-            popup.cancel();
-        }
-    }
-
 
     private void initMenuToolbarPanelToolbar() {
 
-        DefaultActionGroup menuGroup = new DefaultActionGroup();
-
-        menuGroup.add(new AnAction("Export All", "Export markdown", AllIcons.Ide.IncomingChangesOn) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-
-                popup.cancel();
-                ExportUtils.batchExportMarkdown(project, currentDocView.getPsiClass().getName(), docViewList);
-            }
-        });
-        menuGroup.addSeparator();
-
-        menuGroup.add(new AnAction("Upload All", "Upload all To YApi", AllIcons.Ide.OutgoingChangesOn) {
-            @Override
-            public void actionPerformed(@NotNull AnActionEvent e) {
-                Point location = previewToolbarPanel.getLocationOnScreen();
-                location.x = MouseInfo.getPointerInfo().getLocation().x;
-                location.y += previewToolbarPanel.getHeight();
-
-                myIsPinned.set(true);
-
-                JBPopupFactory.getInstance()
-                        .createListPopup(new BaseListPopupStep<>(null, "YApi", "ShowDoc") {
-                            @Override
-                            public @NotNull String getTextFor(String value) {
-                                return "Upload to " + value;
-                            }
-
-                            @Override
-                            public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
-
-                                if (selectedValue.equals("YApi")) {
-                                    // 上传到 yapi
-                                    checkYApiSettings();
-                                    YApiService service = ServiceManager.getService(YApiServiceImpl.class);
-                                    service.upload(project, docViewList);
-                                } else if (selectedValue.equals("ShowDoc")) {
-                                    // 上传到 ShowDoc
-                                    checkShowDocSettings();
-                                    ShowDocService service = ServiceManager.getService(ShowDocServiceImpl.class);
-                                    service.upload(project, docViewList);
-                                }
-
-
-                                return FINAL_CHOICE;
-                            }
-                        }).showInScreenCoordinates(previewToolbarPanel, location);
-            }
-        });
-
-
+        final ActionManager actionManager = ActionManager.getInstance();
         // init toolbar
-        ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
-                .createActionToolbar("DocViewMenuToolbar", menuGroup, true);
+        ActionToolbar toolbar = actionManager
+                .createActionToolbar("DocViewMenuToolbar",
+                        (DefaultActionGroup) actionManager.getAction("liuzhihang.doc.preview.toolbar.menu"),
+                        true);
         toolbar.setTargetComponent(menuToolbarPanel);
         toolbar.getComponent().setBackground(UIUtil.getTextFieldBackground());
 
-        toolbar.setForceMinimumSize(true);
         toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
-        Utils.setSmallerFontForChildren(toolbar);
+        Utils.setSmallerFontForChildren(toolbar.getComponent());
 
         menuToolbarPanel.setBackground(UIUtil.getTextFieldBackground());
         menuToolbarPanel.add(toolbar.getComponent(), BorderLayout.WEST);
-
     }
 
 
@@ -590,6 +442,30 @@ public class PreviewForm {
             });
 
         });
+    }
+
+    @Override
+    public @Nullable Object getData(@NotNull @NonNls String dataId) {
+
+
+        if (DocViewDataKeys.PREVIEW_POPUP.is(dataId)) {
+            return popup;
+        }
+        if (DocViewDataKeys.PREVIEW_CURRENT_DOC_VIEW.is(dataId)) {
+            return currentDocView;
+        }
+
+        if (DocViewDataKeys.PREVIEW_DOC_VIEW_LIST.is(dataId)) {
+            return docViewList;
+        }
+        if (DocViewDataKeys.PREVIEW_TOOLBAR_PANEL.is(dataId)) {
+            return previewToolbarPanel;
+        }
+        if (DocViewDataKeys.PREVIEW_MARKDOWN_TEXT.is(dataId)) {
+            return currentMarkdownText;
+        }
+
+        return null;
     }
 }
 

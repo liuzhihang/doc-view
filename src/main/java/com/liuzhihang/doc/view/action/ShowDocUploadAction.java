@@ -15,7 +15,7 @@ import com.liuzhihang.doc.view.config.YApiSettings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewService;
-import com.liuzhihang.doc.view.service.ShowDocService;
+import com.liuzhihang.doc.view.service.DocViewUploadService;
 import com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
@@ -91,7 +91,7 @@ public class ShowDocUploadAction extends AnAction {
             return;
         }
 
-        ShowDocService service = ServiceManager.getService(ShowDocServiceImpl.class);
+        DocViewUploadService service = ServiceManager.getService(ShowDocServiceImpl.class);
         service.upload(project, docViewList);
     }
 

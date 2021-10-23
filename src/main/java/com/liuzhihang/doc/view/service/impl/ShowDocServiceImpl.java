@@ -12,7 +12,7 @@ import com.liuzhihang.doc.view.facade.dto.ShowDocUpdateRequest;
 import com.liuzhihang.doc.view.facade.dto.ShowDocUpdateResponse;
 import com.liuzhihang.doc.view.facade.impl.ShowDocFacadeServiceImpl;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
-import com.liuzhihang.doc.view.service.ShowDocService;
+import com.liuzhihang.doc.view.service.DocViewUploadService;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +24,7 @@ import java.util.List;
  */
 @Slf4j
 @Service
-public class ShowDocServiceImpl implements ShowDocService {
+public class ShowDocServiceImpl implements DocViewUploadService {
 
     @Override
     public void upload(@NotNull Project project, @NotNull List<DocView> docViewList) {

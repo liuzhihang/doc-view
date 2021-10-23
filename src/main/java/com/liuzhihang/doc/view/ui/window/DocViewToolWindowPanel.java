@@ -9,8 +9,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
-import com.intellij.ui.treeStructure.Tree;
-import com.liuzhihang.doc.view.data.DocViewDataKey;
+import com.intellij.ui.treeStructure.SimpleTree;
+import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,7 @@ import java.util.Objects;
 @Slf4j
 public class DocViewToolWindowPanel extends SimpleToolWindowPanel implements DataProvider {
 
-    private final Tree catalogTree = new Tree();
+    private final SimpleTree catalogTree = new SimpleTree();
     private final Project project;
 
     public DocViewToolWindowPanel(@NotNull Project project) {
@@ -82,7 +82,7 @@ public class DocViewToolWindowPanel extends SimpleToolWindowPanel implements Dat
     @Override
     public @Nullable Object getData(@NotNull @NonNls String dataId) {
 
-        if (DocViewDataKey.WINDOW_CATALOG_TREE.is(dataId)) {
+        if (DocViewDataKeys.WINDOW_CATALOG_TREE.is(dataId)) {
             return catalogTree;
         }
 
