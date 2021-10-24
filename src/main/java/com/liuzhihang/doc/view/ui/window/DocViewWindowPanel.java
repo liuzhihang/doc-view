@@ -14,8 +14,7 @@ import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiMethod;
+import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.util.SlowOperations;
 import com.liuzhihang.doc.view.DocViewBundle;
@@ -24,14 +23,12 @@ import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.impl.SpringDocViewServiceImpl;
-import com.liuzhihang.doc.view.utils.DocViewUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
 import java.io.File;
 
 /**
@@ -51,6 +48,7 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
         initToolbar();
         initCatalogTree();
         setContent(catalogTree);
+        new TreeSpeedSearch(catalogTree);
     }
 
 
@@ -76,37 +74,26 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
             @Override
             public void customizeCellRenderer(@NotNull JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
 
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
-                Object userObject = node.getUserObject();
-                if (userObject instanceof PsiClass) {
-                    PsiClass psiClass = (PsiClass) userObject;
-                    append(DocViewUtils.getTitle(psiClass));
-                }
-
-                if (userObject instanceof PsiMethod) {
-                    PsiMethod psiMethod = (PsiMethod) userObject;
-                    append(DocViewUtils.getName(psiMethod));
-                }
+                DocViewWindowTreeNode node = (DocViewWindowTreeNode) value;
+                append(node.getName());
 
             }
         });
 
         catalogTree.addTreeSelectionListener(e -> {
             SimpleTree simpleTree = (SimpleTree) e.getSource();
-            if (simpleTree.getLastSelectedPathComponent() instanceof DefaultMutableTreeNode) {
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode) simpleTree.getLastSelectedPathComponent();
-                Object userObject = node.getUserObject();
-                if (userObject instanceof PsiMethod) {
-                    PsiMethod psiMethod = (PsiMethod) userObject;
+            if (simpleTree.getLastSelectedPathComponent() instanceof DocViewWindowTreeNode) {
+                DocViewWindowTreeNode node = (DocViewWindowTreeNode) simpleTree.getLastSelectedPathComponent();
+
+                if (!node.isClassPath()) {
 
                     SpringDocViewServiceImpl service = ServiceManager.getService(SpringDocViewServiceImpl.class);
-                    DocView docView = service.buildClassMethodDoc(project, psiMethod.getContainingClass(), psiMethod);
+                    DocView docView = service.buildClassMethodDoc(project, node.getPsiClass(), node.getPsiMethod());
 
                     SlowOperations.allowSlowOperations(SlowOperations.GENERIC);
                     String markdownText = DocViewData.markdownText(project, docView);
                     String basePath = project.getBasePath();
                     File file = new File(basePath + "/.idea/doc-view/temp/" + docView.getName() + ".md");
-
 
                     try {
                         FileUtil.writeToFile(file, markdownText);

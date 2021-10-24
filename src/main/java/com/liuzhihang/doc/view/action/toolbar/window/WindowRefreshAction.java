@@ -14,10 +14,10 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
+import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 
 /**
@@ -25,9 +25,6 @@ import javax.swing.tree.DefaultTreeModel;
  * @date 2021/10/23 19:55
  */
 public class WindowRefreshAction extends AnAction {
-
-    private final DefaultMutableTreeNode rootNode = new DefaultMutableTreeNode("Doc View");
-
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
@@ -39,8 +36,9 @@ public class WindowRefreshAction extends AnAction {
         if (catalogTree == null || project == null) {
             return;
         }
-
-        catalogTree.setModel(new DefaultTreeModel(rootNode));
+        // 先移除所有的子节点
+        DocViewWindowTreeNode.ROOT.removeAllChildren();
+        catalogTree.setModel(new DefaultTreeModel(DocViewWindowTreeNode.ROOT));
 
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View", false) {
             @Override
@@ -64,19 +62,19 @@ public class WindowRefreshAction extends AnAction {
                             return true;
                         }
                         // 是 Doc View 类
-                        DefaultMutableTreeNode classNode = new DefaultMutableTreeNode(psiClass);
+                        DocViewWindowTreeNode classNode = new DocViewWindowTreeNode(psiClass);
 
                         PsiMethod[] methods = psiClass.getMethods();
 
                         for (PsiMethod method : methods) {
                             if (DocViewUtils.isDocViewMethod(method)) {
-                                classNode.add(new DefaultMutableTreeNode(method));
+                                classNode.add(new DocViewWindowTreeNode(psiClass, method));
                             }
                         }
 
                         // 没有方法 则不展示
                         if (classNode.getChildCount() > 0) {
-                            rootNode.add(classNode);
+                            DocViewWindowTreeNode.ROOT.add(classNode);
                         }
 
                         return true;
