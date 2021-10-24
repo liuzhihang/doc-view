@@ -4,7 +4,6 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.popup.JBPopup;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.ShowDocSettings;
 import com.liuzhihang.doc.view.config.ShowDocSettingsConfigurable;
@@ -22,7 +21,7 @@ public abstract class AbstractUploadAction extends AnAction {
 
     public abstract void actionPerformed(@NotNull AnActionEvent e);
 
-    public void checkYApiSettings(@NotNull Project project, JBPopup popup) {
+    public void checkYApiSettings(@NotNull Project project) {
         YApiSettings apiSettings = YApiSettings.getInstance(project);
 
         if (StringUtils.isBlank(apiSettings.getUrl())
@@ -32,11 +31,10 @@ public abstract class AbstractUploadAction extends AnAction {
             DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.info.settings"));
             ShowSettingsUtil.getInstance().showSettingsDialog(project, YApiSettingsConfigurable.class);
 
-            popup.cancel();
         }
     }
 
-    public void checkShowDocSettings(@NotNull Project project, JBPopup popup) {
+    public void checkShowDocSettings(@NotNull Project project) {
         ShowDocSettings apiSettings = ShowDocSettings.getInstance(project);
 
         if (StringUtils.isBlank(apiSettings.getUrl())
@@ -46,7 +44,6 @@ public abstract class AbstractUploadAction extends AnAction {
             DocViewNotification.notifyError(project, DocViewBundle.message("notify.showdoc.info.settings"));
             ShowSettingsUtil.getInstance().showSettingsDialog(project, ShowDocSettingsConfigurable.class);
 
-            popup.cancel();
         }
     }
 }

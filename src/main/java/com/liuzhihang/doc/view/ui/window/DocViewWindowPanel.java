@@ -6,7 +6,6 @@ import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.OpenFileDescriptor;
 import com.intellij.openapi.project.Project;
@@ -22,7 +21,7 @@ import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
-import com.liuzhihang.doc.view.service.impl.SpringDocViewServiceImpl;
+import com.liuzhihang.doc.view.service.DocViewService;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -87,7 +86,12 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
 
                 if (!node.isClassPath()) {
 
-                    SpringDocViewServiceImpl service = ServiceManager.getService(SpringDocViewServiceImpl.class);
+                    DocViewService service = DocViewService.getInstance(project, node.getPsiClass());
+
+                    if (service == null) {
+                        return;
+                    }
+
                     DocView docView = service.buildClassMethodDoc(project, node.getPsiClass(), node.getPsiMethod());
 
                     SlowOperations.allowSlowOperations(SlowOperations.GENERIC);

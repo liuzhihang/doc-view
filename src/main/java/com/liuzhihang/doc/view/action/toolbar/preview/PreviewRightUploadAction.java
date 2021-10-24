@@ -64,11 +64,11 @@ public class PreviewRightUploadAction extends AbstractUploadAction {
 
                         if (selectedValue.equals("YApi")) {
                             // 上传到 yapi
-                            checkYApiSettings(project, popup);
+                            checkYApiSettings(project);
                             upload(project, currentDocView, YApiServiceImpl.class);
                         } else if (selectedValue.equals("ShowDoc")) {
                             // 上传到 ShowDoc
-                            checkShowDocSettings(project, popup);
+                            checkShowDocSettings(project);
                             upload(project, currentDocView, ShowDocServiceImpl.class);
                         }
                         return FINAL_CHOICE;

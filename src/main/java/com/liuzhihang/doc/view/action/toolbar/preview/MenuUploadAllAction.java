@@ -64,12 +64,12 @@ public class MenuUploadAllAction extends AbstractUploadAction {
 
                         if (selectedValue.equals("YApi")) {
                             // 上传到 yapi
-                            checkYApiSettings(project, popup);
+                            checkYApiSettings(project);
                             upload(project, docViewList, YApiServiceImpl.class);
 
                         } else if (selectedValue.equals("ShowDoc")) {
                             // 上传到 ShowDoc
-                            checkShowDocSettings(project, popup);
+                            checkShowDocSettings(project);
                             upload(project, docViewList, ShowDocServiceImpl.class);
                         }
 
