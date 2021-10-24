@@ -1,4 +1,4 @@
-package com.liuzhihang.doc.view.ui.tree;
+package com.liuzhihang.doc.view.ui.window;
 
 import com.intellij.psi.PsiElement;
 
@@ -6,7 +6,7 @@ import com.intellij.psi.PsiElement;
  * @author liuzhihang
  * @date 2021/10/23 17:05
  */
-public class CatalogTreeNode {
+public class DocViewWindowTreeNode {
 
     /**
      * 接口类型

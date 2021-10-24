@@ -2,7 +2,7 @@ package com.liuzhihang.doc.view.data;
 
 import com.intellij.openapi.actionSystem.DataKey;
 import com.intellij.openapi.ui.popup.JBPopup;
-import com.intellij.ui.treeStructure.Tree;
+import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.ui.PreviewForm;
 
@@ -18,7 +18,7 @@ public class DocViewDataKeys {
     /**
      * 目录树
      */
-    public static final DataKey<Tree> WINDOW_CATALOG_TREE = DataKey.create("DocViewWindowTree");
+    public static final DataKey<SimpleTree> WINDOW_CATALOG_TREE = DataKey.create("DocViewWindowTree");
 
 
     /**
