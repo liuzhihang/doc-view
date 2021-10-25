@@ -15,7 +15,6 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.treeStructure.SimpleTree;
-import com.intellij.util.SlowOperations;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.dto.DocView;
@@ -94,7 +93,6 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
 
                     DocView docView = service.buildClassMethodDoc(project, node.getPsiClass(), node.getPsiMethod());
 
-                    SlowOperations.allowSlowOperations(SlowOperations.GENERIC);
                     String markdownText = DocViewData.markdownText(project, docView);
                     String basePath = project.getBasePath();
                     File file = new File(basePath + "/.idea/doc-view/temp/" + docView.getName() + ".md");
