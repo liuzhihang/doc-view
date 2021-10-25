@@ -23,6 +23,39 @@ import java.util.*;
  */
 public class SpringPsiUtils extends ParamPsiUtils {
 
+    /**
+     * 检查类或者接口是否是 Spring 接口
+     *
+     * @param psiClass
+     * @return
+     */
+    public static boolean isSpringClass(@NotNull PsiClass psiClass) {
+
+        Settings settings = Settings.getInstance(psiClass.getProject());
+
+        return AnnotationUtil.isAnnotated(psiClass, settings.getContainClassAnnotationName(), 0);
+    }
+
+    /**
+     * 检查方法是否满足 Spring 相关条件
+     * <p>
+     * 不是构造方法, 且 公共 非静态, 有相关注解
+     *
+     * @param psiMethod
+     * @return true 是spring 方法
+     */
+    public static boolean isSpringMethod(@NotNull PsiMethod psiMethod) {
+
+        Settings settings = Settings.getInstance(psiMethod.getProject());
+
+
+        return !psiMethod.isConstructor()
+                && CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.PUBLIC)
+                && !CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.STATIC)
+                && AnnotationUtil.isAnnotated(psiMethod, settings.getContainMethodAnnotationName(), 0);
+
+    }
+
     @NotNull
     public static String getMethod(PsiMethod psiMethod) {
 
@@ -393,27 +426,6 @@ public class SpringPsiUtils extends ParamPsiUtils {
 
 
         return param;
-    }
-
-
-    /**
-     * 检查方法是否满足 Spring 相关条件
-     * <p>
-     * 不是构造方法, 且 公共 非静态, 有相关注解
-     *
-     * @param psiMethod
-     * @return true 是spring 方法
-     */
-    public static boolean isSpringMethod(@NotNull PsiMethod psiMethod) {
-
-        Settings settings = Settings.getInstance(psiMethod.getProject());
-
-
-        return !psiMethod.isConstructor()
-                && CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.PUBLIC)
-                && !CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.STATIC)
-                && AnnotationUtil.isAnnotated(psiMethod, settings.getContainMethodAnnotationName(), 0);
-
     }
 
 }

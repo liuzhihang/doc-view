@@ -169,7 +169,7 @@
             </constraints>
             <properties>
               <horizontalTextPosition value="0"/>
-              <icon value="META-INF/image/wechat.png"/>
+              <icon value="image/wechat.png"/>
               <iconTextGap value="5"/>
               <text value=""/>
               <verticalTextPosition value="3"/>

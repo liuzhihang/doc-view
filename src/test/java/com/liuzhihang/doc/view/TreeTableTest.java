@@ -1,17 +1,18 @@
 package com.liuzhihang.doc.view;
 
-import com.intellij.ui.treeStructure.treetable.ListTreeTableModel;
-import com.intellij.ui.treeStructure.treetable.TreeTable;
-import com.intellij.ui.treeStructure.treetable.TreeTableCellRenderer;
-import com.intellij.ui.treeStructure.treetable.TreeTableModel;
+import com.intellij.ui.ColoredTreeCellRenderer;
+import com.intellij.ui.dualView.TreeTableView;
+import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
+import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
 import com.intellij.util.ui.ColumnInfo;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
+import javax.swing.tree.TreeCellRenderer;
 
 /**
  * @author liuzhihang
@@ -19,110 +20,128 @@ import javax.swing.tree.TreePath;
  */
 public class TreeTableTest {
 
-    static ColumnInfo name = new ColumnInfo("Name") {
-        @Nullable
-        @Override
-        public Object valueOf(Object o) {
-            if (o instanceof CustomNode) {
-                return ((CustomNode) o).getName();
-            } else return o;
-        }
-    };
-
-    static ColumnInfo value = new ColumnInfo("Value") {
-        @Nullable
-        @Override
-        public Object valueOf(Object o) {
-            if (o instanceof CustomNode) {
-                return ((CustomNode) o).getValue();
-            } else return o;
-        }
-    };
-    static ColumnInfo[] columns = {name, value};
 
     public static void main(String[] args) {
 
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode("I'm the root");
+
+        //初始化为空
+        CustomNode root = new CustomNode("Root", "");
+
+        root.add(new CustomNode("a", "a"));
+        root.add(new CustomNode("b", "b"));
+        root.add(new CustomNode("c", "c"));
 
 
-        DefaultMutableTreeNode first = new CustomNode("I am first name", "I am first value");
-        DefaultMutableTreeNode second = new CustomNode("I am second name", "I am second value");
-        root.add(first);
-        root.add(second);
+        CustomNode d = new CustomNode("d", "d");
+        root.add(d);
 
-        DefaultMutableTreeNode child1 = new CustomNode("I am child name1", "I am child value");
-        DefaultMutableTreeNode child2 = new CustomNode("I am child name2", "I am child value");
-        DefaultMutableTreeNode child3 = new CustomNode("I am child name3", "I am child value");
+        d.add(new CustomNode("d1", "d1"));
+        d.add(new CustomNode("d3", "d3"));
+        d.add(new CustomNode("d4", "d4"));
+        d.add(new CustomNode("d5", "d5"));
 
-        System.out.println(second.getAllowsChildren());
-        second.add(child1);
-        second.add(child2);
-        second.add(child3);
-        System.out.println(second.getChildCount());
+        ColumnInfo[] columnInfo = new ColumnInfo[]{
+                new TreeColumnInfo("Name") {
+                    @Override
+                    public int getWidth(JTable table) {
+                        return 200;
+                    }
 
-        ListTreeTableModel model = new ListTreeTableModel(root, columns);
-        TreeTable treeTable = new TreeTable(model) {
+                },   // <-- This is important!
+                new ColumnInfo("Value") {
+                    @Nullable
+                    @Override
+                    public Object valueOf(Object o) {
+                        if (o instanceof CustomNode) {
+                            return ((CustomNode) o).getValue();
+                        } else return o;
+                    }
+                }
+        };
+
+        ListTreeTableModelOnColumns model = new ListTreeTableModelOnColumns(root, columnInfo);
+        TreeTableView table = new TreeTableView(model) {
             @Override
-            public TreeTableCellRenderer createTableRenderer(TreeTableModel treeTableModel) {
-                TreeTableCellRenderer tableRenderer = super.createTableRenderer(treeTableModel);
-                // UIUtil.setLineStyleAngled(this.getTree());
-                tableRenderer.setRootVisible(true);
-                tableRenderer.setShowsRootHandles(true);
+            public void setTreeCellRenderer(TreeCellRenderer renderer) {
+                super.setTreeCellRenderer(new ColoredTreeCellRenderer() {
 
-
-                return tableRenderer;
+                    @Override
+                    public void customizeCellRenderer(@NotNull JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
+                        CustomNode node = (CustomNode) value;
+                        append(node.getKey());
+                    }
+                });
             }
 
             @Override
             public TableCellRenderer getCellRenderer(int row, int column) {
-                TreePath treePath = getTree().getPathForRow(row);
-                if (treePath == null) return super.getCellRenderer(row, column);
-
-                Object node = treePath.getLastPathComponent();
-
-                @SuppressWarnings("unchecked")
-                TableCellRenderer renderer = columns[column].getRenderer(node);
-                return renderer == null ? super.getCellRenderer(row, column) : renderer;
+                return super.getCellRenderer(row, column);
             }
+
 
             @Override
             public TableCellEditor getCellEditor(int row, int column) {
-                TreePath treePath = getTree().getPathForRow(row);
-                if (treePath == null) return super.getCellEditor(row, column);
-
-                Object node = treePath.getLastPathComponent();
-                @SuppressWarnings("unchecked")
-                TableCellEditor editor = columns[column].getEditor(node);
-                return editor == null ? super.getCellEditor(row, column) : editor;
+                return super.getCellEditor(row, column);
             }
+
+            @Override
+            public Object getValueAt(int row, int column) {
+                ListTreeTableModelOnColumns myModel = (ListTreeTableModelOnColumns) getTableModel();
+                CustomNode node = (CustomNode) myModel.getRowValue(row);
+                if (column == 0) {
+                    return node.getKey();
+                } else {
+                    return node.getValue();
+                }
+            }
+
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column == 1;
+            }
+
         };
-        treeTable.setRootVisible(true);
-        treeTable.setRowHeight(18);
+        table.setRootVisible(true);
+        table.setVisible(true);
+
 
         JFrame frame = new JFrame();
         frame.setBounds(400, 400, 800, 500);
-        frame.getContentPane().add(treeTable);
+        frame.getContentPane().add(table);
         frame.setVisible(true);
 
     }
 
-
     private static class CustomNode extends DefaultMutableTreeNode {
-        String name;
-        Object value;
+        private String key;
+        private Object value;
 
-        CustomNode(String name, Object value) {
-            this.name = name;
+        public CustomNode() {
+        }
+
+        public CustomNode(String key, Object value) {
+            this.key = key;
             this.value = value;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public void setKey(String key) {
+            this.key = key;
         }
 
         public Object getValue() {
             return value;
         }
 
-        public String getName() {
-            return name;
+        public void setValue(Object value) {
+            this.value = value;
         }
     }
+
+
+
 
 }

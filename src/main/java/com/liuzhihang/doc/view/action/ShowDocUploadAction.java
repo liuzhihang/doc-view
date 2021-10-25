@@ -1,6 +1,5 @@
 package com.liuzhihang.doc.view.action;
 
-import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Editor;
@@ -18,11 +17,10 @@ import com.liuzhihang.doc.view.config.YApiSettings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewService;
-import com.liuzhihang.doc.view.service.ShowDocService;
+import com.liuzhihang.doc.view.service.DocViewUploadService;
 import com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
-import com.liuzhihang.doc.view.utils.DubboPsiUtils;
-import com.liuzhihang.doc.view.utils.SpringPsiUtils;
+import com.liuzhihang.doc.view.utils.DocViewUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -95,7 +93,7 @@ public class ShowDocUploadAction extends AnAction {
             return;
         }
 
-        ShowDocService service = ServiceManager.getService(ShowDocServiceImpl.class);
+        DocViewUploadService service = ServiceManager.getService(ShowDocServiceImpl.class);
         service.upload(project, docViewList);
     }
 
@@ -120,45 +118,19 @@ public class ShowDocUploadAction extends AnAction {
 
         PsiClass targetClass = CustomPsiUtils.getTargetClass(editor, psiFile);
 
-        if (targetClass == null || targetClass.isAnnotationType() || targetClass.isEnum()) {
+        if (!DocViewUtils.isDocViewClass(targetClass)) {
             presentation.setEnabledAndVisible(false);
             return;
         }
 
-        Settings settings = Settings.getInstance(project);
+        PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
 
-        // 检查是否有 Controller 注解 且不是接口
-        if (!targetClass.isInterface() && !AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
+        if (targetMethod != null && !DocViewUtils.isDocViewMethod(targetMethod)) {
             presentation.setEnabledAndVisible(false);
             return;
         }
 
-        // Spring Controller 还需要检查方法是否满足条件
-        if (AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
-            PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
-            // 过滤掉私有和静态方法以及没有相关注解的方法
-            if (targetMethod != null) {
-                if (!SpringPsiUtils.isSpringMethod(targetMethod)) {
-                    presentation.setEnabledAndVisible(false);
-                    return;
-                }
-
-            }
-        }
-
-        // Dubbo 接口 还需要检查方法是否满足条件
-        if (targetClass.isInterface()) {
-            PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
-            // 过滤掉私有和静态方法以及没有相关注解的方法
-            if (targetMethod != null) {
-                if (!DubboPsiUtils.isDubboMethod(targetMethod)) {
-                    presentation.setEnabledAndVisible(false);
-                }
-
-            }
-        }
-
-
+        presentation.setEnabledAndVisible(true);
     }
 
 }

@@ -12,6 +12,7 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.ui.WindowMoveListener;
+import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.util.ui.JBUI;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.SettingsConfigurable;
@@ -19,18 +20,16 @@ import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.dto.DocViewParamData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
-import com.liuzhihang.doc.view.ui.treetable.ParamTreeTableModel;
-import com.liuzhihang.doc.view.ui.treetable.ParamTreeTableUtils;
+import com.liuzhihang.doc.view.ui.treeview.ParamTreeTableView;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 import com.liuzhihang.doc.view.utils.GsonFormatUtil;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
-import org.jdesktop.swingx.JXTreeTable;
-import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -50,7 +49,7 @@ public class ParamDocEditorForm {
     private final Editor editor;
     private final PsiClass psiClass;
 
-    private JXTreeTable treeTable;
+    private ParamTreeTableView tableView;
 
     private JPanel rootPanel;
     private JPanel headToolbarPanel;
@@ -207,11 +206,11 @@ public class ParamDocEditorForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                if (treeTable.isEditing()) {
-                    treeTable.getCellEditor().stopCellEditing();
+                if (tableView.isEditing()) {
+                    tableView.getCellEditor().stopCellEditing();
                 }
 
-                DocViewUtils.writeComment(project, ((ParamTreeTableModel) treeTable.getTreeTableModel()).getModifiedMap());
+                DocViewUtils.writeComment(project, tableView.getModifiedMap());
                 popup.cancel();
             }
         });
@@ -243,18 +242,29 @@ public class ParamDocEditorForm {
 
         List<DocViewParamData> dataList = DocViewData.buildBodyDataList(rootBody.getChildList());
 
-        DocViewParamData paramData = new DocViewParamData();
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode();
 
-        DefaultMutableTreeTableNode rootNode = new DefaultMutableTreeTableNode(paramData);
-        ParamTreeTableUtils.createTreeData(rootNode, dataList);
+        convertToTreeNode(root, dataList);
 
-        treeTable = new JXTreeTable(new ParamTreeTableModel(rootNode));
+        ListTreeTableModelOnColumns model = new ListTreeTableModelOnColumns(root, ParamTreeTableView.COLUMN_INFOS);
 
-        ParamTreeTableUtils.render(treeTable);
+        tableView = new ParamTreeTableView(model);
 
-        paramScrollPane.setViewportView(treeTable);
+        paramScrollPane.setViewportView(tableView);
 
     }
 
+    private void convertToTreeNode(DefaultMutableTreeNode root, List<DocViewParamData> paramDataList) {
+
+        for (DocViewParamData data : paramDataList) {
+            DefaultMutableTreeNode node = new DefaultMutableTreeNode(data);
+            root.add(node);
+
+            if (data.getChildList() != null && data.getChildList().size() > 0) {
+                convertToTreeNode(node, data.getChildList());
+            }
+
+        }
+    }
 
 }

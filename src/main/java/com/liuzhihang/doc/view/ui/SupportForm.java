@@ -4,6 +4,7 @@ import com.intellij.ide.BrowserUtil;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.util.ui.JBUI;
+import com.liuzhihang.doc.view.DocViewBundle;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -32,10 +33,10 @@ public class SupportForm extends DialogWrapper {
 
         rootPanel.setBorder(JBUI.Borders.empty(12, 15));
         rootPanel.setBackground(UIManager.getColor("TextArea.background"));
-        starLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://github.com/liuzhihang/doc-view");
-        reportLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://github.com/liuzhihang/doc-view/issues");
-        discussionsLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://github.com/liuzhihang/doc-view/discussions");
-        websiteLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), "https://docview.liuzhihang.com");
+        starLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), DocViewBundle.message("github"));
+        reportLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), DocViewBundle.message("issues"));
+        discussionsLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), DocViewBundle.message("discussions"));
+        websiteLinkLabel.setListener((source, data) -> BrowserUtil.browse(data), DocViewBundle.message("website"));
 
     }
 

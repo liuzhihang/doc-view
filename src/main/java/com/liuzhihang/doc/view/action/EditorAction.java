@@ -1,6 +1,5 @@
 package com.liuzhihang.doc.view.action;
 
-import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.DumbService;
@@ -9,7 +8,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
@@ -17,8 +15,7 @@ import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.ui.DocEditorForm;
 import com.liuzhihang.doc.view.ui.ParamDocEditorForm;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
-import com.liuzhihang.doc.view.utils.DubboPsiUtils;
-import com.liuzhihang.doc.view.utils.SpringPsiUtils;
+import com.liuzhihang.doc.view.utils.DocViewUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -90,6 +87,7 @@ public class EditorAction extends AnAction {
             return;
         }
 
+
         PsiClass targetClass = CustomPsiUtils.getTargetClass(editor, psiFile);
 
         if (targetClass == null || targetClass.isAnnotationType() || targetClass.isEnum()) {
@@ -97,45 +95,23 @@ public class EditorAction extends AnAction {
             return;
         }
 
-        Settings settings = Settings.getInstance(project);
         PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
 
+        // 当前方法不为空, 则必须在 DocView 类中
+        if (targetMethod != null && !DocViewUtils.isDocViewClass(targetClass)) {
+            presentation.setEnabledAndVisible(false);
+            return;
 
-        if (targetMethod == null && AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
+
+        }
+
+        // 方法为空, 但是在 DocView 类中,说明不是 entity 实体类
+        if (targetMethod == null && DocViewUtils.isDocViewClass(targetClass)) {
             presentation.setEnabledAndVisible(false);
             return;
         }
 
-        if (targetMethod != null) {
-            // 当前方法不为空, 则必须在 Controller 或者接口中
-            // 检查是否有 Controller 注解 且不是接口
-            if (!targetClass.isInterface() && !AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
-                presentation.setEnabledAndVisible(false);
-                return;
-            }
 
-            // Spring Controller 还需要检查方法是否满足条件
-            if (AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
-                // 过滤掉私有和静态方法以及没有相关注解的方法
-                if (!SpringPsiUtils.isSpringMethod(targetMethod)) {
-                    presentation.setEnabledAndVisible(false);
-                    return;
-                }
-            }
-            // Dubbo 接口 还需要检查方法是否满足条件
-            if (targetClass.isInterface()) {
-                // 过滤掉私有和静态方法以及没有相关注解的方法
-                if (!DubboPsiUtils.isDubboMethod(targetMethod)) {
-                    presentation.setEnabledAndVisible(false);
-
-                }
-            }
-
-        } else {
-            // 否则当做普通 Bean 进行处理, 普通 JavaBean 不能是接口和 controller
-            if (targetClass.isInterface() && AnnotationUtil.isAnnotated(targetClass, settings.getContainClassAnnotationName(), 0)) {
-                presentation.setEnabledAndVisible(false);
-            }
-        }
+        presentation.setEnabledAndVisible(true);
     }
 }

@@ -1,9 +1,11 @@
 package com.liuzhihang.doc.view.utils;
 
+import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
+import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.Body;
 import org.apache.commons.lang3.StringUtils;
@@ -18,6 +20,21 @@ import java.util.Objects;
  * @date 2020/11/16 20:37
  */
 public class DubboPsiUtils {
+
+    /**
+     * 检查是否是 dubbo 接口
+     * <p>
+     * 当前判断方式:
+     *
+     * @param psiClass
+     * @return
+     */
+    public static boolean isDubboClass(@NotNull PsiClass psiClass) {
+
+        Settings settings = Settings.getInstance(psiClass.getProject());
+
+        return psiClass.isInterface() && !AnnotationUtil.isAnnotated(psiClass, settings.getContainClassAnnotationName(), 0);
+    }
 
 
     /**

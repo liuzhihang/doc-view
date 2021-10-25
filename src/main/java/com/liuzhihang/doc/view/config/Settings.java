@@ -60,6 +60,17 @@ public class Settings implements PersistentStateComponent<Settings> {
     private Boolean requiredUseCommentTag = true;
 
     /**
+     * 是否合并导出
+     */
+    private Boolean mergeExport = true;
+
+    /**
+     * 是否显示边栏标记
+     */
+    private Boolean lineMarker = true;
+    private Boolean interfaceLineMaker = false;
+
+    /**
      * 包含类注解名称
      */
     private Set<String> containClassAnnotationName = new HashSet<>() {{
@@ -126,6 +137,14 @@ public class Settings implements PersistentStateComponent<Settings> {
         add("org.apache.dubbo.config.annotation.Reference");
         add("org.apache.dubbo.config.annotation.DubboReference");
     }};
+
+    /**
+     * 被注解的字段需要过滤掉
+     */
+    private Set<String> excludeClassPackage = new HashSet<>() {{
+        add("com.baomidou.mybatisplus");
+    }};
+
 
     public static Settings getInstance(@NotNull Project project) {
         return ServiceManager.getService(project, Settings.class);
