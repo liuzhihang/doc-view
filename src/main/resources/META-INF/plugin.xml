@@ -136,10 +136,10 @@
                     text="Refresh" description="Refresh" icon="AllIcons.Actions.Refresh"/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.filter"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowFilterAction"
-                    text="Filter" description="Filter" icon="AllIcons.General.Filter"/>
-            <action id="liuzhihang.doc.tool.window.toolbar.action.search"
-                    class="com.liuzhihang.doc.view.action.toolbar.window.WindowSearchAction"
-                    text="Search" description="Search" icon="AllIcons.Actions.Search"/>
+                    text="Filter" description="Filter" icon="AllIcons.General.Filter" popup="true"/>
+            <!--<action id="liuzhihang.doc.tool.window.toolbar.action.search"-->
+            <!--        class="com.liuzhihang.doc.view.action.toolbar.window.WindowSearchAction"-->
+            <!--        text="Search" description="Search" icon="AllIcons.Actions.Search"/>-->
 
             <separator/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.export"
