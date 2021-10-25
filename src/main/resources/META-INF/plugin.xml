@@ -21,6 +21,7 @@
         <applicationService serviceImplementation="com.liuzhihang.doc.view.config.ApplicationSettings"/>
         <!-- 一个项目一个设置 -->
         <projectService serviceImplementation="com.liuzhihang.doc.view.config.Settings"/>
+        <projectService serviceImplementation="com.liuzhihang.doc.view.config.WindowSettings"/>
         <!-- 模版设置 -->
         <projectService serviceImplementation="com.liuzhihang.doc.view.config.TemplateSettings"/>
         <projectService serviceImplementation="com.liuzhihang.doc.view.config.YApiSettings"/>

@@ -19,6 +19,7 @@ public class DocViewDataKeys {
      * 目录树
      */
     public static final DataKey<SimpleTree> WINDOW_CATALOG_TREE = DataKey.create("DocViewWindowTree");
+    public static final DataKey<JComponent> WINDOW_TOOLBAR = DataKey.create("DocViewWindowToolbar");
 
 
     /**

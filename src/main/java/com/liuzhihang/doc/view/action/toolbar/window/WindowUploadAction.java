@@ -11,9 +11,11 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.intellij.ui.treeStructure.SimpleTree;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.action.toolbar.AbstractUploadAction;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.dto.DocView;
+import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 import com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl;
@@ -22,8 +24,8 @@ import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.swing.*;
 import javax.swing.tree.TreeNode;
-import java.awt.*;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -39,10 +41,17 @@ public class WindowUploadAction extends AbstractUploadAction {
         // 获取当前project对象
         Project project = e.getData(PlatformDataKeys.PROJECT);
         SimpleTree catalogTree = e.getData(DocViewDataKeys.WINDOW_CATALOG_TREE);
+        JComponent toolbar = e.getData(DocViewDataKeys.WINDOW_TOOLBAR);
 
-        if (catalogTree == null || project == null) {
+        if (catalogTree == null || project == null || toolbar == null) {
             return;
         }
+
+        if (DocViewWindowTreeNode.ROOT.getChildCount() == 0) {
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.window.upload.empty"));
+            return;
+        }
+
 
         JBPopupFactory.getInstance()
                 .createListPopup(new BaseListPopupStep<>(null, "YApi", "ShowDoc") {
@@ -68,7 +77,8 @@ public class WindowUploadAction extends AbstractUploadAction {
 
                         return FINAL_CHOICE;
                     }
-                }).showInScreenCoordinates(catalogTree, new Point());
+                }).showUnderneathOf(toolbar);
+
 
     }
 

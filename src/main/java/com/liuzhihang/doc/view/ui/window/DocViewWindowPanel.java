@@ -125,6 +125,9 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
             return catalogTree;
         }
 
+        if (DocViewDataKeys.WINDOW_TOOLBAR.is(dataId)) {
+            return getToolbar();
+        }
 
         return super.getData(dataId);
     }

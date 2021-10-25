@@ -17,6 +17,7 @@ import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
+import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
 import com.liuzhihang.doc.view.utils.DialogUtil;
@@ -44,6 +45,11 @@ public class WindowExportAction extends AnAction {
             return;
         }
         DocViewWindowTreeNode root = DocViewWindowTreeNode.ROOT;
+
+        if (root.getChildCount() == 0) {
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.window.export.empty"));
+            return;
+        }
 
         // 选择路径
         FileChooserDescriptor fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
