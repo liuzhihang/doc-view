@@ -91,9 +91,6 @@
             <action id="liuzhihang.doc.view" class="com.liuzhihang.doc.view.action.PreviewAction"
                     text="Doc View"/>
             <action id="liuzhihang.doc.editor" class="com.liuzhihang.doc.view.action.EditorAction" text="Doc Editor"/>
-
-            <!-- 测试 JCEF 的浏览器 -->
-            <!--<action id="liuzhihang.doc.browser" class="com.liuzhihang.doc.view.action.WebBrowser" text="WebBrowser"/>-->
         </group>
 
         <group id="liuzhihang.doc.upload" text="Doc Upload" popup="true">
