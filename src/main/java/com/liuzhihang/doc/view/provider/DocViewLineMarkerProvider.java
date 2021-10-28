@@ -1,7 +1,7 @@
 package com.liuzhihang.doc.view.provider;
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
-import com.intellij.codeInsight.daemon.impl.JavaLineMarkerProvider;
+import com.intellij.codeInsight.daemon.LineMarkerProvider;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -29,7 +29,7 @@ import java.util.List;
  * @author liuzhihang
  * @date 2021/10/21 16:03
  */
-public class DocViewLineMarkerProvider extends JavaLineMarkerProvider {
+public class DocViewLineMarkerProvider implements LineMarkerProvider {
 
 
     @Override
