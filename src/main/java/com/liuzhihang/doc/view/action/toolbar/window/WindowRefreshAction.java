@@ -69,20 +69,13 @@ public class WindowRefreshAction extends AnAction {
 
         String scope = windowSettings.getScope();
 
-        GlobalSearchScope searchScope;
+        Module module = ModuleManager.getInstance(project).findModuleByName(scope);
 
-
-        if (scope.equalsIgnoreCase("Project")) {
-            searchScope = GlobalSearchScope.projectScope(project);
-        } else {
-            Module module = ModuleManager.getInstance(project).findModuleByName(scope);
-
-            if (module == null) {
-                return;
-            }
-
-            searchScope = GlobalSearchScope.moduleScope(module);
+        if (module == null) {
+            return;
         }
+
+        GlobalSearchScope searchScope = GlobalSearchScope.moduleScope(module);
 
         ApplicationManager.getApplication().runReadAction(() -> {
             AllClassesGetter.processJavaClasses(

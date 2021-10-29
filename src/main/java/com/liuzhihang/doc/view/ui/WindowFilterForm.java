@@ -49,10 +49,7 @@ public class WindowFilterForm {
 
     private void initFilterPane() {
 
-
         interfaceCheckBox.setSelected(windowSettings.isIncludeInterface());
-
-        scopeComboBox.addItem("Project");
 
         Module[] modules = ModuleManager.getInstance(project).getModules();
 
