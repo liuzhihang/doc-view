@@ -1,7 +1,6 @@
 package com.liuzhihang.doc.view;
 
 import com.liuzhihang.doc.view.dto.DocViewParamData;
-import com.liuzhihang.doc.view.ui.treetable.ParamTreeTableModel;
 import org.jdesktop.swingx.JXTreeTable;
 import org.jdesktop.swingx.treetable.DefaultMutableTreeTableNode;
 import org.jetbrains.annotations.NotNull;
@@ -49,7 +48,7 @@ public class JxTreeTableTest {
         child3.add(child3Child3);
         child3.add(child3Child4);
 
-        JXTreeTable treeTable = new JXTreeTable(new ParamTreeTableModel(rootNode));
+        JXTreeTable treeTable = new JXTreeTable();
 
         treeTable.getColumnModel().getColumn(0).setPreferredWidth(150);
         // treeTable.expandAll();
