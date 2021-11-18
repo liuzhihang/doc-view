@@ -2,6 +2,7 @@ package com.liuzhihang.doc.view.action.toolbar.preview;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -88,7 +89,13 @@ public class MenuUploadAllAction extends AbstractUploadAction {
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View upload", true) {
             @Override
             public void run(@NotNull ProgressIndicator progressIndicator) {
-                service.upload(project, docViewList);
+
+                ApplicationManager.getApplication().executeOnPooledThread(() -> ApplicationManager.getApplication().runReadAction(() -> {
+
+                    service.upload(project, docViewList);
+
+                }));
+
             }
         });
     }

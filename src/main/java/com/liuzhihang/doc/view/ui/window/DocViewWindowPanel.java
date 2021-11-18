@@ -72,8 +72,10 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
             @Override
             public void customizeCellRenderer(@NotNull JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
 
-                DocViewWindowTreeNode node = (DocViewWindowTreeNode) value;
-                append(node.getName());
+                if (value instanceof DocViewWindowTreeNode) {
+                    DocViewWindowTreeNode node = (DocViewWindowTreeNode) value;
+                    append(node.getName());
+                }
 
             }
         });

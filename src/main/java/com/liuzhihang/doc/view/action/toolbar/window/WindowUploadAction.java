@@ -2,6 +2,7 @@ package com.liuzhihang.doc.view.action.toolbar.window;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -90,22 +91,26 @@ public class WindowUploadAction extends AbstractUploadAction {
             @Override
             public void run(@NotNull ProgressIndicator progressIndicator) {
 
-                DocViewWindowTreeNode root = DocViewWindowTreeNode.ROOT;
+                ApplicationManager.getApplication().executeOnPooledThread(() -> ApplicationManager.getApplication().runReadAction(() -> {
 
-                Enumeration<TreeNode> treeNodeEnumeration = root.breadthFirstEnumeration();
+                    DocViewWindowTreeNode root = DocViewWindowTreeNode.ROOT;
 
-                while (treeNodeEnumeration.hasMoreElements()) {
-                    DocViewWindowTreeNode treeNode = (DocViewWindowTreeNode) treeNodeEnumeration.nextElement();
-                    // 导出全部
-                    if (treeNode.isClassPath()) {
-                        DocViewService service = DocViewService.getInstance(project, treeNode.getPsiClass());
-                        if (service != null) {
-                            List<DocView> docViews = service.buildClassDoc(project, treeNode.getPsiClass());
-                            uploadService.upload(project, docViews);
+                    Enumeration<TreeNode> treeNodeEnumeration = root.breadthFirstEnumeration();
+
+                    while (treeNodeEnumeration.hasMoreElements()) {
+                        DocViewWindowTreeNode treeNode = (DocViewWindowTreeNode) treeNodeEnumeration.nextElement();
+                        // 导出全部
+                        if (treeNode.isClassPath()) {
+                            DocViewService service = DocViewService.getInstance(project, treeNode.getPsiClass());
+                            if (service != null) {
+                                List<DocView> docViews = service.buildClassDoc(project, treeNode.getPsiClass());
+                                uploadService.upload(project, docViews);
+                            }
                         }
-                    }
 
-                }
+                    }
+                }));
+
             }
         });
     }

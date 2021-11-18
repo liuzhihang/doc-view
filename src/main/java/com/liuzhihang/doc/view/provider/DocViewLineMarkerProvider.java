@@ -79,6 +79,10 @@ public class DocViewLineMarkerProvider implements LineMarkerProvider {
             return null;
         }
 
+        if (!DocViewUtils.isDocViewMethod(psiMethod)) {
+            return null;
+        }
+
         return new LineMarkerInfo<>(element, element.getTextRange(),
                 DocViewIcons.DOC_VIEW,
                 psiElement -> "查看文档",
@@ -89,7 +93,7 @@ public class DocViewLineMarkerProvider implements LineMarkerProvider {
                     docViewList.add(docView);
                     PreviewForm.getInstance(project, psiFile, psiClass, docViewList).popup();
                 },
-                GutterIconRenderer.Alignment.CENTER,
+                GutterIconRenderer.Alignment.LEFT,
                 () -> "Doc View");
     }
 

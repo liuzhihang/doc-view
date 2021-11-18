@@ -1,6 +1,7 @@
 package com.liuzhihang.doc.view.action;
 
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -97,7 +98,13 @@ public class YApiUploadAction extends AnAction {
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View upload", true) {
             @Override
             public void run(@NotNull ProgressIndicator progressIndicator) {
-                service.upload(project, docViewList);
+
+                ApplicationManager.getApplication().executeOnPooledThread(() -> ApplicationManager.getApplication().runReadAction(() -> {
+
+                    service.upload(project, docViewList);
+
+                }));
+
             }
         });
 

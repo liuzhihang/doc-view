@@ -10,6 +10,7 @@ import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.constant.SpringConstant;
 import com.liuzhihang.doc.view.constant.SwaggerConstant;
 import com.liuzhihang.doc.view.dto.DocViewParamData;
 import com.liuzhihang.doc.view.service.impl.WriterService;
@@ -18,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -257,9 +259,9 @@ public class DocViewUtils {
             return true;
         }
 
-        // if (CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.TRANSIENT)) {
-        //     return true;
-        // }
+        if (CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.TRANSIENT)) {
+            return true;
+        }
 
         // 排除部分注解的字段
         if (AnnotationUtil.isAnnotated(psiField, settings.getExcludeFieldAnnotation(), 0)) {
@@ -389,7 +391,28 @@ public class DocViewUtils {
 
         Settings settings = Settings.getInstance(psiParameter.getProject());
 
-        return AnnotationUtil.isAnnotated(psiParameter, settings.getRequiredFieldAnnotation(), 0);
+        // 必填标识
+        if (AnnotationUtil.isAnnotated(psiParameter, settings.getRequiredFieldAnnotation(), 0)) {
+            return true;
+        }
+
+
+        if (AnnotationUtil.isAnnotated(psiParameter, SpringConstant.REQUEST_PARAM, 0)) {
+            PsiAnnotation annotation = psiParameter.getAnnotation(SpringConstant.REQUEST_PARAM);
+            if (annotation != null) {
+                // 没有设置注解参数
+                PsiNameValuePair[] nameValuePairs = annotation.getParameterList().getAttributes();
+                for (PsiNameValuePair nameValuePair : nameValuePairs) {
+                    if (nameValuePair.getAttributeName().equalsIgnoreCase("required")
+                            && Objects.requireNonNull(nameValuePair.getLiteralValue()).equalsIgnoreCase("false")) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+
+        return false;
     }
 
 

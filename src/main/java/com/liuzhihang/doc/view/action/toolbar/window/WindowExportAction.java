@@ -3,6 +3,7 @@ package com.liuzhihang.doc.view.action.toolbar.window;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
@@ -73,26 +74,31 @@ public class WindowExportAction extends AnAction {
             @Override
             public void run(@NotNull ProgressIndicator progressIndicator) {
 
-                Enumeration<TreeNode> treeNodeEnumeration = root.breadthFirstEnumeration();
+                ApplicationManager.getApplication().executeOnPooledThread(() -> ApplicationManager.getApplication().runReadAction(() -> {
+                    Enumeration<TreeNode> treeNodeEnumeration = root.breadthFirstEnumeration();
 
-                while (treeNodeEnumeration.hasMoreElements()) {
-                    DocViewWindowTreeNode treeNode = (DocViewWindowTreeNode) treeNodeEnumeration.nextElement();
-                    // 导出全部
-                    if (treeNode.isClassPath()) {
-                        DocViewService service = DocViewService.getInstance(project, treeNode.getPsiClass());
-                        if (service != null) {
-                            List<DocView> docViews = service.buildClassDoc(project, treeNode.getPsiClass());
-                            for (DocView docView : docViews) {
-                                try {
-                                    FileUtil.writeToFile(file, DocViewData.markdownText(project, docView), true);
-                                } catch (Exception ignored) {
+                    while (treeNodeEnumeration.hasMoreElements()) {
+                        DocViewWindowTreeNode treeNode = (DocViewWindowTreeNode) treeNodeEnumeration.nextElement();
+                        // 导出全部
+                        if (treeNode.isClassPath()) {
+                            DocViewService service = DocViewService.getInstance(project, treeNode.getPsiClass());
+                            if (service != null) {
+                                List<DocView> docViews = service.buildClassDoc(project, treeNode.getPsiClass());
+                                for (DocView docView : docViews) {
+                                    try {
+                                        FileUtil.writeToFile(file, DocViewData.markdownText(project, docView), true);
+                                    } catch (Exception ignored) {
+                                    }
                                 }
-                            }
 
+                            }
                         }
+
                     }
 
-                }
+                }));
+
+
             }
         });
     }

@@ -395,26 +395,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
     private static Param buildPramFromParameter(PsiMethod psiMethod, PsiParameter parameter) {
 
         Param param = new Param();
-        param.setRequired(false);
-
-        if (AnnotationUtil.isAnnotated(parameter, SpringConstant.REQUEST_PARAM, 0)) {
-            PsiAnnotation annotation = parameter.getAnnotation(SpringConstant.REQUEST_PARAM);
-            assert annotation != null;
-
-            PsiNameValuePair[] nameValuePairs = annotation.getParameterList().getAttributes();
-
-            // 初始为 true
-            param.setRequired(true);
-            for (PsiNameValuePair nameValuePair : nameValuePairs) {
-
-                if (nameValuePair.getAttributeName().equalsIgnoreCase("required")
-                        && Objects.requireNonNull(nameValuePair.getLiteralValue()).equalsIgnoreCase("false")) {
-                    param.setRequired(false);
-                }
-
-            }
-        }
-
+        param.setRequired(DocViewUtils.isRequired(parameter));
         param.setName(parameter.getName());
         param.setType(parameter.getType().getPresentableText());
 

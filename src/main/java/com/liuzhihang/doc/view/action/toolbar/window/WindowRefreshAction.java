@@ -15,13 +15,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.treeStructure.SimpleTree;
-import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.WindowSettings;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
-import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.DefaultTreeModel;
@@ -45,13 +42,6 @@ public class WindowRefreshAction extends AnAction {
 
         WindowSettings windowSettings = WindowSettings.getInstance(project);
 
-        String scope = windowSettings.getScope();
-
-        if (StringUtils.isBlank(scope)) {
-            DocViewNotification.notifyError(project, DocViewBundle.message("notify.window.select.filter"));
-            return;
-        }
-
         // 先移除所有的子节点
         DocViewWindowTreeNode.ROOT.removeAllChildren();
         catalogTree.setModel(new DefaultTreeModel(DocViewWindowTreeNode.ROOT));
@@ -59,8 +49,14 @@ public class WindowRefreshAction extends AnAction {
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View", false) {
             @Override
             public void run(@NotNull ProgressIndicator progressIndicator) {
-                progressIndicator.setText("Directory refreshing");
-                refreshCatalog(project, windowSettings, catalogTree);
+
+                ApplicationManager.getApplication().executeOnPooledThread(() -> ApplicationManager.getApplication().runReadAction(() -> {
+
+                    progressIndicator.setText("Directory refreshing");
+                    refreshCatalog(project, windowSettings, catalogTree);
+
+                }));
+
             }
         });
     }

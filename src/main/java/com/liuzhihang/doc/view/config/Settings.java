@@ -142,7 +142,7 @@ public class Settings implements PersistentStateComponent<Settings> {
      * 被注解的字段需要过滤掉
      */
     private Set<String> excludeClassPackage = new HashSet<>() {{
-        add("com.baomidou.mybatisplus");
+        add("com.baomidou.mybatisplus.extension.activerecord.Model");
     }};
 
 
