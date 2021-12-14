@@ -104,6 +104,36 @@ public class CustomPsiCommentUtils {
         return sb.toString();
     }
 
+    /**
+     * 获取注释, 没有 tag 的注释
+     *
+     * @param docComment
+     * @param oneLine    只获取一行
+     * @return
+     */
+    @NotNull
+    public static String getDocComment(PsiDocComment docComment, Boolean oneLine) {
+
+
+        if (!oneLine) {
+            return getDocComment(docComment);
+        }
+        if (docComment != null) {
+            for (PsiElement element : docComment.getChildren()) {
+
+                if ("PsiDocToken:DOC_COMMENT_DATA".equalsIgnoreCase(element.toString())) {
+                    continue;
+                }
+
+                // 只获取第一行注释
+                return element.getText().replaceAll("[* \n]+", StringUtils.EMPTY);
+            }
+        }
+        return "";
+
+    }
+
+
     @NotNull
     public static String getComment(PsiComment psiComment) {
 

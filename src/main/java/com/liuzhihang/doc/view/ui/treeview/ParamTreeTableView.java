@@ -98,9 +98,13 @@ public class ParamTreeTableView extends TreeTableView {
 
         @Override
         public void customizeCellRenderer(@NotNull JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-            DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
-            DocViewParamData paramData = (DocViewParamData) node.getUserObject();
-            append(paramData.getName());
+            if (value instanceof DefaultMutableTreeNode) {
+                DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
+                if (node.getUserObject() instanceof DocViewParamData) {
+                    DocViewParamData paramData = (DocViewParamData) node.getUserObject();
+                    append(paramData.getName() == null ? "" : paramData.getName());
+                }
+            }
         }
 
     };

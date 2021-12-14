@@ -82,9 +82,9 @@ public class DocEditorForm {
     private JTextArea methodTextArea;
 
     private JScrollPane requestParamScrollPane;
-
     private JScrollPane responseParamScrollPane;
-    private ParamTreeTableView tableView;
+    private ParamTreeTableView requestTableView;
+    private ParamTreeTableView responseTableView;
 
     private JBPopup popup;
 
@@ -180,6 +180,27 @@ public class DocEditorForm {
     private void initRequestParamTable() {
 
         // 边框
+        requestParamScrollPane.setBorder(JBUI.Borders.empty());
+
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode();
+
+        if (CollectionUtils.isNotEmpty(docViewData.getRequestBodyDataList())) {
+            convertToTreeNode(root, docViewData.getRequestBodyDataList());
+        } else {
+            convertToTreeNode(root, docViewData.getRequestParamDataList());
+        }
+
+        ListTreeTableModelOnColumns model = new ListTreeTableModelOnColumns(root, ParamTreeTableView.COLUMN_INFOS);
+
+        requestTableView = new ParamTreeTableView(model);
+
+        requestParamScrollPane.setViewportView(requestTableView);
+
+    }
+
+    private void initResponseParamTable() {
+
+        // 边框
         responseParamScrollPane.setBorder(JBUI.Borders.empty());
 
         DefaultMutableTreeNode root = new DefaultMutableTreeNode();
@@ -188,26 +209,9 @@ public class DocEditorForm {
 
         ListTreeTableModelOnColumns model = new ListTreeTableModelOnColumns(root, ParamTreeTableView.COLUMN_INFOS);
 
-        tableView = new ParamTreeTableView(model);
+        responseTableView = new ParamTreeTableView(model);
 
-        responseParamScrollPane.setViewportView(tableView);
-
-    }
-
-    private void initResponseParamTable() {
-
-        // 边框
-        requestParamScrollPane.setBorder(JBUI.Borders.empty());
-
-        DefaultMutableTreeNode root = new DefaultMutableTreeNode();
-
-        convertToTreeNode(root, docViewData.getRequestBodyDataList());
-
-        ListTreeTableModelOnColumns model = new ListTreeTableModelOnColumns(root, ParamTreeTableView.COLUMN_INFOS);
-
-        tableView = new ParamTreeTableView(model);
-
-        requestParamScrollPane.setViewportView(tableView);
+        responseParamScrollPane.setViewportView(responseTableView);
 
     }
 
@@ -384,15 +388,15 @@ public class DocEditorForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                if (tableView.isEditing()) {
-                    tableView.getCellEditor().stopCellEditing();
+                if (requestTableView.isEditing()) {
+                    requestTableView.getCellEditor().stopCellEditing();
                 }
-                if (tableView.isEditing()) {
-                    tableView.getCellEditor().stopCellEditing();
+                if (requestTableView.isEditing()) {
+                    requestTableView.getCellEditor().stopCellEditing();
                 }
                 generateMethodComment();
 
-                DocViewUtils.writeComment(project, tableView.getModifiedMap());
+                DocViewUtils.writeComment(project, requestTableView.getModifiedMap());
 
                 popup.cancel();
             }

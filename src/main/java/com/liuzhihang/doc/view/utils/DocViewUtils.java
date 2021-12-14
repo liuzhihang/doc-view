@@ -191,7 +191,7 @@ public class DocViewUtils {
         if (settings.getNameMethodComment()) {
             // 获取类注释
 
-            String comment = CustomPsiCommentUtils.getDocComment(psiMethod.getDocComment());
+            String comment = CustomPsiCommentUtils.getDocComment(psiMethod.getDocComment(), true);
 
             if (StringUtils.isNotBlank(comment)) {
                 return comment;

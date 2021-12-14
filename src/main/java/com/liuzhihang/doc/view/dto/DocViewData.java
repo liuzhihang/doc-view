@@ -60,7 +60,7 @@ public class DocViewData {
     /**
      * 请求参数
      */
-    private final List<DocViewParamData> requestDocViewParamDataList;
+    private final List<DocViewParamData> requestParamDataList;
 
     private final String requestParam;
 
@@ -102,8 +102,8 @@ public class DocViewData {
         this.requestHeaderDataList = headerDataList(docView.getHeaderList());
         this.requestHeader = headerMarkdown(requestHeaderDataList);
 
-        this.requestDocViewParamDataList = paramDataList(docView.getReqParamList());
-        this.requestParam = paramMarkdown(requestDocViewParamDataList);
+        this.requestParamDataList = paramDataList(docView.getReqParamList());
+        this.requestParam = paramMarkdown(requestParamDataList);
 
         this.requestBodyDataList = buildBodyDataList(docView.getReqRootBody().getChildList());
         this.requestBody = paramMarkdown(requestBodyDataList);
