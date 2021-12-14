@@ -122,11 +122,9 @@ public class CustomPsiCommentUtils {
             for (PsiElement element : docComment.getChildren()) {
 
                 if ("PsiDocToken:DOC_COMMENT_DATA".equalsIgnoreCase(element.toString())) {
-                    continue;
+                    // 只获取第一行注释
+                    return element.getText().replaceAll("[* \n]+", StringUtils.EMPTY);
                 }
-
-                // 只获取第一行注释
-                return element.getText().replaceAll("[* \n]+", StringUtils.EMPTY);
             }
         }
         return "";
