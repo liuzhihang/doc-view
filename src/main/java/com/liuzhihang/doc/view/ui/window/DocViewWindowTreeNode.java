@@ -34,6 +34,11 @@ public class DocViewWindowTreeNode extends DefaultMutableTreeNode {
     private String name;
 
     /**
+     * 临时文件路径
+     */
+    private String tempFilePath;
+
+    /**
      * 类信息
      */
     private PsiClass psiClass;
@@ -42,6 +47,11 @@ public class DocViewWindowTreeNode extends DefaultMutableTreeNode {
      * 方法名
      */
     private PsiMethod psiMethod;
+
+    /**
+     * 请求方式
+     */
+    private String method;
 
     public DocViewWindowTreeNode() {
         this.name = "Doc View";
@@ -53,11 +63,13 @@ public class DocViewWindowTreeNode extends DefaultMutableTreeNode {
         this.psiClass = psiClass;
     }
 
-    public DocViewWindowTreeNode(PsiClass psiClass, PsiMethod psiMethod) {
+    public DocViewWindowTreeNode(PsiClass psiClass, PsiMethod psiMethod, String name, String method, String tempFilePath) {
         this.classPath = false;
         this.psiClass = psiClass;
         this.psiMethod = psiMethod;
-        this.name = DocViewUtils.getName(psiMethod);
+        this.name = name;
+        this.tempFilePath = tempFilePath;
+        this.method = method;
     }
 
 }

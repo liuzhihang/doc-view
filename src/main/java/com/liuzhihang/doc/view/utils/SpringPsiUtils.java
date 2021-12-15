@@ -1,6 +1,8 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.util.InheritanceUtil;
@@ -31,9 +33,13 @@ public class SpringPsiUtils extends ParamPsiUtils {
      */
     public static boolean isSpringClass(@NotNull PsiClass psiClass) {
 
-        Settings settings = Settings.getInstance(psiClass.getProject());
+        return ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> {
 
-        return AnnotationUtil.isAnnotated(psiClass, settings.getContainClassAnnotationName(), 0);
+            Settings settings = Settings.getInstance(psiClass.getProject());
+
+            return AnnotationUtil.isAnnotated(psiClass, settings.getContainClassAnnotationName(), 0);
+        });
+
     }
 
     /**
@@ -46,13 +52,15 @@ public class SpringPsiUtils extends ParamPsiUtils {
      */
     public static boolean isSpringMethod(@NotNull PsiMethod psiMethod) {
 
-        Settings settings = Settings.getInstance(psiMethod.getProject());
+        return ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> {
+            Settings settings = Settings.getInstance(psiMethod.getProject());
 
+            return !psiMethod.isConstructor()
+                    && CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.PUBLIC)
+                    && !CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.STATIC)
+                    && AnnotationUtil.isAnnotated(psiMethod, settings.getContainMethodAnnotationName(), 0);
+        });
 
-        return !psiMethod.isConstructor()
-                && CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.PUBLIC)
-                && !CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.STATIC)
-                && AnnotationUtil.isAnnotated(psiMethod, settings.getContainMethodAnnotationName(), 0);
 
     }
 

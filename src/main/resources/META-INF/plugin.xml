@@ -156,6 +156,10 @@
                     text="Collapse" description="Collapse" icon="AllIcons.Actions.Collapseall"/>
 
             <separator/>
+            <action id="liuzhihang.doc.tool.window.toolbar.action.clear"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.WindowClearAction"
+                    text="Clear Cache" description="ClearCache" icon="DocViewIcons.CLEAR"/>
+            <separator/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.setting"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowSettingsAction"
                     text="Settings" description="Settings" icon="AllIcons.General.Settings"/>
@@ -163,6 +167,16 @@
 
         </group>
 
+
+        <!-- ToolWindow 目录右键菜单  -->
+        <group id="liuzhihang.doc.tool.window.catalog.action">
+            <action id="liuzhihang.doc.tool.window.catalog.action.upload"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogUploadAction"
+                    text="Upload" description="Upload" icon="AllIcons.Actions.Upload"/>
+            <action id="liuzhihang.doc.tool.window.catalog.action.clear"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogClearAction"
+                    text="Clear Cache" description="ClearCache" icon="DocViewIcons.CLEAR"/>
+        </group>
 
     </actions>
 </idea-plugin>

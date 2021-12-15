@@ -1,6 +1,8 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.google.common.collect.Lists;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiParameter;
@@ -88,20 +90,24 @@ public class CustomPsiCommentUtils {
     @NotNull
     public static String getDocComment(PsiDocComment docComment) {
 
-        StringBuilder sb = new StringBuilder();
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
 
-        if (docComment != null) {
-            for (PsiElement element : docComment.getChildren()) {
+            StringBuilder sb = new StringBuilder();
 
-                if (!"PsiDocToken:DOC_COMMENT_DATA".equalsIgnoreCase(element.toString())) {
-                    continue;
+            if (docComment != null) {
+                for (PsiElement element : docComment.getChildren()) {
+
+                    if (!"PsiDocToken:DOC_COMMENT_DATA".equalsIgnoreCase(element.toString())) {
+                        continue;
+                    }
+                    // 原注释中的换行符移除
+                    sb.append(element.getText().replaceAll("[* \n]+", StringUtils.EMPTY));
+
                 }
-                // 原注释中的换行符移除
-                sb.append(element.getText().replaceAll("[* \n]+", StringUtils.EMPTY));
-
             }
-        }
-        return sb.toString();
+            return sb.toString();
+        });
+
     }
 
     /**
@@ -115,19 +121,21 @@ public class CustomPsiCommentUtils {
     public static String getDocComment(PsiDocComment docComment, Boolean oneLine) {
 
 
-        if (!oneLine) {
-            return getDocComment(docComment);
-        }
-        if (docComment != null) {
-            for (PsiElement element : docComment.getChildren()) {
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
+            if (!oneLine) {
+                return getDocComment(docComment);
+            }
+            if (docComment != null) {
+                for (PsiElement element : docComment.getChildren()) {
 
-                if ("PsiDocToken:DOC_COMMENT_DATA".equalsIgnoreCase(element.toString())) {
-                    // 只获取第一行注释
-                    return element.getText().replaceAll("[* \n]+", StringUtils.EMPTY);
+                    if ("PsiDocToken:DOC_COMMENT_DATA".equalsIgnoreCase(element.toString())) {
+                        // 只获取第一行注释
+                        return element.getText().replaceAll("[* \n]+", StringUtils.EMPTY);
+                    }
                 }
             }
-        }
-        return "";
+            return "";
+        });
 
     }
 

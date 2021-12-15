@@ -1,0 +1,12 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+    <title>POST</title>
+    <g>
+        <title>Layer 1</title>
+        <path id="svg_2" d="m320,126" opacity="NaN" stroke-width="0" stroke="#62b543" fill="#ffaa56"/>
+        <rect id="svg_5" height="1" width="0" y="147" x="60" stroke-width="0" stroke="#62b543" fill="#ffaa56"/>
+        <rect rx="3" stroke="null" id="svg_6" height="28" width="62" y="-2" x="0" stroke-width="0" fill="#e05555"/>
+        <text style="cursor: move;" xml:space="preserve" text-anchor="start" font-family="'JetBrains Mono'"
+              font-size="15" id="svg_7" y="18" x="3" stroke-width="0" fill="#ffffff">DELETE</text>
+    </g>
+
+</svg>

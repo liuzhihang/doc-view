@@ -12,6 +12,7 @@ import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.treeStructure.SimpleTree;
@@ -19,6 +20,8 @@ import com.liuzhihang.doc.view.config.WindowSettings;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
+import com.liuzhihang.doc.view.utils.SpringPsiUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.DefaultTreeModel;
@@ -50,13 +53,8 @@ public class WindowRefreshAction extends AnAction {
             @Override
             public void run(@NotNull ProgressIndicator progressIndicator) {
 
-                ApplicationManager.getApplication().executeOnPooledThread(() -> ApplicationManager.getApplication().runReadAction(() -> {
-
-                    progressIndicator.setText("Directory refreshing");
-                    refreshCatalog(project, windowSettings, catalogTree);
-
-                }));
-
+                progressIndicator.setText("Directory refreshing");
+                refreshCatalog(project, windowSettings, catalogTree);
             }
         });
     }
@@ -65,21 +63,26 @@ public class WindowRefreshAction extends AnAction {
 
         String scope = windowSettings.getScope();
 
-        Module module = ModuleManager.getInstance(project).findModuleByName(scope);
+        GlobalSearchScope searchScope;
 
-        if (module == null) {
-            return;
+        if (StringUtils.isBlank(scope)) {
+            searchScope = GlobalSearchScope.projectScope(project);
+        } else {
+            Module module = ModuleManager.getInstance(project).findModuleByName(scope);
+            if (module == null) {
+                searchScope = GlobalSearchScope.projectScope(project);
+            } else {
+                searchScope = GlobalSearchScope.moduleScope(module);
+            }
         }
 
-        GlobalSearchScope searchScope = GlobalSearchScope.moduleScope(module);
-
-        ApplicationManager.getApplication().runReadAction(() -> {
-            AllClassesGetter.processJavaClasses(
-                    new PlainPrefixMatcher(""),
-                    project,
-                    searchScope,
-                    psiClass -> {
-
+        AllClassesGetter.processJavaClasses(
+                new PlainPrefixMatcher(""),
+                project,
+                searchScope,
+                psiClass -> ApplicationManager.getApplication().runReadAction(new Computable<>() {
+                    @Override
+                    public Boolean compute() {
                         if (!DocViewUtils.isDocViewClass(psiClass)) {
                             return true;
                         }
@@ -93,9 +96,19 @@ public class WindowRefreshAction extends AnAction {
 
                         PsiMethod[] methods = psiClass.getMethods();
 
-                        for (PsiMethod method : methods) {
-                            if (DocViewUtils.isDocViewMethod(method)) {
-                                classNode.add(new DocViewWindowTreeNode(psiClass, method));
+                        for (PsiMethod psiMethod : methods) {
+                            if (DocViewUtils.isDocViewMethod(psiMethod)) {
+
+                                String name = DocViewUtils.getName(psiMethod);
+                                String tempFilePath = project.getBasePath() + "/.idea/doc-view/temp/" + classNode.getName() + "/" + name + ".md";
+
+                                String method = "";
+
+                                if (!psiClass.isInterface()) {
+                                    method = SpringPsiUtils.getMethod(psiMethod);
+                                }
+
+                                classNode.add(new DocViewWindowTreeNode(psiClass, psiMethod, name, method, tempFilePath));
                             }
                         }
 
@@ -106,8 +119,8 @@ public class WindowRefreshAction extends AnAction {
 
                         return true;
                     }
-            );
-            ((DefaultTreeModel) catalogTree.getModel()).reload();
-        });
+                })
+        );
+        ((DefaultTreeModel) catalogTree.getModel()).reload();
     }
 }

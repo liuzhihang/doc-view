@@ -13,5 +13,9 @@ import javax.swing.*;
 public interface DocViewIcons {
 
     Icon DOC_VIEW = IconLoader.getIcon("/icons/doc.svg", DocViewIcons.class);
-
+    Icon CLEAR = IconLoader.getIcon("/icons/clear.svg", DocViewIcons.class);
+    Icon GET = IconLoader.getIcon("/icons/get.svg", DocViewIcons.class);
+    Icon POST = IconLoader.getIcon("/icons/post.svg", DocViewIcons.class);
+    Icon PUT = IconLoader.getIcon("/icons/put.svg", DocViewIcons.class);
+    Icon DELETE = IconLoader.getIcon("/icons/delete.svg", DocViewIcons.class);
 }

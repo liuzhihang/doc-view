@@ -1,6 +1,8 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
+import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
@@ -31,9 +33,14 @@ public class DubboPsiUtils {
      */
     public static boolean isDubboClass(@NotNull PsiClass psiClass) {
 
-        Settings settings = Settings.getInstance(psiClass.getProject());
+        return ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> {
 
-        return psiClass.isInterface() && !AnnotationUtil.isAnnotated(psiClass, settings.getContainClassAnnotationName(), 0);
+            Settings settings = Settings.getInstance(psiClass.getProject());
+
+            return psiClass.isInterface() && !AnnotationUtil.isAnnotated(psiClass, settings.getContainClassAnnotationName(), 0);
+        });
+
+
     }
 
 
