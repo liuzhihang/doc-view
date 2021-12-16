@@ -4,9 +4,10 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.utils.CustomFileUtils;
+import com.liuzhihang.doc.view.utils.StorageUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.nio.file.Path;
 
 /**
  * @author liuzhihang
@@ -16,27 +17,13 @@ public class WindowClearAction extends AnAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
-
         Project project = e.getProject();
-
         if (project == null) {
             return;
         }
 
-        String tempPath = project.getBasePath()
-                + File.separator
-                + ".idea"
-                + File.separator
-                + "doc-view"
-                + File.separator
-                + "temp"
-                + File.separator;
-
-        File file = new File(tempPath);
-
-
-        CustomFileUtils.delete(file, project);
-
+        Path configDir = StorageUtils.getConfigDir(project);
+        CustomFileUtils.delete(configDir.toFile(), project);
     }
 
 }

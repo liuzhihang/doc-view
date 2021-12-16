@@ -21,11 +21,13 @@ import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
+import com.liuzhihang.doc.view.utils.StorageUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.DefaultTreeModel;
-import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * @author liuzhihang
@@ -94,15 +96,9 @@ public class WindowRefreshAction extends AnAction {
 
                         String folderName = DocViewUtils.getTitle(psiClass);
 
-                        String tempFolderPath = project.getBasePath()
-                                + File.separator
-                                + ".idea"
-                                + File.separator
-                                + "doc-view"
-                                + File.separator
-                                + "temp"
-                                + File.separator
-                                + folderName;
+                        Path configDir = StorageUtils.getConfigDir(project);
+
+                        String tempFolderPath = Paths.get(configDir.toString(), folderName).toString();
 
                         // 是 Doc View 类
                         DocViewWindowTreeNode classNode = new DocViewWindowTreeNode(psiClass, folderName, tempFolderPath);
@@ -113,7 +109,8 @@ public class WindowRefreshAction extends AnAction {
                             if (DocViewUtils.isDocViewMethod(psiMethod)) {
 
                                 String name = DocViewUtils.getName(psiMethod);
-                                String tempFilePath = tempFolderPath + File.separator + name + ".md";
+
+                                String tempFilePath = Paths.get(tempFolderPath, name + ".md").toString();
 
                                 String method = "";
 
@@ -136,4 +133,5 @@ public class WindowRefreshAction extends AnAction {
         );
         ((DefaultTreeModel) catalogTree.getModel()).reload();
     }
+
 }
