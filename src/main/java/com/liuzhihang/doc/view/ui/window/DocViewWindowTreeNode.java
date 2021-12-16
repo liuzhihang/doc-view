@@ -2,7 +2,6 @@ package com.liuzhihang.doc.view.ui.window;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
-import com.liuzhihang.doc.view.utils.DocViewUtils;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -57,10 +56,11 @@ public class DocViewWindowTreeNode extends DefaultMutableTreeNode {
         this.name = "Doc View";
     }
 
-    public DocViewWindowTreeNode(PsiClass psiClass) {
+    public DocViewWindowTreeNode(PsiClass psiClass, String name, String tempFilePath) {
         this.classPath = true;
-        this.name = DocViewUtils.getTitle(psiClass);
+        this.name = name;
         this.psiClass = psiClass;
+        this.tempFilePath = tempFilePath;
     }
 
     public DocViewWindowTreeNode(PsiClass psiClass, PsiMethod psiMethod, String name, String method, String tempFilePath) {

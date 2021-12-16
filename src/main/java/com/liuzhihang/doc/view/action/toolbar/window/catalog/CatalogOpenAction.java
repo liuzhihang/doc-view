@@ -4,19 +4,18 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.TreeExpandCollapse;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
 import com.liuzhihang.doc.view.utils.CustomFileUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-
 /**
  * @author liuzhihang
  * @date 2021/10/23 19:55
  */
-public class CatalogClearAction extends AnAction {
+public class CatalogOpenAction extends AnAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
@@ -32,8 +31,13 @@ public class CatalogClearAction extends AnAction {
 
         if (simpleTree.getLastSelectedPathComponent() instanceof DocViewWindowTreeNode) {
             DocViewWindowTreeNode node = (DocViewWindowTreeNode) simpleTree.getLastSelectedPathComponent();
-            File file = new File(node.getTempFilePath());
-            CustomFileUtils.delete(file, project);
+
+            if (node.isClassPath()) {
+                TreeExpandCollapse.expandAll(simpleTree);
+            } else {
+                CustomFileUtils.open(node, project);
+            }
+
         }
 
 

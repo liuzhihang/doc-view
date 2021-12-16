@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.tree.DefaultTreeModel;
+import java.io.File;
 
 /**
  * @author liuzhihang
@@ -91,8 +92,20 @@ public class WindowRefreshAction extends AnAction {
                             return true;
                         }
 
+                        String folderName = DocViewUtils.getTitle(psiClass);
+
+                        String tempFolderPath = project.getBasePath()
+                                + File.separator
+                                + ".idea"
+                                + File.separator
+                                + "doc-view"
+                                + File.separator
+                                + "temp"
+                                + File.separator
+                                + folderName;
+
                         // 是 Doc View 类
-                        DocViewWindowTreeNode classNode = new DocViewWindowTreeNode(psiClass);
+                        DocViewWindowTreeNode classNode = new DocViewWindowTreeNode(psiClass, folderName, tempFolderPath);
 
                         PsiMethod[] methods = psiClass.getMethods();
 
@@ -100,7 +113,7 @@ public class WindowRefreshAction extends AnAction {
                             if (DocViewUtils.isDocViewMethod(psiMethod)) {
 
                                 String name = DocViewUtils.getName(psiMethod);
-                                String tempFilePath = project.getBasePath() + "/.idea/doc-view/temp/" + classNode.getName() + "/" + name + ".md";
+                                String tempFilePath = tempFolderPath + File.separator + name + ".md";
 
                                 String method = "";
 

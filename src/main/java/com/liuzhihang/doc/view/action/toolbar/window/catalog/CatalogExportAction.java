@@ -6,17 +6,20 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
+import com.liuzhihang.doc.view.dto.DocView;
+import com.liuzhihang.doc.view.dto.DocViewData;
+import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
-import com.liuzhihang.doc.view.utils.CustomFileUtils;
+import com.liuzhihang.doc.view.utils.ExportUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
+import java.util.List;
 
 /**
  * @author liuzhihang
  * @date 2021/10/23 19:55
  */
-public class CatalogClearAction extends AnAction {
+public class CatalogExportAction extends AnAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
@@ -32,8 +35,27 @@ public class CatalogClearAction extends AnAction {
 
         if (simpleTree.getLastSelectedPathComponent() instanceof DocViewWindowTreeNode) {
             DocViewWindowTreeNode node = (DocViewWindowTreeNode) simpleTree.getLastSelectedPathComponent();
-            File file = new File(node.getTempFilePath());
-            CustomFileUtils.delete(file, project);
+
+
+            // 判断是目录还是
+            DocViewService docViewService = DocViewService.getInstance(project, node.getPsiClass());
+
+            if (docViewService == null) {
+                return;
+            }
+
+            if (node.isClassPath()) {
+
+                List<DocView> docViews = docViewService.buildClassDoc(project, node.getPsiClass());
+
+                ExportUtils.batchExportMarkdown(project, node.getName(), docViews);
+
+            } else {
+                DocView docView = docViewService.buildClassMethodDoc(project, node.getPsiClass(), node.getPsiMethod());
+                ExportUtils.exportMarkdown(project, docView.getName(), DocViewData.markdownText(project, docView));
+            }
+
+
         }
 
 

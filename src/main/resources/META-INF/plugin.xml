@@ -170,12 +170,28 @@
 
         <!-- ToolWindow 目录右键菜单  -->
         <group id="liuzhihang.doc.tool.window.catalog.action">
-            <action id="liuzhihang.doc.tool.window.catalog.action.upload"
-                    class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogUploadAction"
-                    text="Upload" description="Upload" icon="AllIcons.Actions.Upload"/>
+
+            <action id="liuzhihang.doc.tool.window.catalog.action.open"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogOpenAction"
+                    text="Open" description="Open" icon="AllIcons.Toolwindows.Documentation"/>
+
+            <action id="liuzhihang.doc.tool.window.catalog.action.export"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogExportAction"
+                    text="Export" description="Export" icon="AllIcons.ToolbarDecorator.Export"/>
+
+            <group id="liuzhihang.doc.tool.window.catalog.action.upload" popup="true" text="Upload" description="Upload"
+                   icon="AllIcons.Actions.Upload">
+                <action id="liuzhihang.doc.tool.window.catalog.action.upload.yapi"
+                        class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogUploadYApiAction"
+                        text="YApi" description="YApi"/>
+                <action id="liuzhihang.doc.tool.window.catalog.action.upload.showdoc"
+                        class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogUploadShowDocAction"
+                        text="ShowDoc" description="ShowDoc"/>
+            </group>
+            <separator/>
             <action id="liuzhihang.doc.tool.window.catalog.action.clear"
                     class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogClearAction"
-                    text="Clear Cache" description="ClearCache" icon="DocViewIcons.CLEAR"/>
+                    text="Clear" description="ClearCache" icon="DocViewIcons.CLEAR"/>
         </group>
 
     </actions>
