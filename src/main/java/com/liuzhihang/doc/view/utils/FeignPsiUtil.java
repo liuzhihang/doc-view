@@ -1,7 +1,6 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.liuzhihang.doc.view.config.Settings;
 import org.jetbrains.annotations.NotNull;
