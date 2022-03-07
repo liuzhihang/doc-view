@@ -21,10 +21,6 @@ public class FeignPsiUtil {
 
         Settings settings = Settings.getInstance(psiClass.getProject());
 
-        if (psiClass.hasAnnotation("FeignClient")) {
-            return true;
-        }
-
         return psiClass.isInterface() && AnnotationUtil.isAnnotated(psiClass, settings.getContainClassAnnotationName(), 0);
     }
 
