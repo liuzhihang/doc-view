@@ -26,6 +26,7 @@
         <projectService serviceImplementation="com.liuzhihang.doc.view.config.TemplateSettings"/>
         <projectService serviceImplementation="com.liuzhihang.doc.view.config.YApiSettings"/>
         <projectService serviceImplementation="com.liuzhihang.doc.view.config.ShowDocSettings"/>
+        <projectService serviceImplementation="com.liuzhihang.doc.view.config.YuQueSettings"/>
 
         <!-- 相关服务 -->
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.SpringDocViewServiceImpl"/>
@@ -37,6 +38,8 @@
         <applicationService serviceImplementation="com.liuzhihang.doc.view.facade.impl.YApiFacadeServiceImpl"/>
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl"/>
         <applicationService serviceImplementation="com.liuzhihang.doc.view.facade.impl.ShowDocFacadeServiceImpl"/>
+        <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.YuQueServiceImpl"/>
+        <applicationService serviceImplementation="com.liuzhihang.doc.view.facade.impl.YuQueFacadeServiceImpl"/>
 
         <postStartupActivity implementation="com.liuzhihang.doc.view.notification.DocViewStartupNotification"/>
 
@@ -67,6 +70,11 @@
                              id="liuzhihang.api.doc.ShowDocSettingsConfigurable"
                              groupId="liuzhihang.api.doc.SettingsConfigurable"
                              displayName="ShowDoc Settings"
+                             nonDefaultProject="true"/>
+        <projectConfigurable instance="com.liuzhihang.doc.view.config.YuQueSettingsConfigurable"
+                             id="liuzhihang.api.doc.YuQueSettingsConfigurable"
+                             groupId="liuzhihang.api.doc.SettingsConfigurable"
+                             displayName="YuQue Settings"
                              nonDefaultProject="true"/>
 
         <toolWindow id="Doc View"
@@ -100,6 +108,8 @@
 
             <action id="liuzhihang.doc.showdoc.upload" class="com.liuzhihang.doc.view.action.ShowDocUploadAction"
                     text="Upload To ShowDoc"/>
+            <action id="liuzhihang.doc.yuque.upload" class="com.liuzhihang.doc.view.action.YuQueUploadAction"
+                    text="Upload To YuQue"/>
         </group>
 
         <!-- preview 界面目录左下角toolbar -->
@@ -187,6 +197,9 @@
                 <action id="liuzhihang.doc.tool.window.catalog.action.upload.showdoc"
                         class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogUploadShowDocAction"
                         text="ShowDoc" description="ShowDoc"/>
+                <action id="liuzhihang.doc.tool.window.catalog.action.upload.yuque"
+                        class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogUploadYuQueAction"
+                        text="语雀" description="语雀"/>
             </group>
             <separator/>
             <action id="liuzhihang.doc.tool.window.catalog.action.clear"

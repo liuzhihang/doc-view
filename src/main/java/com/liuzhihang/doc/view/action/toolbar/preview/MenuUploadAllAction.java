@@ -12,12 +12,13 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
-import com.liuzhihang.doc.view.action.toolbar.AbstractUploadAction;
+import com.liuzhihang.doc.view.action.toolbar.AbstractToolbarUploadAction;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 import com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl;
 import com.liuzhihang.doc.view.service.impl.YApiServiceImpl;
+import com.liuzhihang.doc.view.service.impl.YuQueServiceImpl;
 import com.liuzhihang.doc.view.ui.PreviewForm;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -32,7 +33,7 @@ import java.util.List;
  * @author liuzhihang
  * @date 2021/10/23 22:31
  */
-public class MenuUploadAllAction extends AbstractUploadAction {
+public class MenuUploadAllAction extends AbstractToolbarUploadAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
 
@@ -72,8 +73,11 @@ public class MenuUploadAllAction extends AbstractUploadAction {
                             // 上传到 ShowDoc
                             checkShowDocSettings(project);
                             upload(project, docViewList, ShowDocServiceImpl.class);
+                        } else if (selectedValue.equals("YuQue")) {
+                            // 上传到语雀
+                            checkYuQueSettings(project);
+                            upload(project, docViewList, YuQueServiceImpl.class);
                         }
-
 
                         return FINAL_CHOICE;
                     }
