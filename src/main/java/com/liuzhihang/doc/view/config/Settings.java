@@ -145,6 +145,12 @@ public class Settings implements PersistentStateComponent<Settings> {
         add("com.baomidou.mybatisplus.extension.activerecord.Model");
     }};
 
+    /**
+     * 子属性缩进符
+     */
+    private String prefixSymbol1 = "";
+    private String prefixSymbol2 = "-->";
+
 
     public static Settings getInstance(@NotNull Project project) {
         return ServiceManager.getService(project, Settings.class);

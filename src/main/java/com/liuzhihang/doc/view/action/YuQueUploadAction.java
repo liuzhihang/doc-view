@@ -24,11 +24,6 @@ public class YuQueUploadAction extends AbstractUploadAction {
         return ServiceManager.getService(YuQueServiceImpl.class);
     }
 
-    @Override
-    protected void checkSettings() {
-        checkYuQueSettings(project);
-    }
-
     /**
      * 设置右键菜单是否隐藏 上传按钮
      *

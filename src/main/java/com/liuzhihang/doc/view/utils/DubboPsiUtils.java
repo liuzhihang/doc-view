@@ -1,21 +1,20 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.module.Module;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
-import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.constant.DubboConstant;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.Body;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author liuzhihang
@@ -33,16 +32,14 @@ public class DubboPsiUtils {
      */
     public static boolean isDubboClass(@NotNull PsiClass psiClass) {
 
-        return ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> {
+        if (!psiClass.isInterface()) {
+            return false;
+        }
 
-            Settings settings = Settings.getInstance(psiClass.getProject());
-
-            return psiClass.isInterface() && !AnnotationUtil.isAnnotated(psiClass, settings.getContainClassAnnotationName(), 0);
-        });
-
-
+        // 判断是否包含 dubbo 的注解
+        // xml 判断方式需要补充 TODO
+        return AnnotationUtil.isAnnotated(psiClass, DubboConstant.SERVICE_ANNOTATIONS, 0);
     }
-
 
     /**
      * 检查方法是否满足 Dubbo 相关条件
@@ -62,6 +59,25 @@ public class DubboPsiUtils {
 
         return !CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.STATIC);
 
+    }
+
+
+    public static List<PsiClass> findDocViewFromModule(Module module) {
+
+        Collection<PsiAnnotation> psiAnnotations = JavaAnnotationIndex.getInstance().get("Service", module.getProject(), GlobalSearchScope.moduleScope(module));
+        psiAnnotations.addAll(JavaAnnotationIndex.getInstance().get("DubboService", module.getProject(), GlobalSearchScope.moduleScope(module)));
+
+        List<PsiClass> psiClasses = new LinkedList<>();
+
+        for (PsiAnnotation psiAnnotation : psiAnnotations) {
+            PsiModifierList psiModifierList = (PsiModifierList) psiAnnotation.getParent();
+            PsiElement psiElement = psiModifierList.getParent();
+
+            if (psiElement instanceof PsiClass && isDubboClass((PsiClass) psiElement)) {
+                psiClasses.add((PsiClass) psiElement);
+            }
+        }
+        return psiClasses;
     }
 
     @NotNull

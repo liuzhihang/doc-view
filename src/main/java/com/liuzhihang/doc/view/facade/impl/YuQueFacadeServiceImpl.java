@@ -8,8 +8,10 @@ import com.liuzhihang.doc.view.facade.dto.YuQueResponse;
 import com.liuzhihang.doc.view.facade.dto.YuQueUpdate;
 import com.liuzhihang.doc.view.utils.HttpUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.Header;
+import org.apache.http.message.BasicHeader;
 
-import java.util.HashMap;
+import java.util.List;
 
 /**
  * @author liuzhihang
@@ -22,13 +24,17 @@ public class YuQueFacadeServiceImpl implements YuQueFacadeService {
     @Override
     public YuQueResponse getDoc(String url, String token, String namespace, String slug) throws Exception {
 
-        HashMap<String, String> header = new HashMap<>();
-        header.put("X-Auth-Token", token);
+        Header header = new BasicHeader("X-Auth-Token", token);
 
-        String resp = HttpUtils.get(url + "/repos/" + namespace + "/docs/" + slug, header);
 
-        if (StringUtils.isBlank(resp)) {
-            return null;
+        String resp = null;
+        try {
+            resp = HttpUtils.get(url + "/repos/" + namespace + "/docs/" + slug, null, List.of(header));
+        } catch (RuntimeException e) {
+            String message = e.getMessage();
+            if (message.contains("404") && message.contains("Not Found")) {
+                return null;
+            }
         }
 
         return gson.fromJson(resp, YuQueResponse.class);
@@ -37,10 +43,9 @@ public class YuQueFacadeServiceImpl implements YuQueFacadeService {
     @Override
     public YuQueResponse create(String url, String token, String namespace, YuQueCreate yuQueCreate) throws Exception {
 
-        HashMap<String, String> header = new HashMap<>();
-        header.put("X-Auth-Token", token);
+        Header header = new BasicHeader("X-Auth-Token", token);
 
-        String resp = HttpUtils.post("POST", url + "/repos/" + namespace + "/docs/", gson.toJson(yuQueCreate), header);
+        String resp = HttpUtils.post(url + "/repos/" + namespace + "/docs/", gson.toJson(yuQueCreate), List.of(header));
 
         if (StringUtils.isBlank(resp)) {
             throw new Exception("语雀接口返回为空");
@@ -51,10 +56,9 @@ public class YuQueFacadeServiceImpl implements YuQueFacadeService {
     @Override
     public YuQueResponse update(String url, String token, String namespace, Long id, YuQueUpdate yuQueUpdate) throws Exception {
 
-        HashMap<String, String> header = new HashMap<>();
-        header.put("X-Auth-Token", token);
+        Header header = new BasicHeader("X-Auth-Token", token);
 
-        String resp = HttpUtils.post("PUT", url + "/repos/" + namespace + "/docs/" + id, gson.toJson(yuQueUpdate), header);
+        String resp = HttpUtils.put(url + "/repos/" + namespace + "/docs/" + id, gson.toJson(yuQueUpdate), List.of(header));
 
         if (StringUtils.isBlank(resp)) {
             throw new Exception("语雀接口返回为空");

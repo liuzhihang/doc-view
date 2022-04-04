@@ -13,14 +13,14 @@ import org.junit.jupiter.api.Test;
 class YuQueFacadeServiceTest {
 
     public static final String url = "https://www.yuque.com/api/v2/";
-    public static final String token = "xxxx";
-    public static final String namespace = "xxx/xxx";
+    public static final String token = "qoN0dycmn2P6mSLCCDyGU61VMMG4h1fE27gDHQ12";
+    public static final String namespace = "liuzhihangs/personal";
 
     @Test
     void getDoc() throws Exception {
 
         YuQueFacadeService service = new YuQueFacadeServiceImpl();
-        YuQueResponse doc = service.getDoc(url, token, namespace, "test");
+        YuQueResponse doc = service.getDoc(url, token, namespace, "test__1231");
 
         System.out.println("doc = " + doc);
     }

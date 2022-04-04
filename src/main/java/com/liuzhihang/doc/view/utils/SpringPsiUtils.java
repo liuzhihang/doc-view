@@ -2,9 +2,12 @@ package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex;
 import com.intellij.psi.javadoc.PsiDocComment;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
@@ -63,6 +66,24 @@ public class SpringPsiUtils extends ParamPsiUtils {
 
 
     }
+
+    public static List<PsiClass> findDocViewFromModule(Module module) {
+
+        Collection<PsiAnnotation> psiAnnotations = JavaAnnotationIndex.getInstance().get("Controller", module.getProject(), GlobalSearchScope.moduleScope(module));
+        psiAnnotations.addAll(JavaAnnotationIndex.getInstance().get("RestController", module.getProject(), GlobalSearchScope.moduleScope(module)));
+        List<PsiClass> psiClasses = new LinkedList<>();
+
+        for (PsiAnnotation psiAnnotation : psiAnnotations) {
+            PsiModifierList psiModifierList = (PsiModifierList) psiAnnotation.getParent();
+            PsiElement psiElement = psiModifierList.getParent();
+
+            if (psiElement instanceof PsiClass && isSpringClass((PsiClass) psiElement)) {
+                psiClasses.add((PsiClass) psiElement);
+            }
+        }
+        return psiClasses;
+    }
+
 
     @NotNull
     public static String getMethod(PsiMethod psiMethod) {

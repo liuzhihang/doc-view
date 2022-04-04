@@ -3,11 +3,13 @@ package com.liuzhihang.doc.view.service.impl;
 import com.google.gson.Gson;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.util.InheritanceUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.YApiSettings;
+import com.liuzhihang.doc.view.config.YApiSettingsConfigurable;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
@@ -23,6 +25,7 @@ import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -40,19 +43,25 @@ import java.util.stream.Collectors;
 @Service
 public class YApiServiceImpl implements DocViewUploadService {
 
+
     @Override
-    public void upload(@NotNull Project project, @NotNull List<DocView> docViewList) {
+    public boolean checkSettings(@NotNull Project project) {
 
+        YApiSettings apiSettings = YApiSettings.getInstance(project);
 
-        for (DocView docView : docViewList) {
-            // 循环处理保存到 yapi
-            upload(project, docView);
+        if (StringUtils.isBlank(apiSettings.getUrl())
+                || apiSettings.getProjectId() == null
+                || StringUtils.isBlank(apiSettings.getToken())) {
+            // 说明没有配置 YApi 上传地址, 跳转到配置页面
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.info.settings"));
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, YApiSettingsConfigurable.class);
+            return false;
         }
-
+        return true;
     }
 
     @Override
-    public void upload(@NotNull Project project, @NotNull DocView docView) {
+    public void doUpload(@NotNull Project project, @NotNull DocView docView) {
 
         try {
             YApiSettings settings = YApiSettings.getInstance(project);

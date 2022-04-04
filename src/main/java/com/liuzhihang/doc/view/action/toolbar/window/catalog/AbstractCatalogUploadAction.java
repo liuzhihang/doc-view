@@ -2,10 +2,6 @@ package com.liuzhihang.doc.view.action.toolbar.window.catalog;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.action.AbstractUploadAction;
@@ -36,40 +32,27 @@ public abstract class AbstractCatalogUploadAction extends AbstractUploadAction {
         if (simpleTree == null || project == null) {
             return;
         }
-        checkSettings();
-
         if (simpleTree.getLastSelectedPathComponent() instanceof DocViewWindowTreeNode) {
             DocViewWindowTreeNode node = (DocViewWindowTreeNode) simpleTree.getLastSelectedPathComponent();
-            // 上传到 ShowDoc
             DocViewUploadService uploadService = uploadService();
 
-            ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View upload", true) {
-                @Override
-                public void run(@NotNull ProgressIndicator progressIndicator) {
+            // 判断是目录还是
+            DocViewService docViewService = DocViewService.getInstance(project, node.getPsiClass());
 
-                    ApplicationManager.getApplication().executeOnPooledThread(() -> ApplicationManager.getApplication().runReadAction(() -> {
-                        // 判断是目录还是
-                        DocViewService docViewService = DocViewService.getInstance(project, node.getPsiClass());
+            if (docViewService == null) {
+                return;
+            }
 
-                        if (docViewService == null) {
-                            return;
-                        }
+            if (node.isClassPath()) {
 
-                        if (node.isClassPath()) {
+                List<DocView> docViews = docViewService.buildClassDoc(project, node.getPsiClass());
+                uploadService.upload(project, docViews);
 
-                            List<DocView> docViews = docViewService.buildClassDoc(project, node.getPsiClass());
-                            uploadService.upload(project, docViews);
+            } else {
 
-                        } else {
-
-                            DocView docView = docViewService.buildClassMethodDoc(project, node.getPsiClass(), node.getPsiMethod());
-                            uploadService.upload(project, docView);
-                        }
-
-                    }));
-
-                }
-            });
+                DocView docView = docViewService.buildClassMethodDoc(project, node.getPsiClass(), node.getPsiMethod());
+                uploadService.upload(project, docView);
+            }
         }
     }
 

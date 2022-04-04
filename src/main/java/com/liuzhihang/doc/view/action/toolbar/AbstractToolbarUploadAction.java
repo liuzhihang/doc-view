@@ -13,9 +13,4 @@ public abstract class AbstractToolbarUploadAction extends AbstractUploadAction {
     protected DocViewUploadService uploadService() {
         return null;
     }
-
-    @Override
-    protected void checkSettings() {
-
-    }
 }

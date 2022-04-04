@@ -22,10 +22,4 @@ public class CatalogUploadShowDocAction extends AbstractCatalogUploadAction {
         return ServiceManager.getService(ShowDocServiceImpl.class);
     }
 
-    @Override
-    protected void checkSettings() {
-        checkShowDocSettings(project);
-    }
-
-
 }

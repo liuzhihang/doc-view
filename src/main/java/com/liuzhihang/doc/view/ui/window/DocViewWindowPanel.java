@@ -1,25 +1,28 @@
 package com.liuzhihang.doc.view.ui.window;
 
+import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
-import com.intellij.ui.ColoredTreeCellRenderer;
-import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.AppUIUtil;
+import com.intellij.ui.PopupHandler;
 import com.intellij.ui.TreeSpeedSearch;
+import com.intellij.ui.tree.AsyncTreeModel;
+import com.intellij.ui.tree.StructureTreeModel;
 import com.intellij.ui.treeStructure.SimpleTree;
+import com.intellij.ui.treeStructure.SimpleTreeStructure;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
-import com.liuzhihang.doc.view.utils.CustomFileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import javax.swing.tree.TreeSelectionModel;
+import java.awt.*;
 
 /**
  * @author liuzhihang
@@ -28,13 +31,24 @@ import java.awt.event.MouseEvent;
 @Slf4j
 public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataProvider {
 
-    private final SimpleTree catalogTree = new SimpleTree();
     private final Project project;
+    private final RootNode rootNode;
+    private final SimpleTree catalogTree;
+    private final StructureTreeModel<AbstractTreeStructure> treeModel;
 
     public DocViewWindowPanel(@NotNull Project project) {
         super(Boolean.TRUE, Boolean.TRUE);
-
         this.project = project;
+        this.rootNode = new RootNode(project);
+        treeModel = new StructureTreeModel<>(new SimpleTreeStructure() {
+            @NotNull
+            @Override
+            public Object getRootElement() {
+                return rootNode;
+            }
+        }, null, project);
+        catalogTree = new SimpleTree(new AsyncTreeModel(treeModel, project));
+
         initToolbar();
         initCatalogTree();
         setContent(catalogTree);
@@ -53,66 +67,37 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
 
     }
 
+
     /**
      * 初始化目录树
      */
     private void initCatalogTree() {
-
-        catalogTree.setRootVisible(false);
-
-        catalogTree.setCellRenderer(new ColoredTreeCellRenderer() {
-            @Override
-            public void customizeCellRenderer(@NotNull JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-
-                if (value instanceof DocViewWindowTreeNode) {
-                    DocViewWindowTreeNode node = (DocViewWindowTreeNode) value;
-                    append(node.getName(), SimpleTextAttributes.REGULAR_ATTRIBUTES);
-                }
-
-            }
-        });
-
-        catalogTree.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-
-                if (e.getButton() == MouseEvent.BUTTON3) {
-
-                    SimpleTree simpleTree = (SimpleTree) e.getSource();
-                    if (simpleTree.getLastSelectedPathComponent() instanceof DocViewWindowTreeNode) {
-                        final ActionManager actionManager = ActionManager.getInstance();
-                        final ActionGroup actionGroup = (ActionGroup) actionManager.getAction("liuzhihang.doc.tool.window.catalog.action");
-                        if (actionGroup != null) {
-                            actionManager.createActionPopupMenu("", actionGroup).getComponent().show(e.getComponent(), e.getX(), e.getY());
-                        }
-                    }
-                } else if (e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
-
-                    ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View", false) {
-                        @Override
-                        public void run(@NotNull ProgressIndicator progressIndicator) {
-                            SimpleTree simpleTree = (SimpleTree) e.getSource();
-                            if (simpleTree.getLastSelectedPathComponent() instanceof DocViewWindowTreeNode) {
-                                DocViewWindowTreeNode node = (DocViewWindowTreeNode) simpleTree.getLastSelectedPathComponent();
-                                CustomFileUtils.open(node, project);
-                            }
-                        }
-                    });
-
-                }
-
-
-            }
-        });
-
-
+        catalogTree.setRootVisible(true);
+        catalogTree.setShowsRootHandles(true);
+        catalogTree.getEmptyText().clear();
+        catalogTree.setBorder(BorderFactory.createEmptyBorder());
+        catalogTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
+        setLayout(new BorderLayout());
+        add(catalogTree, BorderLayout.CENTER);
+        PopupHandler.installPopupMenu(catalogTree, "liuzhihang.doc.tool.window.catalog.action", ActionPlaces.TOOLWINDOW_CONTENT);
     }
 
+    public void updateCatalogTree() {
+        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View Searching") {
+            @Override
+            public void run(@NotNull ProgressIndicator indicator) {
+                AppUIUtil.invokeOnEdt(rootNode::doUpdate);
+            }
+        });
+    }
 
 
     @Override
     public @Nullable Object getData(@NotNull @NonNls String dataId) {
 
+        if (DocViewDataKeys.WINDOW_PANE.is(dataId)) {
+            return this;
+        }
         if (DocViewDataKeys.WINDOW_CATALOG_TREE.is(dataId)) {
             return catalogTree;
         }
@@ -120,7 +105,6 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
         if (DocViewDataKeys.WINDOW_TOOLBAR.is(dataId)) {
             return getToolbar();
         }
-
         return super.getData(dataId);
     }
 }

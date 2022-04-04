@@ -2,9 +2,11 @@ package com.liuzhihang.doc.view.service.impl;
 
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.ShowDocSettings;
+import com.liuzhihang.doc.view.config.ShowDocSettingsConfigurable;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.facade.ShowDocFacadeService;
@@ -14,9 +16,8 @@ import com.liuzhihang.doc.view.facade.impl.ShowDocFacadeServiceImpl;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * @author liuzhihang
@@ -26,17 +27,24 @@ import java.util.List;
 @Service
 public class ShowDocServiceImpl implements DocViewUploadService {
 
+
     @Override
-    public void upload(@NotNull Project project, @NotNull List<DocView> docViewList) {
+    public boolean checkSettings(@NotNull Project project) {
+        ShowDocSettings apiSettings = ShowDocSettings.getInstance(project);
 
-        for (DocView docView : docViewList) {
-            upload(project, docView);
+        if (StringUtils.isBlank(apiSettings.getUrl())
+                || StringUtils.isBlank(apiSettings.getApiKey())
+                || StringUtils.isBlank(apiSettings.getApiToken())) {
+            // 说明没有配置 ShowDoc 上传地址, 跳转到配置页面
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.showdoc.info.settings"));
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, ShowDocSettingsConfigurable.class);
+            return false;
         }
-
+        return true;
     }
 
     @Override
-    public void upload(@NotNull Project project, @NotNull DocView docView) {
+    public void doUpload(@NotNull Project project, @NotNull DocView docView) {
 
         try {
             ShowDocSettings settings = ShowDocSettings.getInstance(project);

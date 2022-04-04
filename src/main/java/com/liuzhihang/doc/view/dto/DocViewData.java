@@ -1,6 +1,7 @@
 package com.liuzhihang.doc.view.dto;
 
 import com.intellij.openapi.project.Project;
+import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.config.TemplateSettings;
 import com.liuzhihang.doc.view.utils.VelocityUtils;
 import lombok.Data;
@@ -159,7 +160,7 @@ public class DocViewData {
         StringBuilder builder = new StringBuilder();
 
         for (DocViewParamData data : dataList) {
-            builder.append("|").append(data.getPrefix()).append(data.getName())
+            builder.append("|").append(data.getPrefixSymbol1()).append(data.getPrefixSymbol2()).append(data.getName())
                     .append("|").append(data.getType())
                     .append("|").append(data.getRequired() ? "Y" : "N")
                     .append("|").append(data.getDesc())
@@ -249,7 +250,7 @@ public class DocViewData {
             return new ArrayList<>();
         }
 
-        return buildBodyDataList(bodyList, "");
+        return buildBodyDataList(bodyList, "", "");
     }
 
 
@@ -257,10 +258,11 @@ public class DocViewData {
      * 递归 body 生成 List<ParamData>
      *
      * @param bodyList
-     * @param prefix
+     * @param prefixSymbol1,
+     * @param prefixSymbol2
      */
     @NotNull
-    private static List<DocViewParamData> buildBodyDataList(@NotNull List<Body> bodyList, String prefix) {
+    private static List<DocViewParamData> buildBodyDataList(@NotNull List<Body> bodyList, String prefixSymbol1, String prefixSymbol2) {
 
         List<DocViewParamData> dataList = new ArrayList<>();
 
@@ -274,10 +276,14 @@ public class DocViewData {
             data.setType(body.getType());
             data.setDesc(StringUtils.isNotBlank(body.getDesc()) ? body.getDesc() : "");
 
-            data.setPrefix(prefix);
+            data.setPrefixSymbol1(prefixSymbol1);
+            data.setPrefixSymbol2(prefixSymbol2);
 
             if (CollectionUtils.isNotEmpty(body.getChildList())) {
-                data.setChildList(buildBodyDataList(body.getChildList(), prefix + "-->"));
+
+                Settings settings = Settings.getInstance(body.getPsiElement().getProject());
+
+                data.setChildList(buildBodyDataList(body.getChildList(), settings.getPrefixSymbol1(), prefixSymbol2 + settings.getPrefixSymbol2()));
             }
             dataList.add(data);
         }

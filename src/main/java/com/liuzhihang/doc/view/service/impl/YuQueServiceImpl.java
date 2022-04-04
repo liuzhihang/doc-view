@@ -2,8 +2,10 @@ package com.liuzhihang.doc.view.service.impl;
 
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.DocViewBundle;
+import com.liuzhihang.doc.view.config.ShowDocSettingsConfigurable;
 import com.liuzhihang.doc.view.config.YuQueSettings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
@@ -15,9 +17,8 @@ import com.liuzhihang.doc.view.facade.impl.YuQueFacadeServiceImpl;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * 上传文档到语雀
@@ -30,22 +31,36 @@ import java.util.List;
 public class YuQueServiceImpl implements DocViewUploadService {
 
     @Override
-    public void upload(@NotNull Project project, @NotNull List<DocView> docViewList) {
+    public boolean checkSettings(@NotNull Project project) {
 
-        for (DocView docView : docViewList) {
-            upload(project, docView);
+        YuQueSettings apiSettings = YuQueSettings.getInstance(project);
+
+        if (StringUtils.isBlank(apiSettings.getUrl())
+                || StringUtils.isBlank(apiSettings.getApiUrl())
+                || StringUtils.isBlank(apiSettings.getRepos())
+                || StringUtils.isBlank(apiSettings.getLogin())
+                || StringUtils.isBlank(apiSettings.getToken())) {
+            // 说明没有配置语雀上传地址, 跳转到配置页面
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.yuque.info.settings"));
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, ShowDocSettingsConfigurable.class);
+            return false;
         }
-
+        return true;
     }
 
     @Override
-    public void upload(@NotNull Project project, @NotNull DocView docView) {
+    public void doUpload(@NotNull Project project, @NotNull DocView docView) {
 
         try {
             YuQueSettings settings = YuQueSettings.getInstance(project);
             YuQueFacadeService facadeService = ServiceManager.getService(YuQueFacadeServiceImpl.class);
+            String slug;
+            if (docView.getPath().startsWith("/")) {
+                slug = docView.getPath().substring(1).replace("/", "_");
+            } else {
+                slug = docView.getPath().replace("/", "_");
+            }
 
-            String slug = docView.getPath().replace("/", "_");
 
             // 获取文章是否存在
             YuQueResponse doc = facadeService.getDoc(settings.getApiUrl(), settings.getToken(), settings.getNamespace(), slug);

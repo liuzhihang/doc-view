@@ -5,6 +5,7 @@ import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.ui.PreviewForm;
+import com.liuzhihang.doc.view.ui.window.DocViewWindowPanel;
 
 import javax.swing.*;
 import java.util.List;
@@ -18,6 +19,7 @@ public class DocViewDataKeys {
     /**
      * 目录树
      */
+    public static final DataKey<DocViewWindowPanel> WINDOW_PANE = DataKey.create("DocViewWindowPane");
     public static final DataKey<SimpleTree> WINDOW_CATALOG_TREE = DataKey.create("DocViewWindowTree");
     public static final DataKey<JComponent> WINDOW_TOOLBAR = DataKey.create("DocViewWindowToolbar");
 

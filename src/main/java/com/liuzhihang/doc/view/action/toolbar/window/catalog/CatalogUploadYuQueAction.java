@@ -22,10 +22,4 @@ public class CatalogUploadYuQueAction extends AbstractCatalogUploadAction {
         return ServiceManager.getService(YuQueServiceImpl.class);
     }
 
-    @Override
-    protected void checkSettings() {
-        checkYuQueSettings(project);
-    }
-
-
 }

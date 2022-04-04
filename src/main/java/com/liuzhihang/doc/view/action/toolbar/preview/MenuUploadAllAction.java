@@ -16,9 +16,6 @@ import com.liuzhihang.doc.view.action.toolbar.AbstractToolbarUploadAction;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
-import com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl;
-import com.liuzhihang.doc.view.service.impl.YApiServiceImpl;
-import com.liuzhihang.doc.view.service.impl.YuQueServiceImpl;
 import com.liuzhihang.doc.view.ui.PreviewForm;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +52,7 @@ public class MenuUploadAllAction extends AbstractToolbarUploadAction {
         PreviewForm.myIsPinned.set(true);
 
         JBPopupFactory.getInstance()
-                .createListPopup(new BaseListPopupStep<>(null, "YApi", "ShowDoc") {
+                .createListPopup(new BaseListPopupStep<>(null, DocViewUploadService.UPLOAD_OPTIONS) {
                     @Override
                     public @NotNull String getTextFor(String value) {
                         return "Upload to " + value;
@@ -64,20 +61,7 @@ public class MenuUploadAllAction extends AbstractToolbarUploadAction {
                     @Override
                     public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
 
-                        if (selectedValue.equals("YApi")) {
-                            // 上传到 yapi
-                            checkYApiSettings(project);
-                            upload(project, docViewList, YApiServiceImpl.class);
-
-                        } else if (selectedValue.equals("ShowDoc")) {
-                            // 上传到 ShowDoc
-                            checkShowDocSettings(project);
-                            upload(project, docViewList, ShowDocServiceImpl.class);
-                        } else if (selectedValue.equals("YuQue")) {
-                            // 上传到语雀
-                            checkYuQueSettings(project);
-                            upload(project, docViewList, YuQueServiceImpl.class);
-                        }
+                        DocViewUploadService.getInstance(selectedValue).upload(project, docViewList);
 
                         return FINAL_CHOICE;
                     }

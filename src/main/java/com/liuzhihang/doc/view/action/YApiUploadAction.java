@@ -25,11 +25,6 @@ public class YApiUploadAction extends AbstractUploadAction {
     }
 
     @Override
-    protected void checkSettings() {
-        checkYApiSettings(project);
-    }
-
-    @Override
     public void update(@NotNull AnActionEvent e) {
         super.update(e);
     }

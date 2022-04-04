@@ -22,10 +22,4 @@ public class CatalogUploadYApiAction extends AbstractCatalogUploadAction {
         return ServiceManager.getService(YApiServiceImpl.class);
     }
 
-    @Override
-    protected void checkSettings() {
-        checkYApiSettings(project);
-    }
-
-
 }

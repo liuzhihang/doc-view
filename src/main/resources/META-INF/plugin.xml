@@ -83,7 +83,7 @@
                     secondary="false"
                     doNotActivateOnStart="true"
                     order="last"
-                    factoryClass="com.liuzhihang.doc.view.factory.DocViewToolWindowFactory"/>
+                    factoryClass="com.liuzhihang.doc.view.ui.window.DocViewToolWindowFactory"/>
 
         <!-- 2020.3 需要使用 notificationGroup 配置通知 -->
         <notificationGroup id="doc-view.NotificationGroup" displayType="BALLOON"/>

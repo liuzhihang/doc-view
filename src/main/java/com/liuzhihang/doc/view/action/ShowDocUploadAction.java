@@ -24,11 +24,6 @@ public class ShowDocUploadAction extends AbstractUploadAction {
         return ServiceManager.getService(ShowDocServiceImpl.class);
     }
 
-    @Override
-    protected void checkSettings() {
-        checkShowDocSettings(project);
-    }
-
     /**
      * 设置右键菜单是否隐藏 上传按钮
      *

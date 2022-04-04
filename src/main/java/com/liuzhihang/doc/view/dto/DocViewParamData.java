@@ -21,9 +21,14 @@ public class DocViewParamData {
     private PsiElement psiElement;
 
     /**
-     * 前缀
+     * 前缀 1
      */
-    private String prefix = "";
+    private String prefixSymbol1 = "";
+
+    /**
+     * 前缀 2
+     */
+    private String prefixSymbol2 = "";
 
     /**
      * 参数名
