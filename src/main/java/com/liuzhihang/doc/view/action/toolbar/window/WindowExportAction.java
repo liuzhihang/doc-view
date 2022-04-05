@@ -13,21 +13,17 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
-import com.liuzhihang.doc.view.service.DocViewService;
-import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
+import com.liuzhihang.doc.view.ui.window.RootNode;
 import com.liuzhihang.doc.view.utils.DialogUtil;
 import org.jetbrains.annotations.NotNull;
 
-import javax.swing.tree.TreeNode;
+import javax.swing.*;
 import java.io.File;
-import java.util.Enumeration;
-import java.util.List;
 
 /**
  * @author liuzhihang
@@ -40,18 +36,13 @@ public class WindowExportAction extends AnAction {
 
         // 获取当前project对象
         Project project = e.getData(PlatformDataKeys.PROJECT);
-        SimpleTree catalogTree = e.getData(DocViewDataKeys.WINDOW_CATALOG_TREE);
+        JComponent toolbar = e.getData(DocViewDataKeys.WINDOW_TOOLBAR);
+        RootNode rootNode = e.getData(DocViewDataKeys.WINDOW_ROOT_NODE);
 
-        if (catalogTree == null || project == null) {
-            return;
-        }
-        DocViewWindowTreeNode root = DocViewWindowTreeNode.ROOT;
-
-        if (root.getChildCount() == 0) {
+        if (project == null || toolbar == null || rootNode == null || rootNode.getChildCount() == 0) {
             DocViewNotification.notifyError(project, DocViewBundle.message("notify.window.export.empty"));
             return;
         }
-
         // 选择路径
         FileChooserDescriptor fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFolderDescriptor();
         fileChooserDescriptor.setForcedToUseIdeaFileChooser(true);
@@ -75,25 +66,12 @@ public class WindowExportAction extends AnAction {
             public void run(@NotNull ProgressIndicator progressIndicator) {
 
                 ApplicationManager.getApplication().executeOnPooledThread(() -> ApplicationManager.getApplication().runReadAction(() -> {
-                    Enumeration<TreeNode> treeNodeEnumeration = root.breadthFirstEnumeration();
 
-                    while (treeNodeEnumeration.hasMoreElements()) {
-                        DocViewWindowTreeNode treeNode = (DocViewWindowTreeNode) treeNodeEnumeration.nextElement();
-                        // 导出全部
-                        if (treeNode.isClassPath()) {
-                            DocViewService service = DocViewService.getInstance(project, treeNode.getPsiClass());
-                            if (service != null) {
-                                List<DocView> docViews = service.buildClassDoc(project, treeNode.getPsiClass());
-                                for (DocView docView : docViews) {
-                                    try {
-                                        FileUtil.writeToFile(file, DocViewData.markdownText(project, docView), true);
-                                    } catch (Exception ignored) {
-                                    }
-                                }
-
-                            }
+                    for (DocView docView : rootNode.docViewList()) {
+                        try {
+                            FileUtil.writeToFile(file, DocViewData.markdownText(project, docView), true);
+                        } catch (Exception ignored) {
                         }
-
                     }
 
                 }));

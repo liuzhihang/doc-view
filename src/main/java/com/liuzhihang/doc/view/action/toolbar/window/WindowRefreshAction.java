@@ -9,7 +9,6 @@ import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.ui.window.DocViewWindowPanel;
-import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -28,8 +27,6 @@ public class WindowRefreshAction extends AnAction {
         if (docViewWindowPanel == null || project == null) {
             return;
         }
-        // 先移除所有的子节点
-        DocViewWindowTreeNode.ROOT.removeAllChildren();
 
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View", false) {
             @Override

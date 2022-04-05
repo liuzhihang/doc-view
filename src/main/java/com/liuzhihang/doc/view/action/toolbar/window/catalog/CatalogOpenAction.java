@@ -5,9 +5,10 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.TreeExpandCollapse;
+import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
-import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
+import com.liuzhihang.doc.view.ui.window.MethodNode;
 import com.liuzhihang.doc.view.utils.CustomFileUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,18 +29,14 @@ public class CatalogOpenAction extends AnAction {
             return;
         }
 
+        SimpleNode selectedNode = simpleTree.getSelectedNode();
 
-        if (simpleTree.getLastSelectedPathComponent() instanceof DocViewWindowTreeNode) {
-            DocViewWindowTreeNode node = (DocViewWindowTreeNode) simpleTree.getLastSelectedPathComponent();
-
-            if (node.isClassPath()) {
-                TreeExpandCollapse.expandAll(simpleTree);
-            } else {
-                CustomFileUtils.open(node, project);
-            }
-
+        if (selectedNode instanceof MethodNode) {
+            MethodNode methodNode = (MethodNode) selectedNode;
+            CustomFileUtils.open(methodNode, project);
+        } else {
+            TreeExpandCollapse.expandAll(simpleTree);
         }
-
 
     }
 

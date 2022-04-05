@@ -4,12 +4,11 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.dto.DocView;
-import com.liuzhihang.doc.view.dto.DocViewData;
-import com.liuzhihang.doc.view.service.DocViewService;
-import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
+import com.liuzhihang.doc.view.ui.window.DocViewNode;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,32 +31,13 @@ public class CatalogExportAction extends AnAction {
             return;
         }
 
+        SimpleNode selectedNode = simpleTree.getSelectedNode();
 
-        if (simpleTree.getLastSelectedPathComponent() instanceof DocViewWindowTreeNode) {
-            DocViewWindowTreeNode node = (DocViewWindowTreeNode) simpleTree.getLastSelectedPathComponent();
-
-
-            // 判断是目录还是
-            DocViewService docViewService = DocViewService.getInstance(project, node.getPsiClass());
-
-            if (docViewService == null) {
-                return;
-            }
-
-            if (node.isClassPath()) {
-
-                List<DocView> docViews = docViewService.buildClassDoc(project, node.getPsiClass());
-
-                ExportUtils.batchExportMarkdown(project, node.getName(), docViews);
-
-            } else {
-                DocView docView = docViewService.buildClassMethodDoc(project, node.getPsiClass(), node.getPsiMethod());
-                ExportUtils.exportMarkdown(project, docView.getName(), DocViewData.markdownText(project, docView));
-            }
-
-
+        if (selectedNode instanceof DocViewNode) {
+            DocViewNode docViewNode = (DocViewNode) selectedNode;
+            List<DocView> docViews = docViewNode.docViewList();
+            ExportUtils.batchExportMarkdown(project, docViewNode.getName(), docViews);
         }
-
 
     }
 

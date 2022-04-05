@@ -98,6 +98,9 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
         if (DocViewDataKeys.WINDOW_PANE.is(dataId)) {
             return this;
         }
+        if (DocViewDataKeys.WINDOW_ROOT_NODE.is(dataId)) {
+            return rootNode;
+        }
         if (DocViewDataKeys.WINDOW_CATALOG_TREE.is(dataId)) {
             return catalogTree;
         }

@@ -4,12 +4,14 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
+import com.liuzhihang.doc.view.dto.DocView;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 根目录
@@ -17,14 +19,14 @@ import java.util.List;
  * @author liuzhihang
  * @date 2022/4/4 16:56
  */
-public class RootNode extends CachingSimpleNode {
+public class RootNode extends DocViewNode {
 
     private final List<ModuleNode> moduleNodes = new ArrayList<>();
 
     private final Project project;
 
     public RootNode(@NotNull Project project) {
-        super(null);
+        super(project, null);
         this.project = project;
         getTemplatePresentation().setIcon(AllIcons.Nodes.ModuleGroup);
         getTemplatePresentation().setPresentableText(getName());
@@ -50,5 +52,10 @@ public class RootNode extends CachingSimpleNode {
     @Override
     public String getName() {
         return "Doc View";
+    }
+
+    public List<DocView> docViewList() {
+
+        return moduleNodes.stream().map(ModuleNode::docViewList).flatMap(Collection::stream).collect(Collectors.toList());
     }
 }

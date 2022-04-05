@@ -3,27 +3,29 @@ package com.liuzhihang.doc.view.ui.window;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.NlsSafe;
 import com.intellij.psi.PsiClass;
-import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
+import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.FeignPsiUtil;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @author liuzhihang
  * @date 2022/4/4 17:06
  */
-public class ModuleNode extends CachingSimpleNode {
+public class ModuleNode extends DocViewNode {
 
     private final List<ClassNode> classNodes = new ArrayList<>();
     private final Module module;
 
     protected ModuleNode(SimpleNode aParent, Module module) {
-        super(aParent);
+        super(module.getProject(), aParent);
         this.module = module;
         doUpdate();
     }
@@ -53,5 +55,10 @@ public class ModuleNode extends CachingSimpleNode {
     @Override
     public @NlsSafe String getName() {
         return module.getName();
+    }
+
+    @Override
+    public List<DocView> docViewList() {
+        return classNodes.stream().map(ClassNode::docViewList).flatMap(Collection::stream).collect(Collectors.toList());
     }
 }

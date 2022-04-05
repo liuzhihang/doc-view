@@ -4,13 +4,15 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
-import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
+import com.liuzhihang.doc.view.ui.window.DocViewNode;
 import com.liuzhihang.doc.view.utils.CustomFileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.nio.file.Path;
 
 /**
  * @author liuzhihang
@@ -29,10 +31,12 @@ public class CatalogClearAction extends AnAction {
             return;
         }
 
+        SimpleNode selectedNode = simpleTree.getSelectedNode();
 
-        if (simpleTree.getLastSelectedPathComponent() instanceof DocViewWindowTreeNode) {
-            DocViewWindowTreeNode node = (DocViewWindowTreeNode) simpleTree.getLastSelectedPathComponent();
-            File file = new File(node.getTempFilePath());
+        if (selectedNode instanceof DocViewNode) {
+            DocViewNode docViewNode = (DocViewNode) selectedNode;
+            Path cachePath = docViewNode.getCachePath();
+            File file = new File(cachePath.toUri());
             CustomFileUtils.delete(file, project);
         }
 

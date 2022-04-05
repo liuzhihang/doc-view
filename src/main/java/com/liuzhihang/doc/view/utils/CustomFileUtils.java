@@ -13,7 +13,7 @@ import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewService;
-import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
+import com.liuzhihang.doc.view.ui.window.MethodNode;
 
 import java.io.File;
 
@@ -61,12 +61,11 @@ public class CustomFileUtils {
     }
 
 
-    public static void open(DocViewWindowTreeNode node, Project project) {
+    public static void open(MethodNode node, Project project) {
 
-        if (node.isClassPath()) {
+        if (node == null) {
             return;
         }
-
 
         DocViewService service = DocViewService.getInstance(project, node.getPsiClass());
 
@@ -74,10 +73,9 @@ public class CustomFileUtils {
             return;
         }
 
-        File file = new File(node.getTempFilePath());
+        File file = new File(node.getCachePath().toUri());
 
         if (!file.exists()) {
-
             String markdownText = ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
                 DocView docView = service.buildClassMethodDoc(project, node.getPsiClass(), node.getPsiMethod());
                 return DocViewData.markdownText(project, docView);

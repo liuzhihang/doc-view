@@ -6,23 +6,16 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
-import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.action.toolbar.AbstractToolbarUploadAction;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
-import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
-import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
-import com.liuzhihang.doc.view.ui.window.DocViewWindowTreeNode;
+import com.liuzhihang.doc.view.ui.window.RootNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import javax.swing.tree.TreeNode;
-import java.util.Enumeration;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * @author liuzhihang
@@ -35,14 +28,10 @@ public class WindowUploadAction extends AbstractToolbarUploadAction {
 
         // 获取当前project对象
         Project project = e.getData(PlatformDataKeys.PROJECT);
-        SimpleTree catalogTree = e.getData(DocViewDataKeys.WINDOW_CATALOG_TREE);
         JComponent toolbar = e.getData(DocViewDataKeys.WINDOW_TOOLBAR);
+        RootNode rootNode = e.getData(DocViewDataKeys.WINDOW_ROOT_NODE);
 
-        if (catalogTree == null || project == null || toolbar == null) {
-            return;
-        }
-
-        if (DocViewWindowTreeNode.ROOT.getChildCount() == 0) {
+        if (project == null || toolbar == null || rootNode == null || rootNode.getChildCount() == 0) {
             DocViewNotification.notifyError(project, DocViewBundle.message("notify.window.upload.empty"));
             return;
         }
@@ -57,22 +46,7 @@ public class WindowUploadAction extends AbstractToolbarUploadAction {
                     @Override
                     public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
 
-                        List<DocView> docViews = new LinkedList<>();
-
-                        Enumeration<TreeNode> treeNodeEnumeration = DocViewWindowTreeNode.ROOT.breadthFirstEnumeration();
-
-                        while (treeNodeEnumeration.hasMoreElements()) {
-                            DocViewWindowTreeNode treeNode = (DocViewWindowTreeNode) treeNodeEnumeration.nextElement();
-                            if (treeNode.isClassPath()) {
-                                DocViewService service = DocViewService.getInstance(project, treeNode.getPsiClass());
-                                if (service != null) {
-                                    docViews.addAll(service.buildClassDoc(project, treeNode.getPsiClass()));
-                                }
-                            }
-
-                        }
-
-                        DocViewUploadService.getInstance(selectedValue).upload(project, docViews);
+                        DocViewUploadService.getInstance(selectedValue).upload(project, rootNode.docViewList());
 
                         return FINAL_CHOICE;
                     }
