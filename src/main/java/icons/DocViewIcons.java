@@ -18,4 +18,5 @@ public interface DocViewIcons {
     Icon POST = IconLoader.getIcon("/icons/post.svg", DocViewIcons.class);
     Icon PUT = IconLoader.getIcon("/icons/put.svg", DocViewIcons.class);
     Icon DELETE = IconLoader.getIcon("/icons/delete.svg", DocViewIcons.class);
+    Icon DUBBO = IconLoader.getIcon("/icons/dubbo.svg", DocViewIcons.class);
 }

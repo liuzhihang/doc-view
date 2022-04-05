@@ -1,0 +1,16 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+    <title>PUT</title>
+
+    <g>
+        <title>background</title>
+        <rect fill="none" id="canvas_background" height="402" width="582" y="-1" x="-1"/>
+    </g>
+    <g>
+        <title>Layer 1</title>
+        <path fill="#ffaa56" stroke="#62b543" stroke-width="0" opacity="NaN" d="m320,126" id="svg_2"/>
+        <rect fill="#ffaa56" stroke="#62b543" stroke-width="0" x="60" y="147" width="0" height="1" id="svg_5"/>
+        <rect fill="#7b61fc" stroke-width="0" x="0" y="-2" width="62" height="28" id="svg_6" stroke="null" rx="3"/>
+        <text style="cursor: move;" fill="#ffffff" stroke-width="0" x="6" y="17" id="svg_7" font-size="14"
+              font-family="Arvo, sans-serif" text-anchor="start" xml:space="preserve">DUBBO</text>
+    </g>
+</svg>

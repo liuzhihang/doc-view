@@ -1,5 +1,6 @@
 package com.liuzhihang.doc.view.ui.window;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.NlsSafe;
 import com.intellij.psi.PsiClass;
@@ -27,6 +28,9 @@ public class ModuleNode extends DocViewNode {
     protected ModuleNode(SimpleNode aParent, Module module) {
         super(module.getProject(), aParent);
         this.module = module;
+
+        getTemplatePresentation().setIcon(AllIcons.Nodes.Module);
+        getTemplatePresentation().setPresentableText(getName());
         doUpdate();
     }
 

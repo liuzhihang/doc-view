@@ -9,6 +9,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.PopupHandler;
+import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.ui.tree.StructureTreeModel;
@@ -22,7 +23,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.TreeSelectionModel;
-import java.awt.*;
 
 /**
  * @author liuzhihang
@@ -38,6 +38,14 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
 
     public DocViewWindowPanel(@NotNull Project project) {
         super(Boolean.TRUE, Boolean.TRUE);
+
+        final ActionManager actionManager = ActionManager.getInstance();
+        ActionToolbar actionToolbar = actionManager.createActionToolbar(ActionPlaces.TOOLWINDOW_TOOLBAR_BAR,
+                (DefaultActionGroup) actionManager.getAction("liuzhihang.doc.tool.window.toolbar.action"),
+                true);
+        actionToolbar.setTargetComponent(getToolbar());
+        setToolbar(actionToolbar.getComponent());
+
         this.project = project;
         this.rootNode = new RootNode(project);
         treeModel = new StructureTreeModel<>(new SimpleTreeStructure() {
@@ -48,25 +56,12 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
             }
         }, null, project);
         catalogTree = new SimpleTree(new AsyncTreeModel(treeModel, project));
-
-        initToolbar();
         initCatalogTree();
-        setContent(catalogTree);
+
+        setContent(ScrollPaneFactory.createScrollPane(catalogTree));
         new TreeSpeedSearch(catalogTree);
+        updateCatalogTree();
     }
-
-
-    private void initToolbar() {
-
-        final ActionManager actionManager = ActionManager.getInstance();
-        ActionToolbar actionToolbar = actionManager.createActionToolbar("liuzhihang.doc.tool.window.toolbar",
-                (DefaultActionGroup) actionManager.getAction("liuzhihang.doc.tool.window.toolbar.action"),
-                true);
-        actionToolbar.setTargetComponent(getToolbar());
-        setToolbar(actionToolbar.getComponent());
-
-    }
-
 
     /**
      * 初始化目录树
@@ -77,8 +72,6 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
         catalogTree.getEmptyText().clear();
         catalogTree.setBorder(BorderFactory.createEmptyBorder());
         catalogTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-        setLayout(new BorderLayout());
-        add(catalogTree, BorderLayout.CENTER);
         PopupHandler.installPopupMenu(catalogTree, "liuzhihang.doc.tool.window.catalog.action", ActionPlaces.TOOLWINDOW_CONTENT);
     }
 

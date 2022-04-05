@@ -1,5 +1,6 @@
 package com.liuzhihang.doc.view.ui.window;
 
+import com.intellij.icons.AllIcons;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -31,11 +32,10 @@ public class ClassNode extends DocViewNode {
 
         cachePath = Paths.get(super.cachePath.toString(), DocViewUtils.getTitle(psiClass));
 
-        getTemplatePresentation().setIcon(null);
+        getTemplatePresentation().setIcon(psiClass.isInterface() ? AllIcons.Nodes.Interface : AllIcons.Nodes.Class);
         getTemplatePresentation().setTooltip(DocViewUtils.getTitle(psiClass));
         doUpdate();
     }
-
 
     @Override
     protected void doUpdate() {
