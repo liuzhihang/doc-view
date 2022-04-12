@@ -73,7 +73,7 @@ public class DocViewNotification {
                 .createNotification(DocViewBundle.message("title"), DocViewBundle.message("notify.start"), NotificationType.INFORMATION)
                 .setIcon(DocViewIcons.DOC_VIEW)
                 .addAction(new BrowseNotificationAction("Star", DocViewBundle.message("github")))
-                .addAction(new BrowseNotificationAction("Wiki", DocViewBundle.message("wiki")))
+                .addAction(new BrowseNotificationAction("YuQue", DocViewBundle.message("yuque")))
                 .addAction(new BrowseNotificationAction("Feedback", DocViewBundle.message("issues")))
                 .addAction(new BrowseNotificationAction("Other", DocViewBundle.message("toolkit")))
                 .notify(project);

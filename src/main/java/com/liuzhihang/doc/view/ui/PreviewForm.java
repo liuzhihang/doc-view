@@ -522,5 +522,8 @@ public class PreviewForm {
             });
 
         });
+        if (docViewList.size() == 1) {
+            viewSplitPane.setDividerLocation(0);
+        }
     }
 }

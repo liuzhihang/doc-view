@@ -40,7 +40,9 @@ public class RootNode extends DocViewNode {
         Module[] modules = ModuleManager.getInstance(project).getModules();
         for (Module module : modules) {
             ModuleNode moduleNode = new ModuleNode(this, module);
-            moduleNodes.add(moduleNode);
+            if (moduleNode.getChildCount() > 0) {
+                moduleNodes.add(moduleNode);
+            }
         }
     }
 

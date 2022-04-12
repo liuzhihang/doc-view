@@ -69,7 +69,7 @@ public class YuQueServiceImpl implements DocViewUploadService {
             if (doc == null) {
                 // 文档不存在
                 YuQueCreate yuQueCreate = new YuQueCreate();
-                yuQueCreate.setTitle(docView.getDocTitle());
+                yuQueCreate.setTitle(docView.getName());
                 yuQueCreate.setSlug(slug);
                 yuQueCreate.setBody(DocViewData.markdownText(project, docView));
                 yuQueResponse = facadeService.create(settings.getApiUrl(), settings.getToken(), settings.getNamespace(), yuQueCreate);
@@ -77,7 +77,7 @@ public class YuQueServiceImpl implements DocViewUploadService {
             } else {
                 // 文档存在
                 YuQueUpdate yuQueCreate = new YuQueUpdate();
-                yuQueCreate.setTitle(docView.getDocTitle());
+                yuQueCreate.setTitle(docView.getName());
                 yuQueCreate.setSlug(slug);
                 yuQueCreate.setBody(DocViewData.markdownText(project, docView));
                 yuQueResponse = facadeService.update(settings.getApiUrl(), settings.getToken(), settings.getNamespace(), doc.getData().getId(), yuQueCreate);

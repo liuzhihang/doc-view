@@ -50,6 +50,7 @@
               <enabled value="true"/>
               <focusCycleRoot value="false"/>
               <lastDividerLocation value="150"/>
+              <oneTouchExpandable value="false"/>
             </properties>
             <border type="none"/>
             <children>

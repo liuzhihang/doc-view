@@ -13,7 +13,7 @@
     <depends>org.intellij.plugins.markdown</depends>
 
     <!-- 兼容 IDEA 版本 -->
-    <idea-version since-build="203"/>
+    <idea-version since-build="213"/>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
