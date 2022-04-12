@@ -32,6 +32,7 @@ import com.intellij.ui.jcef.JBCefApp;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
+import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.config.SettingsConfigurable;
 import com.liuzhihang.doc.view.config.YApiSettings;
 import com.liuzhihang.doc.view.config.YApiSettingsConfigurable;
@@ -522,7 +523,7 @@ public class PreviewForm {
             });
 
         });
-        if (docViewList.size() == 1) {
+        if (docViewList.size() == 1 && Settings.getInstance(project).getHideLeft()) {
             viewSplitPane.setDividerLocation(0);
         }
     }

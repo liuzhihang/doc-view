@@ -26,6 +26,7 @@ public class SettingsForm {
     private static final TitledBorder exportTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.export"));
     private static final TitledBorder lineMarkerTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.line.marker"));
     private static final TitledBorder otherTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.other"));
+    private static final TitledBorder previewTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.preview"));
 
     private final Project project;
 
@@ -55,6 +56,8 @@ public class SettingsForm {
     private JPanel exportPanel;
     private JCheckBox mergeExportCheckBox;
 
+    private JPanel previewPane;
+    private JCheckBox hideLeftCheckBox;
 
     private JPanel lineMarkerPanel;
     private JCheckBox lineMarkerCheckBox;
@@ -62,6 +65,7 @@ public class SettingsForm {
     private JPanel otherPanel;
     private JBTextField prefixSymbol1TextField;
     private JBTextField prefixSymbol2TextField;
+
 
 
     public SettingsForm(@NotNull Project project) {
@@ -85,6 +89,7 @@ public class SettingsForm {
         exportPanel.setBorder(exportTitleBorder);
         lineMarkerPanel.setBorder(lineMarkerTitleBorder);
         otherPanel.setBorder(otherTitleBorder);
+        previewPane.setBorder(previewTitleBorder);
     }
 
     public boolean isModified() {
@@ -106,6 +111,7 @@ public class SettingsForm {
                 || descSwaggerCheckBox.isSelected() != settings.getDescUseSwagger()
                 || requireCommentTagCheckBox.isSelected() != settings.getRequiredUseCommentTag()
                 || mergeExportCheckBox.isSelected() != settings.getMergeExport()
+                || hideLeftCheckBox.isSelected() != settings.getHideLeft()
                 || lineMarkerCheckBox.isSelected() != settings.getLineMarker()
                 || interfaceLineMakerCheckBox.isSelected() != settings.getInterfaceLineMaker()
                 || prefixSymbol1TextField.getText().trim().equals(settings.getPrefixSymbol1())
@@ -128,6 +134,7 @@ public class SettingsForm {
         settings.setDescUseSwagger(descSwaggerCheckBox.isSelected());
         settings.setRequiredUseCommentTag(requireCommentTagCheckBox.isSelected());
         settings.setMergeExport(mergeExportCheckBox.isSelected());
+        settings.setHideLeft(hideLeftCheckBox.isSelected());
         settings.setLineMarker(lineMarkerCheckBox.isSelected());
         settings.setInterfaceLineMaker(interfaceLineMakerCheckBox.isSelected());
         settings.setPrefixSymbol1(prefixSymbol1TextField.getText().trim());
@@ -152,6 +159,7 @@ public class SettingsForm {
         descSwaggerCheckBox.setSelected(settings.getDescUseSwagger());
         requireCommentTagCheckBox.setSelected(settings.getRequiredUseCommentTag());
         mergeExportCheckBox.setSelected(settings.getMergeExport());
+        hideLeftCheckBox.setSelected(settings.getHideLeft());
         lineMarkerCheckBox.setSelected(settings.getLineMarker());
         interfaceLineMakerCheckBox.setSelected(settings.getInterfaceLineMaker());
 

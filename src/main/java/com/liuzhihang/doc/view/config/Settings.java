@@ -65,6 +65,11 @@ public class Settings implements PersistentStateComponent<Settings> {
     private Boolean mergeExport = true;
 
     /**
+     * 隐藏左侧目录
+     */
+    private Boolean hideLeft = false;
+
+    /**
      * 是否显示边栏标记
      */
     private Boolean lineMarker = true;
