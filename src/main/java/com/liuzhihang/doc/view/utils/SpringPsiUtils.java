@@ -70,7 +70,8 @@ public class SpringPsiUtils extends ParamPsiUtils {
     public static List<PsiClass> findDocViewFromModule(Module module) {
 
         Collection<PsiAnnotation> psiAnnotations = JavaAnnotationIndex.getInstance().get("Controller", module.getProject(), GlobalSearchScope.moduleScope(module));
-        psiAnnotations.addAll(JavaAnnotationIndex.getInstance().get("RestController", module.getProject(), GlobalSearchScope.moduleScope(module)));
+        Collection<PsiAnnotation> restController = JavaAnnotationIndex.getInstance().get("RestController", module.getProject(), GlobalSearchScope.moduleScope(module));
+        psiAnnotations.addAll(restController);
         List<PsiClass> psiClasses = new LinkedList<>();
 
         for (PsiAnnotation psiAnnotation : psiAnnotations) {

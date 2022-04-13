@@ -4,7 +4,7 @@ plugins {
 }
 
 group 'com.liuzhihang'
-version '1.2.4'
+version '1.2.5'
 
 JavaVersion.VERSION_11
 
@@ -23,7 +23,7 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version = '2021.2'
+    version = '2021.3'
     plugins = ['com.intellij.java', 'markdown']
     pluginName = 'Doc View'
     updateSinceUntilBuild = false

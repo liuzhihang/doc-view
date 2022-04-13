@@ -352,8 +352,8 @@
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="messages/DocViewBundle" key="settings.doc.line.marker.show"/>
-              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.line.marker.show.tip"/>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.setting.line.marker.show"/>
+              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.setting.line.marker.show.tip"/>
             </properties>
           </component>
           <hspacer id="71d80">
@@ -361,13 +361,13 @@
               <grid row="0" column="2" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
           </hspacer>
-          <component id="544" class="javax.swing.JCheckBox" binding="interfaceLineMakerCheckBox">
+          <component id="544" class="javax.swing.JCheckBox" binding="includeNormalInterfaceCheckBox">
             <constraints>
               <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="messages/DocViewBundle" key="settings.doc.line.marker.interface.show"/>
-              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.line.marker.interface.show.tip"/>
+              <text resource-bundle="messages/DocViewBundle" key="settings.doc.setting.include.normal.interface"/>
+              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.setting.include.normal.interface.tip"/>
             </properties>
           </component>
         </children>

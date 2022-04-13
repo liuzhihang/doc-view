@@ -1,15 +1,11 @@
 package com.liuzhihang.doc.view.ui.window;
 
-import com.intellij.ide.util.treeView.NodeDescriptor;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.liuzhihang.doc.view.dto.DocView;
-import com.liuzhihang.doc.view.utils.StorageUtils;
-import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 /**
@@ -18,11 +14,9 @@ import java.util.List;
  */
 public abstract class DocViewNode extends CachingSimpleNode {
 
-    protected Path cachePath;
+    protected DocViewNode(SimpleNode parentNode) {
+        super(parentNode);
 
-    protected DocViewNode(Project aProject, @Nullable NodeDescriptor aParentDescriptor) {
-        super(aProject, aParentDescriptor);
-        cachePath = Paths.get(StorageUtils.getConfigDir(aProject).toString());
     }
 
     @Override
@@ -35,7 +29,8 @@ public abstract class DocViewNode extends CachingSimpleNode {
 
     public abstract List<DocView> docViewList();
 
-    public Path getCachePath() {
-        return cachePath;
-    }
+    public abstract void updateNode(Project project);
+
+    public abstract Path cachePath(Project project);
+
 }

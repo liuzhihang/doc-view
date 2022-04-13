@@ -45,6 +45,12 @@ public interface DocViewService {
         if (SpringPsiUtils.isSpringClass(targetClass)) {
             return ServiceManager.getService(SpringDocViewServiceImpl.class);
         }
+
+        // 其他
+        if (settings.getIncludeNormalInterface()) {
+            return ServiceManager.getService(DubboDocViewServiceImpl.class);
+        }
+
         return null;
     }
 

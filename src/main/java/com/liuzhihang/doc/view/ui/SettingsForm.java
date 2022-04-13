@@ -24,7 +24,7 @@ public class SettingsForm {
     private static final TitledBorder descTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.desc"));
     private static final TitledBorder requiredTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.required"));
     private static final TitledBorder exportTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.export"));
-    private static final TitledBorder lineMarkerTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.line.marker"));
+    private static final TitledBorder lineMarkerTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.setting"));
     private static final TitledBorder otherTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.doc.other"));
     private static final TitledBorder previewTitleBorder = IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.preview"));
 
@@ -61,7 +61,7 @@ public class SettingsForm {
 
     private JPanel lineMarkerPanel;
     private JCheckBox lineMarkerCheckBox;
-    private JCheckBox interfaceLineMakerCheckBox;
+    private JCheckBox includeNormalInterfaceCheckBox;
     private JPanel otherPanel;
     private JBTextField prefixSymbol1TextField;
     private JBTextField prefixSymbol2TextField;
@@ -96,7 +96,7 @@ public class SettingsForm {
 
         Settings settings = Settings.getInstance(project);
 
-        interfaceLineMakerCheckBox.setEnabled(lineMarkerCheckBox.isSelected());
+        includeNormalInterfaceCheckBox.setEnabled(lineMarkerCheckBox.isSelected());
 
 
         return titleCommentTagCheckBox.isSelected() != settings.getTitleUseCommentTag()
@@ -113,7 +113,7 @@ public class SettingsForm {
                 || mergeExportCheckBox.isSelected() != settings.getMergeExport()
                 || hideLeftCheckBox.isSelected() != settings.getHideLeft()
                 || lineMarkerCheckBox.isSelected() != settings.getLineMarker()
-                || interfaceLineMakerCheckBox.isSelected() != settings.getInterfaceLineMaker()
+                || includeNormalInterfaceCheckBox.isSelected() != settings.getIncludeNormalInterface()
                 || prefixSymbol1TextField.getText().trim().equals(settings.getPrefixSymbol1())
                 || prefixSymbol2TextField.getText().trim().equals(settings.getPrefixSymbol2())
                 ;
@@ -136,11 +136,11 @@ public class SettingsForm {
         settings.setMergeExport(mergeExportCheckBox.isSelected());
         settings.setHideLeft(hideLeftCheckBox.isSelected());
         settings.setLineMarker(lineMarkerCheckBox.isSelected());
-        settings.setInterfaceLineMaker(interfaceLineMakerCheckBox.isSelected());
+        settings.setIncludeNormalInterface(includeNormalInterfaceCheckBox.isSelected());
         settings.setPrefixSymbol1(prefixSymbol1TextField.getText().trim());
         settings.setPrefixSymbol2(prefixSymbol2TextField.getText().trim());
 
-        interfaceLineMakerCheckBox.setEnabled(lineMarkerCheckBox.isSelected());
+        includeNormalInterfaceCheckBox.setEnabled(lineMarkerCheckBox.isSelected());
 
 
     }
@@ -161,9 +161,9 @@ public class SettingsForm {
         mergeExportCheckBox.setSelected(settings.getMergeExport());
         hideLeftCheckBox.setSelected(settings.getHideLeft());
         lineMarkerCheckBox.setSelected(settings.getLineMarker());
-        interfaceLineMakerCheckBox.setSelected(settings.getInterfaceLineMaker());
+        includeNormalInterfaceCheckBox.setSelected(settings.getIncludeNormalInterface());
 
-        interfaceLineMakerCheckBox.setEnabled(lineMarkerCheckBox.isSelected());
+        includeNormalInterfaceCheckBox.setEnabled(lineMarkerCheckBox.isSelected());
         prefixSymbol1TextField.setText(settings.getPrefixSymbol1());
         prefixSymbol2TextField.setText(settings.getPrefixSymbol2());
 

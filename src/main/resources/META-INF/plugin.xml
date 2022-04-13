@@ -88,6 +88,10 @@
         <!-- 2020.3 需要使用 notificationGroup 配置通知 -->
         <notificationGroup id="doc-view.NotificationGroup" displayType="BALLOON"/>
 
+        <!-- xml 解析的扩展, 解析 SpringBeans-->
+        <dom.fileMetaData implementation="com.liuzhihang.doc.view.dom.BeansDescription"/>
+        <!-- 范围搜索 -->
+        <definitionsScopedSearch implementation="com.liuzhihang.doc.view.dom.MapperDefinitionSearch"/>
 
     </extensions>
 

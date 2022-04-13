@@ -6,8 +6,9 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.liuzhihang.doc.view.dto.DocView;
-import org.jetbrains.annotations.NotNull;
+import com.liuzhihang.doc.view.utils.StorageUtils;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -23,17 +24,14 @@ public class RootNode extends DocViewNode {
 
     private final List<ModuleNode> moduleNodes = new ArrayList<>();
 
-    private final Project project;
-
-    public RootNode(@NotNull Project project) {
-        super(project, null);
-        this.project = project;
+    public RootNode() {
+        super(null);
         getTemplatePresentation().setIcon(AllIcons.Nodes.ModuleGroup);
         getTemplatePresentation().setPresentableText(getName());
     }
 
     @Override
-    protected void doUpdate() {
+    public void updateNode(Project project) {
         cleanUpCache();
         moduleNodes.clear();
 
@@ -44,7 +42,14 @@ public class RootNode extends DocViewNode {
                 moduleNodes.add(moduleNode);
             }
         }
+        update();
     }
+
+    @Override
+    public Path cachePath(Project project) {
+        return StorageUtils.getConfigDir(project);
+    }
+
 
     @Override
     protected SimpleNode[] buildChildren() {

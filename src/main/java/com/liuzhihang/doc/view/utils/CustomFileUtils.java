@@ -73,7 +73,7 @@ public class CustomFileUtils {
             return;
         }
 
-        File file = new File(node.getCachePath().toUri());
+        File file = new File(node.cachePath(project).toUri());
 
         if (!file.exists()) {
             String markdownText = ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {

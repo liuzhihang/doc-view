@@ -1,5 +1,6 @@
 package com.liuzhihang.doc.view.ui.window;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -13,6 +14,7 @@ import icons.DocViewIcons;
 
 import javax.swing.*;
 import java.awt.event.InputEvent;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -37,12 +39,9 @@ public class MethodNode extends DocViewNode {
     private final PsiClass psiClass;
 
     protected MethodNode(SimpleNode aParent, PsiClass psiClass, PsiMethod psiMethod) {
-        super(psiClass.getProject(), aParent);
+        super(aParent);
         this.psiMethod = psiMethod;
         this.psiClass = psiClass;
-
-        String tempFolderPath = Paths.get(super.cachePath.toString(), DocViewUtils.getTitle(psiClass)).toString();
-        cachePath = Paths.get(tempFolderPath, DocViewUtils.getName(psiMethod) + ".md");
 
         getTemplatePresentation().setIcon(null);
         getTemplatePresentation().setTooltip(DocViewUtils.getMethodDesc(psiMethod));
@@ -83,6 +82,20 @@ public class MethodNode extends DocViewNode {
     }
 
     @Override
+    public void updateNode(Project project) {
+
+    }
+
+    @Override
+    public Path cachePath(Project project) {
+
+        ClassNode classNode = (ClassNode) getParent();
+
+        return Paths.get(classNode.cachePath(project).toString(), DocViewUtils.getName(psiMethod) + ".md");
+
+    }
+
+    @Override
     public void handleSelection(SimpleTree tree) {
         super.handleSelection(tree);
     }
@@ -105,4 +118,5 @@ public class MethodNode extends DocViewNode {
     public PsiClass getPsiClass() {
         return psiClass;
     }
+
 }

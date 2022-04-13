@@ -35,7 +35,7 @@ public class CatalogClearAction extends AnAction {
 
         if (selectedNode instanceof DocViewNode) {
             DocViewNode docViewNode = (DocViewNode) selectedNode;
-            Path cachePath = docViewNode.getCachePath();
+            Path cachePath = docViewNode.cachePath(project);
             File file = new File(cachePath.toUri());
             CustomFileUtils.delete(file, project);
         }

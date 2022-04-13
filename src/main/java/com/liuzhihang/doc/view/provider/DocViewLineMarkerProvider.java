@@ -13,7 +13,6 @@ import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.ui.PreviewForm;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
-import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 import icons.DocViewIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,7 +72,7 @@ public class DocViewLineMarkerProvider implements LineMarkerProvider {
             return null;
         }
 
-        DocViewService docViewService = checkShowLineMarker(project, settings, psiClass);
+        DocViewService docViewService = checkShowLineMarker(project, psiClass);
 
         if (docViewService == null) {
             return null;
@@ -98,31 +97,23 @@ public class DocViewLineMarkerProvider implements LineMarkerProvider {
     }
 
     @Nullable
-    private DocViewService checkShowLineMarker(Project project, Settings settings, PsiClass psiClass) {
+    private DocViewService checkShowLineMarker(Project project, PsiClass psiClass) {
 
-        if (psiClass.isAnnotationType() || psiClass.isEnum()) {
-            return null;
+        if (DocViewUtils.isDocViewClass(psiClass)) {
+            return DocViewService.getInstance(project, psiClass);
         }
 
-        if (psiClass.isInterface() && !settings.getInterfaceLineMaker()) {
-            return null;
-        }
+        return null;
 
-        if (!SpringPsiUtils.isSpringClass(psiClass)) {
-            return null;
-        }
-
-        return DocViewService.getInstance(project, psiClass);
     }
 
     private LineMarkerInfo<PsiElement> createClassLineMarker(PsiElement element) {
 
         Project project = element.getProject();
-        Settings settings = Settings.getInstance(project);
         PsiClass psiClass = (PsiClass) element.getParent();
         PsiFile psiFile = element.getContainingFile();
 
-        DocViewService docViewService = checkShowLineMarker(project, settings, psiClass);
+        DocViewService docViewService = checkShowLineMarker(project, psiClass);
 
         if (docViewService == null) {
             return null;

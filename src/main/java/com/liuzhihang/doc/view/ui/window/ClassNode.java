@@ -1,6 +1,7 @@
 package com.liuzhihang.doc.view.ui.window;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.ui.treeStructure.SimpleNode;
@@ -9,6 +10,7 @@ import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 
 import java.awt.event.InputEvent;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,18 +29,15 @@ public class ClassNode extends DocViewNode {
     private final PsiClass psiClass;
 
     protected ClassNode(SimpleNode aParent, PsiClass psiClass) {
-        super(psiClass.getProject(), aParent);
+        super(aParent);
         this.psiClass = psiClass;
-
-        cachePath = Paths.get(super.cachePath.toString(), DocViewUtils.getTitle(psiClass));
 
         getTemplatePresentation().setIcon(psiClass.isInterface() ? AllIcons.Nodes.Interface : AllIcons.Nodes.Class);
         getTemplatePresentation().setTooltip(DocViewUtils.getTitle(psiClass));
-        doUpdate();
+        updateNode(psiClass.getProject());
     }
 
-    @Override
-    protected void doUpdate() {
+    public void updateNode(Project project) {
 
         PsiMethod[] methods = psiClass.getMethods();
 
@@ -48,7 +47,15 @@ public class ClassNode extends DocViewNode {
                 methodNodes.add(methodNode);
             }
         }
+        update();
+    }
 
+    @Override
+    public Path cachePath(Project project) {
+
+        ModuleNode moduleNode = (ModuleNode) getParent();
+
+        return Paths.get(moduleNode.cachePath(project).toString(), DocViewUtils.getTitle(psiClass));
     }
 
     @Override

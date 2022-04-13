@@ -73,7 +73,7 @@ public class Settings implements PersistentStateComponent<Settings> {
      * 是否显示边栏标记
      */
     private Boolean lineMarker = true;
-    private Boolean interfaceLineMaker = false;
+    private Boolean includeNormalInterface = false;
 
     /**
      * 包含类注解名称

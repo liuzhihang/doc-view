@@ -2,14 +2,21 @@ package com.liuzhihang.doc.view.ui.window;
 
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.NlsSafe;
 import com.intellij.psi.PsiClass;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.AllClassesSearch;
 import com.intellij.ui.treeStructure.SimpleNode;
+import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.FeignPsiUtil;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
+import com.liuzhihang.doc.view.utils.StorageUtils;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -26,29 +33,46 @@ public class ModuleNode extends DocViewNode {
     private final Module module;
 
     protected ModuleNode(SimpleNode aParent, Module module) {
-        super(module.getProject(), aParent);
+        super(aParent);
         this.module = module;
 
         getTemplatePresentation().setIcon(AllIcons.Nodes.Module);
         getTemplatePresentation().setPresentableText(getName());
-        doUpdate();
+        updateNode(module.getProject());
     }
 
-    @Override
-    protected void doUpdate() {
+    public void updateNode(Project project) {
         cleanUpCache();
         classNodes.clear();
 
         List<PsiClass> psiClasses = new LinkedList<>();
+
+        if (Settings.getInstance(project).getIncludeNormalInterface()) {
+            // 包含普通接口则扫描所有接口
+            List<PsiClass> interfaceList = AllClassesSearch.search(GlobalSearchScope.moduleScope(module), project).findAll()
+                    .stream()
+                    .filter(PsiClass::isInterface)
+                    .collect(Collectors.toList());
+            psiClasses.addAll(interfaceList);
+        } else {
+            psiClasses.addAll(DubboPsiUtils.findDocViewFromModule(module));
+            psiClasses.addAll(FeignPsiUtil.findDocViewFromModule(module));
+        }
+
         psiClasses.addAll(SpringPsiUtils.findDocViewFromModule(module));
-        psiClasses.addAll(DubboPsiUtils.findDocViewFromModule(module));
-        psiClasses.addAll(FeignPsiUtil.findDocViewFromModule(module));
+
 
         for (PsiClass psiClass : psiClasses) {
             ClassNode classNode = new ClassNode(this, psiClass);
             classNodes.add(classNode);
         }
+        update();
+    }
 
+    @Override
+    public Path cachePath(Project project) {
+
+        return Paths.get(StorageUtils.getConfigDir(project).toString(), module.getName());
     }
 
     @Override

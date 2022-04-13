@@ -5,8 +5,10 @@ import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
+import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.ScrollPaneFactory;
@@ -31,13 +33,17 @@ import javax.swing.tree.TreeSelectionModel;
 @Slf4j
 public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataProvider {
 
+    private final RootNode rootNode = new RootNode();
+
     private final Project project;
-    private final RootNode rootNode;
     private final SimpleTree catalogTree;
+    private final ToolWindow toolWindow;
     private final StructureTreeModel<AbstractTreeStructure> treeModel;
 
-    public DocViewWindowPanel(@NotNull Project project) {
+    public DocViewWindowPanel(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         super(Boolean.TRUE, Boolean.TRUE);
+        this.project = project;
+        this.toolWindow = toolWindow;
 
         final ActionManager actionManager = ActionManager.getInstance();
         ActionToolbar actionToolbar = actionManager.createActionToolbar(ActionPlaces.TOOLWINDOW_TOOLBAR_BAR,
@@ -46,8 +52,6 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
         actionToolbar.setTargetComponent(getToolbar());
         setToolbar(actionToolbar.getComponent());
 
-        this.project = project;
-        this.rootNode = new RootNode(project);
         treeModel = new StructureTreeModel<>(new SimpleTreeStructure() {
             @NotNull
             @Override
@@ -76,10 +80,26 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
     }
 
     public void updateCatalogTree() {
+
+        DumbService.getInstance(project).smartInvokeLater(() -> {
+
+            if (toolWindow.isDisposed() || !toolWindow.isVisible()) {
+                toolWindow.show(this::doUpdateCatalogTree);
+            } else {
+                doUpdateCatalogTree();
+            }
+
+        });
+    }
+
+    private void doUpdateCatalogTree() {
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View Searching") {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
-                AppUIUtil.invokeOnEdt(rootNode::doUpdate);
+                AppUIUtil.invokeOnEdt(() -> {
+                    rootNode.updateNode(project);
+                    treeModel.invalidate();
+                });
             }
         });
     }

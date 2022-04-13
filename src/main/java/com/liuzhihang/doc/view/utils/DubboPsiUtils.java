@@ -2,14 +2,19 @@ package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
+import com.intellij.util.xml.DomFileElement;
+import com.intellij.util.xml.DomService;
 import com.liuzhihang.doc.view.constant.DubboConstant;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
+import com.liuzhihang.doc.view.dom.BeansDomElement;
 import com.liuzhihang.doc.view.dto.Body;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +30,7 @@ public class DubboPsiUtils {
     /**
      * 检查是否是 dubbo 接口
      * <p>
-     * 当前判断方式:
+     * 当前判断方式: 是接口, 并且有 xml 关联 或者实现类上有注解
      *
      * @param psiClass
      * @return
@@ -36,9 +41,30 @@ public class DubboPsiUtils {
             return false;
         }
 
-        // 判断是否包含 dubbo 的注解
-        // xml 判断方式需要补充 TODO
-        return AnnotationUtil.isAnnotated(psiClass, DubboConstant.SERVICE_ANNOTATIONS, 0);
+
+        // 包含相关注解, 则是 Dubbo 接口
+        if (AnnotationUtil.isAnnotated(psiClass, DubboConstant.SERVICE_ANNOTATIONS, 0)) {
+            return true;
+        }
+        // 实现类上要有注解
+        if (ClassInheritorsSearch.search(psiClass).findAll()
+                .stream()
+                .anyMatch(psiClass1 -> AnnotationUtil.isAnnotated(psiClass1, DubboConstant.SERVICE_ANNOTATIONS, 0))) {
+            return true;
+        }
+
+        Project project = psiClass.getProject();
+
+        // xml 中的所有配置
+        List<DomFileElement<BeansDomElement>> fileElements = DomService.getInstance().getFileElements(BeansDomElement.class, project, GlobalSearchScope.allScope(project));
+
+        // 只需要判断namespace
+        String qualifiedName = psiClass.getQualifiedName();
+
+        return fileElements.stream().anyMatch(elements ->
+                elements.getRootElement().getDubboServiceDomElements()
+                        .stream()
+                        .anyMatch(dubboServiceDomElement -> Objects.requireNonNull(dubboServiceDomElement.getInterface().getRawText()).equals(qualifiedName)));
     }
 
     /**

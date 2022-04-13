@@ -52,13 +52,11 @@ public class DocViewUtils {
             return true;
         }
 
-        // Dubbo 接口 还需要检查方法是否满足条件
-        if (DubboPsiUtils.isDubboClass(psiClass)) {
-            return true;
-        }
 
-        if (FeignPsiUtil.isFeignClass(psiClass)) {
-            return true;
+        if (psiClass.isInterface()) {
+            return Settings.getInstance(psiClass.getProject()).getIncludeNormalInterface()
+                    || DubboPsiUtils.isDubboClass(psiClass)
+                    || FeignPsiUtil.isFeignClass(psiClass);
         }
 
         // 其他判断在下面添加
