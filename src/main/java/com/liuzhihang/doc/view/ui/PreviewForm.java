@@ -524,7 +524,7 @@ public class PreviewForm {
 
         });
         if (docViewList.size() == 1 && Settings.getInstance(project).getHideLeft()) {
-            viewSplitPane.setDividerLocation(0);
+            // todo 隐藏左侧
         }
     }
 }
