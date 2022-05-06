@@ -10,10 +10,12 @@ import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
+import com.intellij.openapi.editor.EditorKind;
 import com.intellij.openapi.editor.EditorSettings;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.highlighter.EditorHighlighter;
+import com.intellij.openapi.editor.highlighter.EditorHighlighterFactory;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
@@ -45,6 +47,7 @@ import com.liuzhihang.doc.view.utils.ExportUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.intellij.plugins.markdown.settings.MarkdownApplicationSettings;
+import org.intellij.plugins.markdown.settings.MarkdownSettings;
 import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanel;
 import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanelProvider;
 import org.intellij.plugins.markdown.ui.preview.html.MarkdownUtil;
@@ -245,13 +248,11 @@ public class PreviewForm {
 
 
     private void initMarkdownSourceScrollPanel() {
-        // 会使用 velocity 渲染模版
+
+        markdownEditor = (EditorEx) EditorFactory.getInstance().createViewer(markdownDocument, project,  EditorKind.UNTYPED);
+
         FileType fileType = FileTypeManager.getInstance().getFileTypeByExtension("md");
-
-        final EditorHighlighter editorHighlighter =
-                HighlighterFactory.createHighlighter(fileType, EditorColorsManager.getInstance().getGlobalScheme(), project);
-
-        markdownEditor = (EditorEx) EditorFactory.getInstance().createEditor(markdownDocument, project, fileType, true);
+        markdownEditor.setHighlighter(EditorHighlighterFactory.getInstance().createEditorHighlighter(project, fileType));
 
         EditorSettings editorSettings = markdownEditor.getSettings();
         editorSettings.setAdditionalLinesCount(0);
@@ -263,19 +264,14 @@ public class PreviewForm {
 
         editorSettings.setLanguageSupplier(() -> Language.findLanguageByID("Markdown"));
 
-        markdownEditor.setHighlighter(editorHighlighter);
         markdownEditor.setBorder(JBUI.Borders.emptyLeft(5));
+
         markdownSourceScrollPanel = new JBScrollPane(markdownEditor.getComponent());
     }
 
     private void initMarkdownHtmlPanel() {
 
-        MarkdownApplicationSettings settings = MarkdownApplicationSettings.getInstance();
-
-        MarkdownHtmlPanelProvider.ProviderInfo providerInfo = settings.getMarkdownPreviewSettings().getHtmlPanelProviderInfo();
-
-        MarkdownHtmlPanelProvider provider = MarkdownHtmlPanelProvider.createFromInfo(providerInfo);
-        // xx
+        MarkdownHtmlPanelProvider provider = MarkdownHtmlPanelProvider.createFromInfo(MarkdownSettings.getDefaultProviderInfo());
 
         if (!JBCefApp.isSupported()) {
             // Fallback to an alternative browser-less solution

@@ -114,8 +114,8 @@ public class SettingsForm {
                 || hideLeftCheckBox.isSelected() != settings.getHideLeft()
                 || lineMarkerCheckBox.isSelected() != settings.getLineMarker()
                 || includeNormalInterfaceCheckBox.isSelected() != settings.getIncludeNormalInterface()
-                || prefixSymbol1TextField.getText().trim().equals(settings.getPrefixSymbol1())
-                || prefixSymbol2TextField.getText().trim().equals(settings.getPrefixSymbol2())
+                || !prefixSymbol1TextField.getText().trim().equals(settings.getPrefixSymbol1())
+                || !prefixSymbol2TextField.getText().trim().equals(settings.getPrefixSymbol2())
                 ;
     }
 

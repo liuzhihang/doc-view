@@ -93,6 +93,12 @@
         <!-- 范围搜索 -->
         <definitionsScopedSearch implementation="com.liuzhihang.doc.view.dom.MapperDefinitionSearch"/>
 
+        <!-- 浮动按钮 -->
+        <!--<editorFloatingToolbarProvider-->
+        <!--        id="com.liuzhihang.doc.view.editor.floating"-->
+        <!--        order="after DefaultFloatingToolbarProvider"-->
+        <!--        implementation="com.liuzhihang.doc.view.ui.editor.EditorFloatingToolbarProvider"/>-->
+
     </extensions>
 
     <actions>
@@ -138,6 +144,15 @@
                     class="com.liuzhihang.doc.view.action.toolbar.preview.PreviewRightCopyAction"
                     text="Copy" description="Copy" icon="AllIcons.Actions.Copy"/>
         </group>
+
+        <!-- editor 右键菜单 -->
+        <group id="liuzhihang.doc.preview.editor.floating">
+
+            <action id="liuzhihang.doc.preview.editor.save" class="com.liuzhihang.doc.view.action.toolbar.preview.MenuExportAllAction"
+                    text="Save" icon="AllIcons.Actions.MenuSaveall"/>
+
+        </group>
+
 
 
         <!-- ToolWindow 的工具栏  -->
