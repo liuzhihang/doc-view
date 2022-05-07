@@ -453,23 +453,28 @@ public class PreviewForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                YApiSettings apiSettings = YApiSettings.getInstance(project);
+                Point location = previewToolbarPanel.getLocationOnScreen();
+                location.x = MouseInfo.getPointerInfo().getLocation().x;
+                location.y += previewToolbarPanel.getHeight();
 
-                if (StringUtils.isBlank(apiSettings.getUrl())
-                        || apiSettings.getProjectId() == null
-                        || StringUtils.isBlank(apiSettings.getToken())) {
-                    // 说明没有配置 YApi 上传地址, 跳转到配置页面
-                    DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.info.settings"));
-                    ShowSettingsUtil.getInstance().showSettingsDialog(e.getProject(), YApiSettingsConfigurable.class);
+                myIsPinned.set(true);
 
-                    popup.cancel();
+                JBPopupFactory.getInstance()
+                        .createListPopup(new BaseListPopupStep<>(null, DocViewUploadService.UPLOAD_OPTIONS) {
+                            @Override
+                            public @NotNull String getTextFor(String value) {
+                                return "Upload to " + value;
+                            }
 
-                    return;
-                }
+                            @Override
+                            public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
 
-                // 上传到 yapi
-                DocViewUploadService service = ServiceManager.getService(YApiServiceImpl.class);
-                service.upload(project, docViewList);
+                                DocViewUploadService.getInstance(selectedValue)
+                                        .upload(project, docViewList);
+
+                                return FINAL_CHOICE;
+                            }
+                        }).showInScreenCoordinates(previewToolbarPanel, location);
             }
         });
 
