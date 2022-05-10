@@ -1,8 +1,8 @@
 package com.liuzhihang.doc.view.service.impl;
 
 import com.google.gson.Gson;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -66,7 +66,7 @@ public class YApiServiceImpl implements DocViewUploadService {
         try {
             YApiSettings settings = YApiSettings.getInstance(project);
 
-            YApiFacadeService facadeService = ServiceManager.getService(YApiFacadeServiceImpl.class);
+            YApiFacadeService facadeService = ApplicationManager.getApplication().getService(YApiFacadeServiceImpl.class);
 
             YApiCat cat = getOrAddCat(settings, docView.getDocTitle());
 
@@ -305,7 +305,7 @@ public class YApiServiceImpl implements DocViewUploadService {
     @NotNull
     private YApiCat getOrAddCat(@NotNull YApiSettings settings, @NotNull String name) throws Exception {
 
-        YApiFacadeService facadeService = ServiceManager.getService(YApiFacadeServiceImpl.class);
+        YApiFacadeService facadeService = ApplicationManager.getApplication().getService(YApiFacadeServiceImpl.class);
 
         // 检查 catId (菜单是否存在)
         List<YApiCat> catMenu = facadeService.getCatMenu(settings.getUrl(), settings.getProjectId(), settings.getToken());

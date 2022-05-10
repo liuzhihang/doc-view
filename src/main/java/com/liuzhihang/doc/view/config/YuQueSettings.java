@@ -1,7 +1,6 @@
 package com.liuzhihang.doc.view.config;
 
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
@@ -31,7 +30,7 @@ public class YuQueSettings implements PersistentStateComponent<YuQueSettings> {
 
 
     public static YuQueSettings getInstance(@NotNull Project project) {
-        return ServiceManager.getService(project, YuQueSettings.class);
+        return project.getService(YuQueSettings.class);
     }
 
     @Override

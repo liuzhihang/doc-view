@@ -1,7 +1,7 @@
 package com.liuzhihang.doc.view.service.impl;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.DocViewBundle;
@@ -57,7 +57,7 @@ public class ShowDocServiceImpl implements DocViewUploadService {
             request.setPageTitle(docView.getName());
             request.setPageContent(DocViewData.markdownText(project, docView));
 
-            ShowDocFacadeService facadeService = ServiceManager.getService(ShowDocFacadeServiceImpl.class);
+            ShowDocFacadeService facadeService = ApplicationManager.getApplication().getService(ShowDocFacadeServiceImpl.class);
             ShowDocUpdateResponse response = facadeService.updateByApi(request);
 
             ShowDocUpdateResponse.DataInner data = response.getData();

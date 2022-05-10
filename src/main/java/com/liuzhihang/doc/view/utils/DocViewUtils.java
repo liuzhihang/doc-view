@@ -1,8 +1,8 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
@@ -537,7 +537,7 @@ public class DocViewUtils {
 
             PsiElementFactory factory = PsiElementFactory.getInstance(project);
             PsiDocComment psiDocComment = factory.createDocCommentFromText(docComment);
-            ServiceManager.getService(WriterService.class).write(project, element, psiDocComment);
+            ApplicationManager.getApplication().getService(WriterService.class).write(project, element, psiDocComment);
 
 
         }

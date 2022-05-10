@@ -1,7 +1,7 @@
 package com.liuzhihang.doc.view.action.toolbar.window.catalog;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 import com.liuzhihang.doc.view.service.impl.YuQueServiceImpl;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +19,7 @@ public class CatalogUploadYuQueAction extends AbstractCatalogUploadAction {
 
     @Override
     protected DocViewUploadService uploadService() {
-        return ServiceManager.getService(YuQueServiceImpl.class);
+        return ApplicationManager.getApplication().getService(YuQueServiceImpl.class);
     }
 
 }

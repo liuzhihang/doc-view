@@ -1,7 +1,7 @@
 package com.liuzhihang.doc.view.action;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 import com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +21,7 @@ public class ShowDocUploadAction extends AbstractUploadAction {
 
     @Override
     protected DocViewUploadService uploadService() {
-        return ServiceManager.getService(ShowDocServiceImpl.class);
+        return ApplicationManager.getApplication().getService(ShowDocServiceImpl.class);
     }
 
     /**

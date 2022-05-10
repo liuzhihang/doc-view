@@ -1,7 +1,6 @@
 package com.liuzhihang.doc.view.service;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -28,17 +27,17 @@ public interface DocViewUploadService {
     static DocViewUploadService getInstance(@NotNull String name) {
         if (name.equals("YApi")) {
             // 上传到 yapi
-            return ServiceManager.getService(YApiServiceImpl.class);
+            return ApplicationManager.getApplication().getService(YApiServiceImpl.class);
         } else if (name.equals("ShowDoc")) {
             // 上传到 ShowDoc
-            return ServiceManager.getService(ShowDocServiceImpl.class);
+            return ApplicationManager.getApplication().getService(ShowDocServiceImpl.class);
         } else if (name.equals("语雀")) {
             // 上传到语雀
-            return ServiceManager.getService(YuQueServiceImpl.class);
+            return ApplicationManager.getApplication().getService(YuQueServiceImpl.class);
         }
 
         // 默认返回 YApi
-        return ServiceManager.getService(YApiServiceImpl.class);
+        return ApplicationManager.getApplication().getService(YApiServiceImpl.class);
     }
 
     /**

@@ -1,7 +1,6 @@
 package com.liuzhihang.doc.view.config;
 
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
@@ -27,7 +26,7 @@ public class ApplicationSettings implements PersistentStateComponent<Application
 
 
     public static ApplicationSettings getInstance(@NotNull Project project) {
-        return ServiceManager.getService(project, ApplicationSettings.class);
+        return project.getService(ApplicationSettings.class);
     }
 
 

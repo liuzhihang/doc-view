@@ -1,6 +1,6 @@
 package com.liuzhihang.doc.view.service;
 
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
@@ -33,22 +33,22 @@ public interface DocViewService {
 
         //spring cloud 的 feign client
         if (FeignPsiUtil.isFeignClass(targetClass)) {
-            return ServiceManager.getService(SpringDocViewServiceImpl.class);
+            return ApplicationManager.getApplication().getService(SpringDocViewServiceImpl.class);
         }
 
         // Dubbo
         if (DubboPsiUtils.isDubboClass(targetClass)) {
-            return ServiceManager.getService(DubboDocViewServiceImpl.class);
+            return ApplicationManager.getApplication().getService(DubboDocViewServiceImpl.class);
         }
 
         // Spring
         if (SpringPsiUtils.isSpringClass(targetClass)) {
-            return ServiceManager.getService(SpringDocViewServiceImpl.class);
+            return ApplicationManager.getApplication().getService(SpringDocViewServiceImpl.class);
         }
 
         // 其他
         if (settings.getIncludeNormalInterface()) {
-            return ServiceManager.getService(DubboDocViewServiceImpl.class);
+            return ApplicationManager.getApplication().getService(DubboDocViewServiceImpl.class);
         }
 
         return null;

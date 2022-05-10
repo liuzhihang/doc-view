@@ -5,7 +5,7 @@ import com.intellij.find.editorHeaderActions.Utils;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
-import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopup;
@@ -56,7 +56,7 @@ public class DocEditorForm {
     @NonNls
     public static final String DOC_VIEW_POPUP = "com.intellij.docview.editor.popup";
     private static final AtomicBoolean myIsPinned = new AtomicBoolean(true);
-    private final WriterService writerService = ServiceManager.getService(WriterService.class);
+    private final WriterService writerService = ApplicationManager.getApplication().getService(WriterService.class);
 
     private final DocViewData docViewData;
 

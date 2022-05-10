@@ -1,7 +1,7 @@
 package com.liuzhihang.doc.view.service.impl;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.DocViewBundle;
@@ -53,7 +53,7 @@ public class YuQueServiceImpl implements DocViewUploadService {
 
         try {
             YuQueSettings settings = YuQueSettings.getInstance(project);
-            YuQueFacadeService facadeService = ServiceManager.getService(YuQueFacadeServiceImpl.class);
+            YuQueFacadeService facadeService = ApplicationManager.getApplication().getService(YuQueFacadeServiceImpl.class);
             String slug;
             if (docView.getPath().startsWith("/")) {
                 slug = docView.getPath().substring(1).replace("/", "_");

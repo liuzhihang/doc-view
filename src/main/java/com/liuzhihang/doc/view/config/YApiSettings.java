@@ -1,7 +1,6 @@
 package com.liuzhihang.doc.view.config;
 
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
@@ -27,7 +26,7 @@ public class YApiSettings implements PersistentStateComponent<YApiSettings> {
     private String token;
 
     public static YApiSettings getInstance(@NotNull Project project) {
-        return ServiceManager.getService(project, YApiSettings.class);
+        return project.getService(YApiSettings.class);
     }
 
     @Override

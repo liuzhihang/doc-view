@@ -1,7 +1,6 @@
 package com.liuzhihang.doc.view.config;
 
 import com.intellij.openapi.components.PersistentStateComponent;
-import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
@@ -26,7 +25,7 @@ public class TemplateSettings implements PersistentStateComponent<TemplateSettin
     private String dubboTemplate = DocViewBundle.message("template.dubbo.init");
 
     public static TemplateSettings getInstance(@NotNull Project project) {
-        return ServiceManager.getService(project, TemplateSettings.class);
+        return project.getService(TemplateSettings.class);
     }
 
 
