@@ -91,7 +91,7 @@
         <!-- xml 解析的扩展, 解析 SpringBeans-->
         <dom.fileMetaData implementation="com.liuzhihang.doc.view.dom.BeansDescription"/>
         <!-- 范围搜索 -->
-        <definitionsScopedSearch implementation="com.liuzhihang.doc.view.dom.MapperDefinitionSearch"/>
+        <definitionsScopedSearch implementation="com.liuzhihang.doc.view.dom.DubboDefinitionSearch"/>
 
         <!-- 浮动按钮 -->
         <!--<editorFloatingToolbarProvider-->

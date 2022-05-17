@@ -6,6 +6,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiTypeParameterListOwner;
 import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.search.searches.DefinitionsScopedSearch;
 import com.intellij.psi.xml.XmlElement;
 import com.intellij.util.Processor;
 import com.intellij.util.xml.DomElement;
@@ -22,14 +23,17 @@ import java.util.Objects;
  * @author liuzhihang
  * @date 2022-04-12 00:05:11
  */
-public class MapperDefinitionSearch extends QueryExecutorBase<XmlElement, PsiElement> {
+public class DubboDefinitionSearch extends QueryExecutorBase<XmlElement, DefinitionsScopedSearch.SearchParameters> {
 
-    public MapperDefinitionSearch() {
+    public DubboDefinitionSearch() {
         super(true);
     }
 
     @Override
-    public void processQuery(@NotNull PsiElement element, @NotNull Processor<? super XmlElement> consumer) {
+    public void processQuery(@NotNull DefinitionsScopedSearch.SearchParameters parameters,
+                             @NotNull Processor<? super XmlElement> consumer) {
+
+        PsiElement element = parameters.getElement();
 
         if (element instanceof PsiTypeParameterListOwner) {
             Processor<DomElement> processor = domElement -> consumer.process(domElement.getXmlElement());
