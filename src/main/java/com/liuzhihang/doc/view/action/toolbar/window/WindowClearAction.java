@@ -4,10 +4,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.utils.CustomFileUtils;
-import com.liuzhihang.doc.view.utils.StorageUtils;
 import org.jetbrains.annotations.NotNull;
-
-import java.nio.file.Path;
 
 /**
  * @author liuzhihang
@@ -21,9 +18,7 @@ public class WindowClearAction extends AnAction {
         if (project == null) {
             return;
         }
-
-        Path configDir = StorageUtils.getConfigDir(project);
-        CustomFileUtils.delete(configDir.toFile(), project);
+        CustomFileUtils.delete(project, "Doc View");
     }
 
 }

@@ -7,6 +7,7 @@ import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.DocViewService;
+import com.liuzhihang.doc.view.utils.CustomFileUtils;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
@@ -14,9 +15,11 @@ import icons.DocViewIcons;
 
 import javax.swing.*;
 import java.awt.event.InputEvent;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 目录树上的一个节点
@@ -87,11 +90,11 @@ public class MethodNode extends DocViewNode {
     }
 
     @Override
-    public Path cachePath(Project project) {
+    public String cachePath(Project project) {
 
         ClassNode classNode = (ClassNode) getParent();
 
-        return Paths.get(classNode.cachePath(project).toString(), DocViewUtils.getName(psiMethod) + ".md");
+        return classNode.cachePath(project) + "/" + DocViewUtils.getName(psiMethod) + ".md";
 
     }
 
@@ -101,14 +104,14 @@ public class MethodNode extends DocViewNode {
     }
 
     /**
-     * 被双击或者 Enter 时
+     * 被双击或者 Enter 时, 双击打开文档
      *
      * @param tree
      * @param inputEvent
      */
     @Override
     public void handleDoubleClickOrEnter(SimpleTree tree, InputEvent inputEvent) {
-        super.handleDoubleClickOrEnter(tree, inputEvent);
+        CustomFileUtils.open(this, psiClass.getProject());
     }
 
     public PsiMethod getPsiMethod() {

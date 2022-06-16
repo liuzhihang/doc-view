@@ -13,10 +13,7 @@ import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.FeignPsiUtil;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
-import com.liuzhihang.doc.view.utils.StorageUtils;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -70,9 +67,11 @@ public class ModuleNode extends DocViewNode {
     }
 
     @Override
-    public Path cachePath(Project project) {
+    public String cachePath(Project project) {
 
-        return Paths.get(StorageUtils.getConfigDir(project).toString(), module.getName());
+        RootNode rootNode = (RootNode) getParent();
+
+        return rootNode.cachePath(project) + "/" + module.getName();
     }
 
     @Override

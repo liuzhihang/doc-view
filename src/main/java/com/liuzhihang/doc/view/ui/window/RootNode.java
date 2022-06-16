@@ -6,9 +6,7 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.liuzhihang.doc.view.dto.DocView;
-import com.liuzhihang.doc.view.utils.StorageUtils;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,8 +44,8 @@ public class RootNode extends DocViewNode {
     }
 
     @Override
-    public Path cachePath(Project project) {
-        return StorageUtils.getConfigDir(project);
+    public String cachePath(Project project) {
+        return "Doc View";
     }
 
 
