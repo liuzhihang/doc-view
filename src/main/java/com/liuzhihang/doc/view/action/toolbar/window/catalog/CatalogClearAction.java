@@ -11,9 +11,6 @@ import com.liuzhihang.doc.view.ui.window.DocViewNode;
 import com.liuzhihang.doc.view.utils.CustomFileUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.nio.file.Path;
-
 /**
  * @author liuzhihang
  * @date 2021/10/23 19:55
@@ -35,13 +32,10 @@ public class CatalogClearAction extends AnAction {
 
         if (selectedNode instanceof DocViewNode) {
             DocViewNode docViewNode = (DocViewNode) selectedNode;
-            Path cachePath = docViewNode.cachePath(project);
-            File file = new File(cachePath.toUri());
-            CustomFileUtils.delete(file, project);
+            CustomFileUtils.delete(project, docViewNode.cachePath(project));
+
         }
 
-
     }
-
 
 }

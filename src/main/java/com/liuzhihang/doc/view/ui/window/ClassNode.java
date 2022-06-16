@@ -10,8 +10,6 @@ import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 
 import java.awt.event.InputEvent;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -26,7 +24,7 @@ import java.util.stream.Collectors;
 public class ClassNode extends DocViewNode {
 
     private final List<MethodNode> methodNodes = new ArrayList<>();
-    private final PsiClass psiClass;
+    private final PsiClass         psiClass;
 
     protected ClassNode(SimpleNode aParent, PsiClass psiClass) {
         super(aParent);
@@ -51,11 +49,11 @@ public class ClassNode extends DocViewNode {
     }
 
     @Override
-    public Path cachePath(Project project) {
+    public String cachePath(Project project) {
 
         ModuleNode moduleNode = (ModuleNode) getParent();
 
-        return Paths.get(moduleNode.cachePath(project).toString(), DocViewUtils.getTitle(psiClass));
+        return moduleNode.cachePath(project) + "/" + DocViewUtils.getTitle(psiClass);
     }
 
     @Override

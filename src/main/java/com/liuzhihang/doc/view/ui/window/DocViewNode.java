@@ -5,7 +5,6 @@ import com.intellij.ui.treeStructure.CachingSimpleNode;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.liuzhihang.doc.view.dto.DocView;
 
-import java.nio.file.Path;
 import java.util.List;
 
 /**
@@ -31,6 +30,6 @@ public abstract class DocViewNode extends CachingSimpleNode {
 
     public abstract void updateNode(Project project);
 
-    public abstract Path cachePath(Project project);
+    public abstract String cachePath(Project project);
 
 }
