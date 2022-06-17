@@ -16,8 +16,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * 从注释中解析注解的工具类
@@ -27,82 +25,87 @@ import java.util.regex.Pattern;
  */
 public class CustomPsiCommentUtils {
 
-
     /**
-     * 获取注释, 如果指定 tagName 则直接从 tagName 里面获取
-     */
-    @NotNull
-    public static String getDocComment(PsiDocComment docComment, String tagName) {
-
-        if (docComment != null) {
-            for (PsiElement element : docComment.getChildren()) {
-
-                if (!("PsiDocTag:@" + tagName).equalsIgnoreCase(element.toString())) {
-                    continue;
-                }
-
-                return element.getText()
-                        .replace(("@" + tagName), StringUtils.EMPTY)
-                        .trim();
-
-            }
-        }
-
-        return "";
-    }
-
-    /**
-     * 获取方法字段的注释
-     */
-    @NotNull
-    public static String getMethodParam(PsiDocComment docComment, @NotNull PsiParameter parameter) {
-
-        if (docComment != null) {
-            for (PsiElement element : docComment.getChildren()) {
-
-                if (!("PsiDocTag:@param").equalsIgnoreCase(element.toString())) {
-                    continue;
-                }
-                String parameterName = parameter.getName();
-
-                boolean matchDocLine = false;
-                PsiElement[] children = element.getChildren();
-                for (PsiElement child : children) {
-                    if (parameterName.equals(child.getText())) {
-                        matchDocLine = true;
-                        break;
-                    }
-                }
-                //当前行的 @param 是否是 当前parameter 的描述
-                if (!matchDocLine) {
-                    continue;
-                }
-
-                //如果element.getText()最后包含换行或者空格则去掉
-                String text = StringUtils.trim(element.getText());
-
-                //用于匹配"@param"开头，方法参数结尾
-                Pattern docCommentTagCompile = Pattern.compile("@param\\s+" + parameterName);
-                Matcher matcher = docCommentTagCompile.matcher(text);
-                if (matcher.find()) {
-                    int startPoint = matcher.group(0).length();
-                    return text.substring(startPoint);
-                }
-            }
-        }
-
-        return "";
-    }
-
-
-    /**
-     * 获取注释, 没有 tag 的注释
+     * 获取注释中 tagName 对应的注释, 如果指定 tagName 则直接从 tagName 里面获取
      *
-     * @param docComment
-     * @return
+     * @param docComment 注释 PsiDocComment
+     * @param tagName    注释中的 @xxx 标签
+     * @return 注释
      */
     @NotNull
-    public static String getDocComment(PsiDocComment docComment) {
+    public static String tagDocComment(PsiDocComment docComment, String tagName) {
+
+        String comment = "";
+
+        if (docComment == null) {
+            return comment;
+        }
+
+        for (PsiElement element : docComment.getChildren()) {
+
+            // 不是 tagName 则继续查找
+            if (!("PsiDocTag:@" + tagName).equalsIgnoreCase(element.toString())) {
+                continue;
+            }
+
+            return element.getText()
+                    .replace(("@" + tagName), StringUtils.EMPTY)
+                    .trim();
+
+        }
+
+        return "";
+    }
+
+    /**
+     * 获取方法中字段的注释, 一般会用 @param 标注出来
+     *
+     * @param docComment 方法的注释 Psi
+     * @param parameter  参数
+     * @return 字段注释
+     */
+    @NotNull
+    public static String paramDocComment(PsiDocComment docComment, @NotNull PsiParameter parameter) {
+
+        String comment = "";
+
+        if (docComment == null) {
+            return comment;
+        }
+
+        for (PsiElement element : docComment.getChildren()) {
+
+            // 不是当前字段则继续循环
+            if (!("PsiDocTag:@param").equalsIgnoreCase(element.toString())) {
+                continue;
+            }
+
+            // 在注释中定位到该参数
+            if (element.getText().startsWith("@param " + parameter.getName())) {
+
+                String paramWithComment = element.getText();
+
+                if (paramWithComment.contains("\n")) {
+                    // 该字段后面还有注释
+                    comment = paramWithComment.substring(("@param " + parameter.getName()).length(), element.getText().indexOf("\n"));
+                } else {
+                    // 该字段后面没有其他注释, 只有 */
+                    comment = paramWithComment.substring(("@param " + parameter.getName()).length());
+                }
+            }
+        }
+        // 移除前后的空格
+        return comment.trim();
+    }
+
+    /**
+     * 获取注释, 没有 tag 的注释, 一般是卸载注释开头的位置
+     *
+     * @param docComment 注释 PSI
+     * @return 注释
+     */
+    @NotNull
+    public static String tagDocComment(PsiDocComment docComment) {
 
         return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
 
@@ -127,17 +130,16 @@ public class CustomPsiCommentUtils {
     /**
      * 获取注释, 没有 tag 的注释
      *
-     * @param docComment
+     * @param docComment 注释 PSI
      * @param oneLine    只获取一行
-     * @return
+     * @return 注释
      */
     @NotNull
-    public static String getDocComment(PsiDocComment docComment, Boolean oneLine) {
-
+    public static String tagDocComment(PsiDocComment docComment, Boolean oneLine) {
 
         return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
             if (!oneLine) {
-                return getDocComment(docComment);
+                return tagDocComment(docComment);
             }
             if (docComment != null) {
                 for (PsiElement element : docComment.getChildren()) {
@@ -153,10 +155,16 @@ public class CustomPsiCommentUtils {
 
     }
 
-
+    /**
+     * 获取字段的注释
+     *
+     * 举例 // xxx
+     *
+     * @param psiComment 字段的注释 PSI
+     * @return 注释
+     */
     @NotNull
-    public static String getComment(PsiComment psiComment) {
-
+    public static String fieldComment(PsiComment psiComment) {
 
         if (psiComment != null && StringUtils.isNotBlank(psiComment.getText())) {
             // 原注释中的换行符移除
@@ -164,35 +172,6 @@ public class CustomPsiCommentUtils {
 
         }
         return "";
-    }
-
-
-    /**
-     * 保留换行
-     *
-     * @param docComment
-     * @return
-     */
-    @NotNull
-    public static String getMethodComment(PsiDocComment docComment) {
-        StringBuilder sb = new StringBuilder();
-
-        if (docComment != null) {
-            for (PsiElement element : docComment.getChildren()) {
-
-                if (!"PsiDocToken:DOC_COMMENT_DATA".equalsIgnoreCase(element.toString())) {
-                    continue;
-                }
-                if (sb.length() > 0) {
-                    // 保留换行符
-                    sb.append(element.getText().replaceAll("[/* ]+", StringUtils.EMPTY)).append("\n");
-                } else {
-                    sb.append(element.getText().replaceAll("[/* ]+", StringUtils.EMPTY));
-                }
-
-            }
-        }
-        return sb.toString();
     }
 
     /**
@@ -236,7 +215,6 @@ public class CustomPsiCommentUtils {
         }
         return paramDocList;
     }
-
 
     /**
      * 构建返回

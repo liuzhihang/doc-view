@@ -1,4 +1,4 @@
-package com.liuzhihang.doc.view.facade.dto;
+package com.liuzhihang.doc.view.integration.dto;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;

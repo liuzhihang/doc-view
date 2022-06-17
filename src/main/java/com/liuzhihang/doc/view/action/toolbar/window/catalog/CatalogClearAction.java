@@ -32,7 +32,7 @@ public class CatalogClearAction extends AnAction {
 
         if (selectedNode instanceof DocViewNode) {
             DocViewNode docViewNode = (DocViewNode) selectedNode;
-            CustomFileUtils.delete(project, docViewNode.cachePath(project));
+            CustomFileUtils.delete(project, docViewNode.docPath(project));
 
         }
 

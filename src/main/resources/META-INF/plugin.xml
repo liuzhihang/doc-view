@@ -35,11 +35,11 @@
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.WriterService"/>
 
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.YApiServiceImpl"/>
-        <applicationService serviceImplementation="com.liuzhihang.doc.view.facade.impl.YApiFacadeServiceImpl"/>
+        <applicationService serviceImplementation="com.liuzhihang.doc.view.integration.impl.YApiFacadeServiceImpl"/>
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl"/>
-        <applicationService serviceImplementation="com.liuzhihang.doc.view.facade.impl.ShowDocFacadeServiceImpl"/>
+        <applicationService serviceImplementation="com.liuzhihang.doc.view.integration.impl.ShowDocFacadeServiceImpl"/>
         <applicationService serviceImplementation="com.liuzhihang.doc.view.service.impl.YuQueServiceImpl"/>
-        <applicationService serviceImplementation="com.liuzhihang.doc.view.facade.impl.YuQueFacadeServiceImpl"/>
+        <applicationService serviceImplementation="com.liuzhihang.doc.view.integration.impl.YuQueFacadeServiceImpl"/>
 
         <postStartupActivity implementation="com.liuzhihang.doc.view.notification.DocViewStartupNotification"/>
 
@@ -154,7 +154,6 @@
         </group>
 
 
-
         <!-- ToolWindow 的工具栏  -->
         <group id="liuzhihang.doc.tool.window.toolbar.action">
 
@@ -217,6 +216,11 @@
             <action id="liuzhihang.doc.tool.window.catalog.action.clear"
                     class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogClearAction"
                     text="Clear" description="ClearCache" icon="DocViewIcons.CLEAR"/>
+
+            <action id="liuzhihang.doc.view.action.toolbar.window.catalog.httpclient"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogHttpClientAction" text="Http Client"
+                    description="Generate http client" icon="AllIcons.General.Web">
+            </action>
         </group>
 
     </actions>

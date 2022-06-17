@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 public class ModuleNode extends DocViewNode {
 
     private final List<ClassNode> classNodes = new ArrayList<>();
-    private final Module module;
+    private final Module          module;
 
     protected ModuleNode(SimpleNode aParent, Module module) {
         super(aParent);
@@ -58,7 +58,6 @@ public class ModuleNode extends DocViewNode {
 
         psiClasses.addAll(SpringPsiUtils.findDocViewFromModule(module));
 
-
         for (PsiClass psiClass : psiClasses) {
             ClassNode classNode = new ClassNode(this, psiClass);
             classNodes.add(classNode);
@@ -67,11 +66,19 @@ public class ModuleNode extends DocViewNode {
     }
 
     @Override
-    public String cachePath(Project project) {
+    public String docPath(Project project) {
 
         RootNode rootNode = (RootNode) getParent();
 
-        return rootNode.cachePath(project) + "/" + module.getName();
+        return rootNode.docPath(project) + "/" + module.getName();
+    }
+
+    @Override
+    public String httpPath(Project project) {
+
+        RootNode rootNode = (RootNode) getParent();
+
+        return rootNode.httpPath(project) + "/" + module.getName();
     }
 
     @Override

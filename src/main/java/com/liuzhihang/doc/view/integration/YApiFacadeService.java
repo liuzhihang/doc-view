@@ -1,7 +1,7 @@
-package com.liuzhihang.doc.view.facade;
+package com.liuzhihang.doc.view.integration;
 
-import com.liuzhihang.doc.view.facade.dto.YApiCat;
-import com.liuzhihang.doc.view.facade.dto.YapiSave;
+import com.liuzhihang.doc.view.integration.dto.YApiCat;
+import com.liuzhihang.doc.view.integration.dto.YapiSave;
 
 import java.util.List;
 

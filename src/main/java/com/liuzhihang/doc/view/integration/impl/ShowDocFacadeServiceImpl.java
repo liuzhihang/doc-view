@@ -1,12 +1,12 @@
-package com.liuzhihang.doc.view.facade.impl;
+package com.liuzhihang.doc.view.integration.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.intellij.openapi.diagnostic.Logger;
-import com.liuzhihang.doc.view.facade.ShowDocFacadeService;
-import com.liuzhihang.doc.view.facade.dto.ShowDocUpdateRequest;
-import com.liuzhihang.doc.view.facade.dto.ShowDocUpdateResponse;
+import com.liuzhihang.doc.view.integration.ShowDocFacadeService;
+import com.liuzhihang.doc.view.integration.dto.ShowDocUpdateRequest;
+import com.liuzhihang.doc.view.integration.dto.ShowDocUpdateResponse;
 import com.liuzhihang.doc.view.utils.HttpUtils;
 import org.apache.commons.lang3.StringUtils;
 

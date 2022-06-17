@@ -30,6 +30,20 @@ public abstract class DocViewNode extends CachingSimpleNode {
 
     public abstract void updateNode(Project project);
 
-    public abstract String cachePath(Project project);
+    /**
+     * 生成的文档保存路径
+     *
+     * @param project project
+     * @return path
+     */
+    public abstract String docPath(Project project);
+
+    /**
+     * 生成的 .http 文件路径
+     *
+     * @param project project
+     * @return path
+     */
+    public abstract String httpPath(Project project);
 
 }

@@ -54,7 +54,7 @@ public class MethodNode extends DocViewNode {
     private Icon methodIcon() {
 
         if (SpringPsiUtils.isSpringClass(psiClass) && SpringPsiUtils.isSpringMethod(psiMethod)) {
-            return ICON_MAP.get(SpringPsiUtils.getMethod(psiMethod));
+            return ICON_MAP.get(SpringPsiUtils.method(psiMethod));
         }
         if (DubboPsiUtils.isDubboClass(psiClass) && DubboPsiUtils.isDubboMethod(psiMethod)) {
             return ICON_MAP.get("DUBBO");
@@ -90,12 +90,20 @@ public class MethodNode extends DocViewNode {
     }
 
     @Override
-    public String cachePath(Project project) {
+    public String docPath(Project project) {
 
         ClassNode classNode = (ClassNode) getParent();
 
-        return classNode.cachePath(project) + "/" + DocViewUtils.getName(psiMethod) + ".md";
+        return classNode.docPath(project) + "/" + DocViewUtils.getName(psiMethod) + ".md";
 
+    }
+
+    @Override
+    public String httpPath(Project project) {
+
+        ClassNode classNode = (ClassNode) getParent();
+
+        return classNode.httpPath(project) + "/" + DocViewUtils.getName(psiMethod) + ".http";
     }
 
     @Override
@@ -111,7 +119,7 @@ public class MethodNode extends DocViewNode {
      */
     @Override
     public void handleDoubleClickOrEnter(SimpleTree tree, InputEvent inputEvent) {
-        CustomFileUtils.open(this, psiClass.getProject());
+        CustomFileUtils.openMd(psiClass.getProject(), this);
     }
 
     public PsiMethod getPsiMethod() {

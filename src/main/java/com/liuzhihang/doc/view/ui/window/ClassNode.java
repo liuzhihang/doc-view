@@ -49,11 +49,19 @@ public class ClassNode extends DocViewNode {
     }
 
     @Override
-    public String cachePath(Project project) {
+    public String docPath(Project project) {
 
         ModuleNode moduleNode = (ModuleNode) getParent();
 
-        return moduleNode.cachePath(project) + "/" + DocViewUtils.getTitle(psiClass);
+        return moduleNode.docPath(project) + "/" + DocViewUtils.getTitle(psiClass);
+    }
+
+    @Override
+    public String httpPath(Project project) {
+
+        ModuleNode moduleNode = (ModuleNode) getParent();
+
+        return moduleNode.httpPath(project) + "/" + DocViewUtils.getTitle(psiClass);
     }
 
     @Override

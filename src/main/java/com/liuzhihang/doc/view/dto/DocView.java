@@ -2,6 +2,8 @@ package com.liuzhihang.doc.view.dto;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
+import com.liuzhihang.doc.view.enums.ContentTypeEnum;
+import com.liuzhihang.doc.view.enums.FrameworkEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -76,23 +78,20 @@ public class DocView {
      */
     private String changeLog;
 
-
     /**
      * headers
      */
     private List<Header> headerList;
 
-
     /**
      * 请求参数
      */
-    private Body reqRootBody = new Body();
+    private Body reqBody = new Body();
 
     /**
      * 返回参数
      */
-    private Body respRootBody = new Body();
-
+    private Body respBody = new Body();
 
     /**
      * 请求参数
@@ -100,14 +99,19 @@ public class DocView {
     private List<Param> reqParamList;
 
     /**
-     * 参数时Json时举例
+     * body 参数
      */
-    private String reqExample;
+    private String reqBodyExample;
 
     /**
-     * reqExampleType 类型
+     * form 参数
      */
-    private String reqExampleType;
+    private String reqFormExample;
+
+    /**
+     * 请求参数类型 json/form
+     */
+    private ContentTypeEnum contentType;
 
     /**
      * 返回参数
@@ -119,7 +123,7 @@ public class DocView {
      */
     private String remark;
 
-    private String type;
+    private FrameworkEnum type;
 
     public DocView(String name) {
         this.name = name;
@@ -127,6 +131,5 @@ public class DocView {
 
     public DocView() {
     }
-
 
 }

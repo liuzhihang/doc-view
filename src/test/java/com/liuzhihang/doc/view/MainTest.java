@@ -4,17 +4,14 @@
  */
 package com.liuzhihang.doc.view;
 
-import com.intellij.openapi.util.text.StringUtil;
-
 /**
- * @author zijun.lzh
- * @version MainTest.java, v 0.1 2022年06月08日 2:39 PM zijun.lzh
+ * @author liuzhihang
+ * @version MainTest.java, v 0.1 2022年06月08日 2:39 PM liuzhihang
  */
 public class MainTest {
 
     public static void main(String[] args) {
 
-        StringUtil.
 
     }
 }

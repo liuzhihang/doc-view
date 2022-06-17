@@ -1,11 +1,11 @@
-package com.liuzhihang.doc.view.facade.impl;
+package com.liuzhihang.doc.view.integration.impl;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.liuzhihang.doc.view.facade.YuQueFacadeService;
-import com.liuzhihang.doc.view.facade.dto.YuQueCreate;
-import com.liuzhihang.doc.view.facade.dto.YuQueResponse;
-import com.liuzhihang.doc.view.facade.dto.YuQueUpdate;
+import com.liuzhihang.doc.view.integration.YuQueFacadeService;
+import com.liuzhihang.doc.view.integration.dto.YuQueCreate;
+import com.liuzhihang.doc.view.integration.dto.YuQueResponse;
+import com.liuzhihang.doc.view.integration.dto.YuQueUpdate;
 import com.liuzhihang.doc.view.utils.HttpUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;

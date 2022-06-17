@@ -6,6 +6,8 @@ import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiType;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.DocView;
+import com.liuzhihang.doc.view.enums.ContentTypeEnum;
+import com.liuzhihang.doc.view.enums.FrameworkEnum;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
@@ -61,19 +63,19 @@ public class DubboDocViewServiceImpl implements DocViewService {
         docView.setPath(psiClass.getName() + "#" + psiMethod.getName());
         docView.setMethod("Dubbo");
         // docView.setDomain();
-        docView.setType("Dubbo");
+        docView.setType(FrameworkEnum.DUBBO);
 
         // 有参数
         if (psiMethod.hasParameters()) {
-            docView.setReqRootBody(DubboPsiUtils.buildBody(psiMethod));
-            docView.setReqExampleType("json");
-            docView.setReqExample(DubboPsiUtils.getReqBodyJson(psiMethod));
+            docView.setReqBody(DubboPsiUtils.buildBody(psiMethod));
+            docView.setContentType(ContentTypeEnum.JSON);
+            docView.setReqBodyExample(DubboPsiUtils.getReqBodyJson(psiMethod));
         }
 
         PsiType returnType = psiMethod.getReturnType();
         // 返回代码相同
         if (returnType != null && returnType.isValid() && !returnType.equalsToText("void")) {
-            docView.setRespRootBody(ParamPsiUtils.buildRespBody(returnType));
+            docView.setRespBody(ParamPsiUtils.buildRespBody(returnType));
             docView.setRespExample(ParamPsiUtils.getRespBodyJson(returnType));
         }
         return docView;

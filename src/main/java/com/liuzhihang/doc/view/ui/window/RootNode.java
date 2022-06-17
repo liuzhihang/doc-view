@@ -44,10 +44,14 @@ public class RootNode extends DocViewNode {
     }
 
     @Override
-    public String cachePath(Project project) {
+    public String docPath(Project project) {
         return "Doc View";
     }
 
+    @Override
+    public String httpPath(Project project) {
+        return "Http";
+    }
 
     @Override
     protected SimpleNode[] buildChildren() {

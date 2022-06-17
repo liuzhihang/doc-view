@@ -1,4 +1,4 @@
-package com.liuzhihang.doc.view.facade.dto;
+package com.liuzhihang.doc.view.integration.dto;
 
 import lombok.Data;
 
@@ -7,19 +7,19 @@ import lombok.Data;
  * @date 2021/6/8 22:58
  */
 @Data
-public class YApiQuery {
+public class YApiHeader {
 
     private String name;
 
-    private String type;
 
     private String example;
 
     private String desc;
+    private String value;
 
     /**
      * 枚举: 1,0
      */
-    private String required;
+    private String required = "1";
 
 }
