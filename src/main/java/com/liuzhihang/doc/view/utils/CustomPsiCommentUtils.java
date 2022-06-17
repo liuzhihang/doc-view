@@ -16,6 +16,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 从注释中解析注解的工具类
@@ -28,10 +30,6 @@ public class CustomPsiCommentUtils {
 
     /**
      * 获取注释, 如果指定 tagName 则直接从 tagName 里面获取
-     *
-     * @param docComment
-     * @param tagName
-     * @return
      */
     @NotNull
     public static String getDocComment(PsiDocComment docComment, String tagName) {
@@ -55,10 +53,6 @@ public class CustomPsiCommentUtils {
 
     /**
      * 获取方法字段的注释
-     *
-     * @param docComment
-     * @param parameter
-     * @return
      */
     @NotNull
     public static String getMethodParam(PsiDocComment docComment, @NotNull PsiParameter parameter) {
@@ -69,11 +63,31 @@ public class CustomPsiCommentUtils {
                 if (!("PsiDocTag:@param").equalsIgnoreCase(element.toString())) {
                     continue;
                 }
+                String parameterName = parameter.getName();
 
-                if (element.getText().startsWith("@param " + parameter.getName())) {
-                    return element.getText().substring(("@param " + parameter.getName()).length(), element.getText().indexOf("\n"));
+                boolean matchDocLine = false;
+                PsiElement[] children = element.getChildren();
+                for (PsiElement child : children) {
+                    if (parameterName.equals(child.getText())) {
+                        matchDocLine = true;
+                        break;
+                    }
+                }
+                //当前行的 @param 是否是 当前parameter 的描述
+                if (!matchDocLine) {
+                    continue;
                 }
 
+                //如果element.getText()最后包含换行或者空格则去掉
+                String text = StringUtils.trim(element.getText());
+
+                //用于匹配"@param"开头，方法参数结尾
+                Pattern docCommentTagCompile = Pattern.compile("@param\\s+" + parameterName);
+                Matcher matcher = docCommentTagCompile.matcher(text);
+                if (matcher.find()) {
+                    int startPoint = matcher.group(0).length();
+                    return text.substring(startPoint);
+                }
             }
         }
 
