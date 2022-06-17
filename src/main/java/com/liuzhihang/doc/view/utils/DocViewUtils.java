@@ -4,7 +4,19 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiAnnotationMemberValue;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiComment;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiNameValuePair;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.util.InheritanceUtil;
@@ -52,7 +64,6 @@ public class DocViewUtils {
             return true;
         }
 
-
         if (psiClass.isInterface()) {
             return Settings.getInstance(psiClass.getProject()).getIncludeNormalInterface()
                     || DubboPsiUtils.isDubboClass(psiClass)
@@ -89,7 +100,6 @@ public class DocViewUtils {
         return false;
     }
 
-
     /**
      * 匿名类和内部类可能返回 null
      * <p>
@@ -106,7 +116,7 @@ public class DocViewUtils {
 
         if (settings.getTitleUseCommentTag()) {
             // 注释 @DocView.Title
-            String docTitleTagValue = CustomPsiCommentUtils.getDocComment(psiClass.getDocComment(), settings.getTitleTag());
+            String docTitleTagValue = CustomPsiCommentUtils.tagDocComment(psiClass.getDocComment(), settings.getTitleTag());
 
             if (StringUtils.isNotBlank(docTitleTagValue)) {
                 return docTitleTagValue;
@@ -116,7 +126,7 @@ public class DocViewUtils {
         if (settings.getTitleClassComment()) {
             // 获取类注释
 
-            String comment = CustomPsiCommentUtils.getDocComment(psiClass.getDocComment());
+            String comment = CustomPsiCommentUtils.tagDocComment(psiClass.getDocComment());
 
             if (StringUtils.isNotBlank(comment)) {
                 return comment;
@@ -149,7 +159,9 @@ public class DocViewUtils {
      * <p>
      * 支持 Swagger/方法名/自定义注释 tag
      *
-     * @param psiMethod
+     * 如果是方法注释, 则限制 15 个字符
+     *
+     * @param psiMethod 当前方法
      * @return
      */
     @NotNull
@@ -179,7 +191,7 @@ public class DocViewUtils {
 
         // 注释上的 tag
         if (settings.getNameUseCommentTag()) {
-            String comment = CustomPsiCommentUtils.getDocComment(psiMethod.getDocComment(), settings.getNameTag());
+            String comment = CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment(), settings.getNameTag());
 
             if (StringUtils.isNotBlank(comment)) {
                 return comment;
@@ -187,11 +199,16 @@ public class DocViewUtils {
         }
 
         if (settings.getNameMethodComment()) {
-            // 获取类注释
 
-            String comment = CustomPsiCommentUtils.getDocComment(psiMethod.getDocComment(), true);
+            // 方法注释
+            String comment = CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment(), true);
 
             if (StringUtils.isNotBlank(comment)) {
+
+                if (comment.length() > 15) {
+                    comment = comment.substring(0, 15);
+                }
+
                 return comment;
             }
         }
@@ -234,9 +251,8 @@ public class DocViewUtils {
         }
         // 最后从注释中获取
 
-        return CustomPsiCommentUtils.getDocComment(psiMethod.getDocComment());
+        return CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment());
     }
-
 
     /**
      * 判断是否是需要排除的字段
@@ -271,7 +287,6 @@ public class DocViewUtils {
             return true;
         }
 
-
         return excludeClassPackage(containingClass, settings);
     }
 
@@ -297,10 +312,8 @@ public class DocViewUtils {
             }
         }
 
-
         return false;
     }
-
 
     /**
      * 判断是否是需要排除的字段
@@ -331,7 +344,6 @@ public class DocViewUtils {
         return false;
     }
 
-
     /**
      * 判断字段是否必填
      *
@@ -345,7 +357,6 @@ public class DocViewUtils {
         if (AnnotationUtil.isAnnotated(psiField, settings.getRequiredFieldAnnotation(), 0)) {
             return true;
         }
-
 
         // swagger v3 @Schema
         PsiAnnotation schemaAnnotation = psiField.getAnnotation(SwaggerConstant.SCHEMA);
@@ -394,7 +405,6 @@ public class DocViewUtils {
             return true;
         }
 
-
         if (AnnotationUtil.isAnnotated(psiParameter, SpringConstant.REQUEST_PARAM, 0)) {
             PsiAnnotation annotation = psiParameter.getAnnotation(SpringConstant.REQUEST_PARAM);
             if (annotation != null) {
@@ -412,7 +422,6 @@ public class DocViewUtils {
 
         return false;
     }
-
 
     /**
      * 获取字段的描述
@@ -442,16 +451,15 @@ public class DocViewUtils {
             }
         }
 
-
         PsiComment comment = PsiTreeUtil.findChildOfType(psiField, PsiComment.class);
 
         if (comment != null) {
             // param.setExample();
             // 参数举例, 使用 tag 判断
             if (comment instanceof PsiDocComment) {
-                return CustomPsiCommentUtils.getDocComment((PsiDocComment) comment);
+                return CustomPsiCommentUtils.tagDocComment((PsiDocComment) comment);
             }
-            return CustomPsiCommentUtils.getComment(comment);
+            return CustomPsiCommentUtils.fieldComment(comment);
         }
         return "";
     }
@@ -539,9 +547,7 @@ public class DocViewUtils {
             PsiDocComment psiDocComment = factory.createDocCommentFromText(docComment);
             ApplicationManager.getApplication().getService(WriterService.class).write(project, element, psiDocComment);
 
-
         }
     }
-
 
 }

@@ -1,7 +1,7 @@
-package com.liuzhihang.doc.view.facade;
+package com.liuzhihang.doc.view.integration;
 
-import com.liuzhihang.doc.view.facade.dto.ShowDocUpdateRequest;
-import com.liuzhihang.doc.view.facade.dto.ShowDocUpdateResponse;
+import com.liuzhihang.doc.view.integration.dto.ShowDocUpdateRequest;
+import com.liuzhihang.doc.view.integration.dto.ShowDocUpdateResponse;
 
 /**
  * ShowDoc 文档对接

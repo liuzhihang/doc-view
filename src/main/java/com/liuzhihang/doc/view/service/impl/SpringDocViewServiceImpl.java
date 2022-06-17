@@ -7,17 +7,19 @@ import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiType;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.DocView;
-import com.liuzhihang.doc.view.dto.Header;
+import com.liuzhihang.doc.view.enums.ContentTypeEnum;
+import com.liuzhihang.doc.view.enums.FrameworkEnum;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
-import com.liuzhihang.doc.view.utils.SpringHeaderUtils;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import static com.intellij.psi.PsiKeyword.VOID;
 
 /**
  * @author liuzhihang
@@ -61,49 +63,41 @@ public class SpringDocViewServiceImpl implements DocViewService {
         docView.setDocTitle(DocViewUtils.getTitle(psiClass));
         docView.setName(DocViewUtils.getName(psiMethod));
         docView.setDesc(DocViewUtils.getMethodDesc(psiMethod));
-        docView.setPath(SpringPsiUtils.getPath(psiClass, psiMethod));
-        docView.setMethod(SpringPsiUtils.getMethod(psiMethod));
-        // docView.setDomain();
-        docView.setType("Spring");
-
-        List<Header> headerList = new ArrayList<>();
+        docView.setPath(SpringPsiUtils.path(psiClass, psiMethod));
+        docView.setMethod(SpringPsiUtils.method(psiMethod));
+        docView.setDomain(Collections.emptyList());
+        docView.setType(FrameworkEnum.SPRING);
 
         // 有参数
         if (psiMethod.hasParameters()) {
 
-            // 获取
-            PsiParameter requestBodyParam = SpringPsiUtils.getRequestBodyParam(psiMethod);
+            ContentTypeEnum contentType = SpringPsiUtils.contentType(psiMethod);
+            docView.setContentType(contentType);
+
+            // 请求中的 form 参数, url 后面拼接的 kv
             docView.setReqParamList(SpringPsiUtils.buildFormParam(psiMethod));
+            docView.setReqFormExample(SpringPsiUtils.reqParamKV(docView.getReqParamList()));
 
-            if (requestBodyParam != null) {
-                // 有requestBody, 则 Content-Type: application/json
-                headerList.add(SpringHeaderUtils.buildJsonHeader());
-                docView.setReqExampleType("json");
-                docView.setReqRootBody(SpringPsiUtils.buildBody(requestBodyParam));
-                docView.setReqExample(SpringPsiUtils.getReqBodyJson(requestBodyParam, settings));
-
-            } else {
-                headerList.add(SpringHeaderUtils.buildFormHeader());
-                docView.setReqExampleType("form");
-                docView.setReqExample(SpringPsiUtils.getReqParamKV(docView.getReqParamList()));
+            if (contentType == ContentTypeEnum.JSON) {
+                // JSON 请求可能会有 body
+                PsiParameter requestBodyParam = SpringPsiUtils.requestBodyParam(psiMethod);
+                if (requestBodyParam != null) {
+                    docView.setReqBody(SpringPsiUtils.buildBody(requestBodyParam));
+                    docView.setReqBodyExample(SpringPsiUtils.reqBodyJson(requestBodyParam, settings));
+                }
             }
-
-            // 处理 header
-            List<Header> headers = SpringPsiUtils.buildHeader(psiMethod);
-            headerList.addAll(headers);
         } else {
-            docView.setReqExampleType("form");
-            headerList.add(SpringHeaderUtils.buildFormHeader());
+            docView.setContentType(ContentTypeEnum.FORM);
         }
-        docView.setHeaderList(headerList);
+
+        docView.setHeaderList(SpringPsiUtils.buildHeader(psiMethod));
 
         PsiType returnType = psiMethod.getReturnType();
-        if (returnType != null && returnType.isValid() && !returnType.equalsToText("void")) {
-            docView.setRespRootBody(ParamPsiUtils.buildRespBody(returnType));
+        if (returnType != null && returnType.isValid() && !returnType.equalsToText(VOID)) {
+            docView.setRespBody(ParamPsiUtils.buildRespBody(returnType));
             docView.setRespExample(ParamPsiUtils.getRespBodyJson(returnType));
         }
         return docView;
     }
-
 
 }

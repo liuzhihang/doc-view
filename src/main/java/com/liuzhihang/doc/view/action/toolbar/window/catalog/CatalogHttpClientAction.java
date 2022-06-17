@@ -10,16 +10,17 @@ import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.ui.window.MethodNode;
 import com.liuzhihang.doc.view.utils.CustomFileUtils;
-import org.jetbrains.annotations.NotNull;
 
 /**
+ * window 窗口目录树, 右键生成 HttpClient 功能
+ *
  * @author liuzhihang
- * @date 2021/10/23 19:55
+ * @version CatalogHttpClientAction.java, v 0.1 2022/6/16 17:53 liuzhihang
  */
-public class CatalogOpenAction extends AnAction {
+public class CatalogHttpClientAction extends AnAction {
 
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
+    public void actionPerformed(AnActionEvent e) {
 
         // 获取当前project对象
         Project project = e.getData(PlatformDataKeys.PROJECT);
@@ -33,11 +34,10 @@ public class CatalogOpenAction extends AnAction {
 
         if (selectedNode instanceof MethodNode) {
             MethodNode methodNode = (MethodNode) selectedNode;
-            CustomFileUtils.openMd(project, methodNode);
+            CustomFileUtils.openHttp(project, methodNode);
         } else {
             TreeExpandCollapse.expandAll(simpleTree);
         }
 
     }
-
 }

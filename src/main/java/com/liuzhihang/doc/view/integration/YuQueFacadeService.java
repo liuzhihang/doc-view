@@ -1,8 +1,8 @@
-package com.liuzhihang.doc.view.facade;
+package com.liuzhihang.doc.view.integration;
 
-import com.liuzhihang.doc.view.facade.dto.YuQueCreate;
-import com.liuzhihang.doc.view.facade.dto.YuQueResponse;
-import com.liuzhihang.doc.view.facade.dto.YuQueUpdate;
+import com.liuzhihang.doc.view.integration.dto.YuQueCreate;
+import com.liuzhihang.doc.view.integration.dto.YuQueResponse;
+import com.liuzhihang.doc.view.integration.dto.YuQueUpdate;
 
 /**
  * 语雀包装 service

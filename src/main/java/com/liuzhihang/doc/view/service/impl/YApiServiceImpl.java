@@ -5,7 +5,11 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.CommonClassNames;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiPrimitiveType;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.util.InheritanceUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.YApiSettings;
@@ -15,12 +19,13 @@ import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.Header;
 import com.liuzhihang.doc.view.dto.Param;
-import com.liuzhihang.doc.view.facade.YApiFacadeService;
-import com.liuzhihang.doc.view.facade.dto.YApiCat;
-import com.liuzhihang.doc.view.facade.dto.YApiHeader;
-import com.liuzhihang.doc.view.facade.dto.YApiQuery;
-import com.liuzhihang.doc.view.facade.dto.YapiSave;
-import com.liuzhihang.doc.view.facade.impl.YApiFacadeServiceImpl;
+import com.liuzhihang.doc.view.enums.ContentTypeEnum;
+import com.liuzhihang.doc.view.integration.YApiFacadeService;
+import com.liuzhihang.doc.view.integration.dto.YApiCat;
+import com.liuzhihang.doc.view.integration.dto.YApiHeader;
+import com.liuzhihang.doc.view.integration.dto.YApiQuery;
+import com.liuzhihang.doc.view.integration.dto.YapiSave;
+import com.liuzhihang.doc.view.integration.impl.YApiFacadeServiceImpl;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +33,12 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -76,7 +86,7 @@ public class YApiServiceImpl implements DocViewUploadService {
             save.setProjectId(settings.getProjectId());
             save.setCatId(cat.getId());
 
-            if (docView.getMethod().equals("Dubbo")) {
+            if ("Dubbo".equals(docView.getMethod())) {
                 // dubbo 接口处理
                 save.setPath("/Dubbo/" + docView.getPsiMethod().getName());
                 save.setMethod("POST");
@@ -85,19 +95,19 @@ public class YApiServiceImpl implements DocViewUploadService {
                 save.setPath(docView.getPath());
             }
             // 枚举: raw,form,json
-            save.setReqBodyType(docView.getReqExampleType());
+            save.setReqBodyType(docView.getContentType().toString());
             save.setReqBodyForm(new ArrayList<>());
             save.setReqParams(new ArrayList<>());
             save.setReqHeaders(buildReqHeaders(docView.getHeaderList()));
             save.setReqQuery(buildReqQuery(docView.getReqParamList()));
             save.setResBodyType("json");
-            save.setResBody(buildJsonSchema(docView.getRespRootBody().getChildList()));
+            save.setResBody(buildJsonSchema(docView.getRespBody().getChildList()));
             save.setMarkdown(buildDesc(docView));
             save.setTitle(docView.getName());
 
-            if (docView.getReqExampleType().equals("json")) {
+            if (docView.getContentType().equals(ContentTypeEnum.JSON)) {
                 save.setReqBodyIsJsonSchema(true);
-                save.setReqBodyOther(buildJsonSchema(docView.getReqRootBody().getChildList()));
+                save.setReqBodyOther(buildJsonSchema(docView.getReqBody().getChildList()));
             }
 
             facadeService.save(save);
@@ -127,8 +137,8 @@ public class YApiServiceImpl implements DocViewUploadService {
                 + "**接口描述:**\n\n"
                 + docView.getDesc() + "\n\n"
                 + "**请求示例:**\n\n"
-                + "```" + docView.getReqExampleType() + "\n" +
-                (docView.getReqExample() == null ? "" : docView.getReqExample()) + "\n" +
+                + "```" + docView.getContentType() + "\n" +
+                (docView.getReqBodyExample() == null ? "" : docView.getReqBodyExample()) + "\n" +
                 "```" + "\n\n"
                 + "**返回示例:**\n\n"
                 + "```json\n" +
