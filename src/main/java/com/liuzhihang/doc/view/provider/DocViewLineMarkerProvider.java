@@ -8,6 +8,7 @@ import com.intellij.psi.*;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewService;
@@ -89,11 +90,40 @@ public class DocViewLineMarkerProvider implements LineMarkerProvider {
                     // 在点击图标时再解析 doc
                     DocView docView = docViewService.buildClassMethodDoc(project, psiClass, psiMethod);
                     List<DocView> docViewList = new LinkedList<>();
+                    cleanElement(docView);
                     docViewList.add(docView);
                     PreviewForm.getInstance(project, psiFile, psiClass, docViewList).popup();
                 },
                 GutterIconRenderer.Alignment.LEFT,
                 () -> "Doc View");
+    }
+
+    private void cleanElement(DocView docView) {
+        Body respBody = docView.getRespBody();
+        doCleanElement(respBody, null);
+    }
+
+    /**
+     * 实现删除{@code element}元素，
+     * 并将{@code element}元素的子元素添加到{@code element}的{@code parent}下面。
+     * <p>
+     * 按照目前实现逻辑{@code element}元素不会有其他兄弟。
+     * 避免{@code element}会有兄弟接口使用先删除{@code element}然后将{@code element}的子元素添加到其所在集合
+     */
+    private void doCleanElement(Body body, Body parent) {
+        String name = body.getName();
+        if ("element".equals(name)) {
+            List<Body> newChildList = body.getChildList();
+            parent.getChildList().remove(body);
+            parent.getChildList().addAll(newChildList);
+        }
+        List<Body> curChildList = body.getChildList();
+        if (null == curChildList || curChildList.size() == 0) {
+            return;
+        }
+        for (int i = 0; i < body.getChildList().size(); i++) {
+            doCleanElement(body.getChildList().get(i), body);
+        }
     }
 
     @Nullable
