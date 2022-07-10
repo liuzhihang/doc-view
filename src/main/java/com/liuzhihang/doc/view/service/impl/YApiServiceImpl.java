@@ -95,7 +95,7 @@ public class YApiServiceImpl implements DocViewUploadService {
                 save.setPath(docView.getPath());
             }
             // 枚举: raw,form,json
-            save.setReqBodyType(docView.getContentType().toString());
+            save.setReqBodyType(docView.getContentType().toString().toLowerCase());
             save.setReqBodyForm(new ArrayList<>());
             save.setReqParams(new ArrayList<>());
             save.setReqHeaders(buildReqHeaders(docView.getHeaderList()));
@@ -124,9 +124,6 @@ public class YApiServiceImpl implements DocViewUploadService {
 
     /**
      * 构造描述信息
-     *
-     * @param docView
-     * @return
      */
     @NotNull
     private String buildDesc(DocView docView) {
@@ -156,9 +153,6 @@ public class YApiServiceImpl implements DocViewUploadService {
      * properties: 字段列表
      * <p>
      * items: 数组类型时内部元素
-     *
-     * @param bodyList
-     * @return
      */
     private String buildJsonSchema(List<Body> bodyList) {
 
