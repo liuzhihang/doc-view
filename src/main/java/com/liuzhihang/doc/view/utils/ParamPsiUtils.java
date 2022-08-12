@@ -59,7 +59,7 @@ public class ParamPsiUtils {
         // 判断 childClass 是否已经在根节点到当前节点的链表上存在, 存在的话则不继续递归
         String qualifiedName = fieldClass.getQualifiedName();
 
-        if (StringUtils.isBlank(qualifiedName)) {
+        if (StringUtils.isBlank(qualifiedName) || checkLinkedListHasTypeClass(body, qualifiedName)) {
             return;
         }
 
