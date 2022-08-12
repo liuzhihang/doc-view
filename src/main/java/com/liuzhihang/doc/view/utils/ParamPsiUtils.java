@@ -125,6 +125,9 @@ public class ParamPsiUtils {
             childClass = fieldClass;
         }
 
+        if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
+            return;
+        }
         for (PsiField psiField : childClass.getAllFields()) {
             if (!DocViewUtils.isExcludeField(psiField)) {
                 buildBodyParam(psiField, fieldGenericsMap, parentBody);
