@@ -199,12 +199,12 @@ public class ParamPsiUtils {
     }
 
     @NotNull
-    private static Body buildFieldGenericsBody(String name, PsiClass GenericsClass, Body parent) {
+    private static Body buildFieldGenericsBody(String name, PsiClass genericsClass, Body parent) {
         Body listBody = new Body();
         listBody.setRequired(true);
         listBody.setName(name);
-        listBody.setPsiElement(GenericsClass);
-        listBody.setType(GenericsClass.getName());
+        listBody.setPsiElement(genericsClass);
+        listBody.setType(genericsClass.getName());
         listBody.setDesc("");
         listBody.setParent(parent);
 

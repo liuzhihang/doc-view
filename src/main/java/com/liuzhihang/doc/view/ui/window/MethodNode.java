@@ -15,11 +15,7 @@ import icons.DocViewIcons;
 
 import javax.swing.*;
 import java.awt.event.InputEvent;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 目录树上的一个节点
@@ -76,9 +72,9 @@ public class MethodNode extends DocViewNode {
 
     @Override
     public List<DocView> docViewList() {
-        DocViewService service = DocViewService.getInstance(myProject, psiClass);
+        DocViewService service = DocViewService.getInstance(psiClass.getProject(), psiClass);
         if (service != null) {
-            return Collections.singletonList(service.buildClassMethodDoc(myProject, psiClass, psiMethod));
+            return Collections.singletonList(service.buildClassMethodDoc(psiClass.getProject(), psiClass, psiMethod));
         }
 
         return new LinkedList<>();

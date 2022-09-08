@@ -103,27 +103,21 @@ public class CustomPsiUtils {
      */
     public static @Nullable Map<String, PsiType> getGenericsMap(@NotNull PsiClassType psiClassType) {
 
-        // 转换为原始类 Result<T>
-        PsiClass psiClass = PsiUtil.resolveClassInClassTypeOnly(psiClassType);
+        Map<PsiTypeParameter, PsiType> substitutionMap = PsiUtil.resolveGenericsClassInType(psiClassType).getSubstitutor().getSubstitutionMap();
 
-        if (psiClass == null || !psiClass.hasTypeParameters()) {
-            // 无泛型
-            return null;
-        }
-        PsiTypeParameter[] typeParameters = psiClass.getTypeParameters();
-        PsiType[] typeArr = psiClassType.getParameters();
-
-        if (typeParameters.length != typeArr.length) {
-            return null;
-        }
 
         Map<String, PsiType> hashMap = new HashMap<>();
 
 
-        for (int i = 0; i < typeParameters.length; i++) {
+        for (PsiTypeParameter psiTypeParameter : substitutionMap.keySet()) {
+            PsiType psiType = substitutionMap.get(psiTypeParameter);
 
-            hashMap.put(typeParameters[i].getName(), typeArr[i]);
+            if (psiType instanceof PsiClassType) {
+                hashMap.put(psiTypeParameter.getName(), psiType);
+            }
+
         }
+
         return hashMap;
 
     }
