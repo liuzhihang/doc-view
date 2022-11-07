@@ -4,17 +4,7 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
-import com.intellij.psi.CommonClassNames;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiModifierList;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiPrimitiveType;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -355,13 +345,19 @@ public class SpringPsiUtils extends ParamPsiUtils {
 
                 root.setQualifiedNameForClassType(psiClass.getQualifiedName());
 
+                // 获取请求的参数中，是否存在泛型，将泛型与原始对象存储到 map 中
+                PsiClassType psiClassType = (PsiClassType) type;
+                Map<String, PsiType> genericsMap = CustomPsiUtils.getGenericsMap(psiClassType);
+
                 for (PsiField field : psiClass.getAllFields()) {
 
                     // 通用排除字段
                     if (DocViewUtils.isExcludeField(field)) {
                         continue;
                     }
-                    ParamPsiUtils.buildBodyParam(field, null, root);
+
+                    // 增加 genericsMap 参数传入，用于将泛型 T 替换为原始对象
+                    ParamPsiUtils.buildBodyParam(field, genericsMap, root);
                 }
 
             }
