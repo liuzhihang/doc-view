@@ -247,7 +247,7 @@
             </constraints>
             <properties>
               <text resource-bundle="messages/DocViewBundle" key="settings.doc.required.comment.tag"/>
-              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.name.comment.tag.tip"/>
+              <toolTipText resource-bundle="messages/DocViewBundle" key="settings.doc.required.comment.tag.tip"/>
             </properties>
           </component>
         </children>
