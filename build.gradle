@@ -1,12 +1,19 @@
+import org.jetbrains.changelog.Changelog
+import org.jetbrains.changelog.ChangelogSectionUrlBuilder
+import org.jetbrains.changelog.ExtensionsKt
+
 plugins {
-    id 'org.jetbrains.intellij' version '1.5.2'
-    id 'java'
+    id 'org.jetbrains.intellij' version '1.15.0'
+    id 'org.jetbrains.changelog' version '2.1.2'
 }
 
-group 'com.liuzhihang'
-version '1.3.4'
+apply plugin: 'org.jetbrains.changelog'
 
-JavaVersion.VERSION_11
+group project.pluginGroup
+version project.pluginVersion
+
+sourceCompatibility = 17
+targetCompatibility = 17
 
 repositories {
     mavenLocal()
@@ -23,23 +30,39 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    version = '2022.1'
-//    type = "IU"
     plugins = ['com.intellij.java', 'markdown']
-    pluginName = 'Doc View'
+    pluginName = project.pluginName
+    version = project.platformVersion
+    type = project.platformType
+    downloadSources = true
     updateSinceUntilBuild = false
-    sameSinceUntilBuild = false
+    buildSearchableOptions.enabled = false
 }
 
 patchPluginXml {
-    pluginDescription = file(descriptionFile).text
-    changeNotes = file(changesFile).text
+    sinceBuild = project.pluginSinceBuild
+    untilBuild = project.pluginUntilBuild
+
+    pluginDescription.set(file(project.pluginDescription).getText('UTF-8'))
+    changeNotes.set(provider {
+        changelog.renderItem(
+                changelog.getLatest(),
+                Changelog.OutputType.HTML
+        )
+    })
+}
+
+changelog {
+    path = file("CHANGELOG.md").canonicalPath
+    header = "[${-> version.get()}] - ${ExtensionsKt.date("yyyy-MM-dd")}"
+    keepUnreleasedSection = true
+    unreleasedTerm = "[Unreleased]"
+    groups = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"]
+    lineSeparator = "\n"
+    combinePreReleases = true
+    sectionUrlBuilder = { repositoryUrl, currentVersion, previousVersion, isUnreleased -> "foo" } as ChangelogSectionUrlBuilder
 }
 
 tasks.withType(JavaCompile) {
     options.encoding = "UTF-8"
-}
-
-test {
-    useJUnitPlatform()
 }

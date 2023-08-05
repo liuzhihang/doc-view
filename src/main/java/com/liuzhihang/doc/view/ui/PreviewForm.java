@@ -171,6 +171,7 @@ public class PreviewForm {
 
     private void initUI() {
 
+
         GuiUtils.replaceJSplitPaneWithIDEASplitter(rootPanel, true);
         // 边框
         rootPanel.setBorder(JBUI.Borders.empty());
@@ -331,6 +332,7 @@ public class PreviewForm {
 
         leftGroup.addSeparator();
 
+        // 不再弹出面板操作文档，直接修改注释
         leftGroup.add(new AnAction("Editor", "Editor doc", AllIcons.Actions.Edit) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {

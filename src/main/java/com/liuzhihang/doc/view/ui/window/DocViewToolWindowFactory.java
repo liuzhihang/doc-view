@@ -16,7 +16,7 @@ public class DocViewToolWindowFactory implements ToolWindowFactory, DumbAware {
     @Override
     public void createToolWindowContent(@NotNull Project project, @NotNull ToolWindow toolWindow) {
 
-        ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
+        ContentFactory contentFactory = ContentFactory.getInstance();
         Content content = contentFactory.createContent(new DocViewWindowPanel(project, toolWindow), "", false);
         toolWindow.getContentManager().addContent(content);
 

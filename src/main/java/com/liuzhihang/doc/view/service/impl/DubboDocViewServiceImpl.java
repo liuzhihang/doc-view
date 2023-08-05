@@ -18,17 +18,33 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * Dubbo 处理服务
+ *
  * @author liuzhihang
  * @date 2020/11/16 18:28
  */
 public class DubboDocViewServiceImpl implements DocViewService {
 
 
+    /**
+     * 校验方法是否为符合条件
+     *
+     * @param project      当前 project
+     * @param targetMethod 当前方法
+     * @return 是否
+     */
     @Override
     public boolean checkMethod(@NotNull Project project, @NotNull PsiMethod targetMethod) {
         return DubboPsiUtils.isDubboMethod(targetMethod);
     }
 
+    /**
+     * 创建类的文档
+     *
+     * @param project  当前工程
+     * @param psiClass 当前类
+     * @return 类的所有接口文档
+     */
     @Override
     public List<DocView> buildClassDoc(@NotNull Project project, @NotNull PsiClass psiClass) {
 
@@ -48,6 +64,14 @@ public class DubboDocViewServiceImpl implements DocViewService {
 
     }
 
+    /**
+     * 构造当前类方法的文档
+     *
+     * @param project   当前工程
+     * @param psiClass  当前类
+     * @param psiMethod 当前方法
+     * @return
+     */
     @NotNull
     @Override
     public DocView buildClassMethodDoc(@NotNull Project project, @NotNull PsiClass psiClass, @NotNull PsiMethod psiMethod) {

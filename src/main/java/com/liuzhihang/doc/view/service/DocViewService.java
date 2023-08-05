@@ -6,8 +6,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.DocView;
+import com.liuzhihang.doc.view.exception.DocViewException;
 import com.liuzhihang.doc.view.service.impl.DubboDocViewServiceImpl;
 import com.liuzhihang.doc.view.service.impl.SpringDocViewServiceImpl;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
@@ -15,19 +17,27 @@ import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.FeignPsiUtil;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedList;
 import java.util.List;
 
 /**
+ * DocView 服务类
+ *
  * @author liuzhihang
  * @date 2020/3/3 13:32
  */
 public interface DocViewService {
 
 
-    @Nullable
+    /**
+     * 获取 DocView 服务，有可能该处位置不允许使用
+     *
+     * @param project     当前 project
+     * @param targetClass 当前类
+     * @return DocView 服务
+     */
+    @NotNull
     static DocViewService getInstance(@NotNull Project project, @NotNull PsiClass targetClass) {
         Settings settings = Settings.getInstance(project);
 
@@ -51,10 +61,19 @@ public interface DocViewService {
             return ApplicationManager.getApplication().getService(DubboDocViewServiceImpl.class);
         }
 
-        return null;
+        throw new DocViewException(DocViewBundle.message("notify.error.not.support"));
     }
 
-    @Nullable
+    /**
+     * 构造文档对象
+     *
+     * @param project     当前 project
+     * @param psiFile     当前文件
+     * @param editor      编辑器
+     * @param targetClass 当前类
+     * @return DocView 列表
+     */
+    @NotNull
     default List<DocView> buildDoc(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull PsiClass targetClass) {
 
         // 当前方法
@@ -76,7 +95,7 @@ public interface DocViewService {
 
         }
 
-        return null;
+        throw new DocViewException(DocViewBundle.message("notify.error.not.support"));
 
     }
 

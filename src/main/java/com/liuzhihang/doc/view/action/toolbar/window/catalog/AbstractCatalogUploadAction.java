@@ -5,7 +5,7 @@ import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
-import com.liuzhihang.doc.view.action.AbstractUploadAction;
+import com.liuzhihang.doc.view.action.upload.AbstractUploadAction;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.ui.window.DocViewNode;
 import org.jetbrains.annotations.NotNull;
