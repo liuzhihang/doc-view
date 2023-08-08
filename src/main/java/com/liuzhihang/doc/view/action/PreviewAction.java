@@ -1,8 +1,10 @@
 package com.liuzhihang.doc.view.action;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.liuzhihang.doc.view.ui.PreviewForm;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * 单个类或者方法中操作
@@ -21,7 +23,11 @@ public class PreviewAction extends AbstractAction {
         super.actionPerformed(e);
 
         // 预览文档
-        PreviewForm.getInstance(project, psiFile, targetClass, docViewList).popup();
+        PreviewForm.getInstance(targetClass, targetMethod).popup();
     }
 
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return super.getActionUpdateThread();
+    }
 }

@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
  */
 @Slf4j
 @Service
-public class ShowDocServiceImpl implements DocViewUploadService {
+public final class ShowDocServiceImpl implements DocViewUploadService {
 
 
     @Override

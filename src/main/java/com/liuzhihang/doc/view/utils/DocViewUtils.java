@@ -147,7 +147,7 @@ public class DocViewUtils {
      * 方法名字(接口标题):
      * <p>
      * 支持 Swagger/方法名/自定义注释 tag
-     *
+     * <p>
      * 如果是方法注释, 则限制 15 个字符
      *
      * @param psiMethod 当前方法

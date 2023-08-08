@@ -1,10 +1,8 @@
 package com.liuzhihang.doc.view.service.impl;
 
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiType;
-import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.enums.ContentTypeEnum;
 import com.liuzhihang.doc.view.enums.FrameworkEnum;
@@ -29,24 +27,22 @@ public class DubboDocViewServiceImpl implements DocViewService {
     /**
      * 校验方法是否为符合条件
      *
-     * @param project      当前 project
      * @param targetMethod 当前方法
      * @return 是否
      */
     @Override
-    public boolean checkMethod(@NotNull Project project, @NotNull PsiMethod targetMethod) {
+    public boolean checkMethod(@NotNull PsiMethod targetMethod) {
         return DubboPsiUtils.isDubboMethod(targetMethod);
     }
 
     /**
      * 创建类的文档
      *
-     * @param project  当前工程
      * @param psiClass 当前类
      * @return 类的所有接口文档
      */
     @Override
-    public List<DocView> buildClassDoc(@NotNull Project project, @NotNull PsiClass psiClass) {
+    public List<DocView> buildClassDoc(@NotNull PsiClass psiClass) {
 
         List<DocView> docViewList = new LinkedList<>();
 
@@ -56,7 +52,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
                 continue;
             }
 
-            DocView docView = buildClassMethodDoc(project, psiClass, method);
+            DocView docView = buildClassMethodDoc(psiClass, method);
             docViewList.add(docView);
         }
 
@@ -67,16 +63,13 @@ public class DubboDocViewServiceImpl implements DocViewService {
     /**
      * 构造当前类方法的文档
      *
-     * @param project   当前工程
      * @param psiClass  当前类
      * @param psiMethod 当前方法
      * @return
      */
     @NotNull
     @Override
-    public DocView buildClassMethodDoc(@NotNull Project project, @NotNull PsiClass psiClass, @NotNull PsiMethod psiMethod) {
-
-        Settings settings = Settings.getInstance(project);
+    public DocView buildClassMethodDoc(@NotNull PsiClass psiClass, @NotNull PsiMethod psiMethod) {
 
         DocView docView = new DocView();
         docView.setPsiClass(psiClass);

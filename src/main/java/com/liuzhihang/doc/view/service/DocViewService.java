@@ -1,10 +1,8 @@
 package com.liuzhihang.doc.view.service;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
@@ -12,7 +10,6 @@ import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.exception.DocViewException;
 import com.liuzhihang.doc.view.service.impl.DubboDocViewServiceImpl;
 import com.liuzhihang.doc.view.service.impl.SpringDocViewServiceImpl;
-import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.FeignPsiUtil;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
@@ -67,20 +64,15 @@ public interface DocViewService {
     /**
      * 构造文档对象
      *
-     * @param project     当前 project
-     * @param psiFile     当前文件
-     * @param editor      编辑器
-     * @param targetClass 当前类
+     * @param targetClass  当前类
+     * @param targetMethod
      * @return DocView 列表
      */
     @NotNull
-    default List<DocView> buildDoc(@NotNull Project project, @NotNull PsiFile psiFile, @NotNull Editor editor, @NotNull PsiClass targetClass) {
+    default List<DocView> buildDoc(@NotNull PsiClass targetClass, PsiMethod targetMethod) {
 
-        // 当前方法
-        PsiMethod targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
-
-        if (targetMethod != null && checkMethod(project, targetMethod)) {
-            DocView docView = buildClassMethodDoc(project, targetClass, targetMethod);
+        if (targetMethod != null && checkMethod(targetMethod)) {
+            DocView docView = buildClassMethodDoc(targetClass, targetMethod);
 
             List<DocView> docViewList = new LinkedList<>();
             docViewList.add(docView);
@@ -91,7 +83,7 @@ public interface DocViewService {
         // 每个方法都要生成
         if (targetMethod == null) {
             // 生成文档列表
-            return buildClassDoc(project, targetClass);
+            return buildClassDoc(targetClass);
 
         }
 
@@ -99,11 +91,24 @@ public interface DocViewService {
 
     }
 
-    boolean checkMethod(@NotNull Project project, @NotNull PsiMethod targetMethod);
+    boolean checkMethod(@NotNull PsiMethod targetMethod);
 
-    List<DocView> buildClassDoc(Project project, @NotNull PsiClass psiClass);
+    /**
+     * 构造类文档
+     *
+     * @param psiClass
+     * @return
+     */
+    List<DocView> buildClassDoc(@NotNull PsiClass psiClass);
 
+    /**
+     * 构造方法文档
+     *
+     * @param psiClass  当前类
+     * @param psiMethod 当前方法
+     * @return 文档
+     */
     @NotNull
-    DocView buildClassMethodDoc(Project project, PsiClass psiClass, @NotNull PsiMethod psiMethod);
+    DocView buildClassMethodDoc(PsiClass psiClass, @NotNull PsiMethod psiMethod);
 
 }

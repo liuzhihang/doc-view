@@ -101,7 +101,7 @@
 
         <!--<extensionPoint name="iw.actionProvider" interface="com.intellij.openapi.editor.markup.InspectionWidgetActionProvider" dynamic="true"/>-->
 
-        <iw.actionProvider implementation="com.liuzhihang.doc.view.provider.DocViewActionProvider"/>
+        <!--<iw.actionProvider implementation="com.liuzhihang.doc.view.provider.DocViewActionProvider"/>-->
 
 
     </extensions>

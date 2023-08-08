@@ -28,7 +28,7 @@ import org.jetbrains.annotations.NotNull;
  */
 @Slf4j
 @Service
-public class YuQueServiceImpl implements DocViewUploadService {
+public final class YuQueServiceImpl implements DocViewUploadService {
 
     @Override
     public boolean checkSettings(@NotNull Project project) {

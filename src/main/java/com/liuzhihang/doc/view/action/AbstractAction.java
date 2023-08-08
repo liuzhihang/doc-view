@@ -10,15 +10,11 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiMethod;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.exception.DocViewException;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
-import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.utils.CustomPsiUtils;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * 抽象类，进行一些公共的验证操作
@@ -52,17 +48,16 @@ public class AbstractAction extends AnAction {
      */
     protected PsiClass targetClass;
 
-
     /**
-     * 文档
+     * 当前方法
      */
-    protected List<DocView> docViewList;
+    protected PsiMethod targetMethod;
 
     /**
      * @see AnAction#actionPerformed(AnActionEvent)
      */
     @Override
-    public void actionPerformed(@NotNull AnActionEvent e) {
+    public void actionPerformed(AnActionEvent e) {
 
         try {
             // 对所有未保存的文件进行保存
@@ -90,8 +85,8 @@ public class AbstractAction extends AnAction {
                 throw new DocViewException(DocViewBundle.message("notify.error.class.no.method"));
             }
 
-            docViewList = DocViewService.getInstance(project, targetClass)
-                    .buildDoc(project, psiFile, editor, targetClass);
+            // 当前方法
+            targetMethod = CustomPsiUtils.getTargetMethod(editor, psiFile);
 
         } catch (DocViewException ex) {
             DocViewNotification.notifyError(project, ex.getMessage());

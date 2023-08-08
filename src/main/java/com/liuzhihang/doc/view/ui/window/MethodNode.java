@@ -74,7 +74,7 @@ public class MethodNode extends DocViewNode {
     public List<DocView> docViewList() {
         DocViewService service = DocViewService.getInstance(psiClass.getProject(), psiClass);
         if (service != null) {
-            return Collections.singletonList(service.buildClassMethodDoc(psiClass.getProject(), psiClass, psiMethod));
+            return Collections.singletonList(service.buildClassMethodDoc(psiClass, psiMethod));
         }
 
         return new LinkedList<>();
