@@ -1,6 +1,6 @@
 package com.liuzhihang.doc.view.action.toolbar;
 
-import com.liuzhihang.doc.view.action.AbstractUploadAction;
+import com.liuzhihang.doc.view.action.upload.AbstractUploadAction;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 
 /**

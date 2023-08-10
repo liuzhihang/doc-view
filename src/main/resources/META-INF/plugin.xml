@@ -99,6 +99,11 @@
         <!--        order="after DefaultFloatingToolbarProvider"-->
         <!--        implementation="com.liuzhihang.doc.view.ui.editor.EditorFloatingToolbarProvider"/>-->
 
+        <!--<extensionPoint name="iw.actionProvider" interface="com.intellij.openapi.editor.markup.InspectionWidgetActionProvider" dynamic="true"/>-->
+
+        <!--<iw.actionProvider implementation="com.liuzhihang.doc.view.provider.DocViewActionProvider"/>-->
+
+
     </extensions>
 
     <actions>
@@ -108,17 +113,19 @@
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
             <action id="liuzhihang.doc.view" class="com.liuzhihang.doc.view.action.PreviewAction"
                     text="Doc View"/>
-            <action id="liuzhihang.doc.editor" class="com.liuzhihang.doc.view.action.EditorAction" text="Doc Editor"/>
+            <action id="com.kungyu.jbsplitter.JBSplitterAction" class="com.liuzhihang.doc.view.action.JBSplitterTest"
+                    text="test" description="JBSplitterAction">
+            </action>
         </group>
 
         <group id="liuzhihang.doc.upload" text="Doc Upload" popup="true">
             <add-to-group group-id="liuzhihang.doc" anchor="last"/>
-            <action id="liuzhihang.doc.yapi.upload" class="com.liuzhihang.doc.view.action.YApiUploadAction"
+            <action id="liuzhihang.doc.yapi.upload" class="com.liuzhihang.doc.view.action.upload.YApiUploadAction"
                     text="Upload To YApi"/>
 
-            <action id="liuzhihang.doc.showdoc.upload" class="com.liuzhihang.doc.view.action.ShowDocUploadAction"
+            <action id="liuzhihang.doc.showdoc.upload" class="com.liuzhihang.doc.view.action.upload.ShowDocUploadAction"
                     text="Upload To ShowDoc"/>
-            <action id="liuzhihang.doc.yuque.upload" class="com.liuzhihang.doc.view.action.YuQueUploadAction"
+            <action id="liuzhihang.doc.yuque.upload" class="com.liuzhihang.doc.view.action.upload.YuQueUploadAction"
                     text="Upload To YuQue"/>
         </group>
 
@@ -148,7 +155,8 @@
         <!-- editor 右键菜单 -->
         <group id="liuzhihang.doc.preview.editor.floating">
 
-            <action id="liuzhihang.doc.preview.editor.save" class="com.liuzhihang.doc.view.action.toolbar.preview.MenuExportAllAction"
+            <action id="liuzhihang.doc.preview.editor.save"
+                    class="com.liuzhihang.doc.view.action.toolbar.preview.MenuExportAllAction"
                     text="Save" icon="AllIcons.Actions.MenuSaveall"/>
 
         </group>
@@ -218,7 +226,8 @@
                     text="Clear" description="ClearCache" icon="DocViewIcons.CLEAR"/>
 
             <action id="liuzhihang.doc.view.action.toolbar.window.catalog.httpclient"
-                    class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogHttpClientAction" text="Http Client"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogHttpClientAction"
+                    text="Http Client"
                     description="Generate http client" icon="AllIcons.General.Web">
             </action>
         </group>

@@ -52,7 +52,7 @@ public class CustomFileUtils {
 
         // 生成接口对应的 markdown 文本
         String markdownText = ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
-            DocView docView = service.buildClassMethodDoc(project, node.getPsiClass(), node.getPsiMethod());
+            DocView docView = service.buildClassMethodDoc(node.getPsiClass(), node.getPsiMethod());
             return DocViewData.markdownText(project, docView);
         });
 
@@ -106,7 +106,7 @@ public class CustomFileUtils {
 
         // 解析获取 DocView, 从而可以获取接口信息
         DocView docView = ApplicationManager.getApplication().runReadAction(
-                (Computable<DocView>) () -> service.buildClassMethodDoc(project, node.getPsiClass(), node.getPsiMethod()));
+                (Computable<DocView>) () -> service.buildClassMethodDoc(node.getPsiClass(), node.getPsiMethod()));
 
         StringBuilder builder = new StringBuilder();
         builder.append("### Doc View: ").append(docView.getName()).append("\n");

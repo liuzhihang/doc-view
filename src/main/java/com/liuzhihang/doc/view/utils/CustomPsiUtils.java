@@ -48,6 +48,13 @@ public class CustomPsiUtils {
         return null;
     }
 
+    /**
+     * 获取当前选择的方法
+     *
+     * @param editor 编辑器
+     * @param file   文件
+     * @return 当前选择的方法
+     */
     @Nullable
     public static PsiMethod getTargetMethod(@NotNull Editor editor, @NotNull PsiFile file) {
         int offset = editor.getCaretModel().getOffset();

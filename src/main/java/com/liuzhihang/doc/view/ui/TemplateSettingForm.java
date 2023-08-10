@@ -1,11 +1,9 @@
 package com.liuzhihang.doc.view.ui;
 
 import com.intellij.ide.highlighter.HighlighterFactory;
-import com.intellij.lang.Language;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorFactory;
-import com.intellij.openapi.editor.EditorSettings;
 import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.ex.EditorEx;
 import com.intellij.openapi.editor.highlighter.EditorHighlighter;
@@ -17,6 +15,7 @@ import com.intellij.ui.IdeBorderFactory;
 import com.intellij.ui.components.JBScrollPane;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.TemplateSettings;
+import com.liuzhihang.doc.view.utils.EditorUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -80,7 +79,7 @@ public class TemplateSettingForm extends DialogWrapper {
 
 
         springTemplateEditor = (EditorEx) EditorFactory.getInstance().createEditor(templateDocument, project, fileType, false);
-        initEditorSettingsUI(springTemplateEditor);
+        EditorUtils.renderMarkdownEditor(springTemplateEditor);
 
         springTemplateEditor.setHighlighter(editorHighlighter);
 
@@ -99,7 +98,7 @@ public class TemplateSettingForm extends DialogWrapper {
         Document document = EditorFactory.getInstance().createDocument(TemplateSettings.getInstance(project).getDubboTemplate());
 
         dubboTemplateEditor = (EditorEx) EditorFactory.getInstance().createEditor(document, project, fileType, false);
-        initEditorSettingsUI(dubboTemplateEditor);
+        EditorUtils.renderMarkdownEditor(dubboTemplateEditor);
 
 
         final EditorHighlighter editorHighlighter =
@@ -122,28 +121,11 @@ public class TemplateSettingForm extends DialogWrapper {
         Document descriptionDocument = EditorFactory.getInstance().createDocument(DocViewBundle.message("template.description"));
 
         Editor descriptionEditor = EditorFactory.getInstance().createEditor(descriptionDocument, project, fileType, true);
-        initEditorSettingsUI(descriptionEditor);
+        EditorUtils.renderMarkdownEditor((EditorEx) descriptionEditor);
 
         descriptionPanel.add(descriptionEditor.getComponent(), BorderLayout.CENTER);
     }
 
-
-    /**
-     * 设置编辑框的 UI
-     *
-     * @param descriptionEditor
-     */
-    private void initEditorSettingsUI(Editor descriptionEditor) {
-        EditorSettings descriptionEditorSettings = descriptionEditor.getSettings();
-        descriptionEditorSettings.setAdditionalLinesCount(0);
-        descriptionEditorSettings.setAdditionalColumnsCount(0);
-        descriptionEditorSettings.setLineMarkerAreaShown(false);
-        descriptionEditorSettings.setLineNumbersShown(false);
-        descriptionEditorSettings.setVirtualSpace(false);
-        descriptionEditorSettings.setFoldingOutlineShown(false);
-        descriptionEditorSettings.setLanguageSupplier(() -> Language.findLanguageByID("Markdown"));
-
-    }
 
     public boolean isModified() {
 

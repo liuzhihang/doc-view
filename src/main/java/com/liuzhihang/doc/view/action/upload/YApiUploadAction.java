@@ -1,4 +1,4 @@
-package com.liuzhihang.doc.view.action;
+package com.liuzhihang.doc.view.action.upload;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
@@ -28,4 +28,6 @@ public class YApiUploadAction extends AbstractUploadAction {
     public void update(@NotNull AnActionEvent e) {
         super.update(e);
     }
+
+
 }

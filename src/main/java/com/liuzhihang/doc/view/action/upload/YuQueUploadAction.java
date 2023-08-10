@@ -1,18 +1,18 @@
-package com.liuzhihang.doc.view.action;
+package com.liuzhihang.doc.view.action.upload;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
-import com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl;
+import com.liuzhihang.doc.view.service.impl.YuQueServiceImpl;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * YApi 上传
+ * 语雀 上传
  *
  * @author liuzhihang
  * @date 2021/6/8 16:40
  */
-public class ShowDocUploadAction extends AbstractUploadAction {
+public class YuQueUploadAction extends AbstractUploadAction {
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
@@ -21,7 +21,7 @@ public class ShowDocUploadAction extends AbstractUploadAction {
 
     @Override
     protected DocViewUploadService uploadService() {
-        return ApplicationManager.getApplication().getService(ShowDocServiceImpl.class);
+        return ApplicationManager.getApplication().getService(YuQueServiceImpl.class);
     }
 
     /**

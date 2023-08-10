@@ -1,6 +1,5 @@
 package com.liuzhihang.doc.view.service.impl;
 
-import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
@@ -28,13 +27,13 @@ import static com.intellij.psi.PsiKeyword.VOID;
 public class SpringDocViewServiceImpl implements DocViewService {
 
     @Override
-    public boolean checkMethod(@NotNull Project project, @NotNull PsiMethod targetMethod) {
+    public boolean checkMethod(@NotNull PsiMethod targetMethod) {
         return SpringPsiUtils.isSpringMethod(targetMethod);
     }
 
     @NotNull
     @Override
-    public List<DocView> buildClassDoc(@NotNull Project project, @NotNull PsiClass psiClass) {
+    public List<DocView> buildClassDoc(@NotNull PsiClass psiClass) {
 
         List<DocView> docViewList = new LinkedList<>();
 
@@ -44,7 +43,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
                 continue;
             }
 
-            DocView docView = buildClassMethodDoc(project, psiClass, method);
+            DocView docView = buildClassMethodDoc(psiClass, method);
             docViewList.add(docView);
         }
 
@@ -53,9 +52,9 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
     @NotNull
     @Override
-    public DocView buildClassMethodDoc(@NotNull Project project, PsiClass psiClass, @NotNull PsiMethod psiMethod) {
+    public DocView buildClassMethodDoc(PsiClass psiClass, @NotNull PsiMethod psiMethod) {
 
-        Settings settings = Settings.getInstance(project);
+        Settings settings = Settings.getInstance(psiClass.getProject());
 
         DocView docView = new DocView();
         docView.setPsiClass(psiClass);

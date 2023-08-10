@@ -66,7 +66,7 @@ public class Settings implements PersistentStateComponent<Settings> {
     /**
      * 隐藏左侧目录
      */
-    private Boolean hideLeft = false;
+    private Boolean hideLeft = true;
 
     /**
      * 是否显示边栏标记

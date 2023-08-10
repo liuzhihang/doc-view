@@ -4,19 +4,7 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiAnnotationMemberValue;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiNameValuePair;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.util.InheritanceUtil;
@@ -46,6 +34,7 @@ public class DocViewUtils {
 
     private DocViewUtils() {
     }
+
 
     /**
      * 判断是否是 DocView  的类
@@ -158,7 +147,7 @@ public class DocViewUtils {
      * 方法名字(接口标题):
      * <p>
      * 支持 Swagger/方法名/自定义注释 tag
-     *
+     * <p>
      * 如果是方法注释, 则限制 15 个字符
      *
      * @param psiMethod 当前方法
