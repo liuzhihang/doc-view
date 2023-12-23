@@ -1,6 +1,13 @@
 package com.liuzhihang.doc.view.utils;
 
-import com.intellij.psi.*;
+import com.intellij.psi.CommonClassNames;
+import com.intellij.psi.PsiArrayType;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiPrimitiveType;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
@@ -10,7 +17,12 @@ import com.liuzhihang.doc.view.dto.Body;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 参数处理工具
@@ -23,17 +35,15 @@ public class ParamPsiUtils {
     /**
      * 生成 body
      *
-     * @param field
+     * @param field       字段
      * @param genericsMap key 是泛型 value 是对应的类型
-     * @param parent
+     * @param parent      父字段
      */
     public static void buildBodyParam(PsiField field, Map<String, PsiType> genericsMap, Body parent) {
-
         PsiType type = field.getType();
-
         Body body = new Body();
         body.setRequired(DocViewUtils.isRequired(field));
-        body.setName(field.getName());
+        body.setName(DocViewUtils.fieldName(field));
         body.setPsiElement(field);
         body.setType(type.getPresentableText());
         body.setDesc(DocViewUtils.fieldDesc(field));
@@ -242,10 +252,12 @@ public class ParamPsiUtils {
     }
 
     /**
-     * @param psiClass
-     * @param genericMap
+     * 获取字段的默认值
+     *
+     * @param psiClass          当前类
+     * @param genericMap        泛型
      * @param qualifiedNameList 根节点到当前节点的链表
-     * @return
+     * @return 字段默认值
      */
     public static Map<String, Object> getFieldsAndDefaultValue(PsiClass psiClass, Map<String, PsiType> genericMap, LinkedList<String> qualifiedNameList) {
 
@@ -257,17 +269,12 @@ public class ParamPsiUtils {
 
         // 设置当前类的类型
         qualifiedNameList.add(psiClass.getQualifiedName());
-
-
         for (PsiField field : psiClass.getAllFields()) {
-
             if (DocViewUtils.isExcludeField(field)) {
                 continue;
             }
-
             PsiType type = field.getType();
-            String name = field.getName();
-
+            String name = DocViewUtils.fieldName(field);
             if (type instanceof PsiPrimitiveType) {
                 // 基本类型
                 fieldMap.put(name, PsiTypesUtil.getDefaultValue(type));
@@ -398,35 +405,33 @@ public class ParamPsiUtils {
         return getFieldsAndDefaultValue(psiClass, genericMap, new LinkedList<>());
     }
 
+    /**
+     * 构造返回 body
+     *
+     * @param returnType 返回类型
+     * @return 返回结果
+     */
     @NotNull
     public static Body buildRespBody(PsiType returnType) {
-
         Body root = new Body();
 
         if (returnType instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(returnType.getPresentableText())) {
-
             Body body = new Body();
             body.setRequired(false);
             body.setName(null);
             body.setType(returnType.getPresentableText());
             body.setParent(root);
-
             root.getChildList().add(body);
             return root;
         }
 
-        if (returnType instanceof PsiClassType) {
-
-            PsiClassType psiClassType = (PsiClassType) returnType;
-
-
+        if (returnType instanceof PsiClassType psiClassType) {
             PsiClass psiClass = PsiUtil.resolveClassInType(returnType);
             if (psiClass != null) {
-
                 root.setQualifiedNameForClassType(psiClass.getQualifiedName());
 
+                // Map 类型处理
                 if (InheritanceUtil.isInheritor(psiClass, CommonClassNames.JAVA_UTIL_COLLECTION)) {
-
                     Body collectionBody = new Body();
                     collectionBody.setRequired(true);
                     collectionBody.setName("");
@@ -434,10 +439,7 @@ public class ParamPsiUtils {
                     collectionBody.setType(returnType.getPresentableText());
                     collectionBody.setDesc("");
                     collectionBody.setParent(root);
-
                     root.getChildList().add(collectionBody);
-
-
                     PsiType[] parameters = psiClassType.getParameters();
                     if (parameters.length != 0) {
                         PsiType psiType = parameters[0];
@@ -445,25 +447,18 @@ public class ParamPsiUtils {
                         if (psiType instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(psiType.getPresentableText())) {
                             return root;
                         }
-
                         // 泛型是类
                         PsiClass genericsPsiClass = PsiUtil.resolveClassInClassTypeOnly(psiType);
-
                         if (genericsPsiClass != null) {
                             buildBodyList(genericsPsiClass, null, collectionBody);
                         }
                     }
                 } else {
                     // 返回值可能是带泛型的, psiClassType.getParameters() 获取到的
-
                     Map<String, PsiType> genericMap = CustomPsiUtils.getGenericsMap(psiClassType);
-
                     buildBodyList(psiClass, genericMap, root);
-
                 }
             }
-        } else {
-            // 其他类型
         }
         return root;
     }

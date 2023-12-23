@@ -31,8 +31,7 @@ public abstract class AbstractCatalogUploadAction extends AbstractUploadAction {
 
         SimpleNode selectedNode = simpleTree.getSelectedNode();
 
-        if (selectedNode instanceof DocViewNode) {
-            DocViewNode docViewNode = (DocViewNode) selectedNode;
+        if (selectedNode instanceof DocViewNode docViewNode) {
             uploadService().upload(project, docViewNode.docViewList());
         }
     }

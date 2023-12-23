@@ -8,6 +8,7 @@ import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
 import com.intellij.util.ui.ColumnInfo;
 import com.liuzhihang.doc.view.dto.DocViewParamData;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,6 +23,7 @@ import java.util.Map;
  * @author liuzhihang
  * @date 2021/10/20 19:51
  */
+@Getter
 public class ParamTreeTableView extends TreeTableView {
 
     // {"参数名", "类型", "必选", "描述"}
@@ -39,10 +41,8 @@ public class ParamTreeTableView extends TreeTableView {
                 @Nullable
                 @Override
                 public Object valueOf(Object o) {
-                    if (o instanceof DefaultMutableTreeNode) {
-                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) o;
-                        if (node.getUserObject() instanceof DocViewParamData) {
-                            DocViewParamData paramData = (DocViewParamData) node.getUserObject();
+                    if (o instanceof DefaultMutableTreeNode node) {
+                        if (node.getUserObject() instanceof DocViewParamData paramData) {
                             return paramData.getType();
                         }
 
@@ -81,10 +81,8 @@ public class ParamTreeTableView extends TreeTableView {
                 @Nullable
                 @Override
                 public Object valueOf(Object o) {
-                    if (o instanceof DefaultMutableTreeNode) {
-                        DefaultMutableTreeNode node = (DefaultMutableTreeNode) o;
-                        if (node.getUserObject() instanceof DocViewParamData) {
-                            DocViewParamData paramData = (DocViewParamData) node.getUserObject();
+                    if (o instanceof DefaultMutableTreeNode node) {
+                        if (node.getUserObject() instanceof DocViewParamData paramData) {
                             return paramData.getDesc();
                         }
 
@@ -98,10 +96,8 @@ public class ParamTreeTableView extends TreeTableView {
 
         @Override
         public void customizeCellRenderer(@NotNull JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-            if (value instanceof DefaultMutableTreeNode) {
-                DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
-                if (node.getUserObject() instanceof DocViewParamData) {
-                    DocViewParamData paramData = (DocViewParamData) node.getUserObject();
+            if (value instanceof DefaultMutableTreeNode node) {
+                if (node.getUserObject() instanceof DocViewParamData paramData) {
                     append(paramData.getName() == null ? "" : paramData.getName());
                 }
             }
@@ -191,8 +187,4 @@ public class ParamTreeTableView extends TreeTableView {
     }
 
 
-    public Map<PsiElement, DocViewParamData> getModifiedMap() {
-
-        return modifiedMap;
-    }
 }

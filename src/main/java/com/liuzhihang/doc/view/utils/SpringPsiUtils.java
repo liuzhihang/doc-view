@@ -4,7 +4,18 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.util.Computable;
-import com.intellij.psi.*;
+import com.intellij.psi.CommonClassNames;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiPrimitiveType;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.search.GlobalSearchScope;
@@ -74,10 +85,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
         return ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> {
             Settings settings = Settings.getInstance(psiMethod.getProject());
 
-            return !psiMethod.isConstructor()
-                    && CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.PUBLIC)
-                    && !CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.STATIC)
-                    && AnnotationUtil.isAnnotated(psiMethod, settings.getContainMethodAnnotationName(), 0);
+            return !psiMethod.isConstructor() && CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.PUBLIC) && !CustomPsiUtils.hasModifierProperty(psiMethod, PsiModifier.STATIC) && AnnotationUtil.isAnnotated(psiMethod, settings.getContainMethodAnnotationName(), 0);
         });
 
     }
@@ -90,10 +98,8 @@ public class SpringPsiUtils extends ParamPsiUtils {
      */
     public static List<PsiClass> findDocViewFromModule(Module module) {
 
-        Collection<PsiAnnotation> psiAnnotations = JavaAnnotationIndex.getInstance().get("Controller", module.getProject(),
-                GlobalSearchScope.moduleScope(module));
-        Collection<PsiAnnotation> restController = JavaAnnotationIndex.getInstance().get("RestController", module.getProject(),
-                GlobalSearchScope.moduleScope(module));
+        Collection<PsiAnnotation> psiAnnotations = JavaAnnotationIndex.getInstance().get("Controller", module.getProject(), GlobalSearchScope.moduleScope(module));
+        Collection<PsiAnnotation> restController = JavaAnnotationIndex.getInstance().get("RestController", module.getProject(), GlobalSearchScope.moduleScope(module));
         psiAnnotations.addAll(restController);
         List<PsiClass> psiClasses = new LinkedList<>();
 
@@ -197,7 +203,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
 
     /**
      * 从注解中解析路径, 路径结构都为 /xxx
-     *
+     * <p>
      * 开头为 /
      * 结束没有 /
      * 空时为 ""
@@ -316,65 +322,60 @@ public class SpringPsiUtils extends ParamPsiUtils {
     }
 
     /**
-     * 构建 body
+     * 构建请求 body
      *
-     * @param parameter
-     * @return
+     * @param parameter 请求参数
+     * @return Body
      */
     @NotNull
     public static Body buildBody(@NotNull PsiParameter parameter) {
-
         Body root = new Body();
-
         PsiType type = parameter.getType();
         // 基本类型
         if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
-
             Body body = new Body();
             body.setRequired(DocViewUtils.isRequired(parameter));
             body.setName(parameter.getName());
             body.setType(parameter.getType().getPresentableText());
             body.setParent(root);
-
             // 子集合只有一个
             root.getChildList().add(body);
-
-        } else {
-            PsiClass psiClass = PsiUtil.resolveClassInType(type);
-            if (psiClass != null) {
-
-                root.setQualifiedNameForClassType(psiClass.getQualifiedName());
-
-                // 获取请求的参数中，是否存在泛型，将泛型与原始对象存储到 map 中
-                PsiClassType psiClassType = (PsiClassType) type;
-                Map<String, PsiType> genericsMap = CustomPsiUtils.getGenericsMap(psiClassType);
-
-                for (PsiField field : psiClass.getAllFields()) {
-
-                    // 通用排除字段
-                    if (DocViewUtils.isExcludeField(field)) {
-                        continue;
-                    }
-
-                    // 增加 genericsMap 参数传入，用于将泛型 T 替换为原始对象
-                    ParamPsiUtils.buildBodyParam(field, genericsMap, root);
-                }
-
-            }
+            return root;
         }
 
+        // 对象类型：对对象进行解析
+        PsiClass psiClass = PsiUtil.resolveClassInType(type);
+        if (psiClass != null) {
+            root.setQualifiedNameForClassType(psiClass.getQualifiedName());
+            // 获取请求的参数中，是否存在泛型，将泛型与原始对象存储到 map 中
+            PsiClassType psiClassType = (PsiClassType) type;
+            Map<String, PsiType> genericsMap = CustomPsiUtils.getGenericsMap(psiClassType);
+            for (PsiField field : psiClass.getAllFields()) {
+                // 通用排除字段
+                if (DocViewUtils.isExcludeField(field)) {
+                    continue;
+                }
+                // 增加 genericsMap 参数传入，用于将泛型 T 替换为原始对象
+                ParamPsiUtils.buildBodyParam(field, genericsMap, root);
+            }
+        }
         return root;
     }
 
+    /**
+     * 请求对象的 Json 格式
+     *
+     * @param parameter 参数
+     * @return json 字符串
+     */
     @NotNull
-    public static String reqBodyJson(@NotNull PsiParameter parameter, @NotNull Settings settings) {
+    public static String reqBodyJson(@NotNull PsiParameter parameter) {
         Map<String, Object> fieldMap = new LinkedHashMap<>();
         String name = parameter.getName();
         PsiType type = parameter.getType();
 
         if (type instanceof PsiPrimitiveType) {
             fieldMap.put(name, PsiTypesUtil.getDefaultValue(type));
-
         } else if (FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
             fieldMap.put(name, FieldTypeConstant.FIELD_TYPE.get(type.getPresentableText()));
         } else {
@@ -410,6 +411,12 @@ public class SpringPsiUtils extends ParamPsiUtils {
         return paramKV.substring(1);
     }
 
+    /**
+     * 解析方法中的参数
+     *
+     * @param psiMethod 方法
+     * @return 参数
+     */
     public static List<Param> buildFormParam(PsiMethod psiMethod) {
 
         if (!psiMethod.hasParameters()) {
@@ -446,8 +453,12 @@ public class SpringPsiUtils extends ParamPsiUtils {
 
             if (type instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(type.getPresentableText())) {
                 list.add(buildPramFromParameter(psiMethod, parameter));
+            } else if (InheritanceUtil.isInheritor(type, "org.springframework.core.io.InputStreamSource")) {
+                list.add(buildPramFromParameter(psiMethod, parameter));
             } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_COLLECTION)) {
+                list.add(buildPramFromParameter(psiMethod, parameter));
             } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_MAP)) {
+                list.add(buildPramFromParameter(psiMethod, parameter));
             } else {
                 PsiClass fieldClass = PsiUtil.resolveClassInClassTypeOnly(type);
                 if (fieldClass == null) {
@@ -460,9 +471,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
                     if (!paramNameSet.add(field.getName())) {
                         continue;
                     }
-
-                    if (field.getType() instanceof PsiPrimitiveType
-                            || FieldTypeConstant.FIELD_TYPE.containsKey(field.getType().getPresentableText())) {
+                    if (field.getType() instanceof PsiPrimitiveType || FieldTypeConstant.FIELD_TYPE.containsKey(field.getType().getPresentableText())) {
                         list.add(buildPramFromField(field));
                     }
 

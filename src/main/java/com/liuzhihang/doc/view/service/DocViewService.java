@@ -13,10 +13,13 @@ import com.liuzhihang.doc.view.service.impl.SpringDocViewServiceImpl;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.FeignPsiUtil;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * DocView 服务类
@@ -83,8 +86,20 @@ public interface DocViewService {
         // 每个方法都要生成
         if (targetMethod == null) {
             // 生成文档列表
-            return buildClassDoc(targetClass);
+            List<DocView> docViews = buildClassDoc(targetClass);
+            // 处理重复的名字, 如果名字重复，则在后缀加上随机数
+            Set<String> nameSet = docViews.stream().map(DocView::getName).collect(Collectors.toSet());
+            for (int i = 0; i < docViews.size(); i++) {
+                DocView docView = docViews.get(i);
+                String currentName = docView.getName();
+                if (nameSet.contains(currentName)) {
+                    nameSet.remove(currentName);
+                } else {
+                    docView.setName(docView.getName() + "_" + RandomStringUtils.randomAlphabetic(5) + i);
+                }
 
+            }
+            return docViews;
         }
 
         throw new DocViewException(DocViewBundle.message("notify.error.not.support"));
@@ -108,7 +123,6 @@ public interface DocViewService {
      * @param psiMethod 当前方法
      * @return 文档
      */
-    @NotNull
-    DocView buildClassMethodDoc(PsiClass psiClass, @NotNull PsiMethod psiMethod);
+    @NotNull DocView buildClassMethodDoc(PsiClass psiClass, @NotNull PsiMethod psiMethod);
 
 }

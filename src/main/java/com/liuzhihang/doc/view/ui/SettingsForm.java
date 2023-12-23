@@ -8,6 +8,7 @@ import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.util.ui.JBUI;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -30,6 +31,7 @@ public class SettingsForm {
 
     private final Project project;
 
+    @Getter
     private JPanel rootPanel;
 
     private LinkLabel<String> supportLinkLabel;
@@ -52,6 +54,10 @@ public class SettingsForm {
 
     private JPanel requirePanel;
     private JCheckBox requireCommentTagCheckBox;
+    /**
+     * 字段名称是否取 JsonProperty 注解 checkBox
+     */
+    private JCheckBox fieldNameJsonPropertyCheckBox;
 
     private JPanel exportPanel;
     private JCheckBox mergeExportCheckBox;
@@ -66,8 +72,6 @@ public class SettingsForm {
     private JBTextField prefixSymbol1TextField;
     private JBTextField prefixSymbol2TextField;
 
-
-
     public SettingsForm(@NotNull Project project) {
 
         this.project = project;
@@ -81,7 +85,6 @@ public class SettingsForm {
     }
 
     private void initTitleBorder() {
-
         titlePanel.setBorder(titleTitleBorder);
         namePanel.setBorder(nameTitleBorder);
         docDescPanel.setBorder(descTitleBorder);
@@ -92,13 +95,14 @@ public class SettingsForm {
         previewPane.setBorder(previewTitleBorder);
     }
 
+    /**
+     * 判断是否修改，来确定右下角按钮是否亮起
+     *
+     * @return 是否发生配置变更
+     */
     public boolean isModified() {
-
         Settings settings = Settings.getInstance(project);
-
         includeNormalInterfaceCheckBox.setEnabled(lineMarkerCheckBox.isSelected());
-
-
         return titleCommentTagCheckBox.isSelected() != settings.getTitleUseCommentTag()
                 || titleFullClassNameCheckBox.isSelected() != settings.getTitleUseFullClassName()
                 || titleSimpleClassNameCheckBox.isSelected() != settings.getTitleUseSimpleClassName()
@@ -110,6 +114,7 @@ public class SettingsForm {
                 || descSwagger3CheckBox.isSelected() != settings.getDescUseSwagger3()
                 || descSwaggerCheckBox.isSelected() != settings.getDescUseSwagger()
                 || requireCommentTagCheckBox.isSelected() != settings.getRequiredUseCommentTag()
+                || fieldNameJsonPropertyCheckBox.isSelected() != settings.getFieldNameJsonProperty()
                 || mergeExportCheckBox.isSelected() != settings.getMergeExport()
                 || hideLeftCheckBox.isSelected() != settings.getHideLeft()
                 || lineMarkerCheckBox.isSelected() != settings.getLineMarker()
@@ -119,8 +124,10 @@ public class SettingsForm {
                 ;
     }
 
+    /**
+     * 点击 apply 时的动作
+     */
     public void apply() {
-
         Settings settings = Settings.getInstance(project);
         settings.setTitleUseCommentTag(titleCommentTagCheckBox.isSelected());
         settings.setTitleUseFullClassName(titleFullClassNameCheckBox.isSelected());
@@ -133,6 +140,7 @@ public class SettingsForm {
         settings.setDescUseSwagger3(descSwagger3CheckBox.isSelected());
         settings.setDescUseSwagger(descSwaggerCheckBox.isSelected());
         settings.setRequiredUseCommentTag(requireCommentTagCheckBox.isSelected());
+        settings.setFieldNameJsonProperty(fieldNameJsonPropertyCheckBox.isSelected());
         settings.setMergeExport(mergeExportCheckBox.isSelected());
         settings.setHideLeft(hideLeftCheckBox.isSelected());
         settings.setLineMarker(lineMarkerCheckBox.isSelected());
@@ -145,6 +153,9 @@ public class SettingsForm {
 
     }
 
+    /**
+     * 点击重置时的动作
+     */
     public void reset() {
         Settings settings = Settings.getInstance(project);
         titleCommentTagCheckBox.setSelected(settings.getTitleUseCommentTag());
@@ -158,6 +169,7 @@ public class SettingsForm {
         descSwagger3CheckBox.setSelected(settings.getDescUseSwagger3());
         descSwaggerCheckBox.setSelected(settings.getDescUseSwagger());
         requireCommentTagCheckBox.setSelected(settings.getRequiredUseCommentTag());
+        fieldNameJsonPropertyCheckBox.setSelected(settings.getFieldNameJsonProperty());
         mergeExportCheckBox.setSelected(settings.getMergeExport());
         hideLeftCheckBox.setSelected(settings.getHideLeft());
         lineMarkerCheckBox.setSelected(settings.getLineMarker());
@@ -169,7 +181,4 @@ public class SettingsForm {
 
     }
 
-    public JPanel getRootPanel() {
-        return rootPanel;
-    }
 }

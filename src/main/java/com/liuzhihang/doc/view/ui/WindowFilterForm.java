@@ -53,21 +53,15 @@ public class WindowFilterForm {
 
         Module[] modules = ModuleManager.getInstance(project).getModules();
 
-        if (modules.length > 0) {
-            for (Module module : modules) {
-                scopeComboBox.addItem(module.getName());
-            }
+        for (Module module : modules) {
+            scopeComboBox.addItem(module.getName());
         }
 
     }
-
 
     private void initFilterListener() {
         interfaceCheckBox.addChangeListener(e -> windowSettings.setIncludeInterface(interfaceCheckBox.isSelected()));
         scopeComboBox.addItemListener(e -> windowSettings.setScope((String) scopeComboBox.getSelectedItem()));
     }
 
-    public JPanel getRootPane() {
-        return rootPane;
-    }
 }

@@ -48,9 +48,7 @@ public class CustomPsiCommentUtils {
                 continue;
             }
 
-            return element.getText()
-                    .replace(("@" + tagName), StringUtils.EMPTY)
-                    .trim();
+            return element.getText().replace(("@" + tagName), StringUtils.EMPTY).trim();
 
         }
 
@@ -67,35 +65,39 @@ public class CustomPsiCommentUtils {
     @NotNull
     public static String paramDocComment(PsiDocComment docComment, @NotNull PsiParameter parameter) {
 
-        String comment = "";
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
 
-        if (docComment == null) {
-            return comment;
-        }
+            String comment = "";
 
-        for (PsiElement element : docComment.getChildren()) {
-
-            // 不是当前字段则继续循环
-            if (!("PsiDocTag:@param").equalsIgnoreCase(element.toString())) {
-                continue;
+            if (docComment == null) {
+                return comment;
             }
 
-            // 在注释中定位到该参数
-            if (element.getText().startsWith("@param " + parameter.getName())) {
+            for (PsiElement element : docComment.getChildren()) {
 
-                String paramWithComment = element.getText();
+                // 不是当前字段则继续循环
+                if (!("PsiDocTag:@param").equalsIgnoreCase(element.toString())) {
+                    continue;
+                }
 
-                if (paramWithComment.contains("\n")) {
-                    // 该字段后面还有注释
-                    comment = paramWithComment.substring(("@param " + parameter.getName()).length(), element.getText().indexOf("\n"));
-                } else {
-                    // 该字段后面没有其他注释, 只有 */
-                    comment = paramWithComment.substring(("@param " + parameter.getName()).length());
+                // 在注释中定位到该参数
+                if (element.getText().startsWith("@param " + parameter.getName())) {
+
+                    String paramWithComment = element.getText();
+
+                    if (paramWithComment.contains("\n")) {
+                        // 该字段后面还有注释
+                        comment = paramWithComment.substring(("@param " + parameter.getName()).length(), element.getText().indexOf("\n"));
+                    } else {
+                        // 该字段后面没有其他注释, 只有 */
+                        comment = paramWithComment.substring(("@param " + parameter.getName()).length());
+                    }
                 }
             }
-        }
-        // 移除前后的空格
-        return comment.trim();
+            // 移除前后的空格
+            return comment.trim();
+        });
+
     }
 
     /**
@@ -157,7 +159,7 @@ public class CustomPsiCommentUtils {
 
     /**
      * 获取字段的注释
-     *
+     * <p>
      * 举例 // xxx
      *
      * @param psiComment 字段的注释 PSI
@@ -166,12 +168,18 @@ public class CustomPsiCommentUtils {
     @NotNull
     public static String fieldComment(PsiComment psiComment) {
 
-        if (psiComment != null && StringUtils.isNotBlank(psiComment.getText())) {
-            // 原注释中的换行符移除
-            return psiComment.getText().replace("/", StringUtils.EMPTY).trim();
+        return ApplicationManager.getApplication().runReadAction(new Computable<String>() {
+            @Override
+            public String compute() {
+                if (psiComment != null && StringUtils.isNotBlank(psiComment.getText())) {
+                    // 原注释中的换行符移除
+                    return psiComment.getText().replace("/", StringUtils.EMPTY).trim();
 
-        }
-        return "";
+                }
+                return "";
+            }
+        });
+
     }
 
     /**
@@ -262,8 +270,7 @@ public class CustomPsiCommentUtils {
         List<String> paramDocList = Lists.newArrayList();
         for (Iterator<PsiElement> iterator = elements.iterator(); iterator.hasNext(); ) {
             PsiElement element = iterator.next();
-            if (!"PsiDocTag:@throws".equalsIgnoreCase(element.toString())
-                    && !"PsiDocTag:@exception".equalsIgnoreCase(element.toString())) {
+            if (!"PsiDocTag:@throws".equalsIgnoreCase(element.toString()) && !"PsiDocTag:@exception".equalsIgnoreCase(element.toString())) {
                 continue;
             }
             String exceptionName = null;

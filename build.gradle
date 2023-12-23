@@ -3,7 +3,7 @@ import org.jetbrains.changelog.ChangelogSectionUrlBuilder
 import org.jetbrains.changelog.ExtensionsKt
 
 plugins {
-    id 'org.jetbrains.intellij' version '1.15.0'
+    id 'org.jetbrains.intellij' version '1.16.1'
     id 'org.jetbrains.changelog' version '2.1.2'
 }
 
@@ -22,8 +22,6 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
     compileOnly group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.20'
 }

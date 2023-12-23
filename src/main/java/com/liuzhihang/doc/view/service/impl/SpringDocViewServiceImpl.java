@@ -4,7 +4,6 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiType;
-import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.enums.ContentTypeEnum;
 import com.liuzhihang.doc.view.enums.FrameworkEnum;
@@ -54,8 +53,6 @@ public class SpringDocViewServiceImpl implements DocViewService {
     @Override
     public DocView buildClassMethodDoc(PsiClass psiClass, @NotNull PsiMethod psiMethod) {
 
-        Settings settings = Settings.getInstance(psiClass.getProject());
-
         DocView docView = new DocView();
         docView.setPsiClass(psiClass);
         docView.setPsiMethod(psiMethod);
@@ -82,7 +79,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
                 PsiParameter requestBodyParam = SpringPsiUtils.requestBodyParam(psiMethod);
                 if (requestBodyParam != null) {
                     docView.setReqBody(SpringPsiUtils.buildBody(requestBodyParam));
-                    docView.setReqBodyExample(SpringPsiUtils.reqBodyJson(requestBodyParam, settings));
+                    docView.setReqBodyExample(SpringPsiUtils.reqBodyJson(requestBodyParam));
                 }
             }
         } else {

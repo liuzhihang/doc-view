@@ -56,7 +56,16 @@ public class Settings implements PersistentStateComponent<Settings> {
      * 字段是否必填
      */
     private String required = "DocView.Required";
+
+    /**
+     * 是否使用注解
+     */
     private Boolean requiredUseCommentTag = true;
+
+    /**
+     * 字段名称取 JsonProperty 注解
+     */
+    private Boolean fieldNameJsonProperty = true;
 
     /**
      * 是否合并导出
@@ -117,6 +126,14 @@ public class Settings implements PersistentStateComponent<Settings> {
     }};
 
     /**
+     * 字段名称注解
+     */
+    private Set<String> fieldNameAnnotation = new HashSet<>() {{
+        add("com.fasterxml.jackson.annotation.JsonProperty");
+    }};
+
+
+    /**
      * 排除字段
      */
     private Set<String> excludeFieldNames = new HashSet<>() {{
@@ -127,7 +144,6 @@ public class Settings implements PersistentStateComponent<Settings> {
      * 排除字段
      */
     private Set<String> excludeParameterType = new HashSet<>() {{
-        add("org.springframework.core.io.InputStreamSource");
         add("javax.servlet.ServletResponse");
         add("javax.servlet.ServletRequest");
     }};

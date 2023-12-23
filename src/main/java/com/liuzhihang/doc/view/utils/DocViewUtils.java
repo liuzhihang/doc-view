@@ -4,12 +4,25 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.*;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiAnnotationMemberValue;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiComment;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementFactory;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiNameValuePair;
+import com.intellij.psi.PsiParameter;
+import com.intellij.psi.PsiType;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.constant.JsonPropertyConstant;
 import com.liuzhihang.doc.view.constant.SpringConstant;
 import com.liuzhihang.doc.view.constant.SwaggerConstant;
 import com.liuzhihang.doc.view.dto.DocViewParamData;
@@ -336,37 +349,37 @@ public class DocViewUtils {
     /**
      * 判断字段是否必填
      *
-     * @param psiField
-     * @return
+     * @param field 字段
+     * @return 是否必填
      */
-    public static boolean isRequired(@NotNull PsiField psiField) {
+    public static boolean isRequired(@NotNull PsiField field) {
 
-        Settings settings = Settings.getInstance(psiField.getProject());
+        Settings settings = Settings.getInstance(field.getProject());
 
-        if (AnnotationUtil.isAnnotated(psiField, settings.getRequiredFieldAnnotation(), 0)) {
+        if (AnnotationUtil.isAnnotated(field, settings.getRequiredFieldAnnotation(), 0)) {
             return true;
         }
 
         // swagger v3 @Schema
-        PsiAnnotation schemaAnnotation = psiField.getAnnotation(SwaggerConstant.SCHEMA);
+        PsiAnnotation schemaAnnotation = field.getAnnotation(SwaggerConstant.SCHEMA);
         if (schemaAnnotation != null) {
             PsiAnnotationMemberValue value = schemaAnnotation.findAttributeValue("required");
-            if (value != null && value.getText() != null && value.getText().contains("true")) {
+            if (value != null && StringUtils.isNotBlank(value.getText()) && value.getText().contains("true")) {
                 return true;
             }
         }
         // swagger @ApiModelProperty
-        PsiAnnotation apiModelPropertyAnnotation = psiField.getAnnotation(SwaggerConstant.API_MODEL_PROPERTY);
+        PsiAnnotation apiModelPropertyAnnotation = field.getAnnotation(SwaggerConstant.API_MODEL_PROPERTY);
         if (apiModelPropertyAnnotation != null) {
             PsiAnnotationMemberValue value = apiModelPropertyAnnotation.findAttributeValue("required");
-            if (value != null && value.getText() != null && value.getText().contains("true")) {
+            if (value != null && StringUtils.isNotBlank(value.getText()) && value.getText().contains("true")) {
                 return true;
             }
         }
 
         if (settings.getRequiredUseCommentTag()) {
             // 查看注释
-            PsiDocComment docComment = psiField.getDocComment();
+            PsiDocComment docComment = field.getDocComment();
 
             if (docComment == null) {
                 // 没有注释, 非必填
@@ -410,6 +423,32 @@ public class DocViewUtils {
         }
 
         return false;
+    }
+
+    /**
+     * 获取字段名称，需要处理注解，有些字段自己指定了名称
+     *
+     * @return 字段名称
+     */
+    public static String fieldName(PsiField field) {
+        Settings settings = Settings.getInstance(field.getProject());
+        Boolean useJsonProperty = settings.getFieldNameJsonProperty();
+        if (!useJsonProperty) {
+            return field.getName();
+        }
+        // 判断是否有注解
+        if (!AnnotationUtil.isAnnotated(field, settings.getFieldNameAnnotation(), 0)) {
+            return field.getName();
+        }
+        // 从注解中解析字段名称
+        PsiAnnotation jsonPropertyAnnotation = field.getAnnotation(JsonPropertyConstant.JSON_PROPERTY);
+        if (jsonPropertyAnnotation != null) {
+            PsiAnnotationMemberValue value = jsonPropertyAnnotation.findAttributeValue("value");
+            if (value != null && StringUtils.isNotBlank(value.getText())) {
+                return value.getText().replace("\"", "");
+            }
+        }
+        return field.getName();
     }
 
     /**

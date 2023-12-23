@@ -48,13 +48,11 @@ public class SettingsConfigurable implements SearchableConfigurable {
 
     @Override
     public boolean isModified() {
-
         return settingsForm.isModified();
     }
 
     @Override
     public void apply() throws ConfigurationException {
-
         settingsForm.apply();
     }
 

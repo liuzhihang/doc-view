@@ -1,7 +1,17 @@
 package com.liuzhihang.doc.view.utils;
 
 import com.intellij.openapi.editor.Editor;
-import com.intellij.psi.*;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiClassType;
+import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiFile;
+import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiModifier;
+import com.intellij.psi.PsiModifierList;
+import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypeParameter;
+import com.intellij.psi.SyntheticElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiUtil;
 import org.jetbrains.annotations.NotNull;
@@ -76,9 +86,7 @@ public class CustomPsiUtils {
      * @see PsiModifier
      */
     public static boolean hasModifierProperty(@NotNull PsiMethod psiMethod, String modifier) {
-
         PsiModifierList modifierList = psiMethod.getModifierList();
-
         return modifierList.hasModifierProperty(modifier);
     }
 
@@ -90,14 +98,10 @@ public class CustomPsiUtils {
      * @return
      */
     public static boolean hasModifierProperty(@NotNull PsiField psiField, String modifier) {
-
         PsiModifierList modifierList = psiField.getModifierList();
-
         if (modifierList == null) {
             return false;
         }
-
-
         return modifierList.hasModifierProperty(modifier);
     }
 
@@ -111,20 +115,14 @@ public class CustomPsiUtils {
     public static @Nullable Map<String, PsiType> getGenericsMap(@NotNull PsiClassType psiClassType) {
 
         Map<PsiTypeParameter, PsiType> substitutionMap = PsiUtil.resolveGenericsClassInType(psiClassType).getSubstitutor().getSubstitutionMap();
-
-
         Map<String, PsiType> hashMap = new HashMap<>();
-
 
         for (PsiTypeParameter psiTypeParameter : substitutionMap.keySet()) {
             PsiType psiType = substitutionMap.get(psiTypeParameter);
-
             if (psiType instanceof PsiClassType) {
                 hashMap.put(psiTypeParameter.getName(), psiType);
             }
-
         }
-
         return hashMap;
 
     }

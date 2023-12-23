@@ -113,9 +113,6 @@
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
             <action id="liuzhihang.doc.view" class="com.liuzhihang.doc.view.action.PreviewAction"
                     text="Doc View"/>
-            <action id="com.kungyu.jbsplitter.JBSplitterAction" class="com.liuzhihang.doc.view.action.JBSplitterTest"
-                    text="test" description="JBSplitterAction">
-            </action>
         </group>
 
         <group id="liuzhihang.doc.upload" text="Doc Upload" popup="true">

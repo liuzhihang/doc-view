@@ -37,6 +37,8 @@ public class DubboDocViewServiceImpl implements DocViewService {
 
     /**
      * 创建类的文档
+     * <p>
+     * 可能会存在重载方法，所以这里需要对重载进行处理
      *
      * @param psiClass 当前类
      * @return 类的所有接口文档
@@ -47,7 +49,6 @@ public class DubboDocViewServiceImpl implements DocViewService {
         List<DocView> docViewList = new LinkedList<>();
 
         for (PsiMethod method : psiClass.getMethods()) {
-
             if (!DubboPsiUtils.isDubboMethod(method)) {
                 continue;
             }
@@ -70,7 +71,6 @@ public class DubboDocViewServiceImpl implements DocViewService {
     @NotNull
     @Override
     public DocView buildClassMethodDoc(@NotNull PsiClass psiClass, @NotNull PsiMethod psiMethod) {
-
         DocView docView = new DocView();
         docView.setPsiClass(psiClass);
         docView.setPsiMethod(psiMethod);
