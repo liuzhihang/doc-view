@@ -4,6 +4,7 @@ import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Computable;
 import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
@@ -114,44 +115,46 @@ public class DocViewUtils {
     @NotNull
     public static String getTitle(@NotNull PsiClass psiClass) {
 
-        Settings settings = Settings.getInstance(psiClass.getProject());
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
+            Settings settings = Settings.getInstance(psiClass.getProject());
 
-        if (settings.getTitleUseCommentTag()) {
-            // 注释 @DocView.Title
-            String docTitleTagValue = CustomPsiCommentUtils.tagDocComment(psiClass.getDocComment(), settings.getTitleTag());
+            if (settings.getTitleUseCommentTag()) {
+                // 注释 @DocView.Title
+                String docTitleTagValue = CustomPsiCommentUtils.tagDocComment(psiClass.getDocComment(), settings.getTitleTag());
 
-            if (StringUtils.isNotBlank(docTitleTagValue)) {
-                return docTitleTagValue;
+                if (StringUtils.isNotBlank(docTitleTagValue)) {
+                    return docTitleTagValue;
+                }
             }
-        }
 
-        if (settings.getTitleClassComment()) {
-            // 获取类注释
+            if (settings.getTitleClassComment()) {
+                // 获取类注释
 
-            String comment = CustomPsiCommentUtils.tagDocComment(psiClass.getDocComment());
+                String comment = CustomPsiCommentUtils.tagDocComment(psiClass.getDocComment());
 
-            if (StringUtils.isNotBlank(comment)) {
-                return comment;
+                if (StringUtils.isNotBlank(comment)) {
+                    return comment;
+                }
             }
-        }
 
-        if (settings.getTitleUseSimpleClassName()) {
-            String className = psiClass.getName();
-            if (StringUtils.isNotBlank(className)) {
-                return className;
+            if (settings.getTitleUseSimpleClassName()) {
+                String className = psiClass.getName();
+                if (StringUtils.isNotBlank(className)) {
+                    return className;
+                }
             }
-        }
 
-        if (settings.getTitleUseFullClassName()) {
-            // 获取全类名
-            String fullClassName = psiClass.getQualifiedName();
+            if (settings.getTitleUseFullClassName()) {
+                // 获取全类名
+                String fullClassName = psiClass.getQualifiedName();
 
-            if (StringUtils.isNotBlank(fullClassName)) {
-                return fullClassName;
+                if (StringUtils.isNotBlank(fullClassName)) {
+                    return fullClassName;
+                }
             }
-        }
 
-        return "DocView";
+            return "DocView";
+        });
     }
 
     /**
@@ -169,53 +172,55 @@ public class DocViewUtils {
     @NotNull
     public static String getName(@NotNull PsiMethod psiMethod) {
 
-        Settings settings = Settings.getInstance(psiMethod.getProject());
-        // swagger v3 @Operation
-        if (settings.getNameUseSwagger3()) {
-            PsiAnnotation tagAnnotation = psiMethod.getAnnotation(SwaggerConstant.OPERATION);
-            if (tagAnnotation != null) {
-                PsiAnnotationMemberValue value = tagAnnotation.findAttributeValue("name");
-                if (value != null) {
-                    return value.getText().replace("\"", "");
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
+            Settings settings = Settings.getInstance(psiMethod.getProject());
+            // swagger v3 @Operation
+            if (settings.getNameUseSwagger3()) {
+                PsiAnnotation tagAnnotation = psiMethod.getAnnotation(SwaggerConstant.OPERATION);
+                if (tagAnnotation != null) {
+                    PsiAnnotationMemberValue value = tagAnnotation.findAttributeValue("name");
+                    if (value != null) {
+                        return value.getText().replace("\"", "");
+                    }
                 }
             }
-        }
-        // swagger @ApiOperation
-        if (settings.getNameUseSwagger()) {
-            PsiAnnotation apiAnnotation = psiMethod.getAnnotation(SwaggerConstant.API_OPERATION);
-            if (apiAnnotation != null) {
-                PsiAnnotationMemberValue value = apiAnnotation.findAttributeValue("value");
-                if (value != null) {
-                    return value.getText().replace("\"", "");
+            // swagger @ApiOperation
+            if (settings.getNameUseSwagger()) {
+                PsiAnnotation apiAnnotation = psiMethod.getAnnotation(SwaggerConstant.API_OPERATION);
+                if (apiAnnotation != null) {
+                    PsiAnnotationMemberValue value = apiAnnotation.findAttributeValue("value");
+                    if (value != null) {
+                        return value.getText().replace("\"", "");
+                    }
                 }
             }
-        }
 
-        // 注释上的 tag
-        if (settings.getNameUseCommentTag()) {
-            String comment = CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment(), settings.getNameTag());
+            // 注释上的 tag
+            if (settings.getNameUseCommentTag()) {
+                String comment = CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment(), settings.getNameTag());
 
-            if (StringUtils.isNotBlank(comment)) {
-                return comment;
-            }
-        }
-
-        if (settings.getNameMethodComment()) {
-
-            // 方法注释
-            String comment = CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment(), true);
-
-            if (StringUtils.isNotBlank(comment)) {
-
-                if (comment.length() > 15) {
-                    comment = comment.substring(0, 15);
+                if (StringUtils.isNotBlank(comment)) {
+                    return comment;
                 }
-
-                return comment;
             }
-        }
 
-        return psiMethod.getName();
+            if (settings.getNameMethodComment()) {
+
+                // 方法注释
+                String comment = CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment(), true);
+
+                if (StringUtils.isNotBlank(comment)) {
+
+                    if (comment.length() > 15) {
+                        comment = comment.substring(0, 15);
+                    }
+
+                    return comment;
+                }
+            }
+
+            return psiMethod.getName();
+        });
     }
 
     /**
@@ -229,31 +234,34 @@ public class DocViewUtils {
     @NotNull
     public static String getMethodDesc(@NotNull PsiMethod psiMethod) {
 
-        Settings settings = Settings.getInstance(psiMethod.getProject());
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
 
-        // 从 swagger3 中获取描述
-        if (settings.getDescUseSwagger3()) {
-            PsiAnnotation operationAnnotation = psiMethod.getAnnotation(SwaggerConstant.OPERATION);
-            if (operationAnnotation != null) {
-                PsiAnnotationMemberValue value = operationAnnotation.findAttributeValue("description");
-                if (value != null) {
-                    return value.getText().replace("\"", "");
+            Settings settings = Settings.getInstance(psiMethod.getProject());
+
+            // 从 swagger3 中获取描述
+            if (settings.getDescUseSwagger3()) {
+                PsiAnnotation operationAnnotation = psiMethod.getAnnotation(SwaggerConstant.OPERATION);
+                if (operationAnnotation != null) {
+                    PsiAnnotationMemberValue value = operationAnnotation.findAttributeValue("description");
+                    if (value != null) {
+                        return value.getText().replace("\"", "");
+                    }
                 }
             }
-        }
-        // 先从 swagger 中获取描述
-        if (settings.getDescUseSwagger()) {
-            PsiAnnotation apiOperationAnnotation = psiMethod.getAnnotation(SwaggerConstant.API_OPERATION);
-            if (apiOperationAnnotation != null) {
-                PsiAnnotationMemberValue value = apiOperationAnnotation.findAttributeValue("notes");
-                if (value != null) {
-                    return value.getText().replace("\"", "");
+            // 先从 swagger 中获取描述
+            if (settings.getDescUseSwagger()) {
+                PsiAnnotation apiOperationAnnotation = psiMethod.getAnnotation(SwaggerConstant.API_OPERATION);
+                if (apiOperationAnnotation != null) {
+                    PsiAnnotationMemberValue value = apiOperationAnnotation.findAttributeValue("notes");
+                    if (value != null) {
+                        return value.getText().replace("\"", "");
+                    }
                 }
             }
-        }
-        // 最后从注释中获取
+            // 最后从注释中获取
 
-        return CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment());
+            return CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment());
+        });
     }
 
     /**
@@ -265,31 +273,33 @@ public class DocViewUtils {
     @NotNull
     public static boolean isExcludeField(@NotNull PsiField psiField) {
 
-        Settings settings = Settings.getInstance(psiField.getProject());
+        return ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> {
+            Settings settings = Settings.getInstance(psiField.getProject());
 
-        if (settings.getExcludeFieldNames().contains(psiField.getName())) {
-            return true;
-        }
-        // 排除掉被 static 修饰的字段
-        if (CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.STATIC)) {
-            return true;
-        }
+            if (settings.getExcludeFieldNames().contains(psiField.getName())) {
+                return true;
+            }
+            // 排除掉被 static 修饰的字段
+            if (CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.STATIC)) {
+                return true;
+            }
 
-        if (CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.TRANSIENT)) {
-            return true;
-        }
+            if (CustomPsiUtils.hasModifierProperty(psiField, PsiModifier.TRANSIENT)) {
+                return true;
+            }
 
-        // 排除部分注解的字段
-        if (AnnotationUtil.isAnnotated(psiField, settings.getExcludeFieldAnnotation(), 0)) {
-            return true;
-        }
+            // 排除部分注解的字段
+            if (AnnotationUtil.isAnnotated(psiField, settings.getExcludeFieldAnnotation(), 0)) {
+                return true;
+            }
 
-        PsiClass containingClass = psiField.getContainingClass();
-        if (containingClass == null) {
-            return true;
-        }
+            PsiClass containingClass = psiField.getContainingClass();
+            if (containingClass == null) {
+                return true;
+            }
 
-        return excludeClassPackage(containingClass, settings);
+            return excludeClassPackage(containingClass, settings);
+        });
     }
 
     /**
@@ -354,47 +364,49 @@ public class DocViewUtils {
      */
     public static boolean isRequired(@NotNull PsiField field) {
 
-        Settings settings = Settings.getInstance(field.getProject());
+        return ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> {
+            Settings settings = Settings.getInstance(field.getProject());
 
-        if (AnnotationUtil.isAnnotated(field, settings.getRequiredFieldAnnotation(), 0)) {
-            return true;
-        }
-
-        // swagger v3 @Schema
-        PsiAnnotation schemaAnnotation = field.getAnnotation(SwaggerConstant.SCHEMA);
-        if (schemaAnnotation != null) {
-            PsiAnnotationMemberValue value = schemaAnnotation.findAttributeValue("required");
-            if (value != null && StringUtils.isNotBlank(value.getText()) && value.getText().contains("true")) {
-                return true;
-            }
-        }
-        // swagger @ApiModelProperty
-        PsiAnnotation apiModelPropertyAnnotation = field.getAnnotation(SwaggerConstant.API_MODEL_PROPERTY);
-        if (apiModelPropertyAnnotation != null) {
-            PsiAnnotationMemberValue value = apiModelPropertyAnnotation.findAttributeValue("required");
-            if (value != null && StringUtils.isNotBlank(value.getText()) && value.getText().contains("true")) {
-                return true;
-            }
-        }
-
-        if (settings.getRequiredUseCommentTag()) {
-            // 查看注释
-            PsiDocComment docComment = field.getDocComment();
-
-            if (docComment == null) {
-                // 没有注释, 非必填
-                return false;
-            }
-
-            PsiDocTag requiredTag = docComment.findTagByName(settings.getRequired());
-
-            if (requiredTag != null) {
+            if (AnnotationUtil.isAnnotated(field, settings.getRequiredFieldAnnotation(), 0)) {
                 return true;
             }
 
-        }
+            // swagger v3 @Schema
+            PsiAnnotation schemaAnnotation = field.getAnnotation(SwaggerConstant.SCHEMA);
+            if (schemaAnnotation != null) {
+                PsiAnnotationMemberValue value = schemaAnnotation.findAttributeValue("required");
+                if (value != null && StringUtils.isNotBlank(value.getText()) && value.getText().contains("true")) {
+                    return true;
+                }
+            }
+            // swagger @ApiModelProperty
+            PsiAnnotation apiModelPropertyAnnotation = field.getAnnotation(SwaggerConstant.API_MODEL_PROPERTY);
+            if (apiModelPropertyAnnotation != null) {
+                PsiAnnotationMemberValue value = apiModelPropertyAnnotation.findAttributeValue("required");
+                if (value != null && StringUtils.isNotBlank(value.getText()) && value.getText().contains("true")) {
+                    return true;
+                }
+            }
 
-        return false;
+            if (settings.getRequiredUseCommentTag()) {
+                // 查看注释
+                PsiDocComment docComment = field.getDocComment();
+
+                if (docComment == null) {
+                    // 没有注释, 非必填
+                    return false;
+                }
+
+                PsiDocTag requiredTag = docComment.findTagByName(settings.getRequired());
+
+                if (requiredTag != null) {
+                    return true;
+                }
+
+            }
+
+            return false;
+        });
 
     }
 
@@ -431,24 +443,26 @@ public class DocViewUtils {
      * @return 字段名称
      */
     public static String fieldName(PsiField field) {
-        Settings settings = Settings.getInstance(field.getProject());
-        Boolean useJsonProperty = settings.getFieldNameJsonProperty();
-        if (!useJsonProperty) {
-            return field.getName();
-        }
-        // 判断是否有注解
-        if (!AnnotationUtil.isAnnotated(field, settings.getFieldNameAnnotation(), 0)) {
-            return field.getName();
-        }
-        // 从注解中解析字段名称
-        PsiAnnotation jsonPropertyAnnotation = field.getAnnotation(JsonPropertyConstant.JSON_PROPERTY);
-        if (jsonPropertyAnnotation != null) {
-            PsiAnnotationMemberValue value = jsonPropertyAnnotation.findAttributeValue("value");
-            if (value != null && StringUtils.isNotBlank(value.getText())) {
-                return value.getText().replace("\"", "");
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
+            Settings settings = Settings.getInstance(field.getProject());
+            Boolean useJsonProperty = settings.getFieldNameJsonProperty();
+            if (!useJsonProperty) {
+                return field.getName();
             }
-        }
-        return field.getName();
+            // 判断是否有注解
+            if (!AnnotationUtil.isAnnotated(field, settings.getFieldNameAnnotation(), 0)) {
+                return field.getName();
+            }
+            // 从注解中解析字段名称
+            PsiAnnotation jsonPropertyAnnotation = field.getAnnotation(JsonPropertyConstant.JSON_PROPERTY);
+            if (jsonPropertyAnnotation != null) {
+                PsiAnnotationMemberValue value = jsonPropertyAnnotation.findAttributeValue("value");
+                if (value != null && StringUtils.isNotBlank(value.getText())) {
+                    return value.getText().replace("\"", "");
+                }
+            }
+            return field.getName();
+        });
     }
 
     /**
@@ -462,34 +476,36 @@ public class DocViewUtils {
     @NotNull
     public static String fieldDesc(@NotNull PsiField psiField) {
 
-        // swagger v3 @Schema
-        PsiAnnotation schemaAnnotation = psiField.getAnnotation(SwaggerConstant.SCHEMA);
-        if (schemaAnnotation != null) {
-            PsiAnnotationMemberValue value = schemaAnnotation.findAttributeValue("description");
-            if (value != null && StringUtils.isNotBlank(value.getText())) {
-                return value.getText().replace("\"", "");
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
+            // swagger v3 @Schema
+            PsiAnnotation schemaAnnotation = psiField.getAnnotation(SwaggerConstant.SCHEMA);
+            if (schemaAnnotation != null) {
+                PsiAnnotationMemberValue value = schemaAnnotation.findAttributeValue("description");
+                if (value != null && StringUtils.isNotBlank(value.getText())) {
+                    return value.getText().replace("\"", "");
+                }
             }
-        }
-        // swagger @ApiModelProperty
-        PsiAnnotation apiModelPropertyAnnotation = psiField.getAnnotation(SwaggerConstant.API_MODEL_PROPERTY);
-        if (apiModelPropertyAnnotation != null) {
-            PsiAnnotationMemberValue value = apiModelPropertyAnnotation.findAttributeValue("value");
-            if (value != null && StringUtils.isNotBlank(value.getText())) {
-                return value.getText().replace("\"", "");
+            // swagger @ApiModelProperty
+            PsiAnnotation apiModelPropertyAnnotation = psiField.getAnnotation(SwaggerConstant.API_MODEL_PROPERTY);
+            if (apiModelPropertyAnnotation != null) {
+                PsiAnnotationMemberValue value = apiModelPropertyAnnotation.findAttributeValue("value");
+                if (value != null && StringUtils.isNotBlank(value.getText())) {
+                    return value.getText().replace("\"", "");
+                }
             }
-        }
 
-        PsiComment comment = PsiTreeUtil.findChildOfType(psiField, PsiComment.class);
+            PsiComment comment = PsiTreeUtil.findChildOfType(psiField, PsiComment.class);
 
-        if (comment != null) {
-            // param.setExample();
-            // 参数举例, 使用 tag 判断
-            if (comment instanceof PsiDocComment) {
-                return CustomPsiCommentUtils.tagDocComment((PsiDocComment) comment);
+            if (comment != null) {
+                // param.setExample();
+                // 参数举例, 使用 tag 判断
+                if (comment instanceof PsiDocComment) {
+                    return CustomPsiCommentUtils.tagDocComment((PsiDocComment) comment);
+                }
+                return CustomPsiCommentUtils.fieldComment(comment);
             }
-            return CustomPsiCommentUtils.fieldComment(comment);
-        }
-        return "";
+            return "";
+        });
     }
 
     /**

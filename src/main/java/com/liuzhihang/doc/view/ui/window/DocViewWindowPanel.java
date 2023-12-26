@@ -1,7 +1,12 @@
 package com.liuzhihang.doc.view.ui.window;
 
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
-import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ActionPlaces;
+import com.intellij.openapi.actionSystem.ActionToolbar;
+import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DefaultActionGroup;
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.progress.Task;
@@ -9,7 +14,6 @@ import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.wm.ToolWindow;
-import com.intellij.ui.AppUIUtil;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.ScrollPaneFactory;
 import com.intellij.ui.TreeSpeedSearch;
@@ -96,9 +100,9 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
         ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View Searching") {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
-                AppUIUtil.invokeOnEdt(() -> {
+                ApplicationManager.getApplication().runReadAction(() -> {
                     rootNode.updateNode(project);
-                    treeModel.invalidate();
+                    treeModel.invalidateAsync();
                 });
             }
         });

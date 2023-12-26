@@ -35,24 +35,28 @@ public class CustomPsiCommentUtils {
     @NotNull
     public static String tagDocComment(PsiDocComment docComment, String tagName) {
 
-        String comment = "";
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
+            String comment = "";
 
-        if (docComment == null) {
-            return comment;
-        }
-
-        for (PsiElement element : docComment.getChildren()) {
-
-            // 不是 tagName 则继续查找
-            if (!("PsiDocTag:@" + tagName).equalsIgnoreCase(element.toString())) {
-                continue;
+            if (docComment == null) {
+                return comment;
             }
 
-            return element.getText().replace(("@" + tagName), StringUtils.EMPTY).trim();
+            for (PsiElement element : docComment.getChildren()) {
 
-        }
+                // 不是 tagName 则继续查找
+                if (!("PsiDocTag:@" + tagName).equalsIgnoreCase(element.toString())) {
+                    continue;
+                }
 
-        return "";
+                return element.getText().replace(("@" + tagName), StringUtils.EMPTY).trim();
+
+            }
+
+            return "";
+        });
+
+
     }
 
     /**
@@ -192,36 +196,38 @@ public class CustomPsiCommentUtils {
     @NotNull
     public static List<String> buildParams(@NotNull List<PsiElement> elements, List<String> paramNameList) {
 
-        List<String> paramDocList = Lists.newArrayList();
+        return ApplicationManager.getApplication().runReadAction((Computable<List<String>>) () -> {
+            List<String> paramDocList = Lists.newArrayList();
 
-        for (Iterator<PsiElement> iterator = elements.iterator(); iterator.hasNext(); ) {
-            PsiElement element = iterator.next();
-            if (!"PsiDocTag:@param".equalsIgnoreCase(element.toString())) {
-                continue;
-            }
-            String paramName = null;
-            String paramData = null;
-            for (PsiElement child : element.getChildren()) {
-                if (StringUtils.isBlank(paramName) && "PsiElement(DOC_PARAMETER_REF)".equals(child.toString())) {
-                    paramName = StringUtils.trim(child.getText());
-                } else if (StringUtils.isBlank(paramData) && "PsiDocToken:DOC_COMMENT_DATA".equals(child.toString())) {
-                    paramData = StringUtils.trim(child.getText());
+            for (Iterator<PsiElement> iterator = elements.iterator(); iterator.hasNext(); ) {
+                PsiElement element = iterator.next();
+                if (!"PsiDocTag:@param".equalsIgnoreCase(element.toString())) {
+                    continue;
                 }
+                String paramName = null;
+                String paramData = null;
+                for (PsiElement child : element.getChildren()) {
+                    if (StringUtils.isBlank(paramName) && "PsiElement(DOC_PARAMETER_REF)".equals(child.toString())) {
+                        paramName = StringUtils.trim(child.getText());
+                    } else if (StringUtils.isBlank(paramData) && "PsiDocToken:DOC_COMMENT_DATA".equals(child.toString())) {
+                        paramData = StringUtils.trim(child.getText());
+                    }
+                }
+                if (StringUtils.isBlank(paramName) || StringUtils.isBlank(paramData)) {
+                    iterator.remove();
+                    continue;
+                }
+                if (!paramNameList.contains(paramName)) {
+                    iterator.remove();
+                    continue;
+                }
+                paramNameList.remove(paramName);
             }
-            if (StringUtils.isBlank(paramName) || StringUtils.isBlank(paramData)) {
-                iterator.remove();
-                continue;
+            for (String paramName : paramNameList) {
+                paramDocList.add("@param " + paramName);
             }
-            if (!paramNameList.contains(paramName)) {
-                iterator.remove();
-                continue;
-            }
-            paramNameList.remove(paramName);
-        }
-        for (String paramName : paramNameList) {
-            paramDocList.add("@param " + paramName);
-        }
-        return paramDocList;
+            return paramDocList;
+        });
     }
 
     /**
@@ -233,29 +239,31 @@ public class CustomPsiCommentUtils {
      */
     @Nullable
     public static String buildReturn(@NotNull List<PsiElement> elements, String returnName) {
-        boolean isInsert = true;
-        for (Iterator<PsiElement> iterator = elements.iterator(); iterator.hasNext(); ) {
-            PsiElement element = iterator.next();
-            if (!"PsiDocTag:@return".equalsIgnoreCase(element.toString())) {
-                continue;
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
+            boolean isInsert = true;
+            for (Iterator<PsiElement> iterator = elements.iterator(); iterator.hasNext(); ) {
+                PsiElement element = iterator.next();
+                if (!"PsiDocTag:@return".equalsIgnoreCase(element.toString())) {
+                    continue;
+                }
+                PsiDocTagValue value = ((PsiDocTag) element).getValueElement();
+                if (value == null || StringUtils.isBlank(value.getText())) {
+                    iterator.remove();
+                } else if (returnName.isEmpty() || "void".equals(returnName)) {
+                    iterator.remove();
+                } else {
+                    isInsert = false;
+                }
             }
-            PsiDocTagValue value = ((PsiDocTag) element).getValueElement();
-            if (value == null || StringUtils.isBlank(value.getText())) {
-                iterator.remove();
-            } else if (returnName.length() <= 0 || "void".equals(returnName)) {
-                iterator.remove();
-            } else {
-                isInsert = false;
+            if (isInsert && !returnName.isEmpty() && !"void".equals(returnName)) {
+                if (FieldTypeConstant.BASE_TYPE_SET.contains(returnName)) {
+                    return "@return " + returnName;
+                } else {
+                    return "@return {@link " + returnName + "}";
+                }
             }
-        }
-        if (isInsert && returnName.length() > 0 && !"void".equals(returnName)) {
-            if (FieldTypeConstant.BASE_TYPE_SET.contains(returnName)) {
-                return "@return " + returnName;
-            } else {
-                return "@return {@link " + returnName + "}";
-            }
-        }
-        return null;
+            return "";
+        });
     }
 
     /**
@@ -267,35 +275,39 @@ public class CustomPsiCommentUtils {
      */
     @NotNull
     public static List<String> buildException(@NotNull List<PsiElement> elements, List<String> exceptionNameList) {
-        List<String> paramDocList = Lists.newArrayList();
-        for (Iterator<PsiElement> iterator = elements.iterator(); iterator.hasNext(); ) {
-            PsiElement element = iterator.next();
-            if (!"PsiDocTag:@throws".equalsIgnoreCase(element.toString()) && !"PsiDocTag:@exception".equalsIgnoreCase(element.toString())) {
-                continue;
-            }
-            String exceptionName = null;
-            String exceptionData = null;
-            for (PsiElement child : element.getChildren()) {
-                if (StringUtils.isBlank(exceptionName) && "PsiElement(DOC_TAG_VALUE_ELEMENT)".equals(child.toString())) {
-                    exceptionName = StringUtils.trim(child.getText());
-                } else if (StringUtils.isBlank(exceptionData) && "PsiDocToken:DOC_COMMENT_DATA".equals(child.toString())) {
-                    exceptionData = StringUtils.trim(child.getText());
+
+        return ApplicationManager.getApplication().runReadAction((Computable<List<String>>) () -> {
+            List<String> paramDocList = Lists.newArrayList();
+            for (Iterator<PsiElement> iterator = elements.iterator(); iterator.hasNext(); ) {
+                PsiElement element = iterator.next();
+                if (!"PsiDocTag:@throws".equalsIgnoreCase(element.toString()) && !"PsiDocTag:@exception".equalsIgnoreCase(element.toString())) {
+                    continue;
                 }
+                String exceptionName = null;
+                String exceptionData = null;
+                for (PsiElement child : element.getChildren()) {
+                    if (StringUtils.isBlank(exceptionName) && "PsiElement(DOC_TAG_VALUE_ELEMENT)".equals(child.toString())) {
+                        exceptionName = StringUtils.trim(child.getText());
+                    } else if (StringUtils.isBlank(exceptionData) && "PsiDocToken:DOC_COMMENT_DATA".equals(child.toString())) {
+                        exceptionData = StringUtils.trim(child.getText());
+                    }
+                }
+                if (StringUtils.isBlank(exceptionName) || StringUtils.isBlank(exceptionData)) {
+                    iterator.remove();
+                    continue;
+                }
+                if (!exceptionNameList.contains(exceptionName)) {
+                    iterator.remove();
+                    continue;
+                }
+                exceptionNameList.remove(exceptionName);
             }
-            if (StringUtils.isBlank(exceptionName) || StringUtils.isBlank(exceptionData)) {
-                iterator.remove();
-                continue;
+            for (String exceptionName : exceptionNameList) {
+                paramDocList.add("@throws " + exceptionName);
             }
-            if (!exceptionNameList.contains(exceptionName)) {
-                iterator.remove();
-                continue;
-            }
-            exceptionNameList.remove(exceptionName);
-        }
-        for (String exceptionName : exceptionNameList) {
-            paramDocList.add("@throws " + exceptionName);
-        }
-        return paramDocList;
+            return paramDocList;
+        });
+
     }
 
 }
