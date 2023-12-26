@@ -12,6 +12,6 @@
 
 ### Fixed
 
-- IDEA-2023.3 读取注视 ReadWriteLock 异常
+- IDEA-2023.3 ReadWriteLock 异常
 
 ### Security
