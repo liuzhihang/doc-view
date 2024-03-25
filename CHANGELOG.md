@@ -1,8 +1,10 @@
 ## [Unreleased]
 
-## 1.3.7
+## 1.3.8
 
 ### Added
+
+- 参数类分开展示
 
 ### Changed
 
@@ -11,7 +13,5 @@
 ### Removed
 
 ### Fixed
-
-- IDEA-2023.3 ReadWriteLock 异常
 
 ### Security

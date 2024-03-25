@@ -71,6 +71,7 @@ public class SettingsForm {
     private JPanel otherPanel;
     private JBTextField prefixSymbol1TextField;
     private JBTextField prefixSymbol2TextField;
+    private JCheckBox separateParamCheckBox;
 
     public SettingsForm(@NotNull Project project) {
 
@@ -121,6 +122,7 @@ public class SettingsForm {
                 || includeNormalInterfaceCheckBox.isSelected() != settings.getIncludeNormalInterface()
                 || !prefixSymbol1TextField.getText().trim().equals(settings.getPrefixSymbol1())
                 || !prefixSymbol2TextField.getText().trim().equals(settings.getPrefixSymbol2())
+                || separateParamCheckBox.isSelected() != settings.getSeparateParam()
                 ;
     }
 
@@ -147,6 +149,8 @@ public class SettingsForm {
         settings.setIncludeNormalInterface(includeNormalInterfaceCheckBox.isSelected());
         settings.setPrefixSymbol1(prefixSymbol1TextField.getText().trim());
         settings.setPrefixSymbol2(prefixSymbol2TextField.getText().trim());
+        settings.setSeparateParam(separateParamCheckBox.isSelected());
+
 
         includeNormalInterfaceCheckBox.setEnabled(lineMarkerCheckBox.isSelected());
 
@@ -178,6 +182,7 @@ public class SettingsForm {
         includeNormalInterfaceCheckBox.setEnabled(lineMarkerCheckBox.isSelected());
         prefixSymbol1TextField.setText(settings.getPrefixSymbol1());
         prefixSymbol2TextField.setText(settings.getPrefixSymbol2());
+        separateParamCheckBox.setSelected(settings.getSeparateParam());
 
     }
 

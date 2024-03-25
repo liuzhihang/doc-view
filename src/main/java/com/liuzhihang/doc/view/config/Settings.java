@@ -171,6 +171,11 @@ public class Settings implements PersistentStateComponent<Settings> {
     private String prefixSymbol1 = "";
     private String prefixSymbol2 = "-->";
 
+    /**
+     * 实体独立
+     */
+    private Boolean separateParam = false;
+
 
     public static Settings getInstance(@NotNull Project project) {
         return project.getService(Settings.class);
