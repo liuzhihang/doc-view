@@ -1,7 +1,6 @@
 package com.liuzhihang.doc.view.ui;
 
 import com.intellij.find.editorHeaderActions.Utils;
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -34,6 +33,7 @@ import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 import com.liuzhihang.doc.view.utils.EditorUtils;
 import com.liuzhihang.doc.view.utils.ExportUtils;
+import icons.DocViewIcons;
 import lombok.extern.slf4j.Slf4j;
 import org.intellij.plugins.markdown.settings.MarkdownSettings;
 import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanel;
@@ -56,6 +56,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
+ * 文档预览界面 UI
+ *
  * @author liuzhihang
  * @date 2020/2/26 19:40
  */
@@ -184,6 +186,9 @@ public class PreviewForm {
         addMouseListeners();
     }
 
+    /**
+     * 鼠标监听
+     */
     private void addMouseListeners() {
         WindowMoveListener windowMoveListener = new WindowMoveListener(rootPanel);
         rootPanel.addMouseListener(windowMoveListener);
@@ -199,25 +204,42 @@ public class PreviewForm {
         return new PreviewForm(psiClass, psiMethod);
     }
 
+    /**
+     * 弹出窗口
+     */
     public void popup() {
 
         // dialog 改成 popup, 第一个为根面板，第二个为焦点面板
-        popup = JBPopupFactory.getInstance().createComponentPopupBuilder(rootPanel, previewToolbarPanel).setProject(psiClass.getProject()).setResizable(true).setMovable(true)
-
-                .setModalContext(false).setRequestFocus(true).setBelongsToGlobalPopupStack(true).setDimensionServiceKey(null, DOC_VIEW_POPUP, true).setLocateWithinScreenBounds(false)
+        popup = JBPopupFactory.getInstance()
+                .createComponentPopupBuilder(rootPanel, previewToolbarPanel)
+                .setProject(psiClass.getProject())
+                .setResizable(true)
+                .setMovable(true)
+                .setModalContext(false)
+                .setRequestFocus(true)
+                .setBelongsToGlobalPopupStack(true)
+                .setDimensionServiceKey(null, DOC_VIEW_POPUP, true)
+                .setLocateWithinScreenBounds(false)
                 // 鼠标点击外部时是否取消弹窗 外部单击, 未处于 pin 状态则可关闭
-                .setCancelOnMouseOutCallback(event -> event.getID() == MouseEvent.MOUSE_PRESSED && !myIsPinned.get())
-
+                .setCancelOnMouseOutCallback(event ->
+                        event.getID() == MouseEvent.MOUSE_PRESSED && !myIsPinned.get()
+                )
                 // 单击外部时取消弹窗
                 .setCancelOnClickOutside(false)
                 // 在其他窗口打开时取消
-                .setCancelOnOtherWindowOpen(false).setCancelOnWindowDeactivation(false).createPopup();
+                .setCancelOnOtherWindowOpen(false)
+                .setCancelOnWindowDeactivation(false)
+                .createPopup();
         popup.showCenteredInCurrentWindow(psiClass.getProject());
     }
 
 
+    /**
+     * 根面板：界面布局
+     */
     private void layout() {
 
+        // 目录面板：左侧
         layoutCatalogPane();
         layoutPreviewPanel();
         layoutHeadToolbar();
@@ -292,7 +314,7 @@ public class PreviewForm {
     private void layoutHeadToolbar() {
         DefaultActionGroup group = new DefaultActionGroup();
 
-        group.add(new AnAction("Setting", "Doc view settings", AllIcons.General.GearPlain) {
+        group.add(new AnAction("Setting", "Doc view settings", DocViewIcons.SETTINGS) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 popup.cancel();
@@ -302,12 +324,7 @@ public class PreviewForm {
 
         group.addSeparator();
 
-        group.add(new ToggleAction("Pin", "Pin window", AllIcons.General.Pin_tab) {
-
-            @Override
-            public @NotNull ActionUpdateThread getActionUpdateThread() {
-                return super.getActionUpdateThread();
-            }
+        group.add(new ToggleAction("Pin", "Pin window", DocViewIcons.PIN) {
 
             @Override
             public boolean isDumbAware() {
@@ -323,13 +340,18 @@ public class PreviewForm {
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
                 myIsPinned.set(state);
             }
+
+            @Override
+            public @NotNull ActionUpdateThread getActionUpdateThread() {
+                return ActionUpdateThread.BGT;
+            }
+
         });
 
         ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance().createActionToolbar("DocViewRootToolbar", group, true);
         toolbar.setTargetComponent(headToolbarPanel);
 
         toolbar.setForceMinimumSize(true);
-        toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
 
         headToolbarPanel.add(toolbar.getComponent(), BorderLayout.EAST);
@@ -351,6 +373,9 @@ public class PreviewForm {
         markdownEditor.setBorder(JBUI.Borders.emptyLeft(5));
     }
 
+    /**
+     * markdown 预览界面
+     */
     private void markdownHtmlPanel() {
 
         MarkdownHtmlPanelProvider provider = MarkdownHtmlPanelProvider.createFromInfo(MarkdownSettings.getDefaultProviderInfo());
@@ -386,12 +411,7 @@ public class PreviewForm {
 
         DefaultActionGroup leftGroup = new DefaultActionGroup();
 
-        leftGroup.add(new ToggleAction("Preview", "Preview markdown", AllIcons.Actions.Preview) {
-
-            @Override
-            public @NotNull ActionUpdateThread getActionUpdateThread() {
-                return super.getActionUpdateThread();
-            }
+        leftGroup.add(new ToggleAction("Preview", "Preview markdown", DocViewIcons.EDITOR_PREVIEW) {
 
             @Override
             public boolean isDumbAware() {
@@ -426,6 +446,12 @@ public class PreviewForm {
                     }
                 }
             }
+
+            @Override
+            public @NotNull ActionUpdateThread getActionUpdateThread() {
+                return ActionUpdateThread.BGT;
+            }
+
         });
 
         ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance().createActionToolbar("DocViewEditorLeftToolbar", leftGroup, true);
@@ -433,17 +459,19 @@ public class PreviewForm {
         toolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
 
         toolbar.setForceMinimumSize(true);
-        toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
 
         previewToolbarPanel.setBackground(markdownEditor.getBackgroundColor());
         previewToolbarPanel.add(toolbar.getComponent(), BorderLayout.WEST);
     }
 
+    /**
+     * 预览面板右侧操作栏
+     */
     private void previewRightToolbar() {
         DefaultActionGroup rightGroup = new DefaultActionGroup();
 
-        rightGroup.add(new AnAction("Upload", "Upload", AllIcons.Actions.Upload) {
+        rightGroup.add(new AnAction("Upload", "Upload", DocViewIcons.UPLOAD) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 myIsPinned.set(true);
@@ -472,7 +500,7 @@ public class PreviewForm {
 
         rightGroup.addSeparator();
 
-        rightGroup.add(new AnAction("Export", "Export markdown", AllIcons.ToolbarDecorator.Export) {
+        rightGroup.add(new AnAction("Export", "Export markdown", DocViewIcons.DOWNLOAD) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
@@ -482,7 +510,7 @@ public class PreviewForm {
             }
         });
 
-        rightGroup.add(new AnAction("Copy", "Copy to clipboard", AllIcons.Actions.Copy) {
+        rightGroup.add(new AnAction("Copy", "Copy to clipboard", DocViewIcons.COPY) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
@@ -500,7 +528,6 @@ public class PreviewForm {
         toolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
 
         toolbar.setForceMinimumSize(true);
-        toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
 
         previewToolbarPanel.setBackground(markdownEditor.getBackgroundColor());
@@ -508,11 +535,14 @@ public class PreviewForm {
 
     }
 
+    /**
+     * 构建目录
+     */
     private void catalogPanelToolbar() {
 
         DefaultActionGroup menuGroup = new DefaultActionGroup();
 
-        menuGroup.add(new AnAction("Export All", "Export markdown", AllIcons.Ide.IncomingChangesOn) {
+        menuGroup.add(new AnAction("Export All", "Export markdown", DocViewIcons.DOWNLOAD) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
@@ -522,7 +552,7 @@ public class PreviewForm {
         });
         menuGroup.addSeparator();
 
-        menuGroup.add(new AnAction("Upload All", "Upload all To YApi", AllIcons.Ide.OutgoingChangesOn) {
+        menuGroup.add(new AnAction("Upload All", "Upload all To YApi", DocViewIcons.UPLOAD) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
@@ -556,7 +586,6 @@ public class PreviewForm {
         toolbar.getComponent().setBackground(UIUtil.getTextFieldBackground());
 
         toolbar.setForceMinimumSize(true);
-        toolbar.setLayoutPolicy(ActionToolbar.NOWRAP_LAYOUT_POLICY);
         Utils.setSmallerFontForChildren(toolbar);
 
         catalogToolbarPane.setBackground(UIUtil.getTextFieldBackground());

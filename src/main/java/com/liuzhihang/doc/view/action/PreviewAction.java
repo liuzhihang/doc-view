@@ -26,8 +26,12 @@ public class PreviewAction extends AbstractAction {
         PreviewForm.getInstance(targetClass, targetMethod).popup();
     }
 
+    /**
+     * @see AnAction#update(AnActionEvent)
+     */
     @Override
     public @NotNull ActionUpdateThread getActionUpdateThread() {
-        return super.getActionUpdateThread();
+        return ActionUpdateThread.BGT;
     }
+
 }

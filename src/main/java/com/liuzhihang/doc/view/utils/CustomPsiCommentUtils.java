@@ -105,7 +105,7 @@ public class CustomPsiCommentUtils {
     }
 
     /**
-     * 获取注释, 没有 tag 的注释, 一般是卸载注释开头的位置
+     * 获取注释, 没有 tag 的注释, 一般是写在注释开头的位置
      *
      * @param docComment 注释 PSI
      * @return 注释
@@ -123,8 +123,8 @@ public class CustomPsiCommentUtils {
                     if (!"PsiDocToken:DOC_COMMENT_DATA".equalsIgnoreCase(element.toString())) {
                         continue;
                     }
-                    // 原注释中的换行符移除
-                    sb.append(element.getText().replaceAll("[* \n]+", StringUtils.EMPTY));
+                    // 原注释中的换行符移除，移除注释中的 html 标签：<p> </p>
+                    sb.append(element.getText().replaceAll("[* \\n]|<p>|</p>", ""));
 
                 }
             }
@@ -137,16 +137,12 @@ public class CustomPsiCommentUtils {
      * 获取注释, 没有 tag 的注释
      *
      * @param docComment 注释 PSI
-     * @param oneLine    只获取一行
      * @return 注释
      */
     @NotNull
-    public static String tagDocComment(PsiDocComment docComment, Boolean oneLine) {
+    public static String tagDocCommentForOneLine(PsiDocComment docComment) {
 
         return ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
-            if (!oneLine) {
-                return tagDocComment(docComment);
-            }
             if (docComment != null) {
                 for (PsiElement element : docComment.getChildren()) {
 

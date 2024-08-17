@@ -12,9 +12,6 @@
     <!-- 暂时不打开预览 -->
     <depends>org.intellij.plugins.markdown</depends>
 
-    <!-- 兼容 IDEA 版本 -->
-    <idea-version since-build="213"/>
-
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
         <!--Application 级别配置-->
@@ -111,8 +108,8 @@
 
         <group id="liuzhihang.doc" popup="false" compact="true">
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
-            <action id="liuzhihang.doc.view" class="com.liuzhihang.doc.view.action.PreviewAction"
-                    text="Doc View"/>
+            <action id="liuzhihang.doc.view" class="com.liuzhihang.doc.view.action.PreviewAction" text="Doc View"/>
+            <action id="liuzhihang.doc.editor" class="com.liuzhihang.doc.view.action.EditorAction" text="Doc Editor"/>
         </group>
 
         <group id="liuzhihang.doc.upload" text="Doc Upload" popup="true">
@@ -164,22 +161,22 @@
 
             <action id="liuzhihang.doc.tool.window.toolbar.action.refresh"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowRefreshAction"
-                    text="Refresh" description="Refresh" icon="AllIcons.Actions.Refresh"/>
+                    text="Refresh" description="Refresh" icon="DocViewIcons.REFRESH"/>
             <separator/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.export"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowExportAction"
-                    text="Export" description="Export" icon="AllIcons.ToolbarDecorator.Export"/>
+                    text="Export" description="Export" icon="DocViewIcons.EXPORT"/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.upload"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowUploadAction"
-                    text="Upload" description="Collapse" icon="AllIcons.Actions.Upload"/>
+                    text="Upload" description="Collapse" icon="DocViewIcons.UPLOAD"/>
 
             <separator/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.expand"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowExpandAction"
-                    text="Expand" description="Expand" icon="AllIcons.Actions.Expandall"/>
+                    text="Expand" description="Expand" icon="DocViewIcons.EXPAND_ALL"/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.collapse"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowCollapseAction"
-                    text="Collapse" description="Collapse" icon="AllIcons.Actions.Collapseall"/>
+                    text="Collapse" description="Collapse" icon="DocViewIcons.COLLAPSE_ALL"/>
 
             <separator/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.clear"
@@ -188,7 +185,7 @@
             <separator/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.setting"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowSettingsAction"
-                    text="Settings" description="Settings" icon="AllIcons.General.Settings"/>
+                    text="Settings" description="Settings" icon="DocViewIcons.SETTINGS"/>
             <separator/>
 
         </group>
@@ -199,14 +196,14 @@
 
             <action id="liuzhihang.doc.tool.window.catalog.action.open"
                     class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogOpenAction"
-                    text="Open" description="Open" icon="AllIcons.Toolwindows.Documentation"/>
+                    text="Open" description="Open" icon="DocViewIcons.EDITOR_PREVIEW"/>
 
             <action id="liuzhihang.doc.tool.window.catalog.action.export"
                     class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogExportAction"
-                    text="Export" description="Export" icon="AllIcons.ToolbarDecorator.Export"/>
+                    text="Export" description="Export" icon="DocViewIcons.EXPORT"/>
 
             <group id="liuzhihang.doc.tool.window.catalog.action.upload" popup="true" text="Upload" description="Upload"
-                   icon="AllIcons.Actions.Upload">
+                   icon="DocViewIcons.UPLOAD">
                 <action id="liuzhihang.doc.tool.window.catalog.action.upload.yapi"
                         class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogUploadYApiAction"
                         text="YApi" description="YApi"/>
@@ -225,7 +222,7 @@
             <action id="liuzhihang.doc.view.action.toolbar.window.catalog.httpclient"
                     class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogHttpClientAction"
                     text="Http Client"
-                    description="Generate http client" icon="AllIcons.General.Web">
+                    description="Generate http client" icon="DocViewIcons.HTTP_API">
             </action>
         </group>
 

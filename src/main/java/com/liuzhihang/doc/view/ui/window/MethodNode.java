@@ -9,16 +9,10 @@ import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.utils.CustomFileUtils;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
-import com.liuzhihang.doc.view.utils.DubboPsiUtils;
-import com.liuzhihang.doc.view.utils.SpringPsiUtils;
-import icons.DocViewIcons;
 
-import javax.swing.*;
 import java.awt.event.InputEvent;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 目录树上的一个节点
@@ -27,15 +21,6 @@ import java.util.Map;
  * @date 2022/4/4
  */
 public class MethodNode extends DocViewNode {
-
-    private final static Map<String, Icon> ICON_MAP = new HashMap<>() {{
-        put("GET", DocViewIcons.GET);
-        put("POST", DocViewIcons.POST);
-        put("PUT", DocViewIcons.PUT);
-        put("DELETE", DocViewIcons.DELETE);
-        put("DUBBO", DocViewIcons.DUBBO);
-
-    }};
 
     private final PsiMethod psiMethod;
     private final PsiClass psiClass;
@@ -47,19 +32,6 @@ public class MethodNode extends DocViewNode {
 
         getTemplatePresentation().setIcon(null);
         getTemplatePresentation().setTooltip(DocViewUtils.getMethodDesc(psiMethod));
-    }
-
-
-    private Icon methodIcon() {
-
-        if (SpringPsiUtils.isSpringClass(psiClass) && SpringPsiUtils.isSpringMethod(psiMethod)) {
-            return ICON_MAP.get(SpringPsiUtils.method(psiMethod));
-        }
-        if (DubboPsiUtils.isDubboClass(psiClass) && DubboPsiUtils.isDubboMethod(psiMethod)) {
-            return ICON_MAP.get("DUBBO");
-        }
-
-        return null;
     }
 
 

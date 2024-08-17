@@ -1,5 +1,6 @@
 package com.liuzhihang.doc.view.action.upload;
 
+import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.liuzhihang.doc.view.action.AbstractAction;
@@ -34,4 +35,10 @@ public abstract class AbstractUploadAction extends AbstractAction {
      * 具体上传服务
      */
     protected abstract DocViewUploadService uploadService();
+
+    @Override
+    public @NotNull ActionUpdateThread getActionUpdateThread() {
+        return ActionUpdateThread.BGT;
+    }
+
 }

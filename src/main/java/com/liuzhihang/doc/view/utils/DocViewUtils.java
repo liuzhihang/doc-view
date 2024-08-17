@@ -5,19 +5,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
-import com.intellij.psi.JavaPsiFacade;
-import com.intellij.psi.PsiAnnotation;
-import com.intellij.psi.PsiAnnotationMemberValue;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiComment;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiMethod;
-import com.intellij.psi.PsiModifier;
-import com.intellij.psi.PsiNameValuePair;
-import com.intellij.psi.PsiParameter;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.util.InheritanceUtil;
@@ -68,9 +56,7 @@ public class DocViewUtils {
         }
 
         if (psiClass.isInterface()) {
-            return Settings.getInstance(psiClass.getProject()).getIncludeNormalInterface()
-                    || DubboPsiUtils.isDubboClass(psiClass)
-                    || FeignPsiUtil.isFeignClass(psiClass);
+            return Settings.getInstance(psiClass.getProject()).getIncludeNormalInterface() || DubboPsiUtils.isDubboClass(psiClass) || FeignPsiUtil.isFeignClass(psiClass);
         }
 
         // 其他判断在下面添加
@@ -207,7 +193,7 @@ public class DocViewUtils {
             if (settings.getNameMethodComment()) {
 
                 // 方法注释
-                String comment = CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment(), true);
+                String comment = CustomPsiCommentUtils.tagDocCommentForOneLine(psiMethod.getDocComment());
 
                 if (StringUtils.isNotBlank(comment)) {
 
@@ -425,8 +411,7 @@ public class DocViewUtils {
                 // 没有设置注解参数
                 PsiNameValuePair[] nameValuePairs = annotation.getParameterList().getAttributes();
                 for (PsiNameValuePair nameValuePair : nameValuePairs) {
-                    if (nameValuePair.getAttributeName().equalsIgnoreCase("required")
-                            && Objects.requireNonNull(nameValuePair.getLiteralValue()).equalsIgnoreCase("false")) {
+                    if (nameValuePair.getAttributeName().equalsIgnoreCase("required") && Objects.requireNonNull(nameValuePair.getLiteralValue()).equalsIgnoreCase("false")) {
                         return false;
                     }
                 }
@@ -571,14 +556,9 @@ public class DocViewUtils {
 
             // 不修改原有注解
             if (!DocViewUtils.isRequired(psiField) && data.getRequired()) {
-                docComment = "/** "
-                        + data.getDesc() + "\n"
-                        + "* @" + Settings.getInstance(project).getRequired()
-                        + " */";
+                docComment = "/** " + data.getDesc() + "\n" + "* @" + Settings.getInstance(project).getRequired() + " */";
             } else {
-                docComment = "/** "
-                        + data.getDesc()
-                        + " */";
+                docComment = "/** " + data.getDesc() + " */";
             }
 
             PsiComment comment = PsiTreeUtil.findChildOfType(psiField, PsiComment.class);
