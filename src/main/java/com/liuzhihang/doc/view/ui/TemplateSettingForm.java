@@ -40,7 +40,7 @@ public class TemplateSettingForm extends DialogWrapper {
     private final Project project;
 
     public TemplateSettingForm(Project project) {
-        super(project, true, DialogWrapper.IdeModalityType.PROJECT);
+        super(project, true);
         this.project = project;
 
         init();
