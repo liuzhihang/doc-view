@@ -80,7 +80,7 @@ public class SettingsForm {
         supportLinkLabel.setBorder(JBUI.Borders.emptyTop(20));
         supportLinkLabel.setIcon(AllIcons.Actions.Find);
 
-        supportLinkLabel.setListener((source, data) -> new SupportForm().show(), null);
+        supportLinkLabel.setListener((source, data) -> new SupportForm(project).show(), null);
 
         initTitleBorder();
     }

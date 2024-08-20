@@ -1,10 +1,12 @@
 package com.liuzhihang.doc.view.ui;
 
 import com.intellij.ide.BrowserUtil;
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.DialogWrapper;
 import com.intellij.ui.components.labels.LinkLabel;
 import com.intellij.util.ui.JBUI;
 import com.liuzhihang.doc.view.DocViewBundle;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
@@ -21,8 +23,8 @@ public class SupportForm extends DialogWrapper {
     private LinkLabel<String> discussionsLinkLabel;
     private LinkLabel<String> websiteLinkLabel;
 
-    public SupportForm() {
-        super(null, true, DialogWrapper.IdeModalityType.PROJECT);
+    public SupportForm(@NotNull Project project) {
+        super(project, true);
 
         init();
 
