@@ -168,7 +168,7 @@ public class DubboPsiUtils {
                     body.setQualifiedNameForClassType(qualifiedName);
                     for (PsiField psiField : childClass.getAllFields()) {
                         if (!DocViewUtils.isExcludeField(psiField)) {
-                            ParamPsiUtils.buildBodyParam(psiField, null, body);
+                            ParamPsiUtils.buildBodyParam(psiField, null, body, new HashMap<>());
                         }
                     }
                 }

@@ -39,7 +39,14 @@ public class ParamPsiUtils {
      * @param genericsMap key 是泛型 value 是对应的类型
      * @param parent      父字段
      */
-    public static void buildBodyParam(PsiField field, Map<String, PsiType> genericsMap, Body parent) {
+    public static void buildBodyParam(PsiField field, Map<String, PsiType> genericsMap, Body parent, Map<String, Boolean> parentChildPair) {
+
+        String pair = parent.getQualifiedNameForClassType() + "_" + field.getName();
+        if (parentChildPair.containsKey(pair)) {
+            return;
+        }
+        parentChildPair.put(pair, true);
+
         PsiType type = field.getType();
         Body body = new Body();
         body.setRequired(DocViewUtils.isRequired(field));
@@ -140,7 +147,7 @@ public class ParamPsiUtils {
         }
         for (PsiField psiField : childClass.getAllFields()) {
             if (!DocViewUtils.isExcludeField(psiField)) {
-                buildBodyParam(psiField, fieldGenericsMap, parentBody);
+                buildBodyParam(psiField, fieldGenericsMap, parentBody, parentChildPair);
             }
         }
 
@@ -518,7 +525,7 @@ public class ParamPsiUtils {
                 continue;
             }
 
-            ParamPsiUtils.buildBodyParam(field, genericMap, parent);
+            ParamPsiUtils.buildBodyParam(field, genericMap, parent, new HashMap<>());
         }
 
     }
