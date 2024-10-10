@@ -1,11 +1,10 @@
 ## [Unreleased]
 
-## 1.3.9
+## 1.3.10
 
 ### Added
 
-- 实体类编辑功能
-- 复制实体类为 JSON
+- ParamPsiUtils.buildBodyParam 处理自身引用的VO的时候堆栈溢出
 
 ### Changed
 
