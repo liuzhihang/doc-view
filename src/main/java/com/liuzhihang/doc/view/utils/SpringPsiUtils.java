@@ -32,14 +32,7 @@ import com.liuzhihang.doc.view.enums.ContentTypeEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.liuzhihang.doc.view.constant.MethodConstant.DELETE;
 import static com.liuzhihang.doc.view.constant.MethodConstant.GET;
@@ -356,7 +349,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
                     continue;
                 }
                 // 增加 genericsMap 参数传入，用于将泛型 T 替换为原始对象
-                ParamPsiUtils.buildBodyParam(field, genericsMap, root);
+                ParamPsiUtils.buildBodyParam(field, genericsMap, root, new HashMap<>());
             }
         }
         return root;
