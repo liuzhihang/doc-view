@@ -121,8 +121,9 @@ public class DubboPsiUtils {
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
 
         // @param 注释
-        List<PsiDocTag> paramTags = Arrays.stream(psiMethod.getDocComment().getTags())
-                .filter(a -> a.getName().equals("param")).collect(Collectors.toList());
+        List<PsiDocTag> paramTags = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("param")).collect(Collectors.toList());
+        Optional<PsiDocTag> sinceTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("since")).findFirst();
+        Optional<PsiDocTag> versionTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("version")).findFirst();
 
         for (PsiParameter parameter : parameters) {
 
@@ -139,6 +140,9 @@ public class DubboPsiUtils {
                     .map(a -> Arrays.stream(a.getDataElements()).skip(1).map(PsiElement::getText).collect(Collectors.joining(" ")))
                     .collect(Collectors.joining());
             body.setDesc(desc);
+
+            sinceTag.ifPresent(op -> body.setSince(Arrays.stream(op.getDataElements()).map(PsiElement::getText).collect(Collectors.joining(""))));
+            versionTag.ifPresent(op -> body.setVersion(Arrays.stream(op.getDataElements()).map(PsiElement::getText).collect(Collectors.joining(""))));
 
             root.getChildList().add(body);
 
