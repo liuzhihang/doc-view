@@ -141,8 +141,8 @@ public class DubboPsiUtils {
                     .collect(Collectors.joining());
             body.setDesc(desc);
 
-            sinceTag.ifPresent(op -> body.setSince(Arrays.stream(op.getDataElements()).map(PsiElement::getText).collect(Collectors.joining(""))));
-            versionTag.ifPresent(op -> body.setVersion(Arrays.stream(op.getDataElements()).map(PsiElement::getText).collect(Collectors.joining(""))));
+            sinceTag.ifPresent(op -> body.setSince(Arrays.stream(op.getDataElements()).map(PsiElement::getText).map(String::trim).collect(Collectors.joining(""))));
+            versionTag.ifPresent(op -> body.setVersion(Arrays.stream(op.getDataElements()).map(PsiElement::getText).map(String::trim).collect(Collectors.joining(""))));
 
             root.getChildList().add(body);
 

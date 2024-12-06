@@ -40,5 +40,13 @@ public class Param {
     private String type;
 
 
+    /**
+     * since
+     */
+    private String since;
 
+    /**
+     * version
+     */
+    private String version;
 }

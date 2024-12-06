@@ -280,6 +280,15 @@ public class DocViewData {
             data.setType(param.getType());
             data.setDesc(StringUtils.isNotBlank(param.getDesc()) ? param.getDesc() : "");
 
+            data.setVersion(param.getVersion());
+            data.setSince(param.getSince());
+            if (StringUtils.isNotBlank(data.getDesc())) {
+                if (data.getDesc().contains("@since") || data.getDesc().contains("@version")) {
+                    data.setSince("");
+                    data.setDesc("");
+                }
+            }
+
             return data;
         }).collect(Collectors.toList());
     }
