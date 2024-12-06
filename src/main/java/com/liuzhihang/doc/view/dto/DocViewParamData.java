@@ -56,6 +56,16 @@ public class DocViewParamData {
     private String desc = "";
 
     /**
+     * since
+     */
+    private String since;
+
+    /**
+     * version
+     */
+    private String version;
+
+    /**
      * 子
      */
     private List<DocViewParamData> childList = new ArrayList<>();
