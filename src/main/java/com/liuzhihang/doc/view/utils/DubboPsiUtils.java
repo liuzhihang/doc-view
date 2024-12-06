@@ -8,9 +8,11 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex;
+import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.InheritanceUtil;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.xml.DomFileElement;
@@ -23,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author liuzhihang
@@ -117,6 +120,10 @@ public class DubboPsiUtils {
 
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
 
+        // @param 注释
+        List<PsiDocTag> paramTags = Arrays.stream(psiMethod.getDocComment().getTags())
+                .filter(a -> a.getName().equals("param")).collect(Collectors.toList());
+
         for (PsiParameter parameter : parameters) {
 
             PsiType type = parameter.getType();
@@ -127,6 +134,11 @@ public class DubboPsiUtils {
             body.setName(parameter.getName());
             body.setType(type.getPresentableText());
             body.setParent(root);
+            // 获取@param 上的注解描述
+            String desc = paramTags.stream().filter(tag -> tag.getDataElements()[0].getText().equals(parameter.getName()))
+                    .map(a -> Arrays.stream(a.getDataElements()).skip(1).map(PsiElement::getText).collect(Collectors.joining(" ")))
+                    .collect(Collectors.joining());
+            body.setDesc(desc);
 
             root.getChildList().add(body);
 
