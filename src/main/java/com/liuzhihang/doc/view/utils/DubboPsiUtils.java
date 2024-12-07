@@ -121,9 +121,14 @@ public class DubboPsiUtils {
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
 
         // @param 注释
-        List<PsiDocTag> paramTags = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("param")).collect(Collectors.toList());
-        Optional<PsiDocTag> sinceTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("since")).findFirst();
-        Optional<PsiDocTag> versionTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("version")).findFirst();
+        List<PsiDocTag> paramTags = new ArrayList<>();
+        Optional<PsiDocTag> sinceTag = Optional.empty();
+        Optional<PsiDocTag> versionTag = Optional.empty();
+        if (psiMethod.getDocComment() != null) {
+            paramTags = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("param")).collect(Collectors.toList());
+             sinceTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("since")).findFirst();
+             versionTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("version")).findFirst();
+        }
 
         for (PsiParameter parameter : parameters) {
 

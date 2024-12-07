@@ -505,12 +505,13 @@ public class SpringPsiUtils extends ParamPsiUtils {
             param.setDesc(CustomPsiCommentUtils.paramDocComment(docComment, parameter));
         }
 
-        Optional<PsiDocTag> sinceTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("since")).findFirst();
-        Optional<PsiDocTag> versionTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("version")).findFirst();
+        if (psiMethod.getDocComment() != null) {
+            Optional<PsiDocTag> sinceTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("since")).findFirst();
+            Optional<PsiDocTag> versionTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("version")).findFirst();
 
-        sinceTag.ifPresent(op -> param.setSince(Arrays.stream(op.getDataElements()).map(PsiElement::getText).map(String::trim).collect(Collectors.joining(""))));
-        versionTag.ifPresent(op -> param.setVersion(Arrays.stream(op.getDataElements()).map(PsiElement::getText).map(String::trim).collect(Collectors.joining(""))));
-
+            sinceTag.ifPresent(op -> param.setSince(Arrays.stream(op.getDataElements()).map(PsiElement::getText).map(String::trim).collect(Collectors.joining(""))));
+            versionTag.ifPresent(op -> param.setVersion(Arrays.stream(op.getDataElements()).map(PsiElement::getText).map(String::trim).collect(Collectors.joining(""))));
+        }
 
         return param;
     }
