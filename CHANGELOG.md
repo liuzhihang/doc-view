@@ -1,15 +1,12 @@
 ## [Unreleased]
 
-## 1.3.10
+## 1.3.11
 
 ### Added
 
-- ParamPsiUtils.buildBodyParam 处理自身引用的VO的时候堆栈溢出
+- 修改 DocViewData 类以特殊处理集合和 map 类型的参数，保证在展示时忽略 Map 和 List 的属性
 
 ### Changed
-
-- 仅支持 2024.1 版本及以上
-- 调整部分 UI
 
 ### Deprecated
 

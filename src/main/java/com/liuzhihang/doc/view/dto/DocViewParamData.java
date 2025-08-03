@@ -70,4 +70,13 @@ public class DocViewParamData {
      */
     private List<DocViewParamData> childList = new ArrayList<>();
 
+    /**
+     * 是否是集合
+     */
+    private boolean isCollection = false;
+
+    /**
+     * 是否是 map
+     */
+    private boolean isMap = false;
 }

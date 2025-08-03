@@ -193,6 +193,28 @@ public class DocViewData {
 
         StringBuilder builder = new StringBuilder();
         for (DocViewParamData data : dataList) {
+            List<DocViewParamData> childList = data.getChildList();
+
+            if (CollectionUtils.isNotEmpty(childList)) {
+                if (childList.size() == 1) {
+                    DocViewParamData docViewParamData = childList.get(0);
+                    if (docViewParamData.isCollection()) {
+                        builder.append("\n- ").append(docViewParamData.getType()).append(" ").append(docViewParamData.getName()).append("\n\n");
+                        builder.append(separateParamMarkdown(docViewParamData.getChildList()));
+                        continue;
+                    }
+                }
+                if (childList.size() == 2) {
+                    DocViewParamData docViewParamData = childList.get(1);
+                    if (docViewParamData.isMap()) {
+                        builder.append("\n- ").append(docViewParamData.getType()).append(" ").append(docViewParamData.getName()).append("\n\n");
+                        builder.append(separateParamMarkdown(docViewParamData.getChildList()));
+                        continue;
+                    }
+                }
+            }
+
+
             builder.append("\n- ").append(data.getType()).append(" ").append(data.getName()).append("\n\n");
             builder.append(separateParamMarkdown(data.getChildList()));
         }
@@ -342,6 +364,8 @@ public class DocViewData {
 
             data.setPrefixSymbol1(prefixSymbol1);
             data.setPrefixSymbol2(prefixSymbol2);
+            data.setCollection(body.isCollection());
+            data.setMap(body.isMap());
 
             if (CollectionUtils.isNotEmpty(body.getChildList())) {
 
