@@ -45,6 +45,16 @@ public class Body {
     private String type;
 
     /**
+     * since
+     */
+    private String since;
+
+    /**
+     * version
+     */
+    private String version;
+
+    /**
      * 初始化时创建集合
      */
     private List<Body> childList = new LinkedList<>();
