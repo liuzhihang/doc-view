@@ -57,4 +57,14 @@ public class Body {
      */
     private String qualifiedNameForClassType;
 
+    /**
+     * 是否是集合
+     */
+    private boolean isCollection = false;
+
+    /**
+     * 是否是 map
+     */
+    private boolean isMap = false;
+
 }

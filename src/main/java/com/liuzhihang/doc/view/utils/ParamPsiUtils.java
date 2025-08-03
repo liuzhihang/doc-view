@@ -1,13 +1,6 @@
 package com.liuzhihang.doc.view.utils;
 
-import com.intellij.psi.CommonClassNames;
-import com.intellij.psi.PsiArrayType;
-import com.intellij.psi.PsiClass;
-import com.intellij.psi.PsiClassType;
-import com.intellij.psi.PsiElementFactory;
-import com.intellij.psi.PsiField;
-import com.intellij.psi.PsiPrimitiveType;
-import com.intellij.psi.PsiType;
+import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
@@ -17,12 +10,7 @@ import com.liuzhihang.doc.view.dto.Body;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 参数处理工具
@@ -99,7 +87,7 @@ public class ParamPsiUtils {
             // 集合参数构建, 集合就一个参数, 泛型 E
             fieldGenericsMap = CustomPsiUtils.getGenericsMap((PsiClassType) iterableType);
             parentBody = buildFieldGenericsBody("element", childClass, body);
-
+            parentBody.setCollection(true);
 
         } else if (InheritanceUtil.isInheritor(type, CommonClassNames.JAVA_UTIL_MAP)) {
             // HashMap or Map 的泛型获取 value
@@ -130,6 +118,7 @@ public class ParamPsiUtils {
             fieldGenericsMap = CustomPsiUtils.getGenericsMap((PsiClassType) matValueType);
             parentBody = buildFieldGenericsBody("value", childClass, body);
 
+            parentBody.setMap(true);
 
         } else if (fieldClass.isEnum() || fieldClass.isInterface() || fieldClass.isAnnotationType()) {
             // 字段是类, 也可能带泛型
@@ -264,19 +253,19 @@ public class ParamPsiUtils {
      * 排除多个List，Map类型只能递归到第一个集合
      * eg:
      * class A {
-     *     List<B> bs;
-     *     public static class B {
-     *         String b1;
-     *         String b2
-     *         List<C> cs;
-     *     }
-     *
-     *     public static class C {
-     *         String c1;
-     *         String c2
-     *     }
+     * List<B> bs;
+     * public static class B {
+     * String b1;
+     * String b2
+     * List<C> cs;
      * }
-     *
+     * <p>
+     * public static class C {
+     * String c1;
+     * String c2
+     * }
+     * }
+     * <p>
      * 只能展示 B 类型的字段，C 类型的字段不展示
      *
      * @param body
