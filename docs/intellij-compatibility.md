@@ -1,18 +1,64 @@
-# IntelliJ Compatibility
+# IntelliJ 兼容性
 
-本文档记录 Doc View 与 IntelliJ Platform 的兼容策略。任何修改 `plugin.xml`、Gradle IntelliJ 配置、IDE API、action、tool window、settings、PSI 或 DOM 扩展的变更都必须参考本文档。
+本文档记录 Doc View 与 IntelliJ Platform 的构建、运行、打包和兼容性验证策略。任何修改 `plugin.xml`、Gradle IntelliJ 配置、IDE API、action、tool window、settings、PSI 或 DOM 扩展的变更都必须参考本文档。
+
+主要外部参考：
+
+- JetBrains IntelliJ Platform Plugin SDK：https://plugins.jetbrains.com/docs/intellij/welcome.html
+- IntelliJ Platform Gradle Plugin 2.x 文档：https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin.html
+- IntelliJ Platform build number ranges：https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html
 
 ## 当前基线
 
 - `platformType=IU`
-- `platformVersion=2024.1`
-- `pluginSinceBuild=241`
-- `pluginUntilBuild=` 空，表示不主动限制上限
-- IntelliJ Gradle Plugin：1.16.1
-- Java source/target compatibility：17
-- Bundled plugins：`com.intellij.java`、`markdown`
-- `buildSearchableOptions.enabled=false`
-- `updateSinceUntilBuild=false`
+- `platformVersion=2024.2`
+- `pluginSinceBuild=242`
+- `pluginUntilBuild=` 空，表示 plugin.xml 不主动限制上限
+- IntelliJ Platform Gradle Plugin：`org.jetbrains.intellij.platform` 2.16.0
+- Gradle Wrapper：9.0.0
+- Java source/target compatibility：21
+- Gradle 运行 JDK：建议使用 Java 21；本地 `buildPlugin` 验证使用 Homebrew OpenJDK 21.0.7
+- Bundled plugins：`com.intellij.java`、`org.intellij.plugins.markdown`
+- `buildSearchableOptions=false`
+- Plugin Verifier 默认矩阵：`2024.2`、`2024.3`
+
+## 支持范围
+
+Doc View 当前兼容基线从 IntelliJ IDEA 2024.2 / branch `242` 开始。`pluginUntilBuild` 暂时保持空值，这表示 plugin descriptor 不主动设置 upper build bound；实际已验证范围以本文档中的 Plugin Verifier 矩阵为准。
+
+维护规则：
+
+- 声明支持新的 IDEA major/minor 版本前，必须先把该版本加入 `pluginVerifierIdeVersions` 并运行 `./gradlew verifyPlugin`。
+- 如果 Plugin Verifier 对某个未来版本报告阻断级 API 或 descriptor 问题，必须修复问题或设置明确的 `pluginUntilBuild`，不能只依赖空上限。
+- 如果未来需要重新支持 2024.1 / branch 241，必须单独评估 Java 17 字节码、IntelliJ Platform Gradle Plugin 2.x 支持和 verifier 矩阵，不得在当前 Java 21 基线下直接声明兼容 241。
+- 可按发布节奏把 `2025.1`、`2025.2`、`2025.3`、`2026.1` 等版本逐步加入矩阵；首次加入会下载较大的 IDEA artifacts，适合在网络稳定的本地或 CI 环境执行。
+
+## Java 基线
+
+当前基线使用 Java 21，这是因为 IntelliJ IDEA 2024.2+ 对应 branch 242+，平台运行时进入 Java 21 基线。这里需要区分三件事：
+
+- Gradle 运行 JDK：运行 Gradle wrapper 的 JDK，推荐 Java 21。
+- Java source/target compatibility：插件编译字节码级别，当前为 21。
+- 目标 IDEA 平台运行时：`platformVersion=2024.2` 及 verifier 矩阵中的 IDEA 版本。
+
+维护规则：
+
+- `javaVersion`、`pluginSinceBuild`、`platformVersion` 和 verifier 矩阵必须一起评估。
+- Java 21 字节码不得声明兼容 2024.1 / branch 241。
+- 如果后续 IDEA 平台升级要求更高 Java 版本，必须先通过 OpenSpec change 定义兼容范围和验证矩阵。
+
+## Gradle 配置
+
+当前使用 IntelliJ Platform Gradle Plugin 2.x DSL：
+
+- `repositories.intellijPlatform.defaultRepositories()` 提供 JetBrains 平台依赖仓库。
+- `dependencies.intellijPlatform.create(platformType, platformVersion)` 解析目标 IDEA。
+- `dependencies.intellijPlatform.bundledPlugin(...)` 声明 bundled Java 和 Markdown 插件。
+- `intellijPlatform.pluginConfiguration.ideaVersion` 写入 `sinceBuild` / `untilBuild`。
+- `intellijPlatform.pluginVerification.ides` 使用 `pluginVerifierIdeVersions` 配置验证矩阵。
+- `intellijPlatform.pluginVerification.failureLevel` 当前只将 `COMPATIBILITY_PROBLEMS` 作为构建失败条件；已有 deprecated/internal API usage 会继续出现在报告中，但不在本基线变更中修改 Java 生产代码。
+
+`.intellijPlatform` 是 2.x 插件使用的本地平台缓存目录，必须保留在 `.gitignore` 中。
 
 ## plugin.xml 依赖
 
@@ -48,6 +94,7 @@
 - action `update` 必须轻量，并处理 Dumb Mode、无项目、无编辑器、文件失效。
 - tool window factory 应处理项目生命周期。
 - settings configurable 变更要验证打开、保存、取消、默认值和持久化。
+- 工具类的 class initializer 不得请求 IntelliJ service；例如 notification group 应在实际发送通知时按需获取。
 
 ## PSI API 使用
 
@@ -58,22 +105,38 @@ PSI 相关兼容性要求：
 - 对 `PsiElement#isValid`、`Project#isDisposed`、containing file 等状态做防御。
 - 泛型、注解、Javadoc、XML DOM 的兼容性需要在样例中体现。
 
-## 升级流程
+## 常用验证命令
 
-升级 IntelliJ 平台或 Gradle IntelliJ Plugin 时：
+```bash
+# 确认 Gradle、Java、任务注册和 2.x DSL
+./gradlew --version
+./gradlew tasks --all
+./gradlew verifyPluginProjectConfiguration
 
-1. 创建独立 OpenSpec change。
-2. 记录旧版本和目标版本。
-3. 检查 JetBrains API 变更、废弃 API 和插件验证告警。
-4. 更新 `gradle.properties` 或 `build.gradle`。
-5. 运行 `./gradlew test`。
-6. 运行 `./gradlew verifyPlugin`。
-7. 运行 `./gradlew runIde`，手动验证核心流程。
-8. 更新 `CHANGELOG.md` 和 release checklist。
+# 编译并运行自动化测试；当前 test sources 是手动示例类，允许 0 个自动测试被发现
+./gradlew test
 
-## 手动验证矩阵
+# 构建插件安装包
+./gradlew buildPlugin
 
-核心流程至少覆盖：
+# 按配置矩阵运行 Plugin Verifier
+./gradlew verifyPlugin
+
+# 启动沙箱 IDE，进行手动烟测
+./gradlew runIde
+```
+
+在本机验证时建议确保 Gradle 使用可加载 AWT/JBR 相关 native library 的 Java 21。例如，本机 `buildPlugin` 使用 Homebrew OpenJDK 21.0.7 验证通过：
+
+```bash
+JAVA_HOME=/opt/homebrew/Cellar/openjdk@21/21.0.7/libexec/openjdk.jdk/Contents/Home ./gradlew buildPlugin
+```
+
+如果某个 JDK 的 `libawt.dylib` 被 macOS system policy 拒绝加载，`instrumentCode` 可能失败；应切换到可正常加载 native library 的 Java 21 发行版后重跑验证。
+
+## 手动 runIde 烟测矩阵
+
+`./gradlew runIde` 启动沙箱 IDE 后，至少覆盖：
 
 - 在 Java Controller 方法上触发 `Doc View`。
 - 在 Dubbo Service 方法上触发 `Doc View`。
@@ -81,13 +144,30 @@ PSI 相关兼容性要求：
 - 打开 preview、复制、导出。
 - 打开 settings、template settings、YApi/ShowDoc/YuQue settings。
 - 验证 line marker 显示和隐藏设置。
-- 验证项目关闭或切换后无异常。
+- 验证项目关闭、重新打开或切换后无异常。
+
+## 升级流程
+
+升级 IntelliJ 平台、Gradle Wrapper、Java 基线或 IntelliJ Platform Gradle Plugin 时：
+
+1. 创建独立 OpenSpec change。
+2. 记录旧版本和目标版本。
+3. 检查 JetBrains API 变更、废弃 API、Java runtime 要求和插件验证告警。
+4. 更新 `gradle.properties`、`build.gradle`、Gradle wrapper 或相关文档。
+5. 运行 `./gradlew test`。
+6. 运行 `./gradlew buildPlugin`。
+7. 运行 `./gradlew verifyPlugin`。
+8. 运行 `./gradlew runIde`，手动验证核心流程。
+9. 更新 `CHANGELOG.md` 和 release checklist。
 
 ## 发布前兼容性检查
 
+- `./gradlew buildPlugin` 成功生成插件安装包。
 - `./gradlew verifyPlugin` 无阻断级问题。
-- `pluginSinceBuild` 与目标平台匹配。
+- Plugin Verifier 报告中的 deprecated/internal API usage 已记录，且不包含 compatibility problem。
+- `pluginSinceBuild` 与 Java 字节码和目标平台匹配。
 - `pluginUntilBuild` 策略有明确说明。
+- Plugin Verifier 矩阵覆盖计划声明支持的 IDEA 版本。
 - 新 API 使用有最小目标版本依据。
 - Marketplace 描述和 changelog 不夸大兼容范围。
 
@@ -95,6 +175,6 @@ PSI 相关兼容性要求：
 
 兼容性升级出现问题时：
 
-- 回滚平台版本、Gradle IntelliJ Plugin 版本和相关 API 修改。
+- 回滚 Gradle Wrapper、IntelliJ Platform Gradle Plugin 版本、平台版本、Java 基线和相关 API 修改。
 - 保留可复现错误信息。
 - 不在同一个修复中夹带功能重构。

@@ -4,10 +4,10 @@
 
 ## 运行环境
 
-- 生产代码语言：Java 17
-- 构建系统：Gradle 8.5
-- IntelliJ Gradle Plugin：`org.jetbrains.intellij` 1.16.1
-- 目标平台：IntelliJ IDEA IU 2024.1
+- 生产代码语言：Java 21
+- 构建系统：Gradle 9.0.0
+- IntelliJ Platform Gradle Plugin：`org.jetbrains.intellij.platform` 2.16.0
+- 目标平台：IntelliJ IDEA IU 2024.2+
 - 插件依赖：`com.intellij.modules.platform`、`com.intellij.modules.java`、`org.intellij.plugins.markdown`
 - 插件 ID：`com.liuzhihang.doc-view`
 

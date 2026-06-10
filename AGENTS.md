@@ -4,31 +4,35 @@
 
 Doc View 是一个 JetBrains IDE 插件，用于从 Java 源码生成 Markdown API 文档。项目支持 Spring/Spring Boot Controller、Feign 风格接口和 Dubbo Service，并提供 Markdown 预览、复制、导出，以及上传到 YApi、ShowDoc、YuQue 等平台的能力。
 
-- 生产代码语言：Java 17
-- 构建系统：Gradle 8.5
-- IntelliJ Gradle Plugin：`org.jetbrains.intellij` 1.16.1
-- 目标平台：IntelliJ IDEA IU 2024.1
+- 生产代码语言：Java 21
+- 构建系统：Gradle 9.0.0
+- IntelliJ Platform Gradle Plugin：`org.jetbrains.intellij.platform` 2.16.0
+- 目标平台：IntelliJ IDEA IU 2024.2+
 - 插件版本：1.3.11
 - Bundled plugin：Java、Markdown
 - 主包名：`com.liuzhihang.doc.view`
 
 ## 当前变更范围
 
-`initialize-codex-maintenance-infrastructure` 是文档和 AI 工作流基础设施变更，不应产生任何运行时行为变化。
+`establish-modern-intellij-build-compatibility-baseline` 是构建与兼容性基线变更，用于迁移现代 IntelliJ Platform 构建链路、Java 21 基线和 2024.2+ 兼容范围。
 
 本次变更允许修改：
 
 - `AGENTS.md`
-- `CLAUDE.md`，仅作为指向 `AGENTS.md` 的软链
 - `docs/**/*.md`
-- `.codex/skills/*/SKILL.md`
-- `openspec/changes/initialize-codex-maintenance-infrastructure/**`
+- `.gitignore`
+- `build.gradle`
+- `gradle.properties`
+- `gradle/wrapper/**`
+- `gradlew`
+- `gradlew.bat`
+- `src/main/java/com/liuzhihang/doc/view/notification/DocViewNotification.java`，仅用于修复 IntelliJ 2024.2+ 下类初始化期间请求 service 的兼容性问题
+- `openspec/changes/establish-modern-intellij-build-compatibility-baseline/**`
 
 本次变更禁止修改：
 
-- `src/main/java` 下的 Java 生产代码
+- `src/main/java` 下除 `DocViewNotification.java` 兼容性修复外的 Java 生产代码
 - `src/test` 下的测试代码
-- Gradle 文件或依赖声明
 - `src/main/resources/META-INF/plugin.xml`
 - runtime 资源、图标、message bundle、模板、IDE form 文件
 - 插件行为、生成 Markdown 行为、上传行为、导出行为、解析行为、设置持久化行为或 UI 行为

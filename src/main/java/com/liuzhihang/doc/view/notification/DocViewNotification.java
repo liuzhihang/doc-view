@@ -21,22 +21,25 @@ import java.awt.datatransfer.StringSelection;
  */
 public class DocViewNotification {
 
-    private static final NotificationGroup notificationGroup = NotificationGroupManager.getInstance()
-            .getNotificationGroup("doc-view.NotificationGroup");
+    private static final String NOTIFICATION_GROUP_ID = "doc-view.NotificationGroup";
+
+    private static NotificationGroup notificationGroup() {
+        return NotificationGroupManager.getInstance().getNotificationGroup(NOTIFICATION_GROUP_ID);
+    }
 
     public static void notifyWarn(Project project, String message) {
 
-        notificationGroup.createNotification(message, NotificationType.WARNING).notify(project);
+        notificationGroup().createNotification(message, NotificationType.WARNING).notify(project);
     }
 
     public static void notifyInfo(Project project, String message) {
 
-        notificationGroup.createNotification(message, NotificationType.INFORMATION).notify(project);
+        notificationGroup().createNotification(message, NotificationType.INFORMATION).notify(project);
     }
 
     public static void notifyError(Project project, String message) {
 
-        notificationGroup.createNotification(message, NotificationType.ERROR).notify(project);
+        notificationGroup().createNotification(message, NotificationType.ERROR).notify(project);
     }
 
     /**
@@ -50,7 +53,7 @@ public class DocViewNotification {
         String linkText = DocViewBundle.message("notify.upload.success.link.text");
         String copy = DocViewBundle.message("notify.upload.success.link.copy");
 
-        notificationGroup
+        notificationGroup()
                 .createNotification(DocViewBundle.message("title"), info, NotificationType.INFORMATION)
                 .setIcon(DocViewIcons.DOC_VIEW)
                 .addAction(new BrowseNotificationAction(linkText, link))
@@ -69,7 +72,7 @@ public class DocViewNotification {
 
     public static void startupNotification(@NotNull Project project) {
 
-        notificationGroup
+        notificationGroup()
                 .createNotification(DocViewBundle.message("title"), DocViewBundle.message("notify.start"), NotificationType.INFORMATION)
                 .setIcon(DocViewIcons.DOC_VIEW)
                 .addAction(new BrowseNotificationAction("Star", DocViewBundle.message("github")))
