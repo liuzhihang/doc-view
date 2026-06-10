@@ -2,10 +2,13 @@ package com.liuzhihang.doc.view.service.impl;
 
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiSubstitutor;
 import com.intellij.psi.PsiType;
+import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.enums.ContentTypeEnum;
 import com.liuzhihang.doc.view.enums.FrameworkEnum;
+import com.liuzhihang.doc.view.service.DtoSchemaCacheService;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
@@ -14,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Dubbo 处理服务
@@ -84,7 +88,8 @@ public class DubboDocViewServiceImpl implements DocViewService {
 
         // 有参数
         if (psiMethod.hasParameters()) {
-            docView.setReqBody(DubboPsiUtils.buildBody(psiMethod));
+            docView.setReqBody(cachedBody(psiClass, "dubbo-request-body", methodIdentity(psiClass, psiMethod),
+                    () -> DubboPsiUtils.buildBody(psiMethod)));
             docView.setContentType(ContentTypeEnum.JSON);
             docView.setReqBodyExample(DubboPsiUtils.getReqBodyJson(psiMethod));
         }
@@ -92,10 +97,28 @@ public class DubboDocViewServiceImpl implements DocViewService {
         PsiType returnType = psiMethod.getReturnType();
         // 返回代码相同
         if (returnType != null && returnType.isValid() && !returnType.equalsToText("void")) {
-            docView.setRespBody(ParamPsiUtils.buildRespBody(returnType));
+            docView.setRespBody(cachedBody(psiClass, "dubbo-response-body", returnType.getCanonicalText(),
+                    () -> ParamPsiUtils.buildRespBody(returnType)));
             docView.setRespExample(ParamPsiUtils.getRespBodyJson(returnType));
         }
         return docView;
 
+    }
+
+    private Body cachedBody(@NotNull PsiClass psiClass, @NotNull String role, @NotNull String typeIdentity,
+                            @NotNull Supplier<Body> bodySupplier) {
+        DtoSchemaCacheService cacheService = DtoSchemaCacheService.getInstance(psiClass.getProject());
+        DtoSchemaCacheService.DtoSchemaCacheKey key = cacheService.key(role, typeIdentity);
+        Body cachedBody = cacheService.getBody(key);
+        if (cachedBody != null) {
+            return cachedBody;
+        }
+        Body body = bodySupplier.get();
+        cacheService.putBody(key, body);
+        return body;
+    }
+
+    private String methodIdentity(@NotNull PsiClass psiClass, @NotNull PsiMethod psiMethod) {
+        return psiClass.getQualifiedName() + "#" + psiMethod.getSignature(PsiSubstitutor.EMPTY);
     }
 }

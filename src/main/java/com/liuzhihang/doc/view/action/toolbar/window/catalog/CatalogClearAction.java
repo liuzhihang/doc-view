@@ -7,6 +7,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
+import com.liuzhihang.doc.view.service.DtoSchemaCacheService;
 import com.liuzhihang.doc.view.ui.window.DocViewNode;
 import com.liuzhihang.doc.view.utils.CustomFileUtils;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +28,8 @@ public class CatalogClearAction extends AnAction {
         if (simpleTree == null || project == null) {
             return;
         }
+
+        DtoSchemaCacheService.getInstance(project).clear();
 
         SimpleNode selectedNode = simpleTree.getSelectedNode();
 

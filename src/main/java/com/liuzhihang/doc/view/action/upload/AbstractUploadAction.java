@@ -7,6 +7,8 @@ import com.liuzhihang.doc.view.action.AbstractAction;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
+import com.liuzhihang.doc.view.notification.DocViewNotification;
+import com.liuzhihang.doc.view.utils.DocViewBackgroundTasks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -24,10 +26,19 @@ public abstract class AbstractUploadAction extends AbstractAction {
         // 先执行抽象类逻辑
         super.actionPerformed(e);
 
-        List<DocView> docViewList = DocViewService.getInstance(project, targetClass).buildDoc(targetClass, targetMethod);
+        if (project == null || targetClass == null) {
+            return;
+        }
 
-        // 上传
-        uploadService().upload(project, docViewList);
+        DocViewUploadService docViewUploadService = uploadService();
+        DocViewBackgroundTasks.runReadTask(
+                project,
+                "Doc View build upload data",
+                true,
+                indicator -> DocViewService.getInstance(project, targetClass).buildDoc(targetClass, targetMethod),
+                docViewList -> docViewUploadService.upload(project, docViewList),
+                throwable -> DocViewNotification.notifyError(project, throwable.getMessage())
+        );
 
     }
 
