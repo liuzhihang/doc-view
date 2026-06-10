@@ -4,9 +4,11 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiType;
+import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.enums.ContentTypeEnum;
 import com.liuzhihang.doc.view.enums.FrameworkEnum;
+import com.liuzhihang.doc.view.service.DtoSchemaCacheService;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
@@ -16,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import static com.intellij.psi.PsiKeyword.VOID;
 
@@ -78,7 +81,8 @@ public class SpringDocViewServiceImpl implements DocViewService {
                 // JSON 请求可能会有 body
                 PsiParameter requestBodyParam = SpringPsiUtils.requestBodyParam(psiMethod);
                 if (requestBodyParam != null) {
-                    docView.setReqBody(SpringPsiUtils.buildBody(requestBodyParam));
+                    docView.setReqBody(cachedBody(psiClass, "spring-request-body", requestBodyParam.getType(),
+                            () -> SpringPsiUtils.buildBody(requestBodyParam)));
                     docView.setReqBodyExample(SpringPsiUtils.reqBodyJson(requestBodyParam));
                 }
             }
@@ -90,10 +94,24 @@ public class SpringDocViewServiceImpl implements DocViewService {
 
         PsiType returnType = psiMethod.getReturnType();
         if (returnType != null && returnType.isValid() && !returnType.equalsToText(VOID)) {
-            docView.setRespBody(ParamPsiUtils.buildRespBody(returnType));
+            docView.setRespBody(cachedBody(psiClass, "spring-response-body", returnType,
+                    () -> ParamPsiUtils.buildRespBody(returnType)));
             docView.setRespExample(ParamPsiUtils.getRespBodyJson(returnType));
         }
         return docView;
+    }
+
+    private Body cachedBody(@NotNull PsiClass psiClass, @NotNull String role, @NotNull PsiType type,
+                            @NotNull Supplier<Body> bodySupplier) {
+        DtoSchemaCacheService cacheService = DtoSchemaCacheService.getInstance(psiClass.getProject());
+        DtoSchemaCacheService.DtoSchemaCacheKey key = cacheService.key(role, type.getCanonicalText());
+        Body cachedBody = cacheService.getBody(key);
+        if (cachedBody != null) {
+            return cachedBody;
+        }
+        Body body = bodySupplier.get();
+        cacheService.putBody(key, body);
+        return body;
     }
 
 }

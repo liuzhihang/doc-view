@@ -3,13 +3,9 @@ package com.liuzhihang.doc.view.action.toolbar.window;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.fileChooser.FileChooser;
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
 import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.io.FileUtil;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -19,6 +15,7 @@ import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.ui.window.RootNode;
+import com.liuzhihang.doc.view.utils.DocViewBackgroundTasks;
 import com.liuzhihang.doc.view.utils.DialogUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -61,23 +58,13 @@ public class WindowExportAction extends AnAction {
                 DocViewBundle.message("notify.export.file.cover"))) {
             return;
         }
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View export", true) {
-            @Override
-            public void run(@NotNull ProgressIndicator progressIndicator) {
-
-                ApplicationManager.getApplication().executeOnPooledThread(() -> ApplicationManager.getApplication().runReadAction(() -> {
-
-                    for (DocView docView : rootNode.docViewList()) {
-                        try {
-                            FileUtil.writeToFile(file, DocViewData.markdownText(project, docView), true);
-                        } catch (Exception ignored) {
-                        }
-                    }
-
-                }));
-
-
+        DocViewBackgroundTasks.runTask(project, "Doc View export", true, indicator -> {
+            for (DocView docView : rootNode.docViewList()) {
+                indicator.checkCanceled();
+                FileUtil.writeToFile(file, DocViewData.markdownText(project, docView), true);
             }
-        });
+            DocViewBackgroundTasks.invokeLater(project,
+                    () -> DocViewNotification.notifyInfo(project, DocViewBundle.message("notify.export.success")));
+        }, throwable -> DocViewNotification.notifyError(project, DocViewBundle.message("notify.export.fail")));
     }
 }

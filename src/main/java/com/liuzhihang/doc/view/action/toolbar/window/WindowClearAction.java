@@ -3,6 +3,7 @@ package com.liuzhihang.doc.view.action.toolbar.window;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
+import com.liuzhihang.doc.view.service.DtoSchemaCacheService;
 import com.liuzhihang.doc.view.utils.CustomFileUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,6 +19,7 @@ public class WindowClearAction extends AnAction {
         if (project == null) {
             return;
         }
+        DtoSchemaCacheService.getInstance(project).clear();
         CustomFileUtils.delete(project, "Doc View");
     }
 
