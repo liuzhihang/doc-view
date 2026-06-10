@@ -79,6 +79,15 @@ intellijPlatform {
                     .each { create(IntelliJPlatformType.IntellijIdeaUltimate, it) }
         }
     }
+
+    publishing {
+        token = providers.gradleProperty("intellijPlatformPublishingToken")
+        channels = providers.gradleProperty("pluginPublishChannels").map {
+            it.split(',')
+                    .collect { channel -> channel.trim() }
+                    .findAll { channel -> !channel.isEmpty() }
+        }
+    }
 }
 
 changelog {

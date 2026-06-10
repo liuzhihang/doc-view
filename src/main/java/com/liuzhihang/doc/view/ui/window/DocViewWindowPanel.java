@@ -6,10 +6,6 @@ import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
 import com.intellij.openapi.actionSystem.DataProvider;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.SimpleToolWindowPanel;
@@ -22,6 +18,8 @@ import com.intellij.ui.tree.StructureTreeModel;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.ui.treeStructure.SimpleTreeStructure;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
+import com.liuzhihang.doc.view.notification.DocViewNotification;
+import com.liuzhihang.doc.view.utils.DocViewBackgroundTasks;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
@@ -97,15 +95,12 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
     }
 
     private void doUpdateCatalogTree() {
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View Searching") {
-            @Override
-            public void run(@NotNull ProgressIndicator indicator) {
-                ApplicationManager.getApplication().runReadAction(() -> {
+        DocViewBackgroundTasks.runReadTask(project, "Doc View Searching", true, indicator -> {
                     rootNode.updateNode(project);
-                    treeModel.invalidateAsync();
-                });
-            }
-        });
+                    return rootNode;
+                },
+                ignored -> treeModel.invalidateAsync(),
+                throwable -> DocViewNotification.notifyError(project, throwable.getMessage()));
     }
 
 

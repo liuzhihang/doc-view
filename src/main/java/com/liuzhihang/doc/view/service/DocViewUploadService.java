@@ -1,14 +1,13 @@
 package com.liuzhihang.doc.view.service;
 
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl;
 import com.liuzhihang.doc.view.service.impl.YApiServiceImpl;
 import com.liuzhihang.doc.view.service.impl.YuQueServiceImpl;
+import com.liuzhihang.doc.view.notification.DocViewNotification;
+import com.liuzhihang.doc.view.utils.DocViewBackgroundTasks;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -53,17 +52,12 @@ public interface DocViewUploadService {
             return;
         }
 
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View upload", true) {
-            @Override
-            public void run(@NotNull ProgressIndicator progressIndicator) {
-                ApplicationManager.getApplication().executeOnPooledThread(() -> ApplicationManager.getApplication().runReadAction(() -> {
-
-                    for (DocView docView : docViewList) {
-                        doUpload(project, docView);
-                    }
-                }));
+        DocViewBackgroundTasks.runTask(project, "Doc View upload", true, indicator -> {
+            for (DocView docView : docViewList) {
+                indicator.checkCanceled();
+                doUpload(project, docView);
             }
-        });
+        }, throwable -> DocViewNotification.notifyError(project, throwable.getMessage()));
 
     }
 
@@ -80,18 +74,10 @@ public interface DocViewUploadService {
             return;
         }
 
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View upload", true) {
-            @Override
-            public void run(@NotNull ProgressIndicator progressIndicator) {
-                ApplicationManager.getApplication().executeOnPooledThread(() -> ApplicationManager.getApplication().runReadAction(() -> {
-                    doUpload(project, docView);
-                }));
-            }
-        });
+        DocViewBackgroundTasks.runTask(project, "Doc View upload", true,
+                indicator -> doUpload(project, docView),
+                throwable -> DocViewNotification.notifyError(project, throwable.getMessage()));
     }
-
-    ;
-
 
     /**
      * 检查配置

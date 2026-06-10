@@ -20,6 +20,7 @@ import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.dto.DocViewParamData;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.ui.treeview.ParamTreeTableView;
+import com.liuzhihang.doc.view.utils.DocViewBackgroundTasks;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 import com.liuzhihang.doc.view.utils.GsonFormatUtil;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
@@ -195,19 +196,32 @@ public class ParamDocEditorForm {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
-                Map<String, Object> fieldMap = ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null);
-                String format = GsonFormatUtil.gsonFormat(fieldMap);
-                StringSelection selection = new StringSelection(format);
-                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-                clipboard.setContents(selection, selection);
-                DocViewNotification.notifyInfo(project, DocViewBundle.message("param.copy.success", psiClass.getName()));
-                popup.cancel();
+                DocViewBackgroundTasks.runReadTask(
+                        project,
+                        "Doc View JSON",
+                        true,
+                        indicator -> ParamPsiUtils.getFieldsAndDefaultValue(psiClass, null),
+                        fieldMap -> {
+                            String format = GsonFormatUtil.gsonFormat(fieldMap);
+                            StringSelection selection = new StringSelection(format);
+                            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                            clipboard.setContents(selection, selection);
+                            DocViewNotification.notifyInfo(project, DocViewBundle.message("param.copy.success", psiClass.getName()));
+                            popup.cancel();
+                        },
+                        throwable -> DocViewNotification.notifyError(project, throwable.getMessage())
+                );
             }
         });
 
         rightGroup.add(new AnAction("Confirm", "Confirm modification", DocViewIcons.CHECKED) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
+
+                if (tableView == null) {
+                    DocViewNotification.notifyInfo(project, "Doc View is loading, please try again.");
+                    return;
+                }
 
                 if (tableView.isEditing()) {
                     tableView.getCellEditor().stopCellEditing();
@@ -238,11 +252,24 @@ public class ParamDocEditorForm {
 
     private void initParamTable() {
 
-        Body rootBody = new Body();
-        rootBody.setQualifiedNameForClassType(psiClass.getQualifiedName());
-        ParamPsiUtils.buildBodyList(psiClass, null, rootBody);
+        paramScrollPane.setViewportView(new JLabel("Loading Doc View parameters...", SwingConstants.CENTER));
 
-        List<DocViewParamData> dataList = DocViewData.buildBodyDataList(rootBody.getChildList());
+        DocViewBackgroundTasks.runReadTask(
+                project,
+                "Doc View parameters",
+                true,
+                indicator -> {
+                    Body rootBody = new Body();
+                    rootBody.setQualifiedNameForClassType(psiClass.getQualifiedName());
+                    ParamPsiUtils.buildBodyList(psiClass, null, rootBody);
+                    return DocViewData.buildBodyDataList(rootBody.getChildList());
+                },
+                this::applyParamTable,
+                throwable -> DocViewNotification.notifyError(project, throwable.getMessage())
+        );
+    }
+
+    private void applyParamTable(@NotNull List<DocViewParamData> dataList) {
 
         DefaultMutableTreeNode root = new DefaultMutableTreeNode();
 
@@ -253,7 +280,6 @@ public class ParamDocEditorForm {
         tableView = new ParamTreeTableView(model);
 
         paramScrollPane.setViewportView(tableView);
-
     }
 
     private void convertToTreeNode(DefaultMutableTreeNode root, List<DocViewParamData> paramDataList) {

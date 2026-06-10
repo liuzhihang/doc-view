@@ -88,8 +88,25 @@ git diff --name-only
 - 运行 `./gradlew buildPlugin`。
 - 检查生成的插件 zip。
 - 确认 changelog 渲染正确。
-- 确认 Marketplace token 仅通过安全环境变量提供。
+- 确认 Marketplace token 仅通过安全环境变量或本地 Gradle 参数提供，不写入仓库文件。
 - 准备回滚版本或撤回方案。
+
+Marketplace token 可以用以下任一方式提供：
+
+```bash
+export ORG_GRADLE_PROJECT_intellijPlatformPublishingToken='YOUR_TOKEN'
+./gradlew publishPlugin
+```
+
+```bash
+./gradlew publishPlugin -PintellijPlatformPublishingToken='YOUR_TOKEN'
+```
+
+默认发布 channel 来自 `pluginPublishChannels`，多个 channel 用逗号分隔，例如：
+
+```bash
+./gradlew publishPlugin -PpluginPublishChannels=beta
+```
 
 发布命令：
 

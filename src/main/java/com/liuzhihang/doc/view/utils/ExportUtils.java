@@ -67,42 +67,46 @@ public class ExportUtils {
 
         String path = chooser.getPath();
 
-        try {
-            if (settings.getMergeExport()) {
-                // 导出到一个文件中
-                File file = new File(path + "/" + className + ".md");
-
-                // 文件已存在，选择是否覆盖导出。
+        if (settings.getMergeExport()) {
+            File file = new File(path + "/" + className + ".md");
+            if (file.exists() && !DialogUtil.confirm(
+                    DocViewBundle.message("notify.export.file.exists"),
+                    DocViewBundle.message("notify.export.file.cover"))) {
+                return;
+            }
+        } else {
+            for (DocView docView : docViewList) {
+                File file = new File(path + "/" + docView.getName() + ".md");
                 if (file.exists() && !DialogUtil.confirm(
                         DocViewBundle.message("notify.export.file.exists"),
                         DocViewBundle.message("notify.export.file.cover"))) {
                     return;
                 }
-                for (DocView docView : docViewList) {
-                    FileUtil.writeToFile(file, DocViewData.markdownText(project, docView), true);
-                }
-            } else {
-                for (DocView docView : docViewList) {
-
-                    File file = new File(path + "/" + docView.getName() + ".md");
-                    // 文件已存在，选择是否覆盖导出。
-                    if (file.exists() && !DialogUtil.confirm(
-                            DocViewBundle.message("notify.export.file.exists"),
-                            DocViewBundle.message("notify.export.file.cover"))) {
-                        return;
-                    }
-
-                    FileUtil.writeToFile(file, DocViewData.markdownText(project, docView), true);
-                }
-
             }
-
-
-            DocViewNotification.notifyInfo(project, DocViewBundle.message("notify.export.success"));
-        } catch (IOException ioException) {
-            DocViewNotification.notifyError(project, DocViewBundle.message("notify.export.fail"));
         }
 
+        DocViewBackgroundTasks.runTask(project, "Doc View export", true, indicator -> {
+            try {
+                if (settings.getMergeExport()) {
+                    File file = new File(path + "/" + className + ".md");
+                    for (DocView docView : docViewList) {
+                        indicator.checkCanceled();
+                        FileUtil.writeToFile(file, DocViewData.markdownText(project, docView), true);
+                    }
+                } else {
+                    for (DocView docView : docViewList) {
+                        indicator.checkCanceled();
+                        File file = new File(path + "/" + docView.getName() + ".md");
+                        FileUtil.writeToFile(file, DocViewData.markdownText(project, docView), true);
+                    }
+                }
+                DocViewBackgroundTasks.invokeLater(project,
+                        () -> DocViewNotification.notifyInfo(project, DocViewBundle.message("notify.export.success")));
+            } catch (IOException ioException) {
+                DocViewBackgroundTasks.invokeLater(project,
+                        () -> DocViewNotification.notifyError(project, DocViewBundle.message("notify.export.fail")));
+            }
+        }, throwable -> DocViewNotification.notifyError(project, DocViewBundle.message("notify.export.fail")));
 
     }
 
