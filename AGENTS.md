@@ -155,6 +155,7 @@ src/
 
 - 新功能、行为变化、兼容性变化和架构变化优先走 OpenSpec。
 - OpenSpec artifacts 默认使用中文撰写，除非维护者明确要求使用其他语言。
+- 默认在 `develop` 分支开展开发；除非维护者明确要求，不从 `master` 或临时 feature 分支直接承接日常开发。
 - 任务匹配时使用 `.codex/skills/` 下的 repo-local skill。
 - 保持改动小而聚焦，遵循现有包边界和服务职责。
 - 工作区可能存在维护者或其他工具的未提交变更；不要回滚无关文件。
@@ -177,6 +178,7 @@ src/
 ## 发布纪律
 
 - 用户可见行为变化需要更新 `CHANGELOG.md`。
+- 面向发布的 PR 默认从 `develop` 发往 `master`；feature 分支应先合入 `develop`。
 - 发布前按 [发布检查清单](docs/release-checklist.md) 执行。
 - 不提交 Marketplace token、平台 token、账号、cookie 或生产私密地址。
 - 只有维护者明确要求并准备好凭据时，才执行 `./gradlew publishPlugin`。
