@@ -11,40 +11,41 @@
 ## 当前基线
 
 - `platformType=IU`
-- `platformVersion=2024.2`
-- `pluginSinceBuild=242`
+- `platformVersion=2026.1`
+- `pluginSinceBuild=261`
 - `pluginUntilBuild=` 空，表示 plugin.xml 不主动限制上限
 - IntelliJ Platform Gradle Plugin：`org.jetbrains.intellij.platform` 2.16.0
-- Gradle Wrapper：9.0.0
+- Gradle Wrapper：9.5.0
 - Java source/target compatibility：21
 - Gradle 运行 JDK：建议使用 Java 21；本地 `buildPlugin` 验证使用 Homebrew OpenJDK 21.0.7
 - Bundled plugins：`com.intellij.java`、`org.intellij.plugins.markdown`
 - `buildSearchableOptions=false`
-- Plugin Verifier 默认矩阵：`2024.2`、`2024.3`
+- Plugin Verifier 默认矩阵：`2026.1`
+- Plugin Verifier 默认使用 `pluginVerifierOffline=true`，避免本地证书链或代理环境导致 documented API change 页面抓取失败。
 
 ## 支持范围
 
-Doc View 当前兼容基线从 IntelliJ IDEA 2024.2 / branch `242` 开始。`pluginUntilBuild` 暂时保持空值，这表示 plugin descriptor 不主动设置 upper build bound；实际已验证范围以本文档中的 Plugin Verifier 矩阵为准。
+Doc View 当前兼容基线从 IntelliJ IDEA 2026.1 / branch `261` 开始。`pluginUntilBuild` 暂时保持空值，这表示 plugin descriptor 不主动设置 upper build bound；实际已验证范围以本文档中的 Plugin Verifier 矩阵为准。
 
 维护规则：
 
 - 声明支持新的 IDEA major/minor 版本前，必须先把该版本加入 `pluginVerifierIdeVersions` 并运行 `./gradlew verifyPlugin`。
 - 如果 Plugin Verifier 对某个未来版本报告阻断级 API 或 descriptor 问题，必须修复问题或设置明确的 `pluginUntilBuild`，不能只依赖空上限。
-- 如果未来需要重新支持 2024.1 / branch 241，必须单独评估 Java 17 字节码、IntelliJ Platform Gradle Plugin 2.x 支持和 verifier 矩阵，不得在当前 Java 21 基线下直接声明兼容 241。
-- 可按发布节奏把 `2025.1`、`2025.2`、`2025.3`、`2026.1` 等版本逐步加入矩阵；首次加入会下载较大的 IDEA artifacts，适合在网络稳定的本地或 CI 环境执行。
+- 如果未来需要重新支持 2025.x 或更早版本，必须单独评估目标平台 API、Java 21 字节码、IntelliJ Platform Gradle Plugin 2.x 支持和 verifier 矩阵，不得在当前基线下直接声明兼容。
+- 可按发布节奏把后续 `2026.2` 等版本逐步加入矩阵；首次加入会下载较大的 IDEA artifacts，适合在网络稳定的本地或 CI 环境执行。
 
 ## Java 基线
 
-当前基线使用 Java 21，这是因为 IntelliJ IDEA 2024.2+ 对应 branch 242+，平台运行时进入 Java 21 基线。这里需要区分三件事：
+当前基线使用 Java 21，这是因为 IntelliJ IDEA 2026.1+ 对应 branch 261+，平台运行时保持 Java 21 基线。这里需要区分三件事：
 
 - Gradle 运行 JDK：运行 Gradle wrapper 的 JDK，推荐 Java 21。
 - Java source/target compatibility：插件编译字节码级别，当前为 21。
-- 目标 IDEA 平台运行时：`platformVersion=2024.2` 及 verifier 矩阵中的 IDEA 版本。
+- 目标 IDEA 平台运行时：`platformVersion=2026.1` 及 verifier 矩阵中的 IDEA 版本。
 
 维护规则：
 
 - `javaVersion`、`pluginSinceBuild`、`platformVersion` 和 verifier 矩阵必须一起评估。
-- Java 21 字节码不得声明兼容 2024.1 / branch 241。
+- Java 21 字节码不得声明兼容低于当前支持基线的 IDE 版本。
 - 如果后续 IDEA 平台升级要求更高 Java 版本，必须先通过独立变更说明和 contract 定义兼容范围和验证矩阵。
 
 ## Gradle 配置
@@ -56,7 +57,8 @@ Doc View 当前兼容基线从 IntelliJ IDEA 2024.2 / branch `242` 开始。`plu
 - `dependencies.intellijPlatform.bundledPlugin(...)` 声明 bundled Java 和 Markdown 插件。
 - `intellijPlatform.pluginConfiguration.ideaVersion` 写入 `sinceBuild` / `untilBuild`。
 - `intellijPlatform.pluginVerification.ides` 使用 `pluginVerifierIdeVersions` 配置验证矩阵。
-- `intellijPlatform.pluginVerification.failureLevel` 当前只将 `COMPATIBILITY_PROBLEMS` 作为构建失败条件；已有 deprecated/internal API usage 会继续出现在报告中，但不在本基线变更中修改 Java 生产代码。
+- `intellijPlatform.pluginVerification.failureLevel` 当前只将 `COMPATIBILITY_PROBLEMS` 作为构建失败条件；deprecated API usage 仍需在发布前评估，internal API usage 必须修复或记录 JetBrains 明确认可的例外。
+- `tasks.verifyPlugin.offline` 由 `pluginVerifierOffline` 控制，默认开启。该设置只让 Plugin Verifier 跳过在线抓取 JetBrains documented API change 页面，避免 `PKIX path building failed` 这类本地证书链错误；不会跳过插件二进制兼容性验证，也不会忽略 internal API usage。需要在线抓取 documented problems 过滤信息时，可临时运行 `./gradlew verifyPlugin -PpluginVerifierOffline=false`。
 
 `.intellijPlatform` 是 2.x 插件使用的本地平台缓存目录，必须保留在 `.gitignore` 中。
 
@@ -105,6 +107,23 @@ PSI 相关兼容性要求：
 - 对 `PsiElement#isValid`、`Project#isDisposed`、containing file 等状态做防御。
 - 泛型、注解、Javadoc、XML DOM 的兼容性需要在样例中体现。
 
+## 1.3.12 兼容性 Contract
+
+本次兼容性修复的外部输入是 JetBrains Marketplace Plugin Verifier 报告的 internal API usage：`ActionToolbarImpl` 以及 `ActionToolbarImpl.setForceMinimumSize(boolean)`。
+
+期望结果：
+
+- 生产代码不再 import 或强转 `com.intellij.openapi.actionSystem.impl.ActionToolbarImpl`。
+- 预览弹窗和参数编辑弹窗继续通过 `ActionManager#createActionToolbar(...)` 创建 toolbar，并只依赖公开的 `ActionToolbar`、`ToolbarLayoutStrategy` 和 Swing component API。
+- `pluginSinceBuild=261`，`platformVersion=2026.1`，声明兼容范围从 IntelliJ IDEA 2026.1+ 开始。
+- 不改变 PSI 解析、DTO、Markdown、上传、导出、设置持久化或模板行为。
+
+验证路径：
+
+- 静态检查 `ActionToolbarImpl` 和 `setForceMinimumSize` 不再出现于 `src/main/java`。
+- 运行 `./gradlew test`、`./gradlew buildPlugin`、`./gradlew verifyPlugin`。
+- 发布前在 `./gradlew runIde` 中手动覆盖 preview、参数编辑、复制、导出、上传入口和 settings 打开流程。
+
 ## 常用验证命令
 
 ```bash
@@ -121,6 +140,9 @@ PSI 相关兼容性要求：
 
 # 按配置矩阵运行 Plugin Verifier
 ./gradlew verifyPlugin
+
+# 如需启用在线 documented API change 过滤
+./gradlew verifyPlugin -PpluginVerifierOffline=false
 
 # 启动沙箱 IDE，进行手动烟测
 ./gradlew runIde

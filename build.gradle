@@ -13,6 +13,10 @@ plugins {
 group project.pluginGroup
 version project.pluginVersion
 
+def pluginVerifierOfflineProvider = providers.gradleProperty("pluginVerifierOffline")
+        .map { it.toBoolean() }
+        .orElse(true)
+
 repositories {
     mavenLocal()
     maven { url "https://maven.aliyun.com/repository/public" }
@@ -107,6 +111,10 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.named('test') {
     failOnNoDiscoveredTests = false
+}
+
+tasks.named('verifyPlugin', VerifyPluginTask) {
+    offline.set(pluginVerifierOfflineProvider)
 }
 
 tasks.named('runIde') {

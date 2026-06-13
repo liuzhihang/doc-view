@@ -5,10 +5,10 @@
 Doc View 是一个 JetBrains IDE 插件，用于从 Java 源码生成 Markdown API 文档。项目支持 Spring/Spring Boot Controller、Feign 风格接口和 Dubbo Service，并提供 Markdown 预览、复制、导出，以及上传到 YApi、ShowDoc、YuQue 等平台的能力。
 
 - 生产代码语言：Java 21
-- 构建系统：Gradle 9.0.0
+- 构建系统：Gradle 9.5.0
 - IntelliJ Platform Gradle Plugin：`org.jetbrains.intellij.platform` 2.16.0
-- 目标平台：IntelliJ IDEA IU 2024.2+
-- 插件版本：1.3.11
+- 目标平台：IntelliJ IDEA IU 2026.1+
+- 插件版本：1.3.12
 - Bundled plugin：Java、Markdown
 - 主包名：`com.liuzhihang.doc.view`
 
@@ -26,11 +26,12 @@ Doc View 是一个 JetBrains IDE 插件，用于从 Java 源码生成 Markdown A
 - `gradle/wrapper/**`
 - `gradlew`
 - `gradlew.bat`
-- `src/main/java/com/liuzhihang/doc/view/notification/DocViewNotification.java`，仅用于修复 IntelliJ 2024.2+ 下类初始化期间请求 service 的兼容性问题
+- `src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java`，仅用于移除工具栏 internal API 用法
+- `src/main/java/com/liuzhihang/doc/view/ui/ParamDocEditorForm.java`，仅用于移除工具栏 internal API 用法
 
 本次变更禁止修改：
 
-- `src/main/java` 下除 `DocViewNotification.java` 兼容性修复外的 Java 生产代码
+- `src/main/java` 下除上述 IntelliJ 兼容性修复外的 Java 生产代码
 - `src/test` 下的测试代码
 - `src/main/resources/META-INF/plugin.xml`
 - runtime 资源、图标、message bundle、模板、IDE form 文件
