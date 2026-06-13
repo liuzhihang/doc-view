@@ -5,9 +5,9 @@
 ## 运行环境
 
 - 生产代码语言：Java 21
-- 构建系统：Gradle 9.0.0
+- 构建系统：Gradle 9.5.0
 - IntelliJ Platform Gradle Plugin：`org.jetbrains.intellij.platform` 2.16.0
-- 目标平台：IntelliJ IDEA IU 2024.2+
+- 目标平台：IntelliJ IDEA IU 2026.1+
 - 插件依赖：`com.intellij.modules.platform`、`com.intellij.modules.java`、`org.intellij.plugins.markdown`
 - 插件 ID：`com.liuzhihang.doc-view`
 

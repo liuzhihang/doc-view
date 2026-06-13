@@ -2,7 +2,7 @@ package com.liuzhihang.doc.view.ui;
 
 import com.intellij.find.editorHeaderActions.Utils;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
@@ -36,7 +36,6 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.MouseEvent;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -175,14 +174,34 @@ public class ParamDocEditorForm {
 
         });
 
-        ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
+        ActionToolbar toolbar = ActionManager.getInstance()
                 .createActionToolbar("ParamDocParamEditorHeadToolbar", group, true);
         toolbar.setTargetComponent(headToolbarPanel);
 
-        toolbar.setForceMinimumSize(true);
-        Utils.setSmallerFontForChildren(toolbar);
+        keepToolbarPreferredMinimumSize(toolbar);
+        Utils.setSmallerFontForChildren(toolbar.getComponent());
 
         headToolbarPanel.add(toolbar.getComponent(), BorderLayout.EAST);
+    }
+
+    private static void keepToolbarPreferredMinimumSize(@NotNull ActionToolbar toolbar) {
+        ToolbarLayoutStrategy delegate = toolbar.getLayoutStrategy();
+        toolbar.setLayoutStrategy(new ToolbarLayoutStrategy() {
+            @Override
+            public @NotNull List<Rectangle> calculateBounds(@NotNull ActionToolbar actionToolbar) {
+                return delegate.calculateBounds(actionToolbar);
+            }
+
+            @Override
+            public @NotNull Dimension calcPreferredSize(@NotNull ActionToolbar actionToolbar) {
+                return delegate.calcPreferredSize(actionToolbar);
+            }
+
+            @Override
+            public @NotNull Dimension calcMinimumSize(@NotNull ActionToolbar actionToolbar) {
+                return delegate.calcPreferredSize(actionToolbar);
+            }
+        });
     }
 
     /**
@@ -234,12 +253,12 @@ public class ParamDocEditorForm {
 
 
         // init toolbar
-        ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance()
+        ActionToolbar toolbar = ActionManager.getInstance()
                 .createActionToolbar("ParamDocParamEditorTailRightToolbar", rightGroup, true);
         toolbar.setTargetComponent(tailToolbarPanel);
 
-        toolbar.setForceMinimumSize(true);
-        Utils.setSmallerFontForChildren(toolbar);
+        keepToolbarPreferredMinimumSize(toolbar);
+        Utils.setSmallerFontForChildren(toolbar.getComponent());
 
         tailToolbarPanel.add(toolbar.getComponent(), BorderLayout.EAST);
 

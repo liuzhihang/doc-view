@@ -2,7 +2,7 @@ package com.liuzhihang.doc.view.ui;
 
 import com.intellij.find.editorHeaderActions.Utils;
 import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
@@ -358,13 +358,33 @@ public class PreviewForm {
 
         });
 
-        ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance().createActionToolbar("DocViewRootToolbar", group, true);
+        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("DocViewRootToolbar", group, true);
         toolbar.setTargetComponent(headToolbarPanel);
 
-        toolbar.setForceMinimumSize(true);
-        Utils.setSmallerFontForChildren(toolbar);
+        keepToolbarPreferredMinimumSize(toolbar);
+        Utils.setSmallerFontForChildren(toolbar.getComponent());
 
         headToolbarPanel.add(toolbar.getComponent(), BorderLayout.EAST);
+    }
+
+    private static void keepToolbarPreferredMinimumSize(@NotNull ActionToolbar toolbar) {
+        ToolbarLayoutStrategy delegate = toolbar.getLayoutStrategy();
+        toolbar.setLayoutStrategy(new ToolbarLayoutStrategy() {
+            @Override
+            public @NotNull List<Rectangle> calculateBounds(@NotNull ActionToolbar actionToolbar) {
+                return delegate.calculateBounds(actionToolbar);
+            }
+
+            @Override
+            public @NotNull Dimension calcPreferredSize(@NotNull ActionToolbar actionToolbar) {
+                return delegate.calcPreferredSize(actionToolbar);
+            }
+
+            @Override
+            public @NotNull Dimension calcMinimumSize(@NotNull ActionToolbar actionToolbar) {
+                return delegate.calcPreferredSize(actionToolbar);
+            }
+        });
     }
 
 
@@ -464,12 +484,12 @@ public class PreviewForm {
 
         });
 
-        ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance().createActionToolbar("DocViewEditorLeftToolbar", leftGroup, true);
+        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("DocViewEditorLeftToolbar", leftGroup, true);
         toolbar.setTargetComponent(previewToolbarPanel);
         toolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
 
-        toolbar.setForceMinimumSize(true);
-        Utils.setSmallerFontForChildren(toolbar);
+        keepToolbarPreferredMinimumSize(toolbar);
+        Utils.setSmallerFontForChildren(toolbar.getComponent());
 
         previewToolbarPanel.setBackground(markdownEditor.getBackgroundColor());
         previewToolbarPanel.add(toolbar.getComponent(), BorderLayout.WEST);
@@ -548,12 +568,12 @@ public class PreviewForm {
         });
 
         // init toolbar
-        ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance().createActionToolbar("DocViewEditorRightToolbar", rightGroup, true);
+        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("DocViewEditorRightToolbar", rightGroup, true);
         toolbar.setTargetComponent(previewToolbarPanel);
         toolbar.getComponent().setBackground(markdownEditor.getBackgroundColor());
 
-        toolbar.setForceMinimumSize(true);
-        Utils.setSmallerFontForChildren(toolbar);
+        keepToolbarPreferredMinimumSize(toolbar);
+        Utils.setSmallerFontForChildren(toolbar.getComponent());
 
         previewToolbarPanel.setBackground(markdownEditor.getBackgroundColor());
         previewToolbarPanel.add(toolbar.getComponent(), BorderLayout.EAST);
@@ -616,12 +636,12 @@ public class PreviewForm {
 
 
         // init toolbar
-        ActionToolbarImpl toolbar = (ActionToolbarImpl) ActionManager.getInstance().createActionToolbar("DocViewMenuToolbar", menuGroup, true);
+        ActionToolbar toolbar = ActionManager.getInstance().createActionToolbar("DocViewMenuToolbar", menuGroup, true);
         toolbar.setTargetComponent(catalogToolbarPane);
         toolbar.getComponent().setBackground(UIUtil.getTextFieldBackground());
 
-        toolbar.setForceMinimumSize(true);
-        Utils.setSmallerFontForChildren(toolbar);
+        keepToolbarPreferredMinimumSize(toolbar);
+        Utils.setSmallerFontForChildren(toolbar.getComponent());
 
         catalogToolbarPane.setBackground(UIUtil.getTextFieldBackground());
         catalogToolbarPane.add(toolbar.getComponent(), BorderLayout.WEST);

@@ -95,7 +95,7 @@
 
 目标：可控升级目标 IDE 和 Gradle IntelliJ Plugin。
 
-- 维护 `platformVersion=2024.2`、`pluginSinceBuild=242` 的兼容说明。
+- 维护 `platformVersion=2026.1`、`pluginSinceBuild=261` 的兼容说明。
 - 升级前查找 IntelliJ API 变更和废弃项。
 - 使用 `verifyPlugin` 和 `runIde` 做验证。
 - 记录新旧平台差异和回滚方式。
