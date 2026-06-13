@@ -14,7 +14,7 @@ Doc View 是一个 JetBrains IDE 插件，用于从 Java 源码生成 Markdown A
 
 ## 当前变更范围
 
-`establish-modern-intellij-build-compatibility-baseline` 是构建与兼容性基线变更，用于迁移现代 IntelliJ Platform 构建链路、Java 21 基线和 2024.2+ 兼容范围。
+当前仓库不再维护旧项目级规格目录。具体变更范围以用户请求、当前分支上下文和本文档约束为准；涉及运行时行为时必须先定义 contract 和验证路径。
 
 本次变更允许修改：
 
@@ -27,7 +27,6 @@ Doc View 是一个 JetBrains IDE 插件，用于从 Java 源码生成 Markdown A
 - `gradlew`
 - `gradlew.bat`
 - `src/main/java/com/liuzhihang/doc/view/notification/DocViewNotification.java`，仅用于修复 IntelliJ 2024.2+ 下类初始化期间请求 service 的兼容性问题
-- `openspec/changes/establish-modern-intellij-build-compatibility-baseline/**`
 
 本次变更禁止修改：
 
@@ -44,7 +43,7 @@ Doc View 是一个 JetBrains IDE 插件，用于从 Java 源码生成 Markdown A
 - [契约设计](docs/contract-design.md)：解析、DTO、Markdown、平台 payload、IntelliJ 兼容和验证策略。
 - [性能指南](docs/performance-guide.md)：PSI、read/write action、EDT、模板渲染、导出、HTTP、缓存和性能验证。
 - [IntelliJ 兼容性](docs/intellij-compatibility.md)：目标 IDE、bundled plugin、API 兼容、插件验证和升级流程。
-- [Vibe Coding 工作流](docs/vibe-coding-workflow.md)：OpenSpec 与 Codex 协作生命周期、review checkpoint 和文档维护规则。
+- [Vibe Coding 工作流](docs/vibe-coding-workflow.md)：Codex 协作生命周期、review checkpoint 和文档维护规则。
 - [MCP 设计](docs/mcp-design.md)：未来 MCP 能力路线图、安全边界和本次不实现 MCP 的说明。
 - [i18n](docs/i18n.md)：UI 文案、message bundle、生成文档语言、设置项和未来翻译策略。
 - [发布检查清单](docs/release-checklist.md)：发布前验证、changelog、插件验证、手动 IDE 检查、Marketplace 准备和回滚。
@@ -74,7 +73,6 @@ Doc View 是一个 JetBrains IDE 插件，用于从 Java 源码生成 Markdown A
 文档-only 变更优先做轻量验证：
 
 ```bash
-openspec status --change "<change-name>"
 git diff --name-only
 ```
 
@@ -126,9 +124,9 @@ src/
 
 ## Java-only 生产代码策略
 
-- 生产插件实现必须保持 Java-only，除非未来有单独通过的 OpenSpec 变更明确修改该策略。
+- 生产插件实现必须保持 Java-only，除非未来有单独通过的变更说明和 contract 明确修改该策略。
 - 不新增 Kotlin、Groovy、脚本语言 runtime 代码、生成式 runtime source 或新的生产语言。
-- Markdown 文档、OpenSpec artifacts、YAML metadata、Codex skill、现有 Gradle 文件和 IDE form 文件属于仓库基础设施；只要符合任务范围，可以维护。
+- Markdown 文档、contract artifacts、YAML metadata、Codex skill、现有 Gradle 文件和 IDE form 文件属于仓库基础设施；只要符合任务范围，可以维护。
 - 新增实现优先沿用现有 IntelliJ Platform API、Java service、DTO 和工具类，不轻易引入新抽象。
 
 ## Contract-first 策略
@@ -145,7 +143,7 @@ src/
 
 推荐流程：
 
-1. 创建或更新 OpenSpec change。
+1. 创建或更新变更说明和 contract 记录。
 2. 按 `docs/contract-design.md` 定义外部可观察契约。
 3. 明确 Java 输入样例、预期 `DocView`、预期 Markdown、平台 payload 和边界场景。
 4. 能自动化时先补验证；不能自动化时写明手动验证步骤。
@@ -153,21 +151,21 @@ src/
 
 ## AI 协作工作流
 
-- 新功能、行为变化、兼容性变化和架构变化优先走 OpenSpec。
-- OpenSpec artifacts 默认使用中文撰写，除非维护者明确要求使用其他语言。
+- 新功能、行为变化、兼容性变化和架构变化必须先定义变更说明和 contract。
+- 变更说明、contract 和任务清单默认使用中文撰写，除非维护者明确要求使用其他语言。
 - 默认在 `develop` 分支开展开发；除非维护者明确要求，不从 `master` 或临时 feature 分支直接承接日常开发。
 - 任务匹配时使用 `.codex/skills/` 下的 repo-local skill。
 - 保持改动小而聚焦，遵循现有包边界和服务职责。
 - 工作区可能存在维护者或其他工具的未提交变更；不要回滚无关文件。
 - 文档-only 任务不得夹带 runtime 行为变化。
-- OpenSpec task 只有在对应改动或验证真实完成后才能勾选。
+- 任务清单只有在对应改动或验证真实完成后才能勾选。
 - 跳过验证时必须说明原因。
 
 ## 验证策略
 
 按变更类型选择能证明结果的最小命令集：
 
-- 文档-only：`openspec status --change "<change-name>"`、文件存在性检查、`git diff --name-only`。
+- 文档-only：文件存在性检查、`git diff --name-only`。
 - Java 解析或 service 变更：`./gradlew test`。
 - 插件打包、descriptor 或资源变更：`./gradlew buildPlugin`，通常还需要 `./gradlew verifyPlugin`。
 - IntelliJ 兼容性升级：`./gradlew verifyPlugin`、`./gradlew runIde` 中的核心手动流程，以及发布检查清单。
@@ -190,3 +188,8 @@ src/
 - Velocity 模板驱动 Markdown 输出，模板变量需要兼容用户自定义模板。
 - `plugin.xml` 注册 services、providers、actions、settings pages、tool window、notification group、DOM/search extension；修改 descriptor 必须做兼容性验证。
 - Maven 依赖使用 Aliyun mirror 和 Maven Central。
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->

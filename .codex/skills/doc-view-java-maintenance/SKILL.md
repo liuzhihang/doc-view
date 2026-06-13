@@ -15,7 +15,7 @@ Use this skill for production plugin work after the behavior contract is clear.
 - `docs/contract-design.md`
 - `docs/performance-guide.md`
 - `docs/intellij-compatibility.md`
-- The active OpenSpec proposal, design, specs, and tasks when present
+- The active change note, design, contract, and tasks when present
 
 ## Steps
 
@@ -30,7 +30,7 @@ Use this skill for production plugin work after the behavior contract is clear.
 
 ## Guardrails
 
-- Do not modify `plugin.xml`, Gradle files, or dependencies unless the OpenSpec change explicitly requires it.
+- Do not modify `plugin.xml`, Gradle files, or dependencies unless the approved change scope explicitly requires it.
 - Do not change generated Markdown shape without a contract update.
 - Do not mark tasks complete before code and verification are actually done.
 - Do not revert unrelated user changes.

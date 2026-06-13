@@ -4,7 +4,7 @@
 
 ## 发布前准备
 
-- 确认 OpenSpec change 已完成或明确不需要 OpenSpec。
+- 确认变更说明、contract 和任务清单已完成，或明确本次不需要。
 - 确认 `AGENTS.md` 和相关 docs 已随行为变化更新。
 - 确认 `CHANGELOG.md` 包含用户可见变化。
 - 确认 `gradle.properties` 中 `pluginVersion` 正确。
@@ -38,7 +38,6 @@ git diff --name-only
 文档-only 变更可以跳过 Gradle 命令，但必须说明原因，并至少完成：
 
 ```bash
-openspec status --change "<change-name>"
 git diff --name-only
 ```
 

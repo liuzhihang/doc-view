@@ -18,7 +18,7 @@ MCP 可用于把 Doc View 的维护流程暴露给 Codex 或其他工具，例�
 
 ### Contract 查询
 
-- 列出当前 OpenSpec capabilities。
+- 列出当前 contract capabilities。
 - 查询 `docs/contract-design.md` 中的 contract 类型。
 - 根据 Java 样例生成 contract 草案。
 - 对比预期 `DocView` 和实际解析结果。
@@ -54,7 +54,7 @@ MCP 可用于把 Doc View 的维护流程暴露给 Codex 或其他工具，例�
 
 推荐分阶段探索：
 
-1. Repo-local 只读 MCP：读取 OpenSpec、docs、AGENTS、changelog。
+1. Repo-local 只读 MCP：读取 docs、AGENTS、changelog 和 contract 记录。
 2. 验证 MCP：运行有限的本地检查命令并返回结构化结果。
 3. Contract MCP：辅助生成 contract 草案和 fixture 清单。
 4. 集成预检 MCP：只对 mock 或用户确认的测试 endpoint 工作。
@@ -66,7 +66,7 @@ MCP server 应与 IntelliJ plugin runtime 解耦，避免影响插件启动、�
 可能的资源：
 
 - `doc-view://docs/index`
-- `doc-view://openspec/changes`
+- `doc-view://changes`
 - `doc-view://contracts/<capability>`
 - `doc-view://release/checklist`
 

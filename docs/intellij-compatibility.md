@@ -45,7 +45,7 @@ Doc View 当前兼容基线从 IntelliJ IDEA 2024.2 / branch `242` 开始。`plu
 
 - `javaVersion`、`pluginSinceBuild`、`platformVersion` 和 verifier 矩阵必须一起评估。
 - Java 21 字节码不得声明兼容 2024.1 / branch 241。
-- 如果后续 IDEA 平台升级要求更高 Java 版本，必须先通过 OpenSpec change 定义兼容范围和验证矩阵。
+- 如果后续 IDEA 平台升级要求更高 Java 版本，必须先通过独立变更说明和 contract 定义兼容范围和验证矩阵。
 
 ## Gradle 配置
 
@@ -150,7 +150,7 @@ JAVA_HOME=/opt/homebrew/Cellar/openjdk@21/21.0.7/libexec/openjdk.jdk/Contents/Ho
 
 升级 IntelliJ 平台、Gradle Wrapper、Java 基线或 IntelliJ Platform Gradle Plugin 时：
 
-1. 创建独立 OpenSpec change。
+1. 创建独立变更说明和 contract。
 2. 记录旧版本和目标版本。
 3. 检查 JetBrains API 变更、废弃 API、Java runtime 要求和插件验证告警。
 4. 更新 `gradle.properties`、`build.gradle`、Gradle wrapper 或相关文档。
