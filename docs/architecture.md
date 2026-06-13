@@ -102,4 +102,4 @@ UI 变更必须关注 EDT 响应、Dumb Mode、空项目状态、无编辑器状
 - PSI 相关变更必须同时评估 Spring 和 Dubbo 路径。
 - UI 行为不应直接绕过 service/DTO 层消费 PSI 细节。
 - 平台集成代码必须保持 token、地址、项目 ID 等敏感配置在 settings 中，不写入文档或日志。
-- 新 runtime 能力需要 OpenSpec proposal，不在文档-only 变更中夹带实现。
+- 新 runtime 能力需要独立变更说明和 contract，不在文档-only 变更中夹带实现。

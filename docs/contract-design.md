@@ -19,7 +19,7 @@ Contract 不是实现细节。实现可以重构，但对外 contract 变化必�
 
 ## Contract-first 流程
 
-1. 创建 OpenSpec change。
+1. 创建或更新变更说明和 contract 记录。
 2. 在 spec 中描述用户可观察行为。
 3. 在 design 中说明影响的 PSI、DTO、模板、UI、集成或兼容性区域。
 4. 为每个行为变化准备输入样例和预期输出。
@@ -125,7 +125,7 @@ YApi、ShowDoc、YuQue contract 应包含：
 
 当 contract 变化影响用户可见行为时：
 
-- OpenSpec spec 必须描述新增、修改或移除的 requirement。
+- 变更说明或 contract 文档必须描述新增、修改或移除的 requirement。
 - `CHANGELOG.md` 应在发布前更新。
 - `docs/release-checklist.md` 应指向对应验证项。
 - 破坏性变化必须给出迁移建议。

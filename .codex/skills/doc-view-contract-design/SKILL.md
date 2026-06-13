@@ -19,7 +19,7 @@ Use this skill before implementation work that changes user-visible or integrati
 ## Steps
 
 1. Identify the behavior area: Spring PSI, Dubbo PSI, DTO, Markdown, export, upload, settings, UI, or compatibility.
-2. Confirm whether an OpenSpec change exists; create or update one before runtime implementation.
+2. Confirm whether a change note and contract exist; create or update them before runtime implementation.
 3. Define inputs: Java sample, annotations, Javadoc, settings, platform state, and external service assumptions.
 4. Define expected outputs: `DocView` shape, nested `Body`/`Param`/`Header`, Markdown sections, payloads, UI state, or notifications.
 5. Define unsupported or unchanged cases explicitly.

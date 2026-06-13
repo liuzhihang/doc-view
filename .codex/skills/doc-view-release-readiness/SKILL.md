@@ -15,7 +15,7 @@ Use this skill before publishing or declaring a release candidate ready.
 - `docs/intellij-compatibility.md`
 - `CHANGELOG.md`
 - `gradle.properties`
-- Active OpenSpec changes related to the release
+- Active change notes and contracts related to the release
 
 ## Steps
 

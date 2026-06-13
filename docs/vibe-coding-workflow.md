@@ -5,15 +5,15 @@
 ## 基本循环
 
 1. 读 `AGENTS.md`。
-2. 判断是否需要 OpenSpec change。
-3. 需要时先 propose，再 apply。
-4. 实现前读取 proposal、design、spec 和 tasks。
+2. 判断是否需要变更说明和 contract。
+3. 需要时先记录 proposal/design/tasks，再开始实现。
+4. 实现前读取变更说明、design、contract 和 tasks。
 5. 每完成一个 task 立即更新 checkbox。
 6. 做最小必要验证。
 7. 汇报实际完成项、验证结果和未覆盖风险。
-8. 变更完成后再 archive。
+8. 变更完成后整理或归档相关记录。
 
-## 什么时候必须用 OpenSpec
+## 什么时候必须先定义变更
 
 - 新功能。
 - 用户可见行为变化。
@@ -41,8 +41,7 @@ Proposal 应回答：
 
 Apply 时必须：
 
-- 使用 OpenSpec CLI 读取状态和 apply 指令。
-- 读取 CLI 返回的 context files。
+- 读取当前变更说明、design、contract 和 tasks。
 - 按 tasks 顺序执行。
 - 每项完成后更新 `tasks.md`。
 - 遇到任务不清楚、设计问题或阻塞时暂停。
@@ -87,4 +86,4 @@ Apply 时必须：
 - 运行了哪些验证命令。
 - 哪些验证没有运行，原因是什么。
 - 是否存在 runtime 行为变化。
-- 是否需要 archive OpenSpec change。
+- 是否需要整理或归档变更记录。
