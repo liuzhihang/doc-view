@@ -1,7 +1,6 @@
 ---
 name: doc-view-release-readiness
 description: Use when preparing, checking, or reviewing a Doc View plugin release, including changelog, version, plugin verification, manual IDE validation, Marketplace preparation, and rollback notes.
-license: MIT
 ---
 
 # Doc View Release Readiness

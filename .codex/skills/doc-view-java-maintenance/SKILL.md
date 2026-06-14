@@ -1,7 +1,6 @@
 ---
 name: doc-view-java-maintenance
 description: Use when implementing or reviewing Java-only Doc View production changes, especially PSI parsing, services, DTOs, UI, integrations, settings, export, or IntelliJ Platform behavior.
-license: MIT
 ---
 
 # Doc View Java Maintenance

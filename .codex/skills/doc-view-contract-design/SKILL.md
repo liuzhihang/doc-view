@@ -1,7 +1,6 @@
 ---
 name: doc-view-contract-design
 description: Use when defining or reviewing Doc View behavior contracts before changing PSI parsing, DTOs, Markdown output, uploads, exports, settings, UI-visible behavior, or IntelliJ compatibility.
-license: MIT
 ---
 
 # Doc View Contract Design
