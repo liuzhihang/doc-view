@@ -2,7 +2,8 @@
 
 ## 项目概览
 
-Doc View 是一个 JetBrains IDE 插件，用于从 Java 源码生成 Markdown API 文档。项目支持 Spring/Spring Boot Controller、Feign 风格接口和 Dubbo Service，并提供 Markdown 预览、复制、导出，以及上传到 YApi、ShowDoc、YuQue 等平台的能力。
+Doc View 是一个 JetBrains IDE 插件，用于从 Java 源码生成 Markdown API 文档。项目支持 Spring/Spring Boot Controller、Feign 风格接口和 Dubbo
+Service，并提供 Markdown 预览、复制、导出，以及上传到 YApi、ShowDoc、YuQue 等平台的能力。
 
 - 生产代码语言：Java 21
 - 构建系统：Gradle 9.5.0
@@ -36,18 +37,6 @@ Doc View 是一个 JetBrains IDE 插件，用于从 Java 源码生成 Markdown A
 - `src/main/resources/META-INF/plugin.xml`
 - runtime 资源、图标、message bundle、模板、IDE form 文件
 - 插件行为、生成 Markdown 行为、上传行为、导出行为、解析行为、设置持久化行为或 UI 行为
-
-## 文档索引
-
-- [架构说明](docs/architecture.md)：模块边界、扩展点、核心服务、PSI 工具、UI、配置、平台集成。
-- [路线图](docs/roadmap.md)：基础设施、契约、解析正确性、UI、集成、兼容性、MCP 探索的阶段规划。
-- [契约设计](docs/contract-design.md)：解析、DTO、Markdown、平台 payload、IntelliJ 兼容和验证策略。
-- [性能指南](docs/performance-guide.md)：PSI、read/write action、EDT、模板渲染、导出、HTTP、缓存和性能验证。
-- [IntelliJ 兼容性](docs/intellij-compatibility.md)：目标 IDE、bundled plugin、API 兼容、插件验证和升级流程。
-- [Vibe Coding 工作流](docs/vibe-coding-workflow.md)：Codex 协作生命周期、review checkpoint 和文档维护规则。
-- [MCP 设计](docs/mcp-design.md)：未来 MCP 能力路线图、安全边界和本次不实现 MCP 的说明。
-- [i18n](docs/i18n.md)：UI 文案、message bundle、生成文档语言、设置项和未来翻译策略。
-- [发布检查清单](docs/release-checklist.md)：发布前验证、changelog、插件验证、手动 IDE 检查、Marketplace 准备和回滚。
 
 ## 常用命令
 
