@@ -1,7 +1,7 @@
 package com.liuzhihang.doc.view.notification;
 
 import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManagerCore;
+import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.extensions.PluginId;
 import com.intellij.openapi.project.DumbAware;
@@ -30,7 +30,7 @@ public class DocViewStartupNotification implements StartupActivity, DumbAware {
         // 上次安装的版本
         String lastVersion = applicationSettings.getPluginVersion();
 
-        IdeaPluginDescriptor plugin = PluginManagerCore.getPlugin(PluginId.getId("com.liuzhihang.doc-view"));
+        IdeaPluginDescriptor plugin = PluginManager.getInstance().findEnabledPlugin(PluginId.getId("com.liuzhihang.doc-view"));
 
         // 一个版本只通知一次
         if (lastVersion != null && plugin != null) {
