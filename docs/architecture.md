@@ -1,105 +1,71 @@
-# Architecture
+# 架构
 
-本文档描述 Doc View 当前架构边界，供维护者和 Codex 在开发前建立共同上下文。它不定义新功能，也不替代源码；当源码结构变化时，应同步更新本文档。
+本文描述 Doc View 当前模块边界和核心数据流。实现与版本事实以源码、`build.gradle`、`gradle.properties` 和 `plugin.xml` 为准；本文件不定义新功能。
 
-## 运行环境
+## 运行边界
 
-- 生产代码语言：Java 21
-- 构建系统：Gradle 9.5.0
-- IntelliJ Platform Gradle Plugin：`org.jetbrains.intellij.platform` 2.16.0
-- 目标平台：IntelliJ IDEA IU 2026.1+
-- 插件依赖：`com.intellij.modules.platform`、`com.intellij.modules.java`、`org.intellij.plugins.markdown`
-- 插件 ID：`com.liuzhihang.doc-view`
+- 生产实现保持 Java-only。
+- 插件运行在 IntelliJ IDEA Ultimate，依赖 Java 与 Markdown bundled plugin。
+- PSI 解析、DTO 组装、Markdown 渲染、导出和上传共享同一份 `DocView` 数据模型。
+- 新的运行时依赖、extension、生产语言或平台基线必须由独立 OpenSpec change 批准。
 
-## 模块边界
+## 包职责
 
-| 包 | 责任 |
+| 包 | 职责 |
 | --- | --- |
-| `action` | 编辑器右键菜单、预览、编辑、上传、工具栏动作入口 |
-| `config` | 项目级和应用级配置、Settings UI、持久化状态 |
-| `constant` | Spring、Dubbo、Swagger、Validation、Lombok 等注解和类型常量 |
-| `data` | IntelliJ DataKey 定义 |
-| `dom` | Spring XML Beans 和 Dubbo definition 搜索 |
-| `dto` | `DocView`、`Body`、`Param`、`Header` 等内部文档模型 |
-| `enums` | 框架类型、请求内容类型等枚举 |
-| `exception` | Doc View 自定义异常 |
-| `integration` | YApi、ShowDoc、YuQue facade 及平台 DTO |
-| `listener` | 服务事件监听 |
-| `notification` | IDE 启动和业务通知 |
-| `provider` | Line marker、动作提供器等 IDE 扩展 |
-| `service` | Spring/Dubbo 解析、写入、上传等核心服务 |
-| `ui` | Swing form、预览、参数编辑、tool window 树和面板 |
-| `utils` | PSI、Velocity、HTTP、导出、Dialog、文件等工具 |
+| `action` | 编辑器、预览、上传和 tool window 动作入口 |
+| `config` | 项目/应用设置、持久化状态和 Configurable |
+| `constant` | Spring、Dubbo、Swagger、Validation 等注解和类型常量 |
+| `dom` | Spring XML/Dubbo DOM 与 scoped search |
+| `dto` | `DocView`、`Body`、`Param`、`Header` 等文档模型 |
+| `integration` | YApi、ShowDoc、YuQue facade 和平台 DTO |
+| `provider` | line marker 和 IDE provider |
+| `service` | Spring/Dubbo 文档构建、写入和上传服务 |
+| `ui` | Swing form、预览、参数编辑和 tool window |
+| `utils` | PSI、Velocity、HTTP、导出、文件和对话框工具 |
 
 ## 核心数据流
 
-1. 用户通过编辑器菜单、line marker 或 tool window 触发文档生成。
-2. `SpringDocViewServiceImpl` 或 `DubboDocViewServiceImpl` 判断目标方法是否可生成文档。
-3. PSI 工具读取类、方法、参数、注解、返回值和注释。
-4. 服务将分析结果组装为 `DocView`，其中包含接口名称、描述、路径、方法、Header、请求参数、请求体、响应体和示例。
-5. UI 层展示 `DocView`，或通过 Velocity 模板生成 Markdown。
-6. 导出、复制、写回注释、上传到 YApi/ShowDoc/YuQue 等动作消费同一份文档模型。
+```text
+用户动作 / line marker / tool window
+                 │
+                 ▼
+     Spring 或 Dubbo DocViewService
+                 │
+                 ▼
+   PSI/Javadoc/annotation/type analysis
+                 │
+                 ▼
+ DocView + Body/Param/Header + example
+          │              │
+          ▼              ▼
+ Velocity Markdown   平台 payload
+          │              │
+          ▼              ▼
+ preview/copy/export  upload/integration
+```
 
-## 核心服务
+## 关键入口
 
-- `SpringDocViewServiceImpl`：识别 Spring Controller/Feign 风格方法，解析路径、HTTP 方法、content type、form 参数、JSON body、Header 和响应体。
-- `DubboDocViewServiceImpl`：识别 Dubbo 方法，将类名和方法名作为接口路径语义，默认使用 JSON body 表达请求参数。
-- `WriterService`：通过 IntelliJ `WriteCommandAction` 写入 Javadoc 或编辑器文本，并触发代码格式化。
-- `YApiServiceImpl`、`ShowDocServiceImpl`、`YuQueServiceImpl`：平台上传业务服务。
-- `YApiFacadeServiceImpl`、`ShowDocFacadeServiceImpl`、`YuQueFacadeServiceImpl`：平台接口 facade。
+- `SpringDocViewServiceImpl`：构建 Spring Controller 与 Feign 风格方法文档。
+- `DubboDocViewServiceImpl`：构建 Dubbo Service 方法文档。
+- `SpringPsiUtils`、`DubboPsiUtils`、`ParamPsiUtils`、`DocViewUtils`：解析路径、方法、参数、注解、字段树和示例。
+- `VelocityUtils`：消费 `DocView` 渲染 Markdown；模板变量属于兼容 contract。
+- `WriterService`：通过 IntelliJ write command 写回 Javadoc、注解或编辑器文本。
+- `DocViewWindowPanel`、`PreviewForm`、`ParamDocEditorForm`：导航、预览和编辑 UI。
+- `YApiServiceImpl`、`ShowDocServiceImpl`、`YuQueServiceImpl`：平台 payload 与上传业务。
 
-## PSI 工具
+## 配置与扩展
 
-PSI 工具是解析准确性的核心，任何变更都具有较高影响面。
+主要配置通过 `PersistentStateComponent` 持久化：`Settings`、`WindowSettings`、`TemplateSettings`、`YApiSettings`、`ShowDocSettings`、`YuQueSettings`。配置字段变化必须定义默认值、旧值兼容、缓存失效和 UI 保存/取消行为。
 
-- `SpringPsiUtils`：Spring 注解、路径、HTTP 方法、请求体、form 参数、Header 等解析。
-- `DubboPsiUtils`：Dubbo service 方法、请求体和示例解析。
-- `ParamPsiUtils`：请求/响应字段树、泛型、嵌套对象、示例 JSON 生成。
-- `CustomPsiUtils`、`CustomPsiCommentUtils`：通用 PSI 和注释读取。
-- `DocViewUtils`：标题、名称、描述等文档元信息聚合。
+`plugin.xml` 注册 service、startup activity、line marker、settings、tool window、notification、DOM/search 和 actions。修改 descriptor 或 extension 必须参考 [IntelliJ 兼容性](intellij-compatibility.md) 并运行相应验证。
 
-## UI 结构
+## 架构规则
 
-- `DocViewToolWindowFactory` 创建右侧 `Doc View` tool window。
-- `DocViewWindowPanel` 承载目录树、刷新、导出、上传、展开/折叠、清理缓存和设置入口。
-- `PreviewForm` 展示 Markdown 预览和右侧操作。
-- `ParamDocEditorForm` 支持参数编辑和写回注释或注解。
-- `SettingsForm`、`TemplateSettingForm`、`YApiSettingForm`、`ShowDocSettingForm`、`YuQueSettingForm` 提供项目级配置界面。
-
-UI 变更必须关注 EDT 响应、Dumb Mode、空项目状态、无编辑器状态和项目关闭状态。
-
-## 配置模型
-
-主要设置以 IntelliJ `PersistentStateComponent` 持久化：
-
-- `ApplicationSettings`：应用级设置。
-- `Settings`：通用项目级设置，例如标题、名称、字段过滤、注解策略、line marker、导出行为。
-- `WindowSettings`：tool window 状态。
-- `TemplateSettings`：Markdown 模板。
-- `YApiSettings`、`ShowDocSettings`、`YuQueSettings`：平台集成配置。
-
-配置变更需要考虑默认值、旧版本配置兼容、序列化字段稳定性和 UI 表单同步。
-
-## plugin.xml 扩展点
-
-`src/main/resources/META-INF/plugin.xml` 注册：
-
-- application service 和 project service
-- startup notification
-- Java line marker provider
-- project configurable
-- `Doc View` tool window
-- notification group
-- XML DOM metadata 和 scoped search
-- editor popup、上传、预览、tool window toolbar、catalog menu 等 actions
-
-修改 `plugin.xml` 必须运行插件验证，并在 `docs/intellij-compatibility.md` 记录兼容性判断。
-
-## 架构维护规则
-
-- 优先沿用现有包边界和服务职责。
-- 新行为先定义 contract，再修改 PSI、DTO、模板或集成代码。
-- PSI 相关变更必须同时评估 Spring 和 Dubbo 路径。
-- UI 行为不应直接绕过 service/DTO 层消费 PSI 细节。
-- 平台集成代码必须保持 token、地址、项目 ID 等敏感配置在 settings 中，不写入文档或日志。
-- 新 runtime 能力需要独立变更说明和 contract，不在文档-only 变更中夹带实现。
+- UI 和 action 不直接复制 PSI 解析逻辑，优先消费 service/DTO。
+- Spring 与 Dubbo 共享的 PSI 工具变更要评估两条路径。
+- 网络、批量导出和重 PSI 分析不在 EDT 执行。
+- 长期缓存不保存 PSI element；缓存必须有 project 生命周期和失效规则。
+- 上传配置中的 token、私密地址和真实/敏感项目或页面标识不进入日志、文档或示例；公开的虚构示例 ID 可以保留。
+- 可观察行为变化先按 [Contract 设计](contract-design.md)写入 OpenSpec spec。

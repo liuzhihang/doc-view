@@ -1,36 +1,36 @@
 ---
 name: doc-view-java-maintenance
 description: Use when implementing or reviewing Java-only Doc View production changes, especially PSI parsing, services, DTOs, UI, integrations, settings, export, or IntelliJ Platform behavior.
-license: MIT
 ---
 
 # Doc View Java Maintenance
 
-Use this skill for production plugin work after the behavior contract is clear.
+Use this skill for production plugin work after an observable behavior contract is apply-ready.
 
 ## Read First
 
 - `AGENTS.md`
 - `docs/architecture.md`
-- `docs/contract-design.md`
-- `docs/performance-guide.md`
-- `docs/intellij-compatibility.md`
-- The active change note, design, contract, and tasks when present
+- Every active apply `contextFiles` path returned by OpenSpec; runtime work requires proposal/design/spec/tasks context
+- `docs/contract-design.md` for PSI, DTO, Markdown, upload, export, settings, writeback, or UI behavior
+- `docs/performance-guide.md` for PSI, recursion, cache, background task, rendering, export, upload, or UI responsiveness
+- `docs/intellij-compatibility.md` for IntelliJ API, Gradle platform, descriptor, extension, or compatibility work
 
 ## Steps
 
-1. Confirm the change is allowed to touch runtime code; documentation-only changes must not use this skill to edit Java.
+1. Confirm the active OpenSpec change authorizes runtime files and defines expected behavior and validation.
 2. Locate the narrow package boundary: `service`, `utils`, `dto`, `ui`, `integration`, `config`, `provider`, or `action`.
-3. Preserve Java-only production code. Do not add Kotlin, Groovy, scripts, generated runtime sources, or new production languages.
-4. Prefer existing services, DTOs, utilities, and IntelliJ API patterns before adding new abstractions.
-5. For PSI changes, validate both Spring and Dubbo impact and guard recursion, invalid elements, and Dumb Mode.
-6. For UI changes, keep action `update` lightweight and avoid long work on EDT.
-7. For integration changes, protect tokens and make failures understandable.
-8. Run the smallest verification set that proves the change, then report exact commands and results.
+3. Write the failing contract test or fixture before production code.
+4. Preserve Java-only production code and prefer existing services, DTOs, utilities, and public IntelliJ API patterns.
+5. For PSI changes, validate Spring/Feign/Dubbo impact as applicable and guard recursion, invalid elements, Dumb Mode, read actions, and project disposal.
+6. For UI/action work, keep `update` lightweight and heavy work off EDT.
+7. For integration work, protect secrets and make authentication/network/server failures understandable.
+8. Implement the smallest change, run targeted then full verification, and update OpenSpec tasks only after success.
 
 ## Guardrails
 
-- Do not modify `plugin.xml`, Gradle files, or dependencies unless the approved change scope explicitly requires it.
-- Do not change generated Markdown shape without a contract update.
-- Do not mark tasks complete before code and verification are actually done.
+- Do not change generated Markdown shape, payloads, settings, UI, or compatibility without matching OpenSpec requirements.
+- Do not modify `plugin.xml`, Gradle, dependencies, or resources unless the approved change explicitly requires them.
+- Do not add Kotlin, Groovy, scripts, generated runtime sources, or new production languages.
+- Do not mark tasks complete before code and exact verification are complete.
 - Do not revert unrelated user changes.

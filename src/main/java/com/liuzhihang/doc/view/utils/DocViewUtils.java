@@ -164,9 +164,9 @@ public class DocViewUtils {
             if (settings.getNameUseSwagger3()) {
                 PsiAnnotation tagAnnotation = psiMethod.getAnnotation(SwaggerConstant.OPERATION);
                 if (tagAnnotation != null) {
-                    PsiAnnotationMemberValue value = tagAnnotation.findAttributeValue("name");
-                    if (value != null) {
-                        return value.getText().replace("\"", "");
+                    String summary = AnnotationUtil.getStringAttributeValue(tagAnnotation, "summary");
+                    if (StringUtils.isNotBlank(summary)) {
+                        return summary;
                     }
                 }
             }

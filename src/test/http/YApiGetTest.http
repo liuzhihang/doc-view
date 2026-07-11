@@ -1,10 +1,10 @@
 ###
-POST http://apidoc.xxx.com:3000/api/interface/save
+POST {{docViewTestEndpoint}}
 Content-Type: application/json
 
 {
-  "yapiUrl": "http://apidoc.opaydev.com:3000",
-  "token": "33622ea7067e12c0d632e1362a2eec5964175bc3bd601bb12d5696e8ee38126c",
+  "yapiUrl": "{{yapiBaseUrl}}",
+  "token": "{{yapiToken}}",
   "projectId": 116,
   "id": null,
   "catid": 1649,

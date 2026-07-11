@@ -95,7 +95,7 @@ public interface DocViewService {
                 if (nameSet.contains(currentName)) {
                     nameSet.remove(currentName);
                 } else {
-                    docView.setName(docView.getName() + "_" + RandomStringUtils.randomAlphabetic(5) + i);
+                    docView.setName(docView.getName() + "_" + RandomStringUtils.secure().nextAlphabetic(5) + i);
                 }
 
             }

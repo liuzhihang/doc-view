@@ -1,33 +1,28 @@
-# Release Checklist
+# 发布检查清单
 
-本文档用于发布 Doc View 前的检查。不同变更类型需要不同验证强度；不要把未运行的命令描述为已通过。
+本文是 Doc View 发布验证矩阵的唯一文档来源。不要把未运行、0 测试、缓存命中或部分命令描述为完整通过。
 
-## 发布前准备
+## 1. 范围与安全
 
-- 确认变更说明、contract 和任务清单已完成，或明确本次不需要。
-- 确认 `AGENTS.md` 和相关 docs 已随行为变化更新。
-- 确认 `CHANGELOG.md` 包含用户可见变化。
-- 确认 `gradle.properties` 中 `pluginVersion` 正确。
-- 确认 Marketplace 描述、截图或说明不夸大能力。
-- 确认没有 token、测试账号、生产地址或私密日志进入仓库。
+- 活动 OpenSpec changes 已完成 tasks；长期 requirement 已按需要 sync/archive。
+- `git status` 和 diff 只包含计划范围，无生成物、IDE 缓存或临时文件。
+- 用户可见变化已写入 `CHANGELOG.md`，版本与 `gradle.properties` 一致。
+- 仓库和 artifacts 不含 token、cookie、账号、私有 endpoint 或生产请求体。
+- Marketplace/平台 token 只通过安全环境或本地参数提供。
+- 明确 release 风险、回滚 commit/version 和未覆盖场景。
 
-## Diff 范围检查
+## 2. 自动验证矩阵
 
-```bash
-git diff --name-only
-```
+| 变更类型 | 最小验证 |
+| --- | --- |
+| 文档/skill/OpenSpec-only | 文件/链接存在性、OpenSpec validate/status、`git diff --check`、diff 范围 |
+| Java/PSI/DTO/Markdown | 针对性失败/通过测试、`./gradlew test` |
+| Gradle/descriptor/resource/打包 | `./gradlew buildPlugin` |
+| IntelliJ API/平台/extension | `./gradlew verifyPluginProjectConfiguration`、`buildPlugin`、`verifyPlugin` |
+| UI/生命周期/写回 | 上述自动验证 + `runIde` 手工烟测 |
+| 上传集成 | 自动测试或 payload 检查 + 非生产 endpoint 手工验证 |
 
-检查：
-
-- 是否只修改了预期文件。
-- 是否误改 `src/main/resources/META-INF/plugin.xml`。
-- 是否误改 Gradle 依赖或平台版本。
-- 是否误改 icons、form、message bundle 或模板。
-- 是否有生成文件、IDE 缓存、临时文件进入 diff。
-
-## 常规验证
-
-根据变更类型选择：
+常用命令：
 
 ```bash
 ./gradlew test
@@ -35,99 +30,51 @@ git diff --name-only
 ./gradlew verifyPlugin
 ```
 
-文档-only 变更可以跳过 Gradle 命令，但必须说明原因，并至少完成：
+若 `src/test` 没有真实测试或 Gradle 允许 0 tests，`test` 成功只能证明测试源码/相关任务未失败，不能证明行为 contract。
 
-```bash
-git diff --name-only
-```
+## 3. Plugin Verifier
 
-## 手动 IDE 验证
+- `pluginVerifierIdeVersions` 覆盖计划声明支持的 IDE 版本。
+- 报告无 compatibility problem 和新增 internal API。
+- deprecated API 已修复或在独立 change/风险说明中跟踪。
+- `pluginSinceBuild`、Java 字节码和目标平台一致。
+- `pluginUntilBuild` 为空时明确说明未来版本尚未自动获得验证。
 
-涉及 runtime 行为时运行：
+## 4. `runIde` 手工烟测
 
-```bash
-./gradlew runIde
-```
+- Spring Controller、Feign、Dubbo 的发现与文档生成。
+- line marker、右键 action、tool window 打开/刷新/展开/选择。
+- preview、复制、导出和参数编辑写回。
+- settings、template、YApi、ShowDoc、YuQue 页面保存/取消。
+- 无 editor、Dumb Mode、文件失效、项目关闭/重开。
+- 大 Controller、递归 DTO 或批量操作期间 UI 可响应并可取消。
 
-手动检查：
+记录使用的 IDE build、样例工程、实际结果和未覆盖项。
 
-- Spring Controller 方法右键 `Doc View`。
-- Dubbo Service 方法右键 `Doc View`。
-- line marker 显示和隐藏设置。
-- tool window 打开、刷新、展开、折叠、清理缓存。
-- preview 复制、导出、上传入口。
-- 参数编辑写回注释或注解。
-- settings、template settings、YApi、ShowDoc、YuQue settings 保存和取消。
-- 项目关闭、切换、无编辑器、Dumb Mode 等边界状态。
+## 5. 平台集成
 
-## 平台集成验证
+- 使用 mock 或非生产服务，不在仓库保存真实地址/凭据。
+- 验证缺少配置、认证失败、超时、网络错误、服务端错误和成功响应。
+- 日志与通知不输出 token 或完整敏感 payload。
+- 重试不会重复创建远端文档；部分失败有明确反馈。
 
-上传相关变更需要：
+## 6. 打包与发布
 
-- 使用非生产 YApi/ShowDoc/YuQue 环境。
-- 验证配置缺失、认证失败、网络失败和成功上传。
-- 检查请求 payload 不包含多余敏感信息。
-- 检查错误通知可读。
-- 避免重复创建远端文档。
+- 检查 `build/distributions` zip 中 descriptor 版本、since/until build 和 bundled dependencies。
+- 确认测试框架/JUnit 等 test-only 依赖未打入插件包。
+- 检查 changelog HTML 与 Marketplace 描述不夸大能力或兼容范围。
+- 只有维护者明确授权且凭据已准备时才执行 `./gradlew publishPlugin`。
+- 面向正式发布的代码按仓库策略从 `develop` 合入 `master`，确认 tag 指向发布 commit 并推送。
 
-## 兼容性验证
+## 7. 发布后与回滚
 
-涉及 IntelliJ API、`plugin.xml` 或平台版本时：
+- Marketplace 版本、兼容范围、更新说明和安装包正确。
+- GitHub Release/tag 与 Marketplace 版本一致，产物 SHA 可追踪。
+- 安装版完成核心 smoke test。
+- 记录已知问题、监控反馈和回滚条件。
 
-- 运行 `./gradlew verifyPlugin`。
-- 检查 since/until build 策略。
-- 检查 JetBrains API 废弃告警。
-- 在目标 IDE 版本中运行核心手动流程。
-- 记录无法覆盖的 IDE 版本风险。
+回滚时先确认问题版本和影响范围，再撤回/替换发布或发布修复版本；保留复现信息，不在紧急修复中夹带无关重构。
 
-## 打包和发布
+## 凭据事件
 
-发布前：
-
-- 运行 `./gradlew buildPlugin`。
-- 检查生成的插件 zip。
-- 确认 changelog 渲染正确。
-- 确认 Marketplace token 仅通过安全环境变量或本地 Gradle 参数提供，不写入仓库文件。
-- 准备回滚版本或撤回方案。
-
-Marketplace token 可以用以下任一方式提供：
-
-```bash
-export ORG_GRADLE_PROJECT_intellijPlatformPublishingToken='YOUR_TOKEN'
-./gradlew publishPlugin
-```
-
-```bash
-./gradlew publishPlugin -PintellijPlatformPublishingToken='YOUR_TOKEN'
-```
-
-默认发布 channel 来自 `pluginPublishChannels`，多个 channel 用逗号分隔，例如：
-
-```bash
-./gradlew publishPlugin -PpluginPublishChannels=beta
-```
-
-发布命令：
-
-```bash
-./gradlew publishPlugin
-```
-
-只有维护者明确要求并准备好凭据时才执行发布。
-
-## 发布后检查
-
-- Marketplace 页面版本正确。
-- 插件可安装。
-- 更新说明显示正常。
-- 核心功能在安装版中可用。
-- 记录用户反馈和回滚风险。
-
-## 回滚
-
-如需回滚：
-
-- 确认问题版本和影响范围。
-- 回滚代码或发布修复版本。
-- 保留可复现步骤和日志。
-- 更新 changelog 或 release notes。
+如果历史中发现疑似真实 token：立即脱敏当前树且不回显原值；外部撤销/轮换、权限与使用记录检查作为单独授权动作尽快执行，两者互不替代。Git 历史重写不能替代轮换，且必须单独批准、协调所有分支/tag/fork 后执行。

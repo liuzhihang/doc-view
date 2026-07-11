@@ -4,7 +4,7 @@ import com.intellij.ide.util.treeView.AbstractTreeStructure;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
 import com.intellij.openapi.actionSystem.ActionToolbar;
-import com.intellij.openapi.actionSystem.DataProvider;
+import com.intellij.openapi.actionSystem.DataSink;
 import com.intellij.openapi.actionSystem.DefaultActionGroup;
 import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
@@ -12,7 +12,7 @@ import com.intellij.openapi.ui.SimpleToolWindowPanel;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.ScrollPaneFactory;
-import com.intellij.ui.TreeSpeedSearch;
+import com.intellij.ui.TreeUIHelper;
 import com.intellij.ui.tree.AsyncTreeModel;
 import com.intellij.ui.tree.StructureTreeModel;
 import com.intellij.ui.treeStructure.SimpleTree;
@@ -21,9 +21,7 @@ import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.utils.DocViewBackgroundTasks;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 import javax.swing.tree.TreeSelectionModel;
@@ -33,7 +31,7 @@ import javax.swing.tree.TreeSelectionModel;
  * @date 2021/10/22 16:25
  */
 @Slf4j
-public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataProvider {
+public class DocViewWindowPanel extends SimpleToolWindowPanel {
 
     private final RootNode rootNode = new RootNode();
 
@@ -65,7 +63,7 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
         initCatalogTree();
 
         setContent(ScrollPaneFactory.createScrollPane(catalogTree));
-        new TreeSpeedSearch(catalogTree);
+        TreeUIHelper.getInstance().installTreeSpeedSearch(catalogTree);
         updateCatalogTree();
     }
 
@@ -105,21 +103,11 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements DataPro
 
 
     @Override
-    public @Nullable Object getData(@NotNull @NonNls String dataId) {
-
-        if (DocViewDataKeys.WINDOW_PANE.is(dataId)) {
-            return this;
-        }
-        if (DocViewDataKeys.WINDOW_ROOT_NODE.is(dataId)) {
-            return rootNode;
-        }
-        if (DocViewDataKeys.WINDOW_CATALOG_TREE.is(dataId)) {
-            return catalogTree;
-        }
-
-        if (DocViewDataKeys.WINDOW_TOOLBAR.is(dataId)) {
-            return getToolbar();
-        }
-        return super.getData(dataId);
+    public void uiDataSnapshot(@NotNull DataSink sink) {
+        super.uiDataSnapshot(sink);
+        sink.set(DocViewDataKeys.WINDOW_PANE, this);
+        sink.set(DocViewDataKeys.WINDOW_ROOT_NODE, rootNode);
+        sink.set(DocViewDataKeys.WINDOW_CATALOG_TREE, catalogTree);
+        sink.set(DocViewDataKeys.WINDOW_TOOLBAR, getToolbar());
     }
 }
