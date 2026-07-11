@@ -2,6 +2,7 @@ import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.ChangelogSectionUrlBuilder
 import org.jetbrains.changelog.ExtensionsKt
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 
 plugins {
@@ -29,11 +30,16 @@ repositories {
 dependencies {
     compileOnly group: 'org.projectlombok', name: 'lombok', version: project.lombokVersion
     annotationProcessor group: 'org.projectlombok', name: 'lombok', version: project.lombokVersion
+    testImplementation('junit:junit:4.13.2') {
+        exclude group: 'org.hamcrest', module: 'hamcrest-core'
+    }
 
     intellijPlatform {
         create(project.platformType, project.platformVersion)
         bundledPlugin 'com.intellij.java'
         bundledPlugin 'org.intellij.plugins.markdown'
+        testFramework TestFrameworkType.Platform.INSTANCE
+        testFramework TestFrameworkType.Plugin.Java.INSTANCE
     }
 }
 
@@ -72,7 +78,10 @@ intellijPlatform {
 
     pluginVerification {
         failureLevel = [
-                VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS
+                VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS,
+                VerifyPluginTask.FailureLevel.INTERNAL_API_USAGES,
+                VerifyPluginTask.FailureLevel.OVERRIDE_ONLY_API_USAGES,
+                VerifyPluginTask.FailureLevel.DEPRECATED_API_USAGES
         ]
 
         ides {
@@ -110,7 +119,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.named('test') {
-    failOnNoDiscoveredTests = false
+    failOnNoDiscoveredTests = true
 }
 
 tasks.named('verifyPlugin', VerifyPluginTask) {

@@ -96,8 +96,8 @@ public class DubboPsiUtils {
 
     public static List<PsiClass> findDocViewFromModule(Module module) {
 
-        Collection<PsiAnnotation> psiAnnotations = JavaAnnotationIndex.getInstance().get("Service", module.getProject(), GlobalSearchScope.moduleScope(module));
-        psiAnnotations.addAll(JavaAnnotationIndex.getInstance().get("DubboService", module.getProject(), GlobalSearchScope.moduleScope(module)));
+        Collection<PsiAnnotation> psiAnnotations = new ArrayList<>(JavaAnnotationIndex.getInstance().getAnnotations("Service", module.getProject(), GlobalSearchScope.moduleScope(module)));
+        psiAnnotations.addAll(JavaAnnotationIndex.getInstance().getAnnotations("DubboService", module.getProject(), GlobalSearchScope.moduleScope(module)));
 
         List<PsiClass> psiClasses = new LinkedList<>();
 

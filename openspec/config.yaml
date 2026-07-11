@@ -1,0 +1,23 @@
+schema: spec-driven
+
+context: |
+  Doc View 是一个从 Java 源码生成 Markdown API 文档的 IntelliJ IDEA 插件。
+  生产代码保持 Java-only；版本、Gradle、目标 IDE 和分支事实必须读取
+  gradle.properties、build.gradle、Gradle wrapper 与当前 Git 状态，不在本文件复制。
+  PSI、DTO、Markdown、上传、导出、设置、UI 和兼容性行为采用 contract-first。
+  变更 artifacts 默认使用中文；不得包含真实 token、生产私密地址或用户私有代码。
+  根据 canonical release checklist 选择足以证明结果的验证。
+
+rules:
+  proposal:
+    - 明确为什么现在要改、范围、非目标、用户可观察影响和验证方向。
+    - 行为变化与文档-only/基础设施变化必须拆分或明确边界。
+  design:
+    - 说明受影响的 PSI、DTO、模板、UI、集成、线程模型或兼容性边界。
+    - 优先沿用现有 Java service、DTO、工具类和 IntelliJ Platform API。
+  specs:
+    - 运行时 capability 使用 Java 输入、设置/平台状态、预期 DocView/Markdown/payload/UI 输出；仓库治理 capability 使用文件、CLI 状态和可观察结果。
+    - 明确不支持、保持不变和敏感数据处理场景。
+  tasks:
+    - 按依赖顺序拆分为可独立验证的小任务，并写出精确验证命令。
+    - 只有实现和验证真实完成后才能勾选任务。

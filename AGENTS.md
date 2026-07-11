@@ -9,177 +9,57 @@ Service，并提供 Markdown 预览、复制、导出，以及上传到 YApi、S
 - 构建系统：Gradle 9.5.0
 - IntelliJ Platform Gradle Plugin：`org.jetbrains.intellij.platform` 2.16.0
 - 目标平台：IntelliJ IDEA IU 2026.1+
-- 插件版本：1.3.12
+- 插件版本：1.3.13
 - Bundled plugin：Java、Markdown
 - 主包名：`com.liuzhihang.doc.view`
 
-## 当前变更范围
+版本与兼容性事实以 `gradle.properties`、`build.gradle`、Gradle wrapper 和 `plugin.xml` 为准；上述摘要随基线 change 同步更新。
 
-当前仓库不再维护旧项目级规格目录。具体变更范围以用户请求、当前分支上下文和本文档约束为准；涉及运行时行为时必须先定义 contract 和验证路径。
+## 维护范围与变更管理
 
-本次变更允许修改：
+- 具体变更范围以用户请求、当前分支上下文和活动 OpenSpec change 为准，不在本文件维护一次性文件白名单。
+- 新功能、用户可见行为、兼容性或架构变化先创建 OpenSpec proposal/design/spec/tasks，再修改运行时代码。
+- 低风险机械文档修正可以直接实施；描述运行行为变化的文档必须与对应 contract 同步。
+- 生产实现保持 Java-only；引入新生产语言、依赖、extension 或平台基线必须在 change 中明确批准。
+- 精准修改当前任务需要的文件，不回滚维护者或其他工具的无关改动。
+- token、账号、cookie、生产私密地址和私有代码不得进入仓库、artifact、日志或示例。
 
-- `AGENTS.md`
-- `docs/**/*.md`
-- `.gitignore`
-- `build.gradle`
-- `gradle.properties`
-- `gradle/wrapper/**`
-- `gradlew`
-- `gradlew.bat`
-- `src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java`，仅用于移除工具栏 internal API 用法
-- `src/main/java/com/liuzhihang/doc/view/ui/ParamDocEditorForm.java`，仅用于移除工具栏 internal API 用法
+## Canonical 文档
 
-本次变更禁止修改：
-
-- `src/main/java` 下除上述 IntelliJ 兼容性修复外的 Java 生产代码
-- `src/test` 下的测试代码
-- `src/main/resources/META-INF/plugin.xml`
-- runtime 资源、图标、message bundle、模板、IDE form 文件
-- 插件行为、生成 Markdown 行为、上传行为、导出行为、解析行为、设置持久化行为或 UI 行为
-
-## 常用命令
-
-```bash
-# 构建插件
-./gradlew buildPlugin
-
-# 在沙箱 IDE 中运行插件
-./gradlew runIde
-
-# 运行测试
-./gradlew test
-
-# 验证插件兼容性
-./gradlew verifyPlugin
-
-# 更新 changelog
-./gradlew patchChangelog
-
-# 发布到 JetBrains Marketplace
-./gradlew publishPlugin
-```
-
-文档-only 变更优先做轻量验证：
-
-```bash
-git diff --name-only
-```
-
-当变更触及 Java、Gradle、`plugin.xml`、模板、资源或任何运行时行为时，必须运行相应 Gradle 验证。
-
-## 项目结构
-
-```text
-src/
-  main/
-    java/com/liuzhihang/doc/view/
-      action/         IDE action：预览、编辑、工具栏、上传
-      config/         持久化配置和 Configurable
-      constant/       注解、字段类型、框架常量
-      data/           IntelliJ DataKey
-      dom/            XML DOM 解析和 scoped search
-      dto/            DocView、Body、Param、Header 等内部模型
-      enums/          框架类型、content type 等枚举
-      exception/      自定义异常
-      integration/    YApi、ShowDoc、YuQue facade 和 DTO
-      listener/       事件监听
-      notification/   IDE 通知
-      provider/       line marker、action provider
-      service/        Spring/Dubbo 解析、写入、上传等核心服务
-      ui/             Swing form、预览、参数编辑、tool window
-      utils/          PSI、Velocity、HTTP、导出、Dialog、文件工具
-    resources/
-      META-INF/plugin.xml
-      icons/
-      image/
-      messages/
-  test/
-    java/
-    http/
-```
-
-## 架构入口
-
-- `SpringDocViewServiceImpl`：从 Spring Controller/Feign 风格方法构建 `DocView`。
-- `DubboDocViewServiceImpl`：从 Dubbo Service 方法构建 `DocView`。
-- `WriterService`：通过 IntelliJ write command 写入 Javadoc 或编辑器文本。
-- `DocViewWindowPanel`、`DocViewToolWindowFactory`：右侧 tool window 入口。
-- `PreviewForm`、`ParamDocEditorForm`：预览和参数编辑 UI。
-- `CustomPsiUtils`、`SpringPsiUtils`、`DubboPsiUtils`、`ParamPsiUtils`：PSI 分析和模型生成工具。
-- `VelocityUtils`：Markdown 模板渲染。
-- `ExportUtils`：导出能力。
-- `HttpUtils`：平台集成使用的 HTTP 工具。
-- `Settings`、`TemplateSettings`、`YApiSettings`、`ShowDocSettings`、`YuQueSettings`：项目级设置。
+- [架构](docs/architecture.md)：模块边界、核心数据流和扩展入口。
+- [Contract 设计](docs/contract-design.md)：外部可观察行为、输入输出和验证选择。
+- [性能指南](docs/performance-guide.md)：PSI、EDT、缓存、渲染、导出和上传约束。
+- [IntelliJ 兼容性](docs/intellij-compatibility.md)：平台、Java、Gradle、Verifier 和 API 策略。
+- [AI 协作工作流](docs/ai-workflow.md)：OpenSpec lifecycle 与 repo-local skill 分工。
+- [路线图](docs/roadmap.md)：产品化开发顺序和独立 change 边界。
+- [发布检查清单](docs/release-checklist.md)：发布前、手工验证、发布后和回滚步骤。
 
 ## Java-only 生产代码策略
 
-- 生产插件实现必须保持 Java-only，除非未来有单独通过的变更说明和 contract 明确修改该策略。
-- 不新增 Kotlin、Groovy、脚本语言 runtime 代码、生成式 runtime source 或新的生产语言。
-- Markdown 文档、contract artifacts、YAML metadata、Codex skill、现有 Gradle 文件和 IDE form 文件属于仓库基础设施；只要符合任务范围，可以维护。
-- 新增实现优先沿用现有 IntelliJ Platform API、Java service、DTO 和工具类，不轻易引入新抽象。
+- 生产插件实现保持 Java-only；不新增 Kotlin、Groovy、脚本 runtime 或生成式生产源码。
+- Markdown、OpenSpec artifacts、YAML metadata、Codex skill、Gradle 文件和 IDE form 属于仓库基础设施，不改变 Java-only 策略。
+- 新实现优先沿用现有 IntelliJ Platform API、service、DTO 和工具类。
 
 ## Contract-first 策略
 
-在修改以下行为前，必须先定义契约：
-
-- PSI 解析规则
-- DTO 字段和默认值
-- 生成 Markdown 结构
-- 上传、导出、复制、写回注释或注解
-- 设置持久化
-- IntelliJ 兼容性
-- UI 可见行为
-
-推荐流程：
-
-1. 创建或更新变更说明和 contract 记录。
-2. 按 `docs/contract-design.md` 定义外部可观察契约。
-3. 明确 Java 输入样例、预期 `DocView`、预期 Markdown、平台 payload 和边界场景。
-4. 能自动化时先补验证；不能自动化时写明手动验证步骤。
-5. 除非契约明确变化，否则保持生成文档行为稳定。
+修改 PSI、DTO、Markdown、上传、导出、复制/写回、设置、IntelliJ 兼容性或 UI 行为前，必须按 [Contract 设计](docs/contract-design.md)在 OpenSpec 中定义输入、可观察输出、不支持场景和验证。除非 contract 明确变化，否则保持生成文档行为稳定。
 
 ## AI 协作工作流
 
-- 新功能、行为变化、兼容性变化和架构变化必须先定义变更说明和 contract。
-- 变更说明、contract 和任务清单默认使用中文撰写，除非维护者明确要求使用其他语言。
-- 默认在 `develop` 分支开展开发；除非维护者明确要求，不从 `master` 或临时 feature 分支直接承接日常开发。
-- 任务匹配时使用 `.codex/skills/` 下的 repo-local skill。
-- 保持改动小而聚焦，遵循现有包边界和服务职责。
-- 工作区可能存在维护者或其他工具的未提交变更；不要回滚无关文件。
-- 文档-only 任务不得夹带 runtime 行为变化。
-- 任务清单只有在对应改动或验证真实完成后才能勾选。
-- 跳过验证时必须说明原因。
+- OpenSpec 管 change lifecycle；`.codex/skills/doc-view-*` 管 contract、文档、Java 和发布领域门禁。
+- artifacts 默认使用中文；默认在 `develop` 开发，实际分支和 scope 以用户请求及 Git 状态为准。
+- 工作区可能有维护者或其他工具的未提交改动；不得回滚无关文件。
+- 文档-only 任务不得夹带 runtime 行为；checkbox 只有在实现和验证完成后勾选。
+- 完整流程见 [AI 协作工作流](docs/ai-workflow.md)。
 
-## 验证策略
+## 验证与发布
 
-按变更类型选择能证明结果的最小命令集：
-
-- 文档-only：文件存在性检查、`git diff --name-only`。
-- Java 解析或 service 变更：`./gradlew test`。
-- 插件打包、descriptor 或资源变更：`./gradlew buildPlugin`，通常还需要 `./gradlew verifyPlugin`。
-- IntelliJ 兼容性升级：`./gradlew verifyPlugin`、`./gradlew runIde` 中的核心手动流程，以及发布检查清单。
-- 上传或平台集成：可用的单元测试，加非生产 endpoint 的手动验证。
-
-不要把未运行的命令描述为已通过。
-
-## 发布纪律
-
-- 用户可见行为变化需要更新 `CHANGELOG.md`。
-- 面向发布的 PR 默认从 `develop` 发往 `master`；feature 分支应先合入 `develop`。
-- 发布前按 [发布检查清单](docs/release-checklist.md) 执行。
-- 不提交 Marketplace token、平台 token、账号、cookie 或生产私密地址。
-- 只有维护者明确要求并准备好凭据时，才执行 `./gradlew publishPlugin`。
+- 按 [发布检查清单](docs/release-checklist.md)选择能证明结果的最小命令和手工场景。
+- 不把未运行、0 tests、缓存命中或部分检查描述为完整通过。
+- 用户可见变化更新 `CHANGELOG.md`；正式发布通常从 `develop` 合入 `master`。
+- 只有维护者明确授权且凭据就绪时才执行 `publishPlugin`、推送 tag 或创建 Release。
 
 ## 维护提醒
 
-- Lombok 使用较多，维护时要注意注解处理。
-- PSI 工具变更会同时影响 Spring 和 Dubbo 路径，属于高影响面。
-- Velocity 模板驱动 Markdown 输出，模板变量需要兼容用户自定义模板。
-- `plugin.xml` 注册 services、providers、actions、settings pages、tool window、notification group、DOM/search extension；修改 descriptor 必须做兼容性验证。
-- Maven 依赖使用 Aliyun mirror 和 Maven Central。
-
-<!-- SPECKIT START -->
-For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
-<!-- SPECKIT END -->
+- Lombok 注解处理、Spring/Dubbo 共用 PSI、Velocity 模板变量和 `plugin.xml` extension 都是高影响边界。
+- Maven 依赖使用 Aliyun mirror 和 Maven Central；依赖变化必须在 design 中说明。
