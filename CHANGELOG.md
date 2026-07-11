@@ -23,7 +23,7 @@
 ### Fixed
 - 增加 DTO 递归解析和深度限制保护，避免循环引用或过深嵌套导致 IDE 卡顿。
 - 移除预览和参数编辑弹窗工具栏中的 IntelliJ internal `ActionToolbarImpl` API 使用。
-- 移除启动通知版本检测中的 IntelliJ internal `PluginManagerCore` API 使用，确保 1.3.12 Marketplace 兼容性验证不再触发 internal API 拒绝。
+- 移除启动通知版本检测中的 IntelliJ internal `PluginManagerCore` 和 `PluginManager` API 使用，改由扩展框架注入插件描述符，确保 1.3.12 Marketplace 兼容性验证不再触发 internal API 拒绝。
 
 ## 1.3.11
 

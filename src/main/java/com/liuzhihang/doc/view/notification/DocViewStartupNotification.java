@@ -1,9 +1,8 @@
 package com.liuzhihang.doc.view.notification;
 
-import com.intellij.ide.plugins.IdeaPluginDescriptor;
-import com.intellij.ide.plugins.PluginManager;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.extensions.PluginId;
+import com.intellij.openapi.extensions.PluginAware;
+import com.intellij.openapi.extensions.PluginDescriptor;
 import com.intellij.openapi.project.DumbAware;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.startup.StartupActivity;
@@ -17,7 +16,14 @@ import org.jetbrains.annotations.NotNull;
  * @author liuzhihang
  * @date 2021/10/22 14:09
  */
-public class DocViewStartupNotification implements StartupActivity, DumbAware {
+public class DocViewStartupNotification implements StartupActivity, DumbAware, PluginAware {
+
+    private PluginDescriptor pluginDescriptor;
+
+    @Override
+    public void setPluginDescriptor(@NotNull PluginDescriptor pluginDescriptor) {
+        this.pluginDescriptor = pluginDescriptor;
+    }
 
     @Override
     public void runActivity(@NotNull Project project) {
@@ -29,15 +35,14 @@ public class DocViewStartupNotification implements StartupActivity, DumbAware {
 
         // 上次安装的版本
         String lastVersion = applicationSettings.getPluginVersion();
-
-        IdeaPluginDescriptor plugin = PluginManager.getInstance().findEnabledPlugin(PluginId.getId("com.liuzhihang.doc-view"));
+        String currentVersion = pluginDescriptor == null ? null : pluginDescriptor.getVersion();
 
         // 一个版本只通知一次
-        if (lastVersion != null && plugin != null) {
-            final int compare = VersionComparatorUtil.compare(lastVersion, plugin.getVersion());
+        if (lastVersion != null && currentVersion != null) {
+            final int compare = VersionComparatorUtil.compare(lastVersion, currentVersion);
             if (compare < 0) {
                 DocViewNotification.startupNotification(project);
-                applicationSettings.setPluginVersion(plugin.getVersion());
+                applicationSettings.setPluginVersion(currentVersion);
             }
         }
     }
