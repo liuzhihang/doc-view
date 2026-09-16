@@ -6,7 +6,6 @@ import com.liuzhihang.doc.view.config.TemplateSettings;
 import com.liuzhihang.doc.view.enums.FrameworkEnum;
 import com.liuzhihang.doc.view.utils.VelocityUtils;
 import lombok.Data;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -147,7 +146,7 @@ public class DocViewData {
     @NotNull
     private static String paramMarkdown(List<DocViewParamData> dataList) {
 
-        if (CollectionUtils.isEmpty(dataList)) {
+        if (dataList == null || dataList.isEmpty()) {
             return "";
         }
 
@@ -160,7 +159,7 @@ public class DocViewData {
      * 切分多个展示
      */
     private static String separateParamMarkdown(List<DocViewParamData> dataList) {
-        if (CollectionUtils.isEmpty(dataList)) {
+        if (dataList == null || dataList.isEmpty()) {
             return "";
         }
         List<DocViewParamData> paramDataList = new ArrayList<>();
@@ -175,7 +174,7 @@ public class DocViewData {
                     .append("|").append(data.getDesc())
                     .append("|").append(Arrays.stream(new String[]{data.getSince(), data.getVersion()}).filter(StringUtils::isNotBlank).collect(Collectors.joining("-")))
                     .append("|").append("\n");
-            if (CollectionUtils.isNotEmpty(data.getChildList())) {
+            if (data.getChildList() != null && !data.getChildList().isEmpty()) {
                 paramDataList.add(data);
             }
         }
@@ -187,7 +186,7 @@ public class DocViewData {
      * 构造子的参数 Markdown 实体
      */
     private static String separateSubParamMarkdown(List<DocViewParamData> dataList) {
-        if (CollectionUtils.isEmpty(dataList)) {
+        if (dataList == null || dataList.isEmpty()) {
             return "";
         }
 
@@ -195,7 +194,7 @@ public class DocViewData {
         for (DocViewParamData data : dataList) {
             List<DocViewParamData> childList = data.getChildList();
 
-            if (CollectionUtils.isNotEmpty(childList)) {
+            if (childList != null && !childList.isEmpty()) {
                 if (childList.size() == 1) {
                     DocViewParamData docViewParamData = childList.get(0);
                     if (docViewParamData.isCollection()) {
@@ -237,7 +236,7 @@ public class DocViewData {
                     .append("|").append(data.getDesc())
                     .append("|").append(Arrays.stream(new String[]{data.getSince(), data.getVersion()}).filter(StringUtils::isNotBlank).collect(Collectors.joining("-")))
                     .append("|").append("\n");
-            if (CollectionUtils.isNotEmpty(data.getChildList())) {
+            if (data.getChildList() != null && !data.getChildList().isEmpty()) {
                 builder.append(paramMarkdownContent(data.getChildList()));
             }
         }
@@ -248,7 +247,7 @@ public class DocViewData {
     @NotNull
     private static String headerMarkdown(List<DocViewParamData> dataList) {
 
-        if (CollectionUtils.isEmpty(dataList)) {
+        if (dataList == null || dataList.isEmpty()) {
             return "";
         }
 
@@ -270,7 +269,7 @@ public class DocViewData {
 
     private List<DocViewParamData> headerDataList(List<Header> headerList) {
 
-        if (CollectionUtils.isEmpty(headerList)) {
+        if (headerList == null || headerList.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -288,7 +287,7 @@ public class DocViewData {
     }
 
     private List<DocViewParamData> paramDataList(List<Param> reqParamList) {
-        if (CollectionUtils.isEmpty(reqParamList)) {
+        if (reqParamList == null || reqParamList.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -324,7 +323,7 @@ public class DocViewData {
     @NotNull
     public static List<DocViewParamData> buildBodyDataList(List<Body> bodyList) {
 
-        if (CollectionUtils.isEmpty(bodyList)) {
+        if (bodyList == null || bodyList.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -367,7 +366,7 @@ public class DocViewData {
             data.setCollection(body.isCollection());
             data.setMap(body.isMap());
 
-            if (CollectionUtils.isNotEmpty(body.getChildList())) {
+            if (body.getChildList() != null && !body.getChildList().isEmpty()) {
 
                 Settings settings = Settings.getInstance(body.getPsiElement().getProject());
 

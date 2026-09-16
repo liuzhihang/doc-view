@@ -25,7 +25,6 @@ import com.liuzhihang.doc.view.integration.impl.YApiFacadeServiceImpl;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -179,7 +178,7 @@ public final class YApiServiceImpl implements DocViewUploadService {
             // mock 数据先不填充
 
             // 设置 body
-            if (CollectionUtils.isNotEmpty(body.getChildList()) && body.getPsiElement() instanceof PsiField) {
+            if (body.getChildList() != null && !body.getChildList().isEmpty() && body.getPsiElement() instanceof PsiField) {
 
                 PsiField field = (PsiField) body.getPsiElement();
                 PsiType type = field.getType();
@@ -263,7 +262,7 @@ public final class YApiServiceImpl implements DocViewUploadService {
 
     private List<YApiQuery> buildReqQuery(List<Param> paramList) {
 
-        if (CollectionUtils.isEmpty(paramList)) {
+        if (paramList == null || paramList.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -281,7 +280,7 @@ public final class YApiServiceImpl implements DocViewUploadService {
 
     private List<YApiHeader> buildReqHeaders(List<Header> headerList) {
 
-        if (CollectionUtils.isEmpty(headerList)) {
+        if (headerList == null || headerList.isEmpty()) {
             return new ArrayList<>();
         }
 

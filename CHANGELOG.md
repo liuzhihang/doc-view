@@ -15,6 +15,11 @@
 ### Security
 - 新增 `SECURITY.md` 私密漏洞报告流程，并在公开 Bug 模板中加入凭据、私有地址、源码与请求/响应数据的脱敏提醒。
 
+## [1.3.14] - 2026-09-16
+
+### Fixed
+- 移除文档生成与 YApi payload 构造对 Commons Collections 的隐式依赖，避免 IDE 未提供 CollectionUtils 时出现缺类错误；保持 null、空集合和生成内容的既有语义。
+
 ## [1.3.13] - 2026-07-11
 
 ### Changed
