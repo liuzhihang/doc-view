@@ -47,6 +47,11 @@ Doc View
 
 [查看历史更新记录](https://github.com/liuzhihang/doc-view/releases)
 
+安全
+----
+
+请按照 [SECURITY.md](SECURITY.md) 私密报告疑似安全漏洞。不要在公开 Issue 中提交凭据、私有项目数据或未脱敏日志。
+
 关于我
 ----
 
