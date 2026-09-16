@@ -14,6 +14,11 @@
 
 ### Security
 
+## [1.3.14] - 2026-09-16
+
+### Fixed
+- 移除文档生成与 YApi payload 构造对 Commons Collections 的隐式依赖，避免 IDE 未提供 CollectionUtils 时出现缺类错误；保持 null、空集合和生成内容的既有语义。
+
 ## [1.3.13] - 2026-07-11
 
 ### Changed
