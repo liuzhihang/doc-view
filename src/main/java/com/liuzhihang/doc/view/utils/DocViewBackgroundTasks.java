@@ -35,13 +35,13 @@ public final class DocViewBackgroundTasks {
                         return readTask.compute(indicator);
                     });
                     if (!indicator.isCanceled()) {
-                        invokeLater(project, () -> onSuccess.accept(result));
+                        invokeLaterIfNotCanceled(project, indicator, () -> onSuccess.accept(result));
                     }
                 } catch (ProcessCanceledException ignored) {
                     // 用户取消或项目关闭时静默丢弃 stale result。
                 } catch (Throwable throwable) {
                     if (onError != null) {
-                        invokeLater(project, () -> onError.accept(throwable));
+                        invokeLaterIfNotCanceled(project, indicator, () -> onError.accept(throwable));
                     }
                 }
             }
@@ -74,6 +74,16 @@ public final class DocViewBackgroundTasks {
     public static void invokeLater(@NotNull Project project, @NotNull Runnable runnable) {
         ApplicationManager.getApplication().invokeLater(() -> {
             if (!project.isDisposed()) {
+                runnable.run();
+            }
+        });
+    }
+
+    static void invokeLaterIfNotCanceled(@NotNull Project project,
+                                        @NotNull ProgressIndicator indicator,
+                                        @NotNull Runnable runnable) {
+        invokeLater(project, () -> {
+            if (!indicator.isCanceled()) {
                 runnable.run();
             }
         });

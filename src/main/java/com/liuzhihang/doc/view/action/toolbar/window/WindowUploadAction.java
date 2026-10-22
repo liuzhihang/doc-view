@@ -2,6 +2,7 @@ package com.liuzhihang.doc.view.action.toolbar.window;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
@@ -9,6 +10,7 @@ import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.action.toolbar.AbstractToolbarUploadAction;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
+import com.liuzhihang.doc.view.enums.UploadPlatform;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 import com.liuzhihang.doc.view.ui.window.RootNode;
@@ -22,6 +24,17 @@ import javax.swing.*;
  * @date 2021/10/23 19:55
  */
 public class WindowUploadAction extends AbstractToolbarUploadAction {
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+        Project project = e.getData(PlatformDataKeys.PROJECT);
+        boolean available = project != null
+                && !project.isDisposed()
+                && !DumbService.isDumb(project)
+                && e.getData(DocViewDataKeys.WINDOW_ROOT_NODE) != null
+                && e.getData(DocViewDataKeys.WINDOW_TOOLBAR) != null;
+        e.getPresentation().setEnabledAndVisible(available);
+    }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
@@ -39,12 +52,12 @@ public class WindowUploadAction extends AbstractToolbarUploadAction {
         JBPopupFactory.getInstance()
                 .createListPopup(new BaseListPopupStep<>(null, DocViewUploadService.UPLOAD_OPTIONS) {
                     @Override
-                    public @NotNull String getTextFor(String value) {
-                        return "Upload to " + value;
+                    public @NotNull String getTextFor(UploadPlatform value) {
+                        return DocViewBundle.message("action.upload.platform", value.getDisplayName());
                     }
 
                     @Override
-                    public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
+                    public @Nullable PopupStep<?> onChosen(UploadPlatform selectedValue, boolean finalChoice) {
 
                         DocViewUploadService.getInstance(selectedValue).upload(project, rootNode.docViewList());
 

@@ -2,7 +2,10 @@ package com.liuzhihang.doc.view.service;
 
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.dto.DocView;
+import com.liuzhihang.doc.view.enums.UploadPlatform;
 import com.liuzhihang.doc.view.service.impl.ShowDocServiceImpl;
 import com.liuzhihang.doc.view.service.impl.YApiServiceImpl;
 import com.liuzhihang.doc.view.service.impl.YuQueServiceImpl;
@@ -20,23 +23,15 @@ import java.util.List;
  */
 public interface DocViewUploadService {
 
-    public static final String[] UPLOAD_OPTIONS = {"YApi", "ShowDoc", "语雀"};
+    public static final List<UploadPlatform> UPLOAD_OPTIONS = List.of(UploadPlatform.values());
 
     @NotNull
-    static DocViewUploadService getInstance(@NotNull String name) {
-        if (name.equals("YApi")) {
-            // 上传到 yapi
-            return ApplicationManager.getApplication().getService(YApiServiceImpl.class);
-        } else if (name.equals("ShowDoc")) {
-            // 上传到 ShowDoc
-            return ApplicationManager.getApplication().getService(ShowDocServiceImpl.class);
-        } else if (name.equals("语雀")) {
-            // 上传到语雀
-            return ApplicationManager.getApplication().getService(YuQueServiceImpl.class);
-        }
-
-        // 默认返回 YApi
-        return ApplicationManager.getApplication().getService(YApiServiceImpl.class);
+    static DocViewUploadService getInstance(@NotNull UploadPlatform platform) {
+        return switch (platform) {
+            case YAPI -> ApplicationManager.getApplication().getService(YApiServiceImpl.class);
+            case SHOW_DOC -> ApplicationManager.getApplication().getService(ShowDocServiceImpl.class);
+            case YUQUE -> ApplicationManager.getApplication().getService(YuQueServiceImpl.class);
+        };
     }
 
     /**
@@ -46,18 +41,17 @@ public interface DocViewUploadService {
      * @param docViewList
      */
     default void upload(@NotNull Project project, @NotNull List<DocView> docViewList) {
-
-        if (!checkSettings(project)) {
-            // 没有配置相关地址 token 等
-            return;
-        }
-
-        DocViewBackgroundTasks.runTask(project, "Doc View upload", true, indicator -> {
+        DocViewBackgroundTasks.runTask(project, DocViewBundle.message("task.docview.upload"), true, indicator -> {
+            if (project.isDisposed()) throw new ProcessCanceledException();
+            if (!checkSettings(project)) {
+                return;
+            }
             for (DocView docView : docViewList) {
                 indicator.checkCanceled();
+                if (project.isDisposed()) throw new ProcessCanceledException();
                 doUpload(project, docView);
             }
-        }, throwable -> DocViewNotification.notifyError(project, throwable.getMessage()));
+        }, throwable -> DocViewNotification.notifyError(project, DocViewBundle.message("notify.integration.upload.error")));
 
     }
 
@@ -68,15 +62,14 @@ public interface DocViewUploadService {
      * @param docView
      */
     default void upload(@NotNull Project project, @NotNull DocView docView) {
-
-        if (!checkSettings(project)) {
-            // 没有配置相关地址 token 等
-            return;
-        }
-
-        DocViewBackgroundTasks.runTask(project, "Doc View upload", true,
-                indicator -> doUpload(project, docView),
-                throwable -> DocViewNotification.notifyError(project, throwable.getMessage()));
+        DocViewBackgroundTasks.runTask(project, DocViewBundle.message("task.docview.upload"), true,
+                indicator -> {
+                    if (project.isDisposed()) throw new ProcessCanceledException();
+                    if (checkSettings(project)) {
+                        doUpload(project, docView);
+                    }
+                },
+                throwable -> DocViewNotification.notifyError(project, DocViewBundle.message("notify.integration.upload.error")));
     }
 
     /**

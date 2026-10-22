@@ -3,6 +3,7 @@ package com.liuzhihang.doc.view.config;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.ui.SettingsForm;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +35,7 @@ public class SettingsConfigurable implements SearchableConfigurable {
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
     public String getDisplayName() {
-        return "Doc View";
+        return DocViewBundle.message("settings.page.root");
     }
 
     @Nullable
@@ -48,17 +49,22 @@ public class SettingsConfigurable implements SearchableConfigurable {
 
     @Override
     public boolean isModified() {
-        return settingsForm.isModified();
+        return settingsForm != null && settingsForm.isModified();
     }
 
     @Override
     public void apply() throws ConfigurationException {
-        settingsForm.apply();
+        if (settingsForm != null) settingsForm.apply();
     }
 
     @Override
     public void reset() {
-        settingsForm.reset();
+        if (settingsForm != null) settingsForm.reset();
+    }
+
+    @Override
+    public void disposeUIResources() {
+        settingsForm = null;
     }
 
 }

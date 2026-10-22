@@ -7,6 +7,7 @@
 - 活动 OpenSpec changes 已完成 tasks；长期 requirement 已按需要 sync/archive。
 - `git status` 和 diff 只包含计划范围，无生成物、IDE 缓存或临时文件。
 - 用户可见变化已写入 `CHANGELOG.md`，版本与 `gradle.properties` 一致。
+- README、`parts/description.html` 中英插件介绍及相关用户指南与本次发布内容一致；明确凭据重新录入、注解规则变化等升级事项，不把未交付的评估方案写成现有功能。
 - 仓库和 artifacts 不含 token、cookie、账号、私有 endpoint 或生产请求体。
 - Marketplace/平台 token 只通过安全环境或本地参数提供。
 - 明确 release 风险、回滚 commit/version 和未覆盖场景。
@@ -53,6 +54,8 @@
 
 ## 5. 平台集成
 
+本轮例外（2026-10-22）：维护者明确要求“真实上传忽略”，因此三平台真实账号上传验收作为未执行的非阻断项记录，不再阻断本轮发布评估。保留下面的mock/本机服务及自动回归要求；OS凭据存储等独立验收不在此次排除范围。本例外不代表真实平台验收通过，也不改变以后发布的默认验证矩阵。
+
 - 使用 mock 或非生产服务，不在仓库保存真实地址/凭据。
 - 验证缺少配置、认证失败、超时、网络错误、服务端错误和成功响应。
 - 日志与通知不输出 token 或完整敏感 payload。
@@ -60,9 +63,11 @@
 
 ## 6. 打包与发布
 
+- 确定尚未使用的新版本号，并将本次 `Unreleased` 内容整理到对应版本条目；不要覆盖已有 tag 或以旧版本身份发布新功能。`build.gradle` 使用 `changelog.getLatest()` 生成更新说明，仅编辑 `Unreleased` 不会替换已发布版本的说明。
 - 检查 `build/distributions` zip 中 descriptor 版本、since/until build 和 bundled dependencies。
 - 确认测试框架/JUnit 等 test-only 依赖未打入插件包。
-- 检查 changelog HTML 与 Marketplace 描述不夸大能力或兼容范围。
+- 从最终 ZIP 读回 `plugin.xml` 的版本、description 和 change-notes，确认包含本次正式版本的文案；核对欢迎页版本摘要，不能把开发期的“未发布”内容原样冒充已发布记录。检查说明不夸大能力或兼容范围。
+- README 和在线帮助的 `master` 文档应随获准的发布变更进入目标分支，并在发布后核对公开链接；本地文件存在不等于 GitHub 正文已上线。
 - 只有维护者明确授权且凭据已准备时才执行 `./gradlew publishPlugin`。
 - 面向正式发布的代码按仓库策略从 `develop` 合入 `master`，确认 tag 指向发布 commit 并推送。
 

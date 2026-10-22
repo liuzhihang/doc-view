@@ -7,6 +7,7 @@ import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
 import com.intellij.util.ui.ColumnInfo;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.dto.DocViewParamData;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -28,16 +29,16 @@ public class ParamTreeTableView extends TreeTableView {
 
     // {"参数名", "类型", "必选", "描述"}
     public static final ColumnInfo[] COLUMN_INFOS = new ColumnInfo[]{
-            new TreeColumnInfo("参数名 *") {
+            new TreeColumnInfo(DocViewBundle.message("param.column.name")) {
 
                 @NlsContexts.Tooltip
                 @Nullable
                 @Override
                 public String getTooltipText() {
-                    return "不可修改";
+                    return DocViewBundle.message("param.column.readonly");
                 }
             },
-            new ColumnInfo("类型 *") {
+            new ColumnInfo(DocViewBundle.message("param.column.type")) {
                 @Nullable
                 @Override
                 public Object valueOf(Object o) {
@@ -54,10 +55,10 @@ public class ParamTreeTableView extends TreeTableView {
                 @Nullable
                 @Override
                 public String getTooltipText() {
-                    return "不可修改";
+                    return DocViewBundle.message("param.column.readonly");
                 }
             },
-            new ColumnInfo("必选") {
+            new ColumnInfo(DocViewBundle.message("param.column.required")) {
                 @Nullable
                 @Override
                 public Object valueOf(Object o) {
@@ -77,7 +78,7 @@ public class ParamTreeTableView extends TreeTableView {
                     return 80;
                 }
             },
-            new ColumnInfo("描述") {
+            new ColumnInfo(DocViewBundle.message("param.column.description")) {
                 @Nullable
                 @Override
                 public Object valueOf(Object o) {

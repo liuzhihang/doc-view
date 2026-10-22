@@ -32,8 +32,10 @@ public class MenuExportAllAction extends AnAction {
             return;
         }
 
+        String className = currentDocView.getPsiClass().getName();
+        List<DocView> docViewSnapshot = List.copyOf(docViewList);
         popup.cancel();
-        ExportUtils.batchExportMarkdown(project, currentDocView.getPsiClass().getName(), docViewList);
+        ExportUtils.batchExportMarkdown(project, className, () -> docViewSnapshot);
 
     }
 }

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Doc View</title>
+  <style>@@CSS@@</style>
+</head>
+<body data-theme="@@THEME@@" style="font-size: @@FONT_SIZE@@px">
+  <main class="page">
+    <header class="topbar">
+      <a class="brand" href="docview://action/home" aria-label="Doc View home">
+        <svg class="brand-mark" viewBox="0 0 16 16" role="img" aria-label="Doc View">
+          <path d="M1 4h2.2l2.1 5.2L7.5 4h2.3v8H8V6.5L6.1 11.5H4.9L3 6.5V12H1V4Z" fill="currentColor" />
+          <path d="M12.45 4.5h1.2v4.1l1.25-1.25.85.85-2.7 2.7-2.7-2.7.85-.85 1.25 1.25V4.5Z" fill="currentColor" />
+        </svg>
+        <span class="brand-name">Doc View</span>
+      </a>
+      <span class="version">Version @@VERSION@@</span>
+    </header>
+
+    <section class="hero" aria-labelledby="welcome-title">
+      <p class="eyebrow">JAVA API DOCUMENTATION</p>
+      <h1 id="welcome-title">Bring API docs closer to your code</h1>
+      <p class="hero-copy">Explore Java APIs, generate and organize Markdown docs, then preview, copy, export, or upload them from the IDE.</p>
+      <nav class="primary-actions" aria-label="Common actions">
+        <a class="button button-primary" href="docview://action/directory">Open API Directory</a>
+        <a class="button button-secondary" href="docview://action/templates">Configure Templates</a>
+      </nav>
+      <p class="status-note"><span class="status-dot" aria-hidden="true"></span>The welcome and updates pages are bundled with the plugin. The full user guide is maintained online.</p>
+    </section>
+
+    <section class="section" aria-labelledby="start-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">GET STARTED</p>
+          <h2 id="start-title">Get started in three steps</h2>
+        </div>
+        <a class="text-link" href="https://github.com/liuzhihang/doc-view/tree/master/docs/user-guide">Open the user guide <span aria-hidden="true">↗</span></a>
+      </div>
+      <ol class="steps">
+        <li><span class="step-number">01</span><div><h3>Find an API</h3><p>Open the API directory to browse Controller, Feign, or Dubbo APIs detected in your project.</p></div></li>
+        <li><span class="step-number">02</span><div><h3>Preview the docs</h3><p>Select a class or method to see the generated docs. Open template settings when you want to adjust the format.</p></div></li>
+        <li><span class="step-number">03</span><div><h3>Share the result</h3><p>Copy or export Markdown, or upload it after configuring a documentation platform.</p></div></li>
+      </ol>
+    </section>
+
+    <section class="section updates-section" aria-labelledby="updates-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">WHAT'S NEW</p>
+          <h2 id="updates-title">Recent changes</h2>
+        </div>
+        <a class="text-link" href="docview://action/updates">View updates <span aria-hidden="true">→</span></a>
+      </div>
+      <p class="preview-copy">Highlights included in version @@VERSION@@. <a href="https://github.com/liuzhihang/doc-view/blob/master/CHANGELOG.md">Read the full changelog</a></p>
+      <ul class="highlights">
+        <li><span class="highlight-icon" aria-hidden="true">↗</span><div><h3>Browse and export with more context</h3><p>Classes and methods appear in a hierarchy. Individual exports include the module, method signature, and source link.</p></div></li>
+        <li><span class="highlight-icon" aria-hidden="true">{ }</span><div><h3>Preview templates before applying</h3><p>Use the preview action to check a template with a fixed sample. Search for a variable and insert it at the cursor, with output options nearby.</p></div></li>
+        <li><span class="highlight-icon" aria-hidden="true">✓</span><div><h3>Clearer settings and interactions</h3><p>Settings are grouped by task and link to the guide. Preview, export, and platform requests have stronger cancellation and resource cleanup.</p></div></li>
+      </ul>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-links" aria-label="Project links">
+        <a href="https://github.com/liuzhihang/doc-view/tree/master/docs/user-guide">User guide</a>
+        <a href="https://github.com/liuzhihang/doc-view">Source code</a>
+        <a href="https://github.com/liuzhihang/doc-view/issues">Report an issue</a>
+        <a href="https://github.com/liuzhihang/doc-view/blob/master/CHANGELOG.md">Full changelog</a>
+        <a href="docview://action/integrations">Platform settings</a>
+      </div>
+      <p class="notification-state">Update notifications are @@UPDATE_STATE@@. <a href="docview://action/notifications">@@UPDATE_LABEL@@</a></p>
+    </footer>
+  </main>
+</body>
+</html>

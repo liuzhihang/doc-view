@@ -1,0 +1,8 @@
+{
+  "icons": {
+    "expui": {
+      "docViewToolWindow.svg": "icons/docViewToolWindow.svg",
+      "docViewGutter.svg": "icons/docViewGutter.svg"
+    }
+  }
+}

@@ -5,20 +5,17 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.IdeBorderFactory;
 import com.intellij.util.ui.JBUI;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.WindowSettings;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.TitledBorder;
 
 /**
  * @author liuzhihang
  * @date 2021/10/25 12:11
  */
 public class WindowFilterForm {
-
-    private static final TitledBorder scope = IdeBorderFactory.createTitledBorder("读取范围");
-    private static final TitledBorder otherSettings = IdeBorderFactory.createTitledBorder("其他设置");
 
     private final Project project;
     private final WindowSettings windowSettings;
@@ -40,8 +37,10 @@ public class WindowFilterForm {
 
     private void initUI() {
 
-        scopePanel.setBorder(scope);
-        otherSettingsPanel.setBorder(otherSettings);
+        scopePanel.setBorder(IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.window.scope")));
+        otherSettingsPanel.setBorder(IdeBorderFactory.createTitledBorder(DocViewBundle.message("settings.window.other")));
+        interfaceCheckBox.setText(DocViewBundle.message("settings.window.interface"));
+        interfaceCheckBox.setToolTipText(DocViewBundle.message("settings.window.interface.tip"));
         rootPane.setBorder(JBUI.Borders.empty(5));
 
 

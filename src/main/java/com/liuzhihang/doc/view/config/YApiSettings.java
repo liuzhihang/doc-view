@@ -23,8 +23,6 @@ public class YApiSettings implements PersistentStateComponent<YApiSettings> {
 
     private Long projectId;
 
-    private String token;
-
     public static YApiSettings getInstance(@NotNull Project project) {
         return project.getService(YApiSettings.class);
     }

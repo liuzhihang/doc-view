@@ -69,7 +69,7 @@ public class AbstractAction extends AnAction {
 
             // 验证是否为空
             if (editor == null || project == null || psiFile == null || DumbService.isDumb(project)) {
-                throw new DocViewException("当前位置不合法");
+                throw new DocViewException(DocViewBundle.message("notify.action.invalid.context"));
             }
             // 获取Java类或者接口
             targetClass = CustomPsiUtils.getTargetClass(editor, psiFile);

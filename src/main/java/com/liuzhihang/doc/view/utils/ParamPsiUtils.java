@@ -1,5 +1,6 @@
 package com.liuzhihang.doc.view.utils;
 
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.source.PsiClassReferenceType;
 import com.intellij.psi.util.InheritanceUtil;
@@ -36,6 +37,7 @@ public class ParamPsiUtils {
 
     public static void buildBodyParam(PsiField field, Map<String, PsiType> genericsMap, Body parent,
                                       Map<String, Boolean> parentChildPair, DtoParsingContext context) {
+        ProgressManager.checkCanceled();
 
         String pair = parent.getQualifiedNameForClassType() + "_" + field.getName();
         if (parentChildPair.containsKey(pair)) {
@@ -165,6 +167,7 @@ public class ParamPsiUtils {
             return;
         }
         for (PsiField psiField : childClass.getAllFields()) {
+            ProgressManager.checkCanceled();
             if (!DocViewUtils.isExcludeField(psiField)) {
                 buildBodyParam(psiField, fieldGenericsMap, parentBody, parentChildPair, childContext);
             }
@@ -339,6 +342,7 @@ public class ParamPsiUtils {
     public static Map<String, Object> getFieldsAndDefaultValue(PsiClass psiClass, Map<String, PsiType> genericMap, LinkedList<String> qualifiedNameList) {
 
         Map<String, Object> fieldMap = new LinkedHashMap<>();
+        ProgressManager.checkCanceled();
 
         if (psiClass == null || psiClass.isEnum() || psiClass.isInterface() || psiClass.isAnnotationType()) {
             return fieldMap;
@@ -351,6 +355,7 @@ public class ParamPsiUtils {
         // 设置当前类的类型
         qualifiedNameList.add(psiClass.getQualifiedName());
         for (PsiField field : psiClass.getAllFields()) {
+            ProgressManager.checkCanceled();
             if (DocViewUtils.isExcludeField(field)) {
                 continue;
             }
@@ -467,6 +472,7 @@ public class ParamPsiUtils {
         }
 
         for (String s : qualifiedNameList) {
+            ProgressManager.checkCanceled();
             if (s.equals(qualifiedName)) {
                 return true;
             }
@@ -556,6 +562,7 @@ public class ParamPsiUtils {
                                      DtoParsingContext context) {
 
         for (PsiField field : psiClass.getAllFields()) {
+            ProgressManager.checkCanceled();
 
             if (DocViewUtils.isExcludeField(field)) {
                 continue;

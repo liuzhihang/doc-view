@@ -47,4 +47,16 @@ public class VelocityUtils {
         return writer.toString();
     }
 
+    /** Renders a template while allowing callers to report renderer failures. */
+    public static String render(String template, DocViewData data) {
+        StringWriter writer = new StringWriter();
+        VelocityContext velocityContext = new VelocityContext();
+        velocityContext.put("DocView", data);
+        boolean isSuccess = engine.evaluate(velocityContext, writer, VM_LOG_TAG, template);
+        if (!isSuccess) {
+            throw new IllegalStateException("Velocity did not produce Markdown output");
+        }
+        return writer.toString();
+    }
+
 }

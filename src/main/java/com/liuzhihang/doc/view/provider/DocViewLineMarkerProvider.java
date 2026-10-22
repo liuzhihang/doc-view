@@ -2,14 +2,17 @@ package com.liuzhihang.doc.view.provider;
 
 import com.intellij.codeInsight.daemon.LineMarkerInfo;
 import com.intellij.codeInsight.daemon.LineMarkerProvider;
+import com.intellij.openapi.editor.colors.EditorColorsManager;
 import com.intellij.openapi.editor.markup.GutterIconRenderer;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.IconLoader;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiIdentifier;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.ui.PreviewForm;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
@@ -80,11 +83,11 @@ public class DocViewLineMarkerProvider implements LineMarkerProvider {
         }
 
         return new LineMarkerInfo<>(element, element.getTextRange(),
-                DocViewIcons.DOC_VIEW,
-                psiElement -> "查看文档",
+                getGutterIcon(),
+                psiElement -> DocViewBundle.message("action.preview"),
                 (e, elt) -> PreviewForm.getInstance(psiClass, psiMethod).popup(),
                 GutterIconRenderer.Alignment.LEFT,
-                () -> "Doc View");
+                () -> DocViewBundle.message("action.doc.view"));
     }
 
 
@@ -122,13 +125,17 @@ public class DocViewLineMarkerProvider implements LineMarkerProvider {
         }
 
         return new LineMarkerInfo<>(element, element.getTextRange(),
-                DocViewIcons.DOC_VIEW,
-                psiElement -> "查看文档",
+                getGutterIcon(),
+                psiElement -> DocViewBundle.message("action.preview"),
                 (e, elt) -> PreviewForm.getInstance(psiClass, null).popup(),
                 GutterIconRenderer.Alignment.CENTER,
-                () -> "Doc View");
+                () -> DocViewBundle.message("action.doc.view"));
 
     }
 
+    private static @NotNull javax.swing.Icon getGutterIcon() {
+        boolean darkEditor = EditorColorsManager.getInstance().isDarkEditor();
+        return IconLoader.getDarkIcon(DocViewIcons.DOC_VIEW_GUTTER, darkEditor);
+    }
 
 }

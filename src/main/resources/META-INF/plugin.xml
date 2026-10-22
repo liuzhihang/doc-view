@@ -2,6 +2,7 @@
     <id>com.liuzhihang.doc-view</id>
     <name>Doc View</name>
     <vendor email="liuzhihangs@qq.com" url="https://liuzhihang.com">Liu ZhiHang</vendor>
+    <resource-bundle>messages.DocViewBundle</resource-bundle>
 
     <description><![CDATA[ Description will be added by gradle build]]></description>
 
@@ -11,6 +12,7 @@
     <depends>com.intellij.modules.java</depends>
     <!-- 暂时不打开预览 -->
     <depends>org.intellij.plugins.markdown</depends>
+    <depends>com.intellij.modules.jcef</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
@@ -39,6 +41,7 @@
         <applicationService serviceImplementation="com.liuzhihang.doc.view.integration.impl.YuQueFacadeServiceImpl"/>
 
         <postStartupActivity implementation="com.liuzhihang.doc.view.notification.DocViewStartupNotification"/>
+        <fileEditorProvider implementation="com.liuzhihang.doc.view.ui.welcome.DocViewWelcomeEditorProvider"/>
 
         <!-- provider -->
         <codeInsight.lineMarkerProvider language="JAVA"
@@ -47,36 +50,51 @@
         <!-- 配置为项目等级 全局为 applicationConfigurable -->
         <projectConfigurable instance="com.liuzhihang.doc.view.config.SettingsConfigurable"
                              id="liuzhihang.api.doc.SettingsConfigurable"
-                             displayName="Doc View"
+                             parentId="tools"
+                             bundle="messages.DocViewBundle" key="settings.page.root"
                              nonDefaultProject="true"/>
 
+        <projectConfigurable instance="com.liuzhihang.doc.view.config.GenerationRulesConfigurable"
+                             id="liuzhihang.api.doc.GenerationRulesConfigurable"
+                             parentId="liuzhihang.api.doc.SettingsConfigurable"
+                             bundle="messages.DocViewBundle" key="settings.page.rules"
+                             nonDefaultProject="true"/>
 
         <projectConfigurable instance="com.liuzhihang.doc.view.config.TemplateConfigurable"
                              id="liuzhihang.api.doc.TemplateConfigurable"
-                             groupId="liuzhihang.api.doc.SettingsConfigurable"
-                             displayName="Markdown Template"
+                             parentId="liuzhihang.api.doc.SettingsConfigurable"
+                             bundle="messages.DocViewBundle" key="settings.page.template"
+                             nonDefaultProject="true"/>
+
+        <projectConfigurable instance="com.liuzhihang.doc.view.config.IntegrationSettingsConfigurable"
+                             id="liuzhihang.api.doc.IntegrationSettingsConfigurable"
+                             parentId="liuzhihang.api.doc.SettingsConfigurable"
+                             bundle="messages.DocViewBundle" key="settings.page.integrations"
                              nonDefaultProject="true"/>
 
         <projectConfigurable instance="com.liuzhihang.doc.view.config.YApiSettingsConfigurable"
-                             id="liuzhihang.api.doc.YApiTemplateConfigurable"
-                             groupId="liuzhihang.api.doc.SettingsConfigurable"
-                             displayName="YApi Settings"
+                             id="liuzhihang.api.doc.YApiSettingsConfigurable"
+                             parentId="liuzhihang.api.doc.IntegrationSettingsConfigurable"
+                             bundle="messages.DocViewBundle" key="settings.page.yapi"
                              nonDefaultProject="true"/>
 
         <projectConfigurable instance="com.liuzhihang.doc.view.config.ShowDocSettingsConfigurable"
                              id="liuzhihang.api.doc.ShowDocSettingsConfigurable"
-                             groupId="liuzhihang.api.doc.SettingsConfigurable"
-                             displayName="ShowDoc Settings"
+                             parentId="liuzhihang.api.doc.IntegrationSettingsConfigurable"
+                             bundle="messages.DocViewBundle" key="settings.page.showdoc"
                              nonDefaultProject="true"/>
         <projectConfigurable instance="com.liuzhihang.doc.view.config.YuQueSettingsConfigurable"
                              id="liuzhihang.api.doc.YuQueSettingsConfigurable"
-                             groupId="liuzhihang.api.doc.SettingsConfigurable"
-                             displayName="YuQue Settings"
+                             parentId="liuzhihang.api.doc.IntegrationSettingsConfigurable"
+                             bundle="messages.DocViewBundle" key="settings.page.yuque"
                              nonDefaultProject="true"/>
 
+        <search.optionContributor implementation="com.liuzhihang.doc.view.config.DocViewSearchableOptionContributor"/>
+        <iconMapper mappingFile="DocViewIconMappings.json"/>
+
         <toolWindow id="Doc View"
-                    icon="DocViewIcons.DOC_VIEW"
-                    anchor="right"
+                    icon="DocViewIcons.DOC_VIEW_TOOL_WINDOW"
+                    anchor="left"
                     secondary="false"
                     doNotActivateOnStart="true"
                     order="last"
@@ -104,6 +122,10 @@
     </extensions>
 
     <actions>
+        <action id="DocView.Welcome" class="com.liuzhihang.doc.view.action.DocViewWelcomeAction"
+                text="Doc View Welcome" description="Open the Doc View welcome page and update notes">
+            <add-to-group group-id="HelpMenu" anchor="last"/>
+        </action>
         <!-- Add your actions here -->
 
         <group id="liuzhihang.doc" popup="false" compact="true">
@@ -115,35 +137,35 @@
         <group id="liuzhihang.doc.upload" text="Doc Upload" popup="true">
             <add-to-group group-id="liuzhihang.doc" anchor="last"/>
             <action id="liuzhihang.doc.yapi.upload" class="com.liuzhihang.doc.view.action.upload.YApiUploadAction"
-                    text="Upload To YApi"/>
+                    text="Upload to YApi"/>
 
             <action id="liuzhihang.doc.showdoc.upload" class="com.liuzhihang.doc.view.action.upload.ShowDocUploadAction"
-                    text="Upload To ShowDoc"/>
+                    text="Upload to ShowDoc"/>
             <action id="liuzhihang.doc.yuque.upload" class="com.liuzhihang.doc.view.action.upload.YuQueUploadAction"
-                    text="Upload To YuQue"/>
+                    text="Upload to YuQue"/>
         </group>
 
         <!-- preview 界面目录左下角toolbar -->
         <group id="liuzhihang.doc.preview.toolbar.menu">
             <action id="liuzhihang.doc.preview.toolbar.menu.export"
                     class="com.liuzhihang.doc.view.action.toolbar.preview.MenuExportAllAction"
-                    text="Export All" description="Export markdown" icon="AllIcons.Ide.IncomingChangesOn"/>
+                    text="Export All" description="Export Markdown" icon="AllIcons.ToolbarDecorator.Export"/>
             <action id="liuzhihang.doc.preview.toolbar.menu.upload"
                     class="com.liuzhihang.doc.view.action.toolbar.preview.MenuUploadAllAction"
-                    text="Upload All" description="Upload all doc view" icon="AllIcons.Ide.OutgoingChangesOn"/>
+                    text="Upload All" description="Upload all documents" icon="AllIcons.Actions.Upload"/>
         </group>
 
         <!-- preview 界面目录右下角 右侧toolbar -->
         <group id="liuzhihang.doc.preview.toolbar.right">
             <action id="liuzhihang.doc.preview.toolbar.right.upload"
                     class="com.liuzhihang.doc.view.action.toolbar.preview.PreviewRightUploadAction"
-                    text="Upload" description="Upload doc view" icon="AllIcons.Actions.Upload"/>
+                    text="Upload" description="Upload documents" icon="AllIcons.Actions.Upload"/>
             <action id="liuzhihang.doc.preview.toolbar.right.export"
                     class="com.liuzhihang.doc.view.action.toolbar.preview.PreviewRightExportAction"
-                    text="Export" description="Export markdown" icon="AllIcons.ToolbarDecorator.Export"/>
+                    text="Export" description="Export Markdown" icon="AllIcons.ToolbarDecorator.Export"/>
             <action id="liuzhihang.doc.preview.toolbar.toolbar.copy"
                     class="com.liuzhihang.doc.view.action.toolbar.preview.PreviewRightCopyAction"
-                    text="Copy" description="Copy" icon="AllIcons.Actions.Copy"/>
+                    text="Copy" description="Copy to clipboard" icon="AllIcons.Actions.Copy"/>
         </group>
 
         <!-- editor 右键菜单 -->
@@ -161,31 +183,38 @@
 
             <action id="liuzhihang.doc.tool.window.toolbar.action.refresh"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowRefreshAction"
-                    text="Refresh" description="Refresh" icon="DocViewIcons.REFRESH"/>
+                    text="Refresh" description="Refresh" icon="AllIcons.Actions.Refresh"/>
             <separator/>
-            <action id="liuzhihang.doc.tool.window.toolbar.action.export"
-                    class="com.liuzhihang.doc.view.action.toolbar.window.WindowExportAction"
-                    text="Export" description="Export" icon="DocViewIcons.EXPORT"/>
+            <group id="liuzhihang.doc.tool.window.toolbar.action.export.menu"
+                   popup="true" text="Export" description="Export Doc View documents"
+                   icon="AllIcons.ToolbarDecorator.Export">
+                <action id="liuzhihang.doc.tool.window.toolbar.action.export"
+                        class="com.liuzhihang.doc.view.action.toolbar.window.WindowExportAction"
+                        text="Export Markdown" description="Export Markdown" icon="AllIcons.ToolbarDecorator.Export"/>
+                <action id="liuzhihang.doc.tool.window.toolbar.action.project.export"
+                        class="com.liuzhihang.doc.view.action.toolbar.window.ProjectDocumentExportAction"
+                        text="Export Project Docs" description="Export project API documentation" icon="AllIcons.ToolbarDecorator.Export"/>
+            </group>
             <action id="liuzhihang.doc.tool.window.toolbar.action.upload"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowUploadAction"
-                    text="Upload" description="Collapse" icon="DocViewIcons.UPLOAD"/>
+                    text="Upload" description="Upload documents" icon="AllIcons.Actions.Upload"/>
 
             <separator/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.expand"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowExpandAction"
-                    text="Expand" description="Expand" icon="DocViewIcons.EXPAND_ALL"/>
+                    text="Expand" description="Expand" icon="AllIcons.Actions.Expandall"/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.collapse"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowCollapseAction"
-                    text="Collapse" description="Collapse" icon="DocViewIcons.COLLAPSE_ALL"/>
+                    text="Collapse" description="Collapse" icon="AllIcons.Actions.Collapseall"/>
 
             <separator/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.clear"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowClearAction"
-                    text="Clear Cache" description="ClearCache" icon="DocViewIcons.CLEAR"/>
+                    text="Clear Cache" description="Clear the current project's Doc View schema cache; generated documents are preserved." icon="AllIcons.Actions.ClearCash"/>
             <separator/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.setting"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowSettingsAction"
-                    text="Settings" description="Settings" icon="DocViewIcons.SETTINGS"/>
+                    text="Settings" description="Open Doc View settings" icon="AllIcons.General.Settings"/>
             <separator/>
 
         </group>
@@ -194,35 +223,37 @@
         <!-- ToolWindow 目录右键菜单  -->
         <group id="liuzhihang.doc.tool.window.catalog.action">
 
+            <reference ref="EditSource"/>
+
             <action id="liuzhihang.doc.tool.window.catalog.action.open"
                     class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogOpenAction"
-                    text="Open" description="Open" icon="DocViewIcons.EDITOR_PREVIEW"/>
+                    text="Open" description="Open" icon="AllIcons.Actions.Preview"/>
 
             <action id="liuzhihang.doc.tool.window.catalog.action.export"
                     class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogExportAction"
-                    text="Export" description="Export" icon="DocViewIcons.EXPORT"/>
+                    text="Export" description="Export Markdown" icon="AllIcons.ToolbarDecorator.Export"/>
 
-            <group id="liuzhihang.doc.tool.window.catalog.action.upload" popup="true" text="Upload" description="Upload"
-                   icon="DocViewIcons.UPLOAD">
+            <group id="liuzhihang.doc.tool.window.catalog.action.upload" popup="true" text="Upload" description="Upload documents"
+                   icon="AllIcons.Actions.Upload">
                 <action id="liuzhihang.doc.tool.window.catalog.action.upload.yapi"
                         class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogUploadYApiAction"
-                        text="YApi" description="YApi"/>
+                        text="Upload to YApi" description="YApi"/>
                 <action id="liuzhihang.doc.tool.window.catalog.action.upload.showdoc"
                         class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogUploadShowDocAction"
-                        text="ShowDoc" description="ShowDoc"/>
+                        text="Upload to ShowDoc" description="ShowDoc"/>
                 <action id="liuzhihang.doc.tool.window.catalog.action.upload.yuque"
                         class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogUploadYuQueAction"
-                        text="语雀" description="语雀"/>
+                        text="Upload to YuQue" description="YuQue"/>
             </group>
             <separator/>
             <action id="liuzhihang.doc.tool.window.catalog.action.clear"
                     class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogClearAction"
-                    text="Clear" description="ClearCache" icon="DocViewIcons.CLEAR"/>
+                    text="Clear Cache" description="Clear the current project's Doc View schema cache; generated documents are preserved." icon="AllIcons.Actions.ClearCash"/>
 
             <action id="liuzhihang.doc.view.action.toolbar.window.catalog.httpclient"
                     class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogHttpClientAction"
-                    text="Http Client"
-                    description="Generate http client" icon="DocViewIcons.HTTP_API">
+                    text="HTTP Client"
+                    description="Generate an HTTP client request" icon="AllIcons.FileTypes.Http">
             </action>
         </group>
 

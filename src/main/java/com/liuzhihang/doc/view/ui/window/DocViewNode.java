@@ -26,6 +26,11 @@ public abstract class DocViewNode extends CachingSimpleNode {
         return "Doc View";
     }
 
+    /** Search uses presentation snapshots rather than parsing or rendering a document. */
+    public String getSearchText() {
+        return getName();
+    }
+
     public abstract List<DocView> docViewList();
 
     public abstract void updateNode(Project project);

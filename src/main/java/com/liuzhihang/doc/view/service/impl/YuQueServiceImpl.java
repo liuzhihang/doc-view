@@ -1,11 +1,13 @@
 package com.liuzhihang.doc.view.service.impl;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.DocViewBundle;
-import com.liuzhihang.doc.view.config.ShowDocSettingsConfigurable;
+import com.liuzhihang.doc.view.config.YuQueSettingsConfigurable;
 import com.liuzhihang.doc.view.config.YuQueSettings;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
@@ -16,7 +18,8 @@ import com.liuzhihang.doc.view.integration.dto.YuQueUpdate;
 import com.liuzhihang.doc.view.integration.impl.YuQueFacadeServiceImpl;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
-import lombok.extern.slf4j.Slf4j;
+import com.liuzhihang.doc.view.service.IntegrationCredentialService;
+import com.liuzhihang.doc.view.utils.DocViewBackgroundTasks;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
  * @author liuzhihang
  * @date 2021/7/27 12:00
  */
-@Slf4j
 @Service
 public final class YuQueServiceImpl implements DocViewUploadService {
 
@@ -34,25 +36,38 @@ public final class YuQueServiceImpl implements DocViewUploadService {
     public boolean checkSettings(@NotNull Project project) {
 
         YuQueSettings apiSettings = YuQueSettings.getInstance(project);
-
         if (StringUtils.isBlank(apiSettings.getUrl())
                 || StringUtils.isBlank(apiSettings.getApiUrl())
                 || StringUtils.isBlank(apiSettings.getRepos())
-                || StringUtils.isBlank(apiSettings.getLogin())
-                || StringUtils.isBlank(apiSettings.getToken())) {
+                || StringUtils.isBlank(apiSettings.getLogin())) {
             // 说明没有配置语雀上传地址, 跳转到配置页面
-            DocViewNotification.notifyError(project, DocViewBundle.message("notify.yuque.info.settings"));
-            ShowSettingsUtil.getInstance().showSettingsDialog(project, ShowDocSettingsConfigurable.class);
+            showConfiguration(project);
+            return false;
+        }
+        boolean credentialConfigured = IntegrationCredentialService.getInstance(project)
+                .readStatus(IntegrationCredentialService.Provider.YUQUE).apiTokenConfigured();
+        if (!credentialConfigured) {
+            showConfiguration(project);
             return false;
         }
         return true;
+    }
+
+    private static void showConfiguration(Project project) {
+        DocViewBackgroundTasks.invokeLater(project, () -> {
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.yuque.info.settings"));
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, YuQueSettingsConfigurable.class);
+        });
     }
 
     @Override
     public void doUpload(@NotNull Project project, @NotNull DocView docView) {
 
         try {
+            ProgressManager.checkCanceled();
+            if (project.isDisposed()) throw new ProcessCanceledException();
             YuQueSettings settings = YuQueSettings.getInstance(project);
+            String token = IntegrationCredentialService.getInstance(project).readToken(IntegrationCredentialService.Provider.YUQUE);
             YuQueFacadeService facadeService = ApplicationManager.getApplication().getService(YuQueFacadeServiceImpl.class);
             String slug;
             if (docView.getPath().startsWith("/")) {
@@ -63,7 +78,7 @@ public final class YuQueServiceImpl implements DocViewUploadService {
 
 
             // 获取文章是否存在
-            YuQueResponse doc = facadeService.getDoc(settings.getApiUrl(), settings.getToken(), settings.getNamespace(), slug);
+            YuQueResponse doc = facadeService.getDoc(settings.getApiUrl(), token, settings.getNamespace(), slug);
 
             YuQueResponse yuQueResponse;
             if (doc == null) {
@@ -72,7 +87,7 @@ public final class YuQueServiceImpl implements DocViewUploadService {
                 yuQueCreate.setTitle(docView.getName());
                 yuQueCreate.setSlug(slug);
                 yuQueCreate.setBody(DocViewData.markdownText(project, docView));
-                yuQueResponse = facadeService.create(settings.getApiUrl(), settings.getToken(), settings.getNamespace(), yuQueCreate);
+                yuQueResponse = facadeService.create(settings.getApiUrl(), token, settings.getNamespace(), yuQueCreate);
 
             } else {
                 // 文档存在
@@ -80,14 +95,17 @@ public final class YuQueServiceImpl implements DocViewUploadService {
                 yuQueCreate.setTitle(docView.getName());
                 yuQueCreate.setSlug(slug);
                 yuQueCreate.setBody(DocViewData.markdownText(project, docView));
-                yuQueResponse = facadeService.update(settings.getApiUrl(), settings.getToken(), settings.getNamespace(), doc.getData().getId(), yuQueCreate);
+                yuQueResponse = facadeService.update(settings.getApiUrl(), token, settings.getNamespace(), doc.getData().getId(), yuQueCreate);
             }
 
             String yuQueDocUrl = settings.getUrl() + "/" + settings.getNamespace() + "/" + yuQueResponse.getData().getSlug();
-            DocViewNotification.uploadSuccess(project, "YuQue", yuQueDocUrl);
+            ProgressManager.checkCanceled();
+            if (project.isDisposed()) throw new ProcessCanceledException();
+            DocViewNotification.uploadSuccess(project, DocViewBundle.message("platform.name.yuque"), yuQueDocUrl);
+        } catch (ProcessCanceledException exception) {
+            throw exception;
         } catch (Exception e) {
             DocViewNotification.notifyError(project, DocViewBundle.message("notify.yuque.upload.error"));
-            log.error("上传单个文档失败:{}", docView, e);
         }
     }
 }

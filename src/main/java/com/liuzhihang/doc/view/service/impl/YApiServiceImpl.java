@@ -1,5 +1,7 @@
 package com.liuzhihang.doc.view.service.impl;
 
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.google.gson.Gson;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.components.Service;
@@ -24,7 +26,8 @@ import com.liuzhihang.doc.view.integration.dto.YapiSave;
 import com.liuzhihang.doc.view.integration.impl.YApiFacadeServiceImpl;
 import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
-import lombok.extern.slf4j.Slf4j;
+import com.liuzhihang.doc.view.service.IntegrationCredentialService;
+import com.liuzhihang.doc.view.utils.DocViewBackgroundTasks;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,7 +42,6 @@ import java.util.stream.Collectors;
  * @author liuzhihang
  * @date 2021/6/8 23:57
  */
-@Slf4j
 @Service
 public final class YApiServiceImpl implements DocViewUploadService {
 
@@ -48,31 +50,44 @@ public final class YApiServiceImpl implements DocViewUploadService {
     public boolean checkSettings(@NotNull Project project) {
 
         YApiSettings apiSettings = YApiSettings.getInstance(project);
-
         if (StringUtils.isBlank(apiSettings.getUrl())
-                || apiSettings.getProjectId() == null
-                || StringUtils.isBlank(apiSettings.getToken())) {
+                || apiSettings.getProjectId() == null) {
             // 说明没有配置 YApi 上传地址, 跳转到配置页面
-            DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.info.settings"));
-            ShowSettingsUtil.getInstance().showSettingsDialog(project, YApiSettingsConfigurable.class);
+            showConfiguration(project);
+            return false;
+        }
+        boolean credentialConfigured = IntegrationCredentialService.getInstance(project)
+                .readStatus(IntegrationCredentialService.Provider.YAPI).apiTokenConfigured();
+        if (!credentialConfigured) {
+            showConfiguration(project);
             return false;
         }
         return true;
+    }
+
+    private static void showConfiguration(Project project) {
+        DocViewBackgroundTasks.invokeLater(project, () -> {
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.info.settings"));
+            ShowSettingsUtil.getInstance().showSettingsDialog(project, YApiSettingsConfigurable.class);
+        });
     }
 
     @Override
     public void doUpload(@NotNull Project project, @NotNull DocView docView) {
 
         try {
+            ProgressManager.checkCanceled();
+            if (project.isDisposed()) throw new ProcessCanceledException();
             YApiSettings settings = YApiSettings.getInstance(project);
+            String token = IntegrationCredentialService.getInstance(project).readToken(IntegrationCredentialService.Provider.YAPI);
 
             YApiFacadeService facadeService = ApplicationManager.getApplication().getService(YApiFacadeServiceImpl.class);
 
-            YApiCat cat = getOrAddCat(settings, docView.getDocTitle());
+            YApiCat cat = getOrAddCat(settings, token, docView.getDocTitle());
 
             YapiSave save = new YapiSave();
             save.setYapiUrl(settings.getUrl());
-            save.setToken(settings.getToken());
+            save.setToken(token);
             save.setProjectId(settings.getProjectId());
             save.setCatId(cat.getId());
 
@@ -104,10 +119,13 @@ public final class YApiServiceImpl implements DocViewUploadService {
 
             String yapiInterfaceUrl = settings.getUrl() + "/project/" + settings.getProjectId() + "/interface/api/cat_" + cat.getId();
 
-            DocViewNotification.uploadSuccess(project, "YApi", yapiInterfaceUrl);
+            ProgressManager.checkCanceled();
+            if (project.isDisposed()) throw new ProcessCanceledException();
+            DocViewNotification.uploadSuccess(project, DocViewBundle.message("platform.name.yapi"), yapiInterfaceUrl);
+        } catch (ProcessCanceledException exception) {
+            throw exception;
         } catch (Exception e) {
-            DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.upload.error", e.getMessage()));
-            log.error("上传单个文档失败:{}", docView, e);
+            DocViewNotification.notifyError(project, DocViewBundle.message("notify.yapi.upload.error"));
         }
 
     }
@@ -297,12 +315,12 @@ public final class YApiServiceImpl implements DocViewUploadService {
     }
 
     @NotNull
-    private YApiCat getOrAddCat(@NotNull YApiSettings settings, @NotNull String name) throws Exception {
+    private YApiCat getOrAddCat(@NotNull YApiSettings settings, @NotNull String token, @NotNull String name) throws Exception {
 
         YApiFacadeService facadeService = ApplicationManager.getApplication().getService(YApiFacadeServiceImpl.class);
 
         // 检查 catId (菜单是否存在)
-        List<YApiCat> catMenu = facadeService.getCatMenu(settings.getUrl(), settings.getProjectId(), settings.getToken());
+        List<YApiCat> catMenu = facadeService.getCatMenu(settings.getUrl(), settings.getProjectId(), token);
 
         Optional<YApiCat> catOptional = catMenu.stream()
                 .filter(yApiCat -> yApiCat.getName().equals(name))
@@ -315,7 +333,7 @@ public final class YApiServiceImpl implements DocViewUploadService {
         cat.setYapiUrl(settings.getUrl());
         cat.setProjectId(settings.getProjectId());
         cat.setName(name);
-        cat.setToken(settings.getToken());
+        cat.setToken(token);
 
         return facadeService.addCat(cat);
 

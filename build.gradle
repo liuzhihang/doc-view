@@ -38,6 +38,7 @@ dependencies {
         create(project.platformType, project.platformVersion)
         bundledPlugin 'com.intellij.java'
         bundledPlugin 'org.intellij.plugins.markdown'
+        bundledPlugin 'com.intellij.modules.jcef'
         testFramework TestFrameworkType.Platform.INSTANCE
         testFramework TestFrameworkType.Plugin.Java.INSTANCE
     }

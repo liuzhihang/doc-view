@@ -22,8 +22,6 @@ public class YuQueSettings implements PersistentStateComponent<YuQueSettings> {
     private String url = "https://www.yuque.com";
     private String apiUrl = "https://www.yuque.com/api/v2";
 
-    private String token;
-
     private String login;
 
     private String repos;

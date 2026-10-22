@@ -1,5 +1,6 @@
 package com.liuzhihang.doc.view.service.impl;
 
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
@@ -40,6 +41,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
         List<DocView> docViewList = new LinkedList<>();
 
         for (PsiMethod method : psiClass.getMethods()) {
+            ProgressManager.checkCanceled();
 
             if (!SpringPsiUtils.isSpringMethod(method)) {
                 continue;
@@ -55,6 +57,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
     @NotNull
     @Override
     public DocView buildClassMethodDoc(PsiClass psiClass, @NotNull PsiMethod psiMethod) {
+        ProgressManager.checkCanceled();
 
         DocView docView = new DocView();
         docView.setPsiClass(psiClass);

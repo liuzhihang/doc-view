@@ -3,6 +3,7 @@ package com.liuzhihang.doc.view.config;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.ui.YApiSettingForm;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -35,36 +36,45 @@ public class YApiSettingsConfigurable implements SearchableConfigurable {
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
     public String getDisplayName() {
-        return "YApi Settings";
+        return DocViewBundle.message("settings.page.yapi");
     }
 
     @Nullable
     @Override
     public JComponent createComponent() {
-
+        if (yApiSettingForm != null) {
+            yApiSettingForm.dispose();
+        }
         yApiSettingForm = new YApiSettingForm(project);
-
         return yApiSettingForm.getRootPanel();
     }
 
 
     @Override
     public boolean isModified() {
-
-        return yApiSettingForm.isModified();
+        return yApiSettingForm != null && yApiSettingForm.isModified();
     }
 
     @Override
     public void apply() throws ConfigurationException {
-
-        yApiSettingForm.apply();
+        if (yApiSettingForm != null) {
+            yApiSettingForm.apply();
+        }
     }
 
     @Override
     public void reset() {
-
-        yApiSettingForm.reset();
+        if (yApiSettingForm != null) {
+            yApiSettingForm.reset();
+        }
     }
 
+    @Override
+    public void disposeUIResources() {
+        if (yApiSettingForm != null) {
+            yApiSettingForm.dispose();
+            yApiSettingForm = null;
+        }
+    }
 
 }

@@ -8,7 +8,7 @@
     <properties/>
     <border type="none"/>
     <children>
-      <grid id="8f45e" binding="yuQueProjectPanel" layout-manager="GridLayoutManager" row-count="5" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="8f45e" binding="yuQueProjectPanel" layout-manager="GridLayoutManager" row-count="8" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -19,28 +19,25 @@
         </properties>
         <border type="none"/>
         <children>
-          <component id="86256" class="javax.swing.JLabel">
+          <component id="86256" class="javax.swing.JLabel" binding="urlLabel">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="messages/DocViewBundle" key="yuque.url"/>
             </properties>
           </component>
-          <component id="bad8" class="javax.swing.JLabel">
+          <component id="bad8" class="javax.swing.JLabel" binding="loginLabel">
             <constraints>
               <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="messages/DocViewBundle" key="yuque.username"/>
             </properties>
           </component>
-          <component id="c838e" class="javax.swing.JLabel">
+          <component id="c838e" class="javax.swing.JLabel" binding="reposLabel">
             <constraints>
               <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="messages/DocViewBundle" key="yuque.repos"/>
             </properties>
           </component>
           <component id="453a6" class="com.intellij.ui.components.JBTextField" binding="urlTextField">
@@ -61,18 +58,17 @@
             </constraints>
             <properties/>
           </component>
-          <component id="f9675" class="com.intellij.ui.components.JBTextField" binding="tokenTextField">
+          <component id="f9675" class="com.intellij.ui.components.JBPasswordField" binding="tokenTextField">
             <constraints>
               <grid row="4" column="1" row-span="1" col-span="2" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties/>
           </component>
-          <component id="1a614" class="javax.swing.JLabel">
+          <component id="1a614" class="javax.swing.JLabel" binding="tokenLabel">
             <constraints>
               <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="messages/DocViewBundle" key="yuque.token"/>
             </properties>
           </component>
           <component id="db03" class="com.intellij.ui.components.JBTextField" binding="apiUrlTextField">
@@ -81,12 +77,32 @@
             </constraints>
             <properties/>
           </component>
-          <component id="e3fb9" class="javax.swing.JLabel">
+          <component id="e3fb9" class="javax.swing.JLabel" binding="apiUrlLabel">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="messages/DocViewBundle" key="yuque.url"/>
+            </properties>
+          </component>
+          <component id="bcc81" class="javax.swing.JCheckBox" binding="clearTokenCheckBox">
+            <constraints>
+              <grid row="5" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+            </properties>
+          </component>
+          <component id="bc812" class="javax.swing.JLabel" binding="credentialStatusLabel">
+            <constraints>
+              <grid row="6" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+            </properties>
+          </component>
+          <component id="e239a" class="javax.swing.JPanel" binding="integrationHelpContainer">
+            <constraints>
+              <grid row="7" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
             </properties>
           </component>
         </children>

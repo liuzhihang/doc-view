@@ -1,6 +1,7 @@
 package com.liuzhihang.doc.view.service;
 
 import com.intellij.openapi.components.Service;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.util.PsiModificationTracker;
 import com.liuzhihang.doc.view.config.Settings;
@@ -9,15 +10,17 @@ import com.liuzhihang.doc.view.dto.Body;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 @Service(Service.Level.PROJECT)
 public final class DtoSchemaCacheService {
 
     private final Project project;
-    private final ConcurrentMap<DtoSchemaCacheKey, Body> bodyCache = new ConcurrentHashMap<>();
+    private final Object cacheLock = new Object();
+    private final Map<DtoSchemaCacheKey, Body> bodyCache = new HashMap<>();
+    private CacheEpoch cacheEpoch;
 
     public DtoSchemaCacheService(@NotNull Project project) {
         this.project = project;
@@ -29,34 +32,67 @@ public final class DtoSchemaCacheService {
 
     @Nullable
     public Body getBody(@NotNull DtoSchemaCacheKey key) {
-        Body cached = bodyCache.get(key);
-        return cached == null ? null : copyBody(cached, null, false);
+        Body cached;
+        synchronized (cacheLock) {
+            CacheEpoch currentEpoch = observeEpochLocked();
+            if (!key.matches(currentEpoch)) {
+                return null;
+            }
+            cached = bodyCache.get(key);
+        }
+        if (cached == null) {
+            return null;
+        }
+
+        Body copy = copyBody(cached, null, false);
+        synchronized (cacheLock) {
+            CacheEpoch currentEpoch = observeEpochLocked();
+            return key.matches(currentEpoch) && bodyCache.get(key) == cached ? copy : null;
+        }
     }
 
     public void putBody(@NotNull DtoSchemaCacheKey key, @NotNull Body body) {
-        bodyCache.put(key, copyBody(body, null, false));
+        synchronized (cacheLock) {
+            if (!key.matches(observeEpochLocked())) {
+                return;
+            }
+        }
+
+        Body copy = copyBody(body, null, false);
+        synchronized (cacheLock) {
+            CacheEpoch currentEpoch = observeEpochLocked();
+            if (key.matches(currentEpoch)) {
+                bodyCache.put(key, copy);
+            }
+        }
     }
 
     public void invalidate(@NotNull DtoSchemaCacheKey key) {
-        bodyCache.remove(key);
+        synchronized (cacheLock) {
+            CacheEpoch currentEpoch = observeEpochLocked();
+            if (key.matches(currentEpoch)) {
+                bodyCache.remove(key);
+            }
+        }
     }
 
     public void clear() {
-        bodyCache.clear();
+        synchronized (cacheLock) {
+            bodyCache.clear();
+        }
     }
 
     public DtoSchemaCacheKey key(@NotNull String role, @NotNull String typeIdentity) {
-        return new DtoSchemaCacheKey(
-                role,
-                typeIdentity,
-                PsiModificationTracker.getInstance(project).getModificationCount(),
-                settingsHash(),
-                templateHash()
-        );
+        synchronized (cacheLock) {
+            CacheEpoch currentEpoch = observeEpochLocked();
+            return new DtoSchemaCacheKey(role, typeIdentity, currentEpoch.modificationCount(),
+                    currentEpoch.settingsHash(), currentEpoch.templateHash());
+        }
     }
 
     @NotNull
     public static Body copyBody(@NotNull Body source, Body parent, boolean keepPsiElement) {
+        ProgressManager.checkCanceled();
         Body copy = new Body();
         if (keepPsiElement) {
             copy.setPsiElement(source.getPsiElement());
@@ -73,9 +109,23 @@ public final class DtoSchemaCacheService {
         copy.setCollection(source.isCollection());
         copy.setMap(source.isMap());
         for (Body child : source.getChildList()) {
+            ProgressManager.checkCanceled();
             copy.getChildList().add(copyBody(child, copy, keepPsiElement));
         }
         return copy;
+    }
+
+    private CacheEpoch observeEpochLocked() {
+        CacheEpoch currentEpoch = new CacheEpoch(
+                PsiModificationTracker.getInstance(project).getModificationCount(),
+                settingsHash(),
+                templateHash()
+        );
+        if (!currentEpoch.equals(cacheEpoch)) {
+            bodyCache.clear();
+            cacheEpoch = currentEpoch;
+        }
+        return currentEpoch;
     }
 
     private int settingsHash() {
@@ -86,7 +136,6 @@ public final class DtoSchemaCacheService {
                 settings.getFieldNameJsonProperty(),
                 settings.getContainClassAnnotationName(),
                 settings.getContainMethodAnnotationName(),
-                settings.getExcludeParamTypes(),
                 settings.getRequiredFieldAnnotation(),
                 settings.getFieldNameAnnotation(),
                 settings.getExcludeFieldNames(),
@@ -109,5 +158,14 @@ public final class DtoSchemaCacheService {
                                     long modificationCount,
                                     int settingsHash,
                                     int templateHash) {
+
+        private boolean matches(CacheEpoch epoch) {
+            return modificationCount == epoch.modificationCount()
+                    && settingsHash == epoch.settingsHash()
+                    && templateHash == epoch.templateHash();
+        }
+    }
+
+    private record CacheEpoch(long modificationCount, int settingsHash, int templateHash) {
     }
 }

@@ -4,12 +4,9 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.project.Project;
-import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.service.DtoSchemaCacheService;
-import com.liuzhihang.doc.view.ui.window.DocViewNode;
-import com.liuzhihang.doc.view.utils.CustomFileUtils;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -30,15 +27,6 @@ public class CatalogClearAction extends AnAction {
         }
 
         DtoSchemaCacheService.getInstance(project).clear();
-
-        SimpleNode selectedNode = simpleTree.getSelectedNode();
-
-        if (selectedNode instanceof DocViewNode) {
-            DocViewNode docViewNode = (DocViewNode) selectedNode;
-            CustomFileUtils.delete(project, docViewNode.docPath(project));
-
-        }
-
     }
 
 }

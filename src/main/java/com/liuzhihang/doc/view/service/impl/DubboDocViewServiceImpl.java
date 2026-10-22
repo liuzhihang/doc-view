@@ -1,5 +1,6 @@
 package com.liuzhihang.doc.view.service.impl;
 
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiSubstitutor;
@@ -53,6 +54,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
         List<DocView> docViewList = new LinkedList<>();
 
         for (PsiMethod method : psiClass.getMethods()) {
+            ProgressManager.checkCanceled();
             if (!DubboPsiUtils.isDubboMethod(method)) {
                 continue;
             }
@@ -75,6 +77,7 @@ public class DubboDocViewServiceImpl implements DocViewService {
     @NotNull
     @Override
     public DocView buildClassMethodDoc(@NotNull PsiClass psiClass, @NotNull PsiMethod psiMethod) {
+        ProgressManager.checkCanceled();
         DocView docView = new DocView();
         docView.setPsiClass(psiClass);
         docView.setPsiMethod(psiMethod);

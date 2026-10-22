@@ -2,6 +2,7 @@ package com.liuzhihang.doc.view.action.toolbar.window.catalog;
 
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
@@ -17,6 +18,17 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AbstractCatalogUploadAction extends AbstractUploadAction {
 
     protected Project project;
+
+    @Override
+    public void update(@NotNull AnActionEvent e) {
+        Project actionProject = e.getData(PlatformDataKeys.PROJECT);
+        SimpleTree simpleTree = e.getData(DocViewDataKeys.WINDOW_CATALOG_TREE);
+        boolean available = actionProject != null
+                && !actionProject.isDisposed()
+                && !DumbService.isDumb(actionProject)
+                && simpleTree != null;
+        e.getPresentation().setEnabledAndVisible(available);
+    }
 
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {

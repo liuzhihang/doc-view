@@ -3,14 +3,16 @@ package com.liuzhihang.doc.view.utils;
 import com.intellij.ide.extensionResources.ExtensionsRootType;
 import com.intellij.ide.scratch.ScratchFileService.Option;
 import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.command.UndoConfirmationPolicy;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.PsiMethod;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
@@ -32,6 +34,9 @@ import java.io.IOException;
  */
 public class CustomFileUtils {
 
+    private static final String METHOD_DOC_TASK_TITLE = DocViewBundle.message("task.method.documentation");
+    private static final String METHOD_DOC_GENERATION_FAILED = DocViewBundle.message("notify.method.documentation.failed");
+
     /**
      * 生成接口文档 md 文件, 并打开
      *
@@ -40,50 +45,48 @@ public class CustomFileUtils {
      */
     public static void openMd(Project project, MethodNode node) {
 
-        if (node == null) {
+        if (project == null || project.isDisposed() || node == null) {
             return;
         }
 
-        DocViewService service = DocViewService.getInstance(project, node.getPsiClass());
-
-        if (service == null) {
-            return;
-        }
-
-        // 生成接口对应的 markdown 文本
-        String markdownText = ApplicationManager.getApplication().runReadAction((Computable<String>) () -> {
-            DocView docView = service.buildClassMethodDoc(node.getPsiClass(), node.getPsiMethod());
-            return DocViewData.markdownText(project, docView);
-        });
-
-        open(project, node.docPath(project), markdownText);
-
-    }
-
-    /**
-     * 删除生成的文件
-     *
-     * @param project 项目
-     * @param path    删除的路径
-     */
-    public static void delete(Project project, String path) {
-
-        try {
-
-            // 获取在文件系统中的虚拟文件
-            VirtualFile file = ExtensionsRootType.getInstance().findFile(project, path, Option.create_if_missing);
-
-            // 在删除之前要先关闭
-            if (FileEditorManager.getInstance(project).isFileOpen(file)) {
-                FileEditorManager.getInstance(project).closeFile(file);
+        DocViewBackgroundTasks.runReadTask(project, METHOD_DOC_TASK_TITLE, true, indicator -> {
+            indicator.checkCanceled();
+            if (project.isDisposed()) {
+                return null;
             }
 
-            // 删除文件
-            WriteAction.runAndWait(() -> file.delete(project));
+            PsiClass psiClass = node.getPsiClass();
+            PsiMethod psiMethod = node.getPsiMethod();
+            if (psiClass == null || psiMethod == null || !psiClass.isValid() || !psiMethod.isValid()) {
+                return null;
+            }
 
-        } catch (IOException e) {
-            DocViewNotification.notifyError(project, DocViewBundle.message("notify.extensions.file.delete.file", path));
-        }
+            DocViewService service = DocViewService.getInstance(project, psiClass);
+            if (service == null) {
+                return null;
+            }
+
+            DocView docView = service.buildClassMethodDoc(psiClass, psiMethod);
+            indicator.checkCanceled();
+            String markdownText = DocViewData.markdownText(project, docView);
+            indicator.checkCanceled();
+            String pathName = node.docPath(project);
+            indicator.checkCanceled();
+            return StringUtils.isBlank(pathName) ? null : new MarkdownSnapshot(pathName, markdownText);
+        }, snapshot -> {
+            if (snapshot == null || project.isDisposed()) {
+                return;
+            }
+
+            try {
+                open(project, snapshot.pathName(), snapshot.markdownText());
+            } catch (ProcessCanceledException ignored) {
+                // A closing project or canceled task must not publish a stale Scratch result.
+            } catch (RuntimeException exception) {
+                DocViewNotification.notifyError(project, METHOD_DOC_GENERATION_FAILED);
+            }
+        }, throwable -> DocViewNotification.notifyError(project, METHOD_DOC_GENERATION_FAILED));
+
     }
 
     /**
@@ -158,6 +161,9 @@ public class CustomFileUtils {
         } catch (IOException e) {
             DocViewNotification.notifyError(project, DocViewBundle.message("notify.extensions.file.create.file", pathName));
         }
+    }
+
+    private record MarkdownSnapshot(String pathName, String markdownText) {
     }
 
 }

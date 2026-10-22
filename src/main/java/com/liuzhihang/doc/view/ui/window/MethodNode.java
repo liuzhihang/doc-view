@@ -1,10 +1,13 @@
 package com.liuzhihang.doc.view.ui.window;
 
+import com.intellij.icons.AllIcons;
+import com.intellij.ide.projectView.PresentationData;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
+import com.intellij.ui.SimpleTextAttributes;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.utils.CustomFileUtils;
@@ -12,7 +15,9 @@ import com.liuzhihang.doc.view.utils.DocViewUtils;
 
 import java.awt.event.InputEvent;
 import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 目录树上的一个节点
@@ -24,16 +29,35 @@ public class MethodNode extends DocViewNode {
 
     private final PsiMethod psiMethod;
     private final PsiClass psiClass;
+    private final String signature;
+    private final String businessName;
+    private final String methodName;
 
     protected MethodNode(SimpleNode aParent, PsiClass psiClass, PsiMethod psiMethod) {
         super(aParent);
         this.psiMethod = psiMethod;
         this.psiClass = psiClass;
-
-        getTemplatePresentation().setIcon(null);
-        getTemplatePresentation().setTooltip(DocViewUtils.getMethodDesc(psiMethod));
+        methodName = psiMethod.getName();
+        signature = methodName + "(" + Arrays.stream(psiMethod.getParameterList().getParameters())
+                .map(parameter -> parameter.getType().getCanonicalText()).collect(Collectors.joining(", ")) + ")";
+        businessName = DocViewUtils.getName(psiMethod);
+        getTemplatePresentation().setIcon(AllIcons.Nodes.Method);
+        String methodDescription = DocViewUtils.getMethodDesc(psiMethod);
+        String tooltip = signature;
+        if (methodDescription != null && !methodDescription.isBlank()) {
+            tooltip += " — " + methodDescription;
+        }
+        getTemplatePresentation().setTooltip(tooltip);
     }
 
+    @Override
+    protected void doUpdate(PresentationData presentation) {
+        presentation.clearText();
+        presentation.addText(methodName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+        if (businessName != null && !businessName.isBlank() && !businessName.equals(methodName)) {
+            presentation.addText("  " + businessName, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+        }
+    }
 
     @Override
     protected SimpleNode[] buildChildren() {
@@ -42,7 +66,13 @@ public class MethodNode extends DocViewNode {
 
     @Override
     public String getName() {
-        return DocViewUtils.getName(psiMethod);
+        return businessName;
+    }
+
+    @Override
+    public String getSearchText() {
+        return signature + (businessName == null || businessName.isBlank() || businessName.equals(methodName)
+                ? "" : " " + businessName);
     }
 
     @Override
