@@ -1,11 +1,14 @@
 package com.liuzhihang.doc.view.ui.window;
 
 import com.intellij.icons.AllIcons;
+import com.intellij.ide.projectView.PresentationData;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
+import com.intellij.ui.SimpleTextAttributes;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 
@@ -25,6 +28,8 @@ public class ClassNode extends DocViewNode {
 
     private final List<MethodNode> methodNodes = new ArrayList<>();
     private final PsiClass         psiClass;
+    private String codeName;
+    private String businessName;
 
     protected ClassNode(SimpleNode aParent, PsiClass psiClass) {
         super(aParent);
@@ -36,16 +41,33 @@ public class ClassNode extends DocViewNode {
     }
 
     public void updateNode(Project project) {
-
+        cleanUpCache();
+        methodNodes.clear();
+        codeName = psiClass.getName();
+        businessName = DocViewUtils.getTitle(psiClass);
         PsiMethod[] methods = psiClass.getMethods();
 
         for (PsiMethod psiMethod : methods) {
+            ProgressManager.checkCanceled();
             if (DocViewUtils.isDocViewMethod(psiMethod)) {
                 MethodNode methodNode = new MethodNode(this, psiClass, psiMethod);
                 methodNodes.add(methodNode);
             }
         }
         update();
+    }
+
+    @Override
+    protected void doUpdate(PresentationData presentation) {
+        presentation.clearText();
+        presentation.addText(codeName, SimpleTextAttributes.REGULAR_ATTRIBUTES);
+        if (businessName != null && !businessName.isBlank() && !businessName.equals(codeName)) {
+            presentation.addText("  " + businessName, SimpleTextAttributes.GRAYED_ATTRIBUTES);
+        }
+    }
+
+    public PsiClass getPsiClass() {
+        return psiClass;
     }
 
     @Override
@@ -71,7 +93,13 @@ public class ClassNode extends DocViewNode {
 
     @Override
     public String getName() {
-        return DocViewUtils.getTitle(psiClass);
+        return businessName;
+    }
+
+    @Override
+    public String getSearchText() {
+        return codeName + (businessName == null || businessName.isBlank() || businessName.equals(codeName)
+                ? "" : " " + businessName);
     }
 
     @Override

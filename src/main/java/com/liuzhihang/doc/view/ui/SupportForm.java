@@ -18,13 +18,22 @@ import javax.swing.*;
 public class SupportForm extends DialogWrapper {
 
     private JPanel rootPanel;
+    private JLabel titleLabel;
     private LinkLabel<String> starLinkLabel;
     private LinkLabel<String> reportLinkLabel;
     private LinkLabel<String> discussionsLinkLabel;
     private LinkLabel<String> websiteLinkLabel;
+    private JLabel followLabel;
 
     public SupportForm(@NotNull Project project) {
         super(project, true);
+
+        titleLabel.setText(DocViewBundle.message("support.title"));
+        starLinkLabel.setText(DocViewBundle.message("support.start"));
+        reportLinkLabel.setText(DocViewBundle.message("support.issues"));
+        discussionsLinkLabel.setText(DocViewBundle.message("support.discussions"));
+        websiteLinkLabel.setText(DocViewBundle.message("support.leave.message"));
+        followLabel.setText(DocViewBundle.message("support.follow"));
 
         init();
 

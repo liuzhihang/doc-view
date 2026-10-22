@@ -1,6 +1,8 @@
 # Contract 设计
 
-Doc View 的 contract 是对用户或集成可观察行为的稳定约定。规范性 requirement 写入 `openspec/specs/**`，单次变更的 delta、design 和 tasks 写入 `openspec/changes/**`；本文只说明如何设计 contract。
+Doc View 的 contract 是对当前版本用户或集成可观察行为的明确约定。规范性 requirement 写入 `openspec/specs/**`，单次变更的 delta、design 和 tasks 写入 `openspec/changes/**`；本文只说明如何设计 contract。
+
+遵循[版本演进策略](intellij-compatibility.md#版本演进策略)：新版可以直接替换旧功能、模板格式、配置写法和实现，不增加向后兼容、双轨输出或迁移逻辑。变更应写清新版输入输出、停止支持的形式与重新配置方式，并按新版 contract 更新受影响的规范和 golden；未涉及的区域仍保持原行为。这一原则不授权本轮提前实施运行时代码。
 
 ## 何时必须定义
 
@@ -10,7 +12,7 @@ Doc View 的 contract 是对用户或集成可观察行为的稳定约定。规�
 - `DocView`、`Body`、`Param`、`Header` 字段、默认值或层级。
 - Markdown 结构、模板变量、示例 JSON、复制或导出结果。
 - YApi、ShowDoc、YuQue payload、错误处理或通知。
-- 设置默认值、持久化、迁移或 UI 可见行为。
+- 设置默认值、持久化、重新配置要求或 UI 可见行为。
 - IntelliJ API、extension、线程模型、兼容范围或依赖。
 
 纯文案、链接和格式修正可以不建立运行时 contract，但不得借文档 change 修改行为。
@@ -60,7 +62,7 @@ Java 示例不得包含私有业务代码，平台示例不得包含真实 token
 - 本次明确不解析的注解、类型或 OpenAPI 结构。
 - 不改变的 DTO/Markdown/平台 payload/设置字段。
 - 遇到循环、无效 PSI、Dumb Mode、缺少配置或网络失败时的降级。
-- 用户自定义 Velocity 模板变量的兼容边界。
+- 当前版本支持的 Velocity 模板变量与输入格式；改变时说明新版写法，不保留旧变量适配。
 
 ## 验证选择
 

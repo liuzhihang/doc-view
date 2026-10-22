@@ -4,6 +4,7 @@ import com.intellij.openapi.actionSystem.ActionUpdateThread;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.liuzhihang.doc.view.action.AbstractAction;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
@@ -33,7 +34,7 @@ public abstract class AbstractUploadAction extends AbstractAction {
         DocViewUploadService docViewUploadService = uploadService();
         DocViewBackgroundTasks.runReadTask(
                 project,
-                "Doc View build upload data",
+                DocViewBundle.message("task.docview.upload"),
                 true,
                 indicator -> DocViewService.getInstance(project, targetClass).buildDoc(targetClass, targetMethod),
                 docViewList -> docViewUploadService.upload(project, docViewList),

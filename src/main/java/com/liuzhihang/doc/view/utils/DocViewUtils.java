@@ -5,21 +5,26 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.javadoc.PsiDocComment;
 import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.constant.JsonPropertyConstant;
 import com.liuzhihang.doc.view.constant.SpringConstant;
 import com.liuzhihang.doc.view.constant.SwaggerConstant;
 import com.liuzhihang.doc.view.dto.DocViewParamData;
+import com.liuzhihang.doc.view.exception.DocViewException;
 import com.liuzhihang.doc.view.service.impl.WriterService;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -174,9 +179,9 @@ public class DocViewUtils {
             if (settings.getNameUseSwagger()) {
                 PsiAnnotation apiAnnotation = psiMethod.getAnnotation(SwaggerConstant.API_OPERATION);
                 if (apiAnnotation != null) {
-                    PsiAnnotationMemberValue value = apiAnnotation.findAttributeValue("value");
-                    if (value != null) {
-                        return value.getText().replace("\"", "");
+                    String value = AnnotationUtil.getStringAttributeValue(apiAnnotation, "value");
+                    if (StringUtils.isNotBlank(value)) {
+                        return value;
                     }
                 }
             }
@@ -228,9 +233,9 @@ public class DocViewUtils {
             if (settings.getDescUseSwagger3()) {
                 PsiAnnotation operationAnnotation = psiMethod.getAnnotation(SwaggerConstant.OPERATION);
                 if (operationAnnotation != null) {
-                    PsiAnnotationMemberValue value = operationAnnotation.findAttributeValue("description");
-                    if (value != null) {
-                        return value.getText().replace("\"", "");
+                    String description = AnnotationUtil.getStringAttributeValue(operationAnnotation, "description");
+                    if (StringUtils.isNotBlank(description)) {
+                        return description;
                     }
                 }
             }
@@ -238,9 +243,9 @@ public class DocViewUtils {
             if (settings.getDescUseSwagger()) {
                 PsiAnnotation apiOperationAnnotation = psiMethod.getAnnotation(SwaggerConstant.API_OPERATION);
                 if (apiOperationAnnotation != null) {
-                    PsiAnnotationMemberValue value = apiOperationAnnotation.findAttributeValue("notes");
-                    if (value != null) {
-                        return value.getText().replace("\"", "");
+                    String notes = AnnotationUtil.getStringAttributeValue(apiOperationAnnotation, "notes");
+                    if (StringUtils.isNotBlank(notes)) {
+                        return notes;
                     }
                 }
             }
@@ -353,17 +358,29 @@ public class DocViewUtils {
         return ApplicationManager.getApplication().runReadAction((Computable<Boolean>) () -> {
             Settings settings = Settings.getInstance(field.getProject());
 
-            if (AnnotationUtil.isAnnotated(field, settings.getRequiredFieldAnnotation(), 0)) {
-                return true;
-            }
-
-            // swagger v3 @Schema
+            // OpenAPI 3 的显式模式优先于 Doc View 的 AUTO 来源。
             PsiAnnotation schemaAnnotation = field.getAnnotation(SwaggerConstant.SCHEMA);
             if (schemaAnnotation != null) {
-                PsiAnnotationMemberValue value = schemaAnnotation.findAttributeValue("required");
-                if (value != null && StringUtils.isNotBlank(value.getText()) && value.getText().contains("true")) {
-                    return true;
+                PsiAnnotationMemberValue modeValue = schemaAnnotation.findAttributeValue("requiredMode");
+                if (modeValue instanceof PsiReferenceExpression referenceExpression) {
+                    PsiElement resolved = referenceExpression.resolve();
+                    if (resolved instanceof PsiEnumConstant enumConstant) {
+                        PsiClass enumClass = enumConstant.getContainingClass();
+                        if (enumClass != null
+                                && (SwaggerConstant.SCHEMA + ".RequiredMode").equals(enumClass.getQualifiedName())) {
+                            if ("REQUIRED".equals(enumConstant.getName())) {
+                                return true;
+                            }
+                            if ("NOT_REQUIRED".equals(enumConstant.getName())) {
+                                return false;
+                            }
+                        }
+                    }
                 }
+            }
+
+            if (AnnotationUtil.isAnnotated(field, settings.getRequiredFieldAnnotation(), 0)) {
+                return true;
             }
             // swagger @ApiModelProperty
             PsiAnnotation apiModelPropertyAnnotation = field.getAnnotation(SwaggerConstant.API_MODEL_PROPERTY);
@@ -465,9 +482,10 @@ public class DocViewUtils {
             // swagger v3 @Schema
             PsiAnnotation schemaAnnotation = psiField.getAnnotation(SwaggerConstant.SCHEMA);
             if (schemaAnnotation != null) {
-                PsiAnnotationMemberValue value = schemaAnnotation.findAttributeValue("description");
-                if (value != null && StringUtils.isNotBlank(value.getText())) {
-                    return value.getText().replace("\"", "");
+                PsiAnnotationMemberValue descriptionValue = schemaAnnotation.findDeclaredAttributeValue("description");
+                String description = evaluateStringConstant(psiField.getProject(), descriptionValue);
+                if (description != null) {
+                    return description;
                 }
             }
             // swagger @ApiModelProperty
@@ -498,6 +516,16 @@ public class DocViewUtils {
      */
     public static void writeComment(Project project, @NotNull Map<PsiElement, DocViewParamData> modifyBodyMap) {
 
+        // A missing requiredMode member is an expected dependency error. Validate every Schema field first so
+        // this known rejection cannot occur after earlier fields in the same form have already been written.
+        for (PsiElement element : modifyBodyMap.keySet()) {
+            PsiField psiField = (PsiField) element;
+            PsiAnnotation schemaAnnotation = psiField.getAnnotation(SwaggerConstant.SCHEMA);
+            if (schemaAnnotation != null) {
+                validateSchemaRequiredMode(schemaAnnotation);
+            }
+        }
+
         for (PsiElement element : modifyBodyMap.keySet()) {
             DocViewParamData data = modifyBodyMap.get(element);
             String docComment;
@@ -507,26 +535,8 @@ public class DocViewUtils {
             // swagger v3 @Schema 直接修改属性
             PsiAnnotation schemaAnnotation = psiField.getAnnotation(SwaggerConstant.SCHEMA);
             if (schemaAnnotation != null) {
-                String annotationText = "";
-
-                if (StringUtils.isNotBlank(data.getDesc()) && data.getRequired()) {
-                    annotationText = "@Schema(description = \"" + data.getDesc() + "\", required = true)";
-                } else if (StringUtils.isNotBlank(data.getDesc()) && !data.getRequired()) {
-                    annotationText = "@Schema(description = \"" + data.getDesc() + "\")";
-                } else if (StringUtils.isBlank(data.getDesc()) && data.getRequired()) {
-                    annotationText = "@Schema(required = true)";
-                }
-
-                if (StringUtils.isNotBlank(annotationText)) {
-                    final PsiElementFactory elementFactory = JavaPsiFacade.getElementFactory(project);
-                    PsiAnnotation newAnnotation = elementFactory.createAnnotationFromText(annotationText, psiField);
-
-                    WriteCommandAction.runWriteCommandAction(project, () -> {
-                        schemaAnnotation.replace(newAnnotation);
-                    });
-
-                }
-                return;
+                writeSchemaRequiredMode(project, psiField, schemaAnnotation, data);
+                continue;
             }
             // swagger @ApiModelProperty 直接修改属性
             PsiAnnotation apiModelPropertyAnnotation = psiField.getAnnotation(SwaggerConstant.API_MODEL_PROPERTY);
@@ -572,6 +582,72 @@ public class DocViewUtils {
             ApplicationManager.getApplication().getService(WriterService.class).write(project, element, psiDocComment);
 
         }
+    }
+
+    private static void writeSchemaRequiredMode(Project project, PsiField field,
+                                                PsiAnnotation schemaAnnotation, DocViewParamData data) {
+        validateSchemaRequiredMode(schemaAnnotation);
+
+        List<String> members = new ArrayList<>();
+        boolean hasDescription = false;
+        boolean hasRequiredMode = false;
+        String description = data.getDesc();
+        String descriptionMember = "description = \""
+                + StringUtil.escapeStringCharacters(description == null ? "" : description) + "\"";
+        String modeMember = "requiredMode = " + SwaggerConstant.SCHEMA + ".RequiredMode."
+                + (Boolean.TRUE.equals(data.getRequired()) ? "REQUIRED" : "NOT_REQUIRED");
+
+        for (PsiNameValuePair pair : schemaAnnotation.getParameterList().getAttributes()) {
+            String name = pair.getName();
+            if ("required".equals(name)) {
+                continue;
+            }
+            if ("requiredMode".equals(name)) {
+                members.add(modeMember);
+                hasRequiredMode = true;
+                continue;
+            }
+            if ("description".equals(name)) {
+                if (description != null) {
+                    members.add(descriptionMember);
+                    hasDescription = true;
+                }
+                continue;
+            }
+            members.add(pair.getText());
+        }
+
+        if (!hasDescription && description != null) {
+            members.add(descriptionMember);
+        }
+        if (!hasRequiredMode) {
+            members.add(modeMember);
+        }
+
+        String annotationText = "@" + SwaggerConstant.SCHEMA
+                + (members.isEmpty() ? "" : "(" + String.join(", ", members) + ")");
+        PsiAnnotation replacement = JavaPsiFacade.getElementFactory(project)
+                .createAnnotationFromText(annotationText, field);
+        WriteCommandAction.runWriteCommandAction(project, () -> {
+            schemaAnnotation.replace(replacement);
+        });
+    }
+
+    private static void validateSchemaRequiredMode(PsiAnnotation schemaAnnotation) {
+        PsiClass schemaClass = schemaAnnotation.resolveAnnotationType();
+        if (schemaClass == null || schemaClass.findMethodsByName("requiredMode", false).length == 0) {
+            throw new DocViewException(DocViewBundle.message("schema.required.mode.unsupported"));
+        }
+    }
+
+    @Nullable
+    private static String evaluateStringConstant(Project project, @Nullable PsiAnnotationMemberValue value) {
+        if (value == null) {
+            return null;
+        }
+        Object evaluatedValue = JavaPsiFacade.getInstance(project)
+                .getConstantEvaluationHelper().computeConstantExpression(value);
+        return evaluatedValue instanceof String stringValue ? stringValue : null;
     }
 
 }

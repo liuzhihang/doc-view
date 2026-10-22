@@ -69,18 +69,4 @@ public class DocViewNotification {
                 .notify(project);
     }
 
-
-    public static void startupNotification(@NotNull Project project) {
-
-        notificationGroup()
-                .createNotification(DocViewBundle.message("title"), DocViewBundle.message("notify.start"), NotificationType.INFORMATION)
-                .setIcon(DocViewIcons.DOC_VIEW)
-                .addAction(new BrowseNotificationAction("Star", DocViewBundle.message("github")))
-                .addAction(new BrowseNotificationAction("YuQue", DocViewBundle.message("yuque")))
-                .addAction(new BrowseNotificationAction("Feedback", DocViewBundle.message("issues")))
-                .addAction(new BrowseNotificationAction("Other", DocViewBundle.message("toolkit")))
-                .notify(project);
-
-    }
-
 }

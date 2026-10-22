@@ -9,7 +9,7 @@ Service，并提供 Markdown 预览、复制、导出，以及上传到 YApi、S
 - 构建系统：Gradle 9.5.0
 - IntelliJ Platform Gradle Plugin：`org.jetbrains.intellij.platform` 2.16.0
 - 目标平台：IntelliJ IDEA IU 2026.1+
-- 插件版本：1.3.14
+- 插件版本：1.4.0
 - Bundled plugin：Java、Markdown
 - 主包名：`com.liuzhihang.doc.view`
 
@@ -21,6 +21,7 @@ Service，并提供 Markdown 预览、复制、导出，以及上传到 YApi、S
 - 新功能、用户可见行为、兼容性或架构变化先创建 OpenSpec proposal/design/spec/tasks，再修改运行时代码。
 - 低风险机械文档修正可以直接实施；描述运行行为变化的文档必须与对应 contract 同步。
 - 生产实现保持 Java-only；引入新生产语言、依赖、extension 或平台基线必须在 change 中明确批准。
+- 面向批准的新版本直接演进，不为旧插件功能、旧配置/模板写法或旧 IDE/JCEF 额外保留兼容分支、适配层或双轨实现；旧行为由用户选择旧插件版本。具体边界见[版本演进策略](docs/intellij-compatibility.md#版本演进策略)。
 - 精准修改当前任务需要的文件，不回滚维护者或其他工具的无关改动。
 - token、账号、cookie、生产私密地址和私有代码不得进入仓库、artifact、日志或示例。
 

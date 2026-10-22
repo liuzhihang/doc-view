@@ -3,6 +3,7 @@ package com.liuzhihang.doc.view.ui.window;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.liuzhihang.doc.view.dto.DocView;
@@ -35,6 +36,7 @@ public class RootNode extends DocViewNode {
 
         Module[] modules = ModuleManager.getInstance(project).getModules();
         for (Module module : modules) {
+            ProgressManager.checkCanceled();
             ModuleNode moduleNode = new ModuleNode(this, module);
             if (moduleNode.getChildCount() > 0) {
                 moduleNodes.add(moduleNode);

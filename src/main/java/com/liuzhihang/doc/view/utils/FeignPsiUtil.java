@@ -2,6 +2,7 @@ package com.liuzhihang.doc.view.utils;
 
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
@@ -37,6 +38,7 @@ public class FeignPsiUtil {
         List<PsiClass> psiClasses = new LinkedList<>();
 
         for (PsiAnnotation psiAnnotation : JavaAnnotationIndex.getInstance().getAnnotations("FeignClient", module.getProject(), GlobalSearchScope.moduleScope(module))) {
+            ProgressManager.checkCanceled();
             PsiModifierList psiModifierList = (PsiModifierList) psiAnnotation.getParent();
             PsiElement psiElement = psiModifierList.getParent();
 

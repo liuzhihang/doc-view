@@ -5,6 +5,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.NonBlockingReadAction;
 import com.intellij.openapi.application.impl.NonBlockingReadActionImpl;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex;
@@ -102,6 +103,7 @@ public class DubboPsiUtils {
         List<PsiClass> psiClasses = new LinkedList<>();
 
         for (PsiAnnotation psiAnnotation : psiAnnotations) {
+            ProgressManager.checkCanceled();
             PsiModifierList psiModifierList = (PsiModifierList) psiAnnotation.getParent();
             PsiElement psiElement = psiModifierList.getParent();
 
@@ -114,6 +116,7 @@ public class DubboPsiUtils {
 
     @NotNull
     public static Body buildBody(@NotNull PsiMethod psiMethod) {
+        ProgressManager.checkCanceled();
 
         Body root = new Body();
         root.setQualifiedNameForClassType(Objects.requireNonNull(psiMethod.getContainingClass()).getQualifiedName());
@@ -131,6 +134,7 @@ public class DubboPsiUtils {
         }
 
         for (PsiParameter parameter : parameters) {
+            ProgressManager.checkCanceled();
 
             PsiType type = parameter.getType();
 
@@ -188,6 +192,7 @@ public class DubboPsiUtils {
                 if (StringUtils.isNotBlank(qualifiedName) && !ParamPsiUtils.checkLinkedListHasTypeClass(body, qualifiedName)) {
                     body.setQualifiedNameForClassType(qualifiedName);
                     for (PsiField psiField : childClass.getAllFields()) {
+                        ProgressManager.checkCanceled();
                         if (!DocViewUtils.isExcludeField(psiField)) {
                             ParamPsiUtils.buildBodyParam(psiField, null, body, new HashMap<>());
                         }
@@ -207,6 +212,7 @@ public class DubboPsiUtils {
         Map<String, Object> fieldMap = new LinkedHashMap<>();
 
         for (PsiParameter parameter : parameters) {
+            ProgressManager.checkCanceled();
 
             String name = parameter.getName();
             PsiType type = parameter.getType();

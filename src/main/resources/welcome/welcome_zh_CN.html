@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Doc View</title>
+  <style>@@CSS@@</style>
+</head>
+<body data-theme="@@THEME@@" style="font-size: @@FONT_SIZE@@px">
+  <main class="page">
+    <header class="topbar">
+      <a class="brand" href="docview://action/home" aria-label="Doc View 首页">
+        <svg class="brand-mark" viewBox="0 0 16 16" role="img" aria-label="Doc View">
+          <path d="M1 4h2.2l2.1 5.2L7.5 4h2.3v8H8V6.5L6.1 11.5H4.9L3 6.5V12H1V4Z" fill="currentColor" />
+          <path d="M12.45 4.5h1.2v4.1l1.25-1.25.85.85-2.7 2.7-2.7-2.7.85-.85 1.25 1.25V4.5Z" fill="currentColor" />
+        </svg>
+        <span class="brand-name">Doc View</span>
+      </a>
+      <span class="version">版本 @@VERSION@@</span>
+    </header>
+
+    <section class="hero" aria-labelledby="welcome-title">
+      <p class="eyebrow">JAVA API DOCUMENTATION</p>
+      <h1 id="welcome-title">让接口文档离代码更近</h1>
+      <p class="hero-copy">从 Java 接口查看、生成和整理 Markdown API 文档，并在 IDE 中完成预览、复制、导出与平台上传。</p>
+      <nav class="primary-actions" aria-label="常用操作">
+        <a class="button button-primary" href="docview://action/directory">打开接口目录</a>
+        <a class="button button-secondary" href="docview://action/templates">配置模板</a>
+      </nav>
+      <p class="status-note"><span class="status-dot" aria-hidden="true"></span>本地欢迎页随插件提供；完整使用指南在线维护。</p>
+    </section>
+
+    <section class="section" aria-labelledby="start-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">GET STARTED</p>
+          <h2 id="start-title">三步开始</h2>
+        </div>
+        <a class="text-link" href="https://github.com/liuzhihang/doc-view/tree/master/docs/user-guide">打开完整使用指南 <span aria-hidden="true">↗</span></a>
+      </div>
+      <ol class="steps">
+        <li><span class="step-number">01</span><div><h3>找到接口</h3><p>打开接口目录，浏览项目中识别到的 Controller、Feign 或 Dubbo 接口。</p></div></li>
+        <li><span class="step-number">02</span><div><h3>预览文档</h3><p>选择类或方法查看生成结果；需要调整格式时，可前往模板设置。</p></div></li>
+        <li><span class="step-number">03</span><div><h3>分享结果</h3><p>复制或导出 Markdown，也可以按需配置平台后上传。</p></div></li>
+      </ol>
+    </section>
+
+    <section class="section updates-section" aria-labelledby="updates-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">WHAT'S NEW</p>
+          <h2 id="updates-title">版本 @@VERSION@@ 更新重点</h2>
+        </div>
+        <a class="text-link" href="docview://action/updates">查看更新 <span aria-hidden="true">→</span></a>
+      </div>
+      <p class="preview-copy">以下为当前版本包含的主要更新。<a href="https://github.com/liuzhihang/doc-view/blob/master/CHANGELOG.md">查看完整变更记录</a></p>
+      <ul class="highlights">
+        <li><span class="highlight-icon" aria-hidden="true">↗</span><div><h3>目录与导出更易查阅</h3><p>类和方法按层级展示，逐接口导出保留模块、签名与源码入口。</p></div></li>
+        <li><span class="highlight-icon" aria-hidden="true">{ }</span><div><h3>模板编辑更直观</h3><p>编辑、预览和输出选项分区呈现，可搜索变量并插入到光标位置。</p></div></li>
+        <li><span class="highlight-icon" aria-hidden="true">✓</span><div><h3>设置与交互更清晰</h3><p>设置按任务归类并加入指南入口；预览、导出和平台请求的资源释放得到加强。</p></div></li>
+      </ul>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-links" aria-label="项目链接">
+        <a href="https://github.com/liuzhihang/doc-view/tree/master/docs/user-guide">使用文档</a>
+        <a href="https://github.com/liuzhihang/doc-view">源代码</a>
+        <a href="https://github.com/liuzhihang/doc-view/issues">问题反馈</a>
+        <a href="https://github.com/liuzhihang/doc-view/blob/master/CHANGELOG.md">完整变更记录</a>
+        <a href="docview://action/integrations">平台设置</a>
+      </div>
+      <p class="notification-state">更新提醒当前已@@UPDATE_STATE@@。<a href="docview://action/notifications">@@UPDATE_LABEL@@</a></p>
+    </footer>
+  </main>
+</body>
+</html>

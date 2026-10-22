@@ -3,6 +3,7 @@ package com.liuzhihang.doc.view.config;
 import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.ui.ShowDocSettingForm;
 import org.jetbrains.annotations.Nls;
 import org.jetbrains.annotations.NotNull;
@@ -35,36 +36,45 @@ public class ShowDocSettingsConfigurable implements SearchableConfigurable {
     @Nls(capitalization = Nls.Capitalization.Title)
     @Override
     public String getDisplayName() {
-        return "ShowDoc Settings";
+        return DocViewBundle.message("settings.page.showdoc");
     }
 
     @Nullable
     @Override
     public JComponent createComponent() {
-
+        if (showDocSettingForm != null) {
+            showDocSettingForm.dispose();
+        }
         showDocSettingForm = new ShowDocSettingForm(project);
-
         return showDocSettingForm.getRootPanel();
     }
 
 
     @Override
     public boolean isModified() {
-
-        return showDocSettingForm.isModified();
+        return showDocSettingForm != null && showDocSettingForm.isModified();
     }
 
     @Override
     public void apply() throws ConfigurationException {
-
-        showDocSettingForm.apply();
+        if (showDocSettingForm != null) {
+            showDocSettingForm.apply();
+        }
     }
 
     @Override
     public void reset() {
-
-        showDocSettingForm.reset();
+        if (showDocSettingForm != null) {
+            showDocSettingForm.reset();
+        }
     }
 
+    @Override
+    public void disposeUIResources() {
+        if (showDocSettingForm != null) {
+            showDocSettingForm.dispose();
+            showDocSettingForm = null;
+        }
+    }
 
 }

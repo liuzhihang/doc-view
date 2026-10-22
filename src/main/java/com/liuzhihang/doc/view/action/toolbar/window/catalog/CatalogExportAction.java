@@ -7,12 +7,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.treeStructure.SimpleNode;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
-import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.ui.window.DocViewNode;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * @author liuzhihang
@@ -35,8 +32,7 @@ public class CatalogExportAction extends AnAction {
 
         if (selectedNode instanceof DocViewNode) {
             DocViewNode docViewNode = (DocViewNode) selectedNode;
-            List<DocView> docViews = docViewNode.docViewList();
-            ExportUtils.batchExportMarkdown(project, docViewNode.getName(), docViews);
+            ExportUtils.batchExportMarkdown(project, docViewNode.getName(), docViewNode::docViewList);
         }
 
     }

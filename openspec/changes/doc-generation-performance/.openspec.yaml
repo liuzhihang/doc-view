@@ -1,0 +1,3 @@
+schema: spec-driven
+created: 2026-10-18
+goal: 在固定工作负载下量化接口目录刷新、DocView/Markdown生成和取消响应；根据实测只修改确认的热点，保持生成内容不变。

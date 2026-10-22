@@ -1,0 +1,12 @@
+<idea-plugin>
+    <id>org.docview.mcp.java.poc</id>
+    <name>Doc View MCP Java POC</name>
+    <version>0.1.0</version>
+    <vendor>Doc View isolated feasibility probe</vendor>
+    <idea-version since-build="261" />
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.mcpServer</depends>
+    <extensions defaultExtensionNs="com.intellij">
+        <mcpServer.mcpToolset implementation="org.docview.mcp.poc.DocViewMcpTestToolset" />
+    </extensions>
+</idea-plugin>

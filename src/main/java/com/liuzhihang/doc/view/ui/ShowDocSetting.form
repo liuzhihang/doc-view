@@ -8,7 +8,7 @@
     <properties/>
     <border type="none"/>
     <children>
-      <grid id="4a1f0" binding="showDocProjectPanel" layout-manager="GridLayoutManager" row-count="3" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="4a1f0" binding="showDocProjectPanel" layout-manager="GridLayoutManager" row-count="7" column-count="5" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -19,28 +19,25 @@
         </properties>
         <border type="none"/>
         <children>
-          <component id="dc112" class="javax.swing.JLabel">
+          <component id="dc112" class="javax.swing.JLabel" binding="urlLabel">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="messages/DocViewBundle" key="showdoc.url"/>
             </properties>
           </component>
-          <component id="7d541" class="javax.swing.JLabel">
+          <component id="7d541" class="javax.swing.JLabel" binding="apiKeyLabel">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="messages/DocViewBundle" key="showdoc.api.key"/>
             </properties>
           </component>
-          <component id="2fe6f" class="javax.swing.JLabel">
+          <component id="2fe6f" class="javax.swing.JLabel" binding="apiTokenLabel">
             <constraints>
-              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <text resource-bundle="messages/DocViewBundle" key="showdoc.api.token"/>
             </properties>
           </component>
           <component id="7eff1" class="com.intellij.ui.components.JBTextField" binding="urlTextField">
@@ -49,15 +46,15 @@
             </constraints>
             <properties/>
           </component>
-          <component id="e5730" class="com.intellij.ui.components.JBTextField" binding="apiKeyTextField">
+          <component id="e5730" class="com.intellij.ui.components.JBPasswordField" binding="apiKeyTextField">
             <constraints>
               <grid row="1" column="1" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties/>
           </component>
-          <component id="2c4b3" class="com.intellij.ui.components.JBTextField" binding="apiTokenTextField">
+          <component id="2c4b3" class="com.intellij.ui.components.JBPasswordField" binding="apiTokenTextField">
             <constraints>
-              <grid row="2" column="1" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="3" column="1" row-span="1" col-span="3" vsize-policy="3" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <text value=""/>
@@ -69,6 +66,34 @@
             </constraints>
             <properties>
               <text value="/api/item/updateByApi"/>
+            </properties>
+          </component>
+          <component id="a82f1" class="javax.swing.JCheckBox" binding="clearApiKeyCheckBox">
+            <constraints>
+              <grid row="2" column="1" row-span="1" col-span="4" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+            </properties>
+          </component>
+          <component id="e8a72" class="javax.swing.JCheckBox" binding="clearApiTokenCheckBox">
+            <constraints>
+              <grid row="4" column="1" row-span="1" col-span="4" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+            </properties>
+          </component>
+          <component id="c8013" class="javax.swing.JLabel" binding="credentialStatusLabel">
+            <constraints>
+              <grid row="5" column="0" row-span="1" col-span="5" vsize-policy="0" hsize-policy="3" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+            </properties>
+          </component>
+          <component id="701ae" class="javax.swing.JPanel" binding="integrationHelpContainer">
+            <constraints>
+              <grid row="6" column="0" row-span="1" col-span="5" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
             </properties>
           </component>
         </children>

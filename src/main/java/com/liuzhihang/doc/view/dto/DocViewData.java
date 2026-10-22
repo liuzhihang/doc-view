@@ -94,8 +94,12 @@ public class DocViewData {
     private final String type;
 
     public DocViewData(DocView docView) {
+        this(docView.getPsiClass().getProject(), docView);
+    }
 
-        Settings settings = Settings.getInstance(docView.getPsiClass().getProject());
+    /** Builds template data for a project, including PSI-free preview samples. */
+    public DocViewData(Project project, DocView docView) {
+        Settings settings = Settings.getInstance(project);
 
         this.name = docView.getName();
         this.desc = docView.getDesc();
@@ -109,11 +113,11 @@ public class DocViewData {
         this.requestParamDataList = paramDataList(docView.getReqParamList());
         this.requestParam = paramMarkdown(requestParamDataList);
 
-        this.requestBodyDataList = buildBodyDataList(docView.getReqBody().getChildList());
+        this.requestBodyDataList = buildBodyDataList(project, docView.getReqBody().getChildList());
         this.requestBody = settings.getSeparateParam() ? separateParamMarkdown(requestBodyDataList) : paramMarkdown(requestBodyDataList);
         this.requestExample = requestExample(docView);
 
-        this.responseParamDataList = buildBodyDataList(docView.getRespBody().getChildList());
+        this.responseParamDataList = buildBodyDataList(project, docView.getRespBody().getChildList());
         this.responseParam = settings.getSeparateParam() ? separateParamMarkdown(responseParamDataList) : paramMarkdown(responseParamDataList);
         this.responseExample = respBodyExample(docView.getRespExample());
 
@@ -127,7 +131,7 @@ public class DocViewData {
 
     public static String markdownText(Project project, DocView docView) {
 
-        DocViewData docViewData = new DocViewData(docView);
+        DocViewData docViewData = new DocViewData(project, docView);
 
         if (docView.getType() == FrameworkEnum.DUBBO) {
             return VelocityUtils.convert(TemplateSettings.getInstance(project).getDubboTemplate(), docViewData);
@@ -327,7 +331,14 @@ public class DocViewData {
             return new ArrayList<>();
         }
 
-        return buildBodyDataList(bodyList, "", "");
+        return buildBodyDataList(null, bodyList, "", "");
+    }
+
+    private static List<DocViewParamData> buildBodyDataList(Project project, List<Body> bodyList) {
+        if (bodyList == null || bodyList.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return buildBodyDataList(project, bodyList, "", "");
     }
 
     /**
@@ -338,7 +349,8 @@ public class DocViewData {
      * @param prefixSymbol2
      */
     @NotNull
-    private static List<DocViewParamData> buildBodyDataList(@NotNull List<Body> bodyList, String prefixSymbol1, String prefixSymbol2) {
+    private static List<DocViewParamData> buildBodyDataList(Project project, @NotNull List<Body> bodyList,
+                                                            String prefixSymbol1, String prefixSymbol2) {
 
         List<DocViewParamData> dataList = new ArrayList<>();
 
@@ -368,10 +380,12 @@ public class DocViewData {
 
             if (body.getChildList() != null && !body.getChildList().isEmpty()) {
 
-                Settings settings = Settings.getInstance(body.getPsiElement().getProject());
+                Project settingsProject = project == null ? body.getPsiElement().getProject() : project;
+                Settings settings = Settings.getInstance(settingsProject);
 
                 data.setChildList(
-                        buildBodyDataList(body.getChildList(), settings.getPrefixSymbol1(), prefixSymbol2 + settings.getPrefixSymbol2()));
+                        buildBodyDataList(settingsProject, body.getChildList(), settings.getPrefixSymbol1(),
+                                prefixSymbol2 + settings.getPrefixSymbol2()));
             }
             dataList.add(data);
         }

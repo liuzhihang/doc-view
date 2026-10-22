@@ -3,14 +3,18 @@ package com.liuzhihang.doc.view.utils;
 import com.intellij.codeInsight.AnnotationUtil;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.CommonClassNames;
 import com.intellij.psi.PsiAnnotation;
+import com.intellij.psi.PsiAnnotationMemberValue;
+import com.intellij.psi.PsiArrayInitializerMemberValue;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiClassType;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiField;
 import com.intellij.psi.PsiMethod;
+import com.intellij.psi.PsiNameValuePair;
 import com.intellij.psi.PsiModifier;
 import com.intellij.psi.PsiModifierList;
 import com.intellij.psi.PsiParameter;
@@ -26,6 +30,7 @@ import com.intellij.psi.util.PsiUtil;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
 import com.liuzhihang.doc.view.constant.SpringConstant;
+import com.liuzhihang.doc.view.constant.SwaggerConstant;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.Header;
 import com.liuzhihang.doc.view.dto.Param;
@@ -49,6 +54,8 @@ import static com.liuzhihang.doc.view.constant.MethodConstant.PUT;
  * @date 2020/3/4 19:45
  */
 public class SpringPsiUtils extends ParamPsiUtils {
+
+    private static final String SPRING_DEFAULT_VALUE_SENTINEL = "\n\t\t\n\t\t\n\uE000\uE001\uE002";
 
     /**
      * 检查类或者接口是否是 Spring 接口
@@ -99,6 +106,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
         List<PsiClass> psiClasses = new LinkedList<>();
 
         for (PsiAnnotation psiAnnotation : psiAnnotations) {
+            ProgressManager.checkCanceled();
             PsiModifierList psiModifierList = (PsiModifierList) psiAnnotation.getParent();
             PsiElement psiElement = psiModifierList.getParent();
 
@@ -238,6 +246,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
 
         for (PsiParameter parameter : parameters) {
+            ProgressManager.checkCanceled();
 
             // 通用排除字段
             if (DocViewUtils.isExcludeParameter(parameter)) {
@@ -261,6 +270,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
 
         for (PsiParameter parameter : parameters) {
+            ProgressManager.checkCanceled();
 
             // 通用排除字段
             if (DocViewUtils.isExcludeParameter(parameter)) {
@@ -296,6 +306,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
 
         for (PsiParameter parameter : parameters) {
+            ProgressManager.checkCanceled();
 
             if (!AnnotationUtil.isAnnotated(parameter, SpringConstant.REQUEST_HEADER, 0)) {
                 continue;
@@ -309,8 +320,19 @@ public class SpringPsiUtils extends ParamPsiUtils {
             }
 
             Header header = new Header();
-            header.setRequired(true);
-            header.setName(parameter.getName());
+            header.setRequired(isParameterRequired(parameter));
+            header.setName(parameterName(parameter));
+
+            String description = parameterMetadata(parameter, "description");
+            if (description != null) {
+                header.setDesc(description);
+            }
+
+            String example = parameterMetadata(parameter, "example");
+            if (example != null) {
+                header.setValue(example);
+            }
+
             list.add(header);
         }
         return list;
@@ -346,6 +368,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
             PsiClassType psiClassType = (PsiClassType) type;
             Map<String, PsiType> genericsMap = CustomPsiUtils.getGenericsMap(psiClassType);
             for (PsiField field : psiClass.getAllFields()) {
+                ProgressManager.checkCanceled();
                 // 通用排除字段
                 if (DocViewUtils.isExcludeField(field)) {
                     continue;
@@ -400,6 +423,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
         StringBuilder paramKV = new StringBuilder();
 
         for (Param param : requestParam) {
+            ProgressManager.checkCanceled();
             paramKV.append("&").append(param.getName()).append("=").append(param.getExample());
         }
 
@@ -423,6 +447,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
         Set<String> paramNameSet = new HashSet<>();
         List<Param> list = new ArrayList<>();
         for (PsiParameter parameter : parameters) {
+            ProgressManager.checkCanceled();
 
             // 有 @RequestBody 注解
             if (AnnotationUtil.isAnnotated(parameter, SpringConstant.REQUEST_BODY, 0)) {
@@ -462,6 +487,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
                 // 参数是类, get 请求只有一层
                 PsiField[] psiFields = fieldClass.getAllFields();
                 for (PsiField field : psiFields) {
+                    ProgressManager.checkCanceled();
                     // 已经包含该字段
                     if (!paramNameSet.add(field.getName())) {
                         continue;
@@ -495,13 +521,23 @@ public class SpringPsiUtils extends ParamPsiUtils {
     private static Param buildPramFromParameter(PsiMethod psiMethod, PsiParameter parameter) {
 
         Param param = new Param();
-        param.setRequired(DocViewUtils.isRequired(parameter));
-        param.setName(parameter.getName());
+        param.setRequired(isParameterRequired(parameter));
+        param.setName(parameterName(parameter));
         param.setType(parameter.getType().getPresentableText());
+
+        String description = parameterMetadata(parameter, "description");
+        if (description != null) {
+            param.setDesc(description);
+        }
+
+        String example = parameterMetadata(parameter, "example");
+        if (example != null) {
+            param.setExample(example);
+        }
 
         // 备注需要从注释中获取
         PsiDocComment docComment = psiMethod.getDocComment();
-        if (docComment != null) {
+        if (docComment != null && param.getDesc() == null) {
             param.setDesc(CustomPsiCommentUtils.paramDocComment(docComment, parameter));
         }
 
@@ -514,6 +550,123 @@ public class SpringPsiUtils extends ParamPsiUtils {
         }
 
         return param;
+    }
+
+    private static String parameterName(PsiParameter parameter) {
+        PsiAnnotation springAnnotation = springBindingAnnotation(parameter);
+        if (springAnnotation != null) {
+            String springName = AnnotationUtil.getStringAttributeValue(springAnnotation, "name");
+            String springValue = AnnotationUtil.getStringAttributeValue(springAnnotation, "value");
+            boolean hasName = StringUtils.isNotBlank(springName);
+            boolean hasValue = StringUtils.isNotBlank(springValue);
+
+            if (hasName && hasValue && !springName.equals(springValue)) {
+                return parameter.getName();
+            }
+            if (hasName) {
+                return springName;
+            }
+            if (hasValue) {
+                return springValue;
+            }
+        }
+
+        String openApiName = parameterMetadata(parameter, "name");
+        return openApiName == null ? parameter.getName() : openApiName;
+    }
+
+    private static String parameterMetadata(PsiParameter parameter, String attributeName) {
+        PsiAnnotation openApiParameter = parameter.getAnnotation(SwaggerConstant.PARAMETER);
+        if (openApiParameter == null) {
+            return null;
+        }
+
+        if ("example".equals(attributeName) && hasCompoundParameterExample(openApiParameter)) {
+            return null;
+        }
+
+        String value = AnnotationUtil.getStringAttributeValue(openApiParameter, attributeName);
+        return StringUtils.isNotBlank(value) ? value : null;
+    }
+
+    private static boolean hasCompoundParameterExample(PsiAnnotation openApiParameter) {
+        return hasNonEmptyCompoundMember(openApiParameter, "examples")
+                || hasNonEmptyCompoundMember(openApiParameter, "content")
+                || hasNonEmptyCompoundMember(openApiParameter, "array");
+    }
+
+    private static boolean hasNonEmptyCompoundMember(PsiAnnotation annotation, String attributeName) {
+        for (PsiNameValuePair attribute : annotation.getParameterList().getAttributes()) {
+            ProgressManager.checkCanceled();
+            if (attributeName.equals(attribute.getAttributeName())) {
+                PsiAnnotationMemberValue value = attribute.getValue();
+                if (value instanceof PsiArrayInitializerMemberValue arrayValue) {
+                    return arrayValue.getInitializers().length > 0;
+                }
+                if (value instanceof PsiAnnotation nestedAnnotation) {
+                    return nestedAnnotation.getParameterList().getAttributes().length > 0;
+                }
+                return false;
+            }
+        }
+        return false;
+    }
+
+    private static PsiAnnotation springBindingAnnotation(PsiParameter parameter) {
+        for (String annotationName : List.of(SpringConstant.REQUEST_PARAM, SpringConstant.PATH_VARIABLE,
+                SpringConstant.REQUEST_HEADER)) {
+            ProgressManager.checkCanceled();
+            PsiAnnotation annotation = parameter.getAnnotation(annotationName);
+            if (annotation != null) {
+                return annotation;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isParameterRequired(PsiParameter parameter) {
+        Settings settings = Settings.getInstance(parameter.getProject());
+        if (AnnotationUtil.isAnnotated(parameter, settings.getRequiredFieldAnnotation(), 0)) {
+            return true;
+        }
+
+        PsiAnnotation springAnnotation = springBindingAnnotation(parameter);
+        if (springAnnotation != null) {
+            String annotationName = springAnnotation.getQualifiedName();
+            if ((SpringConstant.REQUEST_PARAM.equals(annotationName) || SpringConstant.REQUEST_HEADER.equals(annotationName))
+                    && hasCustomSpringDefaultValue(springAnnotation)) {
+                return false;
+            }
+
+            Boolean required = declaredBooleanValue(springAnnotation, "required");
+            return required == null || required;
+        }
+
+        PsiAnnotation openApiParameter = parameter.getAnnotation(SwaggerConstant.PARAMETER);
+        Boolean openApiRequired = openApiParameter == null ? null : declaredBooleanValue(openApiParameter, "required");
+        return openApiRequired == null ? DocViewUtils.isRequired(parameter) : openApiRequired;
+    }
+
+    private static boolean hasCustomSpringDefaultValue(PsiAnnotation annotation) {
+        String defaultValue = AnnotationUtil.getStringAttributeValue(annotation, "defaultValue");
+        return defaultValue != null && !SPRING_DEFAULT_VALUE_SENTINEL.equals(defaultValue);
+    }
+
+    private static Boolean declaredBooleanValue(PsiAnnotation annotation, String attributeName) {
+        for (PsiNameValuePair attribute : annotation.getParameterList().getAttributes()) {
+            ProgressManager.checkCanceled();
+            if (attributeName.equals(attribute.getAttributeName())) {
+                String value = attribute.getLiteralValue();
+                if ("true".equalsIgnoreCase(value)) {
+                    return true;
+                }
+                if ("false".equalsIgnoreCase(value)) {
+                    return false;
+                }
+                return null;
+            }
+        }
+        return null;
     }
 
 }

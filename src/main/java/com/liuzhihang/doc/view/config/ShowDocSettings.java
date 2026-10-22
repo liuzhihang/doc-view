@@ -21,10 +21,6 @@ public class ShowDocSettings implements PersistentStateComponent<ShowDocSettings
 
     private String url;
 
-    private String apiKey;
-
-    private String apiToken;
-
 
     public static ShowDocSettings getInstance(@NotNull Project project) {
         return project.getService(ShowDocSettings.class);

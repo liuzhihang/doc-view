@@ -1,46 +1,63 @@
-<meta http-equiv="Content-Type" content="text/html; charset=utf8">
-<h1>Generate Markdown documents based on the interface</h1>
-<br/>
-<a href="https://github.com/liuzhihang/doc-view">GitHub</a> |
-<a href="https://github.com/liuzhihang/doc-view/issues">Issues</a> |
-<a href="https://liuzhihang.com/tags/Doc-View/">Website</a> |
-<a href="https://github.com/liuzhihang/doc-view/blob/master/LICENSE">LICENSE</a>
-<br/>
-<br/>
+<h2>Doc View</h2>
+<p>Generate Markdown API documentation from Java source code in IntelliJ IDEA.</p>
+<p>
+    <a href="https://github.com/liuzhihang/doc-view">GitHub</a> ·
+    <a href="https://github.com/liuzhihang/doc-view/blob/master/docs/user-guide/index.md">User guide (Chinese)</a> ·
+    <a href="https://github.com/liuzhihang/doc-view/issues">Issues</a> ·
+    <a href="https://github.com/liuzhihang/doc-view/blob/master/CHANGELOG.md">Changelog</a>
+</p>
 
-
-<b>English introduction</b>
-<br/>
-<br/>
-
-The Markdown document is generated based on the interface and can be previewed, edited, and uploaded to YApi or ShowDoc.
-<br/>
-<br/>
-
+<h3>English</h3>
+<p>Read Spring Controller, Feign-style and Dubbo interfaces from source, comments and annotations.
+    Preview, copy or export documentation without starting your application or configuring an upload account.</p>
 <ul>
-    <li>Supports separate display of parameter classes</li>
+    <li>Browse APIs by module, class and method, then navigate to their Java source.</li>
+    <li>Edit Spring and Dubbo Markdown templates, insert documented variables and preview a fixed sample before saving.</li>
+    <li>Export individual or grouped Markdown documents, or generate a project API index with source links and checks for manually edited files.</li>
+    <li>Use Doc Editor to edit supported field descriptions and required flags, or copy entity JSON.</li>
+    <li>Upload on demand to YApi, ShowDoc or YuQue. Credentials are stored through IDEA PasswordSafe, separately for each project and platform.</li>
+    <li>Use English or Simplified Chinese UI, following the IDE language. Templates and generated documents are not translated automatically.</li>
 </ul>
-<br/>
+<p>Find settings under <b>Settings → Tools → Doc View</b>. The template editor, sample output and export options
+    have separate views. Question-mark icons provide contextual help and links to the online guide.</p>
+<p><b>Help → Doc View Welcome</b> opens the bundled HTML welcome page and update summary in an editor tab.
+    These pages use the IDE's JCEF support and work offline; the full user guide is maintained on GitHub and requires network access.</p>
+<p>Custom templates apply to local Markdown and ShowDoc / YuQue content. YApi uses its own structured upload format.</p>
+<p><b>Upgrading:</b> re-enter platform credentials in the new PasswordSafe-backed settings.
+    Old XML credentials are not imported or automatically removed. OpenAPI 3 field requirements use
+    <code>Schema.requiredMode</code> instead of the deprecated <code>Schema.required</code>.
+    See the <a href="https://github.com/liuzhihang/doc-view/blob/master/docs/user-guide/integrations.md#token-与本地保存">credential guide</a>
+    and <a href="https://github.com/liuzhihang/doc-view/blob/master/docs/user-guide/settings.md">settings guide</a> for details.</p>
 
-
-<b>中文介绍</b>
-<br/>
-<br/>
-
-基于接口生成 Markdown 文档, 支持预览、编辑以及上传到YApi、ShowDoc、语雀。
-<br/>
-<br/>
+<h3>中文</h3>
+<p>从 Java 源码、注释和注解生成 Spring Controller、Feign 风格接口与 Dubbo 的 Markdown API 文档。
+    无需启动应用或填写上传账号，即可查看、复制和导出。</p>
 <ul>
-    <li>支持参数类分开展示</li>
+    <li>按模块、类和方法浏览接口，支持搜索与源码跳转。</li>
+    <li>编辑 Spring、Dubbo 模板，查阅并插入变量，用固定样例检查输出后再保存。</li>
+    <li>单项或批量导出 Markdown，也可生成带源码链接的项目 API 索引，并检查手改文件冲突。</li>
+    <li>使用 Doc Editor 编辑支持的字段说明与必填信息，或复制实体 JSON。</li>
+    <li>按需上传到 YApi、ShowDoc、语雀；凭据由 IDEA PasswordSafe 按项目和平台分别保存。</li>
+    <li>主要界面支持英语和简体中文，跟随 IDE 语言；模板与生成文档不会自动翻译。</li>
 </ul>
-<br/>
+<p>设置入口为 <b>Settings → Tools → Doc View</b>，按常规行为、生成规则、模板与输出、平台集成分类。
+    模板编辑、预览结果和输出选项分别展示；问号图标提供就近说明和在线指南链接。</p>
+<p><b>Help → Doc View Welcome</b> 在编辑区打开随包 HTML 欢迎页与更新摘要，依赖 IDE 的 JCEF 支持并可离线查看。
+    完整使用指南在 GitHub 维护，阅读需要网络。</p>
+<p>自定义模板影响本地 Markdown 与 ShowDoc / 语雀正文；YApi 使用独立的结构化上传格式。</p>
+<p><b>升级提示：</b>请在新版设置中重新填写平台凭据，插件不迁移或自动清理旧 XML 密钥。
+    OpenAPI 3 字段必填使用 <code>Schema.requiredMode</code>，不再读取已弃用的 <code>Schema.required</code>。
+    具体操作见<a href="https://github.com/liuzhihang/doc-view/blob/master/docs/user-guide/integrations.md#token-与本地保存">凭据说明</a>
+    和<a href="https://github.com/liuzhihang/doc-view/blob/master/docs/user-guide/settings.md">设置说明</a>。</p>
 
-<b>Other</b>
-<br/>
-<br/>
-<ul>
-    <li>个人公众号: 『 程序员小航 』</li>
-    <br/>
-    <li>小伙伴们如果有遇到问题或者有使用建议，可以关注公众号并留言。</li>
-</ul>
-<br/>
+<h3>Compatibility / 兼容性</h3>
+<p>The current baseline is IntelliJ IDEA Ultimate 2026.1 (build 261), with Java, Markdown and JCEF support.
+    An unrestricted upper build does not mean every future IDE version has been verified.</p>
+<p>当前基线为 IntelliJ IDEA Ultimate 2026.1（build 261），需要 Java、Markdown 与 JCEF 支持。
+    未设置最高 build 不代表后续所有 IDE 版本均已验证。</p>
+
+<h3>Feedback / 反馈</h3>
+<p>Report reproducible problems and suggestions through
+    <a href="https://github.com/liuzhihang/doc-view/issues">GitHub Issues</a>.
+    For security reports, follow <a href="https://github.com/liuzhihang/doc-view/blob/master/SECURITY.md">SECURITY.md</a>.</p>
+<p>问题与建议请附插件版本、复现步骤及脱敏示例；也欢迎关注公众号「程序员小航」。</p>

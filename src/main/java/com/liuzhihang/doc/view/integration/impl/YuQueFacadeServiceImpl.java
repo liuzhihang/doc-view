@@ -27,17 +27,14 @@ public class YuQueFacadeServiceImpl implements YuQueFacadeService {
         Header header = new BasicHeader("X-Auth-Token", token);
 
 
-        String resp = null;
+        String resp;
         try {
             resp = HttpUtils.get(url + "/repos/" + namespace + "/docs/" + slug, null, List.of(header));
-        } catch (RuntimeException e) {
-            String message = e.getMessage();
-            if (message.contains("404") && message.contains("Not Found")) {
-                return null;
-            }
+        } catch (HttpUtils.HttpStatusException exception) {
+            if (exception.getStatusCode() == 404) return null;
+            throw exception;
         }
-
-        return gson.fromJson(resp, YuQueResponse.class);
+        return parseResponse(resp, false);
     }
 
     @Override
@@ -47,10 +44,7 @@ public class YuQueFacadeServiceImpl implements YuQueFacadeService {
 
         String resp = HttpUtils.post(url + "/repos/" + namespace + "/docs/", gson.toJson(yuQueCreate), List.of(header));
 
-        if (StringUtils.isBlank(resp)) {
-            throw new Exception("语雀接口返回为空");
-        }
-        return gson.fromJson(resp, YuQueResponse.class);
+        return parseResponse(resp, true);
     }
 
     @Override
@@ -60,9 +54,19 @@ public class YuQueFacadeServiceImpl implements YuQueFacadeService {
 
         String resp = HttpUtils.put(url + "/repos/" + namespace + "/docs/" + id, gson.toJson(yuQueUpdate), List.of(header));
 
-        if (StringUtils.isBlank(resp)) {
-            throw new Exception("语雀接口返回为空");
+        return parseResponse(resp, true);
+    }
+    private static YuQueResponse parseResponse(String body, boolean requireSlug) throws Exception {
+        try {
+            YuQueResponse response = gson.fromJson(body, YuQueResponse.class);
+            if (response != null && response.getData() != null
+                    && response.getData().getId() != null && response.getData().getId() > 0
+                    && (!requireSlug || StringUtils.isNotBlank(response.getData().getSlug()))) {
+                return response;
+            }
+        } catch (com.google.gson.JsonParseException | IllegalStateException exception) {
+            // Malformed JSON may contain credentials or document contents.
         }
-        return gson.fromJson(resp, YuQueResponse.class);
+        throw new Exception("语雀接口响应无效");
     }
 }

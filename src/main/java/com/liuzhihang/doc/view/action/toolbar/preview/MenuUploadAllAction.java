@@ -12,8 +12,10 @@ import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.openapi.ui.popup.PopupStep;
 import com.intellij.openapi.ui.popup.util.BaseListPopupStep;
 import com.liuzhihang.doc.view.action.toolbar.AbstractToolbarUploadAction;
+import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
 import com.liuzhihang.doc.view.dto.DocView;
+import com.liuzhihang.doc.view.enums.UploadPlatform;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 import com.liuzhihang.doc.view.ui.PreviewForm;
 import org.jetbrains.annotations.NotNull;
@@ -53,12 +55,12 @@ public class MenuUploadAllAction extends AbstractToolbarUploadAction {
         JBPopupFactory.getInstance()
                 .createListPopup(new BaseListPopupStep<>(null, DocViewUploadService.UPLOAD_OPTIONS) {
                     @Override
-                    public @NotNull String getTextFor(String value) {
-                        return "Upload to " + value;
+                    public @NotNull String getTextFor(UploadPlatform value) {
+                        return DocViewBundle.message("action.upload.platform", value.getDisplayName());
                     }
 
                     @Override
-                    public @Nullable PopupStep<?> onChosen(String selectedValue, boolean finalChoice) {
+                    public @Nullable PopupStep<?> onChosen(UploadPlatform selectedValue, boolean finalChoice) {
 
                         DocViewUploadService.getInstance(selectedValue).upload(project, docViewList);
 
@@ -73,7 +75,8 @@ public class MenuUploadAllAction extends AbstractToolbarUploadAction {
 
         DocViewUploadService service = ApplicationManager.getApplication().getService(uploadService);
 
-        ProgressManager.getInstance().run(new Task.Backgroundable(project, "Doc View upload", true) {
+        ProgressManager.getInstance().run(new Task.Backgroundable(project,
+                DocViewBundle.message("task.docview.upload"), true) {
             @Override
             public void run(@NotNull ProgressIndicator progressIndicator) {
 

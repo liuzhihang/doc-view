@@ -1,0 +1,1 @@
+SPRING|getGolden|/golden|GET

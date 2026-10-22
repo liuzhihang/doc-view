@@ -20,7 +20,7 @@ Doc View 运行在用户 IDE 进程内。性能 contract 的首要目标是避�
 ## 缓存
 
 - 缓存使用 project scope，key 至少考虑 schema role、type identity、PSI modification、相关 settings/template 版本。
-- 缓存值保存 DTO snapshot 或派生数据，不长期持有 PSI element。
+- 缓存值保存 DTO snapshot 或派生数据，不长期持有 PSI element。当前 DTO cache 观察源码 modification count、设置和模板组成的代际，代际变化时清空旧条目；过期 key 的迟到写入被拒绝。复制在缓存锁外完成，写回前再核对代际。
 - 源码、设置或模板变化后必须 miss/失效；clear cache action 必须覆盖用户可感知缓存。
 - project dispose 后不得保留条目或后台回调。
 
@@ -47,3 +47,7 @@ Doc View 运行在用户 IDE 进程内。性能 contract 的首要目标是避�
 - 导出/上传：批量进度、取消、失败和部分完成状态。
 
 行为或性能优化必须先记录基线场景和完成信号；未经测量不得声称“性能提升”。
+
+## 可复用的生成基线
+
+`GenerationPerformanceBaselineTest` 使用固定 Spring/Dubbo PSI fixture，分别记录7次采样的冷构建、热构建、Markdown渲染和目录扫描 p50/p95，并检查缓存条目/节点数与输出稳定性。源码、设置、模板失效和旧任务迟到写回属于正确性断言；耗时仅为本机 light fixture 观测。环境与 RED/GREEN 数据见[性能 change 验证](../openspec/changes/doc-generation-performance/verification.md)。未经原生 profiling 和固定环境对照，不把样本波动说成速度提升或 IDE 端到端延迟。

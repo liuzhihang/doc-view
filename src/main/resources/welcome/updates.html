@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Doc View Updates</title>
+  <style>@@CSS@@</style>
+</head>
+<body data-theme="@@THEME@@" style="font-size: @@FONT_SIZE@@px">
+  <main class="page updates-page">
+    <header class="topbar">
+      <a class="brand" href="docview://action/home" aria-label="Back to Doc View home">
+        <svg class="brand-mark" viewBox="0 0 16 16" role="img" aria-label="Doc View">
+          <path d="M1 4h2.2l2.1 5.2L7.5 4h2.3v8H8V6.5L6.1 11.5H4.9L3 6.5V12H1V4Z" fill="currentColor" />
+          <path d="M12.45 4.5h1.2v4.1l1.25-1.25.85.85-2.7 2.7-2.7-2.7.85-.85 1.25 1.25V4.5Z" fill="currentColor" />
+        </svg>
+        <span class="brand-name">Doc View</span>
+      </a>
+      <span class="version">Version @@VERSION@@</span>
+    </header>
+
+    <section class="hero update-hero" aria-labelledby="updates-title">
+      <a class="back-link" href="docview://action/home"><span aria-hidden="true">←</span> Back to home</a>
+      <p class="eyebrow">RELEASE NOTES</p>
+      <h1 id="updates-title">What's new</h1>
+      <p class="hero-copy">Currently installed version: @@VERSION@@</p>
+      <p class="preview-copy">Highlights included in version @@VERSION@@. <a href="https://github.com/liuzhihang/doc-view/blob/master/CHANGELOG.md">Read the full changelog</a></p>
+    </section>
+
+    <section class="section" aria-labelledby="highlights-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">HIGHLIGHTS</p>
+          <h2 id="highlights-title">Highlights in version @@VERSION@@</h2>
+        </div>
+      </div>
+      <ol class="update-list">
+        <li>
+          <span class="update-index">01</span>
+          <div><h3>API directory and export</h3><p>The directory groups APIs by class and method, with links to generated docs and source. Individual Markdown exports include module and signature indexes, relative source links, and checks for conflicts with manual edits.</p></div>
+        </li>
+        <li>
+          <span class="update-index">02</span>
+          <div><h3>Template editing and preview</h3><p>Template editing, rendered output, and export options appear in separate sections. Use the preview action to check the template with a fixed sample, and search for variables to insert them at the cursor. Reset reloads the last saved template, and closing settings releases preview resources.</p></div>
+        </li>
+        <li>
+          <span class="update-index">03</span>
+          <div><h3>Settings and platform integrations</h3><p>Settings are grouped into general behavior, generation rules, templates and output, and platform integrations, with links to the relevant guide. Preview and platform requests handle cancellation, failures, and disposal more reliably. IDEA PasswordSafe stores platform credentials.</p></div>
+        </li>
+      </ol>
+    </section>
+
+    <section class="section next-actions" aria-labelledby="next-title">
+      <div>
+        <p class="eyebrow">NEXT</p>
+        <h2 id="next-title">Continue with Doc View</h2>
+        <p>Read the user guide or adjust templates and platform settings for this project.</p>
+      </div>
+      <nav class="primary-actions" aria-label="Next steps">
+        <a class="button button-primary" href="https://github.com/liuzhihang/doc-view/tree/master/docs/user-guide">Open the user guide <span aria-hidden="true">↗</span></a>
+        <a class="button button-secondary" href="docview://action/templates">Template settings</a>
+        <a class="button button-secondary" href="docview://action/integrations">Platform settings</a>
+      </nav>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-links" aria-label="Project links">
+        <a href="https://github.com/liuzhihang/doc-view">Source code</a>
+        <a href="https://github.com/liuzhihang/doc-view/issues">Report an issue</a>
+        <a href="https://github.com/liuzhihang/doc-view/blob/master/CHANGELOG.md">Full changelog</a>
+      </div>
+      <p class="notification-state">Update notifications are @@UPDATE_STATE@@. <a href="docview://action/notifications">@@UPDATE_LABEL@@</a></p>
+    </footer>
+  </main>
+</body>
+</html>
