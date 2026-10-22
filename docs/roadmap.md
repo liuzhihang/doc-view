@@ -6,7 +6,7 @@ Doc View 的近期目标是稳定“Java 源码 → `DocView` → Markdown/导�
 
 ## 1.4.0 发布状态
 
-截至 2026-10-22，1.4.0 最终候选包已构建：49 suites、237 tests 全部通过，18 个 Gradle actionable tasks 执行，IU 261.22158.277 Plugin Verifier 为 `Compatible`。最终包已在官方 IU261 中进行部分原生 smoke：加载 1.4.0、JCEF sandbox enabled、升级通知显示 1.4.0、参数编辑器能打开并读取字段、欢迎页 HTML 能显示；Schema 写回及其他残余场景仍未全验。ZIP SHA-256、包清单、原生烟测和剩余验收边界见[1.4.0 发布评估](release-1.4.0.md)。提交、PR、合并、Release tag、GitHub Release 和 Marketplace 发布尚未执行；维护者已授权继续完成这些操作。
+截至 2026-10-22，1.4.0 最终候选包已构建：49 suites、237 tests 全部通过，18 个 Gradle actionable tasks 执行，IU 261.22158.277 Plugin Verifier 为 `Compatible`。最终包已在官方 IU261 中进行部分原生 smoke：加载 1.4.0、JCEF sandbox enabled、升级通知显示 1.4.0、参数编辑器能打开并读取字段、欢迎页 HTML 能显示；Schema 写回及其他残余场景仍未全验。ZIP SHA-256、包清单、原生烟测和剩余验收边界见[1.4.0 发布记录](release-1.4.0.md)。[PR #109](https://github.com/liuzhihang/doc-view/pull/109) 已合并，`v1.4.0` tag 与 GitHub Release 已公开。Marketplace 已接收更新 `1200396`，当前尚未审核/公开；具体读回状态见发布记录。
 
 真实平台上传按维护者要求排除；OS PasswordSafe 异常路径、Schema 原生写回完整性和 JCEF 特殊状态仍有验证缺口，不得写为全量验收通过或归档。MCP Java 探针是独立开发 PoC，不属于 1.4.0 生产交付或自动发布阻断项。
 
@@ -59,7 +59,7 @@ Clear Cache 的删除语义与名称/描述空字符串回退已分别纳入第 
 
 ## 本轮验证与续作入口
 
-下方 candidate 235 记录是此前阶段的历史证据，不是当前 1.4.0 最终包。当前包的测试数、ZIP/JAR hash、Verifier 结果、未完成的原生验收和发布状态以[1.4.0 发布评估](release-1.4.0.md)为准。此前 candidate 235 的 A/B 凭据隔离、项目重启读回和部分原生交互仍保留为各 change 的增量证据；不能将不同候选包结果合并为同一个包的全量矩阵。
+下方 candidate 235 记录是此前阶段的历史证据，不是当前 1.4.0 最终包。当前包的测试数、ZIP/JAR hash、Verifier 结果、未完成的原生验收和发布状态以[1.4.0 发布记录](release-1.4.0.md)为准。此前 candidate 235 的 A/B 凭据隔离、项目重启读回和部分原生交互仍保留为各 change 的增量证据；不能将不同候选包结果合并为同一个包的全量矩阵。
 
 此前 candidate 235 的 ZIP SHA-256 为 `2221a77261d1de30f09c202446cd4565080b1aeff733585a9c44587e496f448d`，生产 JAR SHA-256 为 `62b06ff49d5f18c89f104983bd7dce5e028282134a30fe23c6689bbd481a9f78`；该候选完整门禁为 18 个 Gradle tasks、49 suites / 235 tests，0 failures/errors/skips，IU261 Plugin Verifier 为 Compatible。该段仅作旧候选历史记录。
 

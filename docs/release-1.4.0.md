@@ -1,8 +1,8 @@
-# 1.4.0 发布评估（草稿）
+# 1.4.0 发布记录
 
 日期：2026-10-22
 
-状态：最终候选包已构建，并已在官方 IU 261.22158.277 中进行部分原生 smoke；全量验收仍有明确缺口。维护者已授权提交、创建 PR、合并、打 Release tag、创建 GitHub Release 和发布 Marketplace；截至本记录，这些 Git 操作与发布操作尚未执行。
+状态：1.4.0 已提交，经 [PR #109](https://github.com/liuzhihang/doc-view/pull/109) 合并到 master；[v1.4.0 tag / GitHub Release](https://github.com/liuzhihang/doc-view/releases/tag/v1.4.0) 已公开。Marketplace 已成功接收更新 `1200396`；2026-10-22 回读为 `approve=false`、`listed=false`，尚未审核上架，公开最新版本仍是 1.3.14。部分原生验收仍有下列明确缺口。
 
 本文记录发布候选的可追踪证据和未完成验收，不表示所有 OpenSpec change 已完成或归档。完整功能说明见 [`CHANGELOG.md`](../CHANGELOG.md) 的 1.4.0 条目；用户指南入口见 [`docs/user-guide/index.md`](user-guide/index.md)。
 
@@ -24,7 +24,7 @@
 
 最终包已在官方 IU 261.22158.277 和专用 `/Users/liuzhihang/workspace/doc-demo` 中启动。最终 smoke 记录位于 `/tmp/doc-view-release-20261022/`：IDE 日志确认加载 1.4.0 且 JCEF sandbox enabled；升级通知显示 1.4.0；参数编辑器真实打开并显示 `UserReqVo` 的 4 个字段；Help → Doc View Welcome 显示随包 HTML、1.4.0 版本信息和英文宽排版（截图 `140-welcome.png`）。参数编辑器字段写回没有完成，因此这不是 Schema 原生写回通过。此前 candidate235 中实际打开 Clear Cache 目录菜单后 popup 关闭，树中 5 个类节点仍在；这只记录该旧候选的部分动作和结果，不能替代最终包完整菜单任务验收。旧候选的结果不能自动视作最终 ZIP 的全量原生验收。
 
-截至本草稿，以下是明确尚未完成的验收边界。它们表示“缺少完整验证证据”，不表示已观察到运行时缺陷：
+截至本记录，以下是明确尚未完成的验收边界。它们表示“缺少完整验证证据”，不表示已观察到运行时缺陷：
 
 | 范围 | 尚缺证据 | 记录 |
 | --- | --- | --- |
@@ -53,3 +53,12 @@
 5. 发布后核对 GitHub tag、Release、Marketplace 版本与包 hash，并按清单完成安装版核心 smoke test。
 
 升级时用户需在新版设置中重新填写平台凭据；旧 XML 凭据不会导入或自动删除。回退可安装此前版本（当前前一版本为 1.3.14），但新版模板/设置和凭据状态不承诺由旧版兼容接管；用户需按旧版功能重新配置。
+
+## 发布后读回
+
+- 实现提交：`cc03fc17cc379604b1ee91171bae8701f001fec3`；PR #109 合并提交：`caf20e9371e3d4da59b947b8241d68ee62718765`。远端 `v1.4.0` 注释 tag 指向该合并提交；合并树与已验证源码一致。
+- GitHub Release 已公开（非 draft / prerelease）。下载文件名为 `Doc.View-1.4.0.zip`，537372 bytes；GitHub 返回的 SHA-256 与上方最终验证包一致。`SHA256SUMS` 使用实际下载文件名。
+- Marketplace 的 `publishPlugin` 执行成功；发布前再次核对固定安装包 SHA。认证后的版本元数据读回 `version=1.4.0`、更新 ID `1200396`、默认渠道、未审核/未公开。公开上架时间由 JetBrains 审核决定，此处不视为已上架。
+- master 分支六份使用指南（index、settings、templates、integrations、troubleshooting、welcome）已公开，GitHub API 返回的 blob SHA 与本地 Git 一致。此前待推送导致的 404 已解决。
+- 最终包已在独立 IU261 profile 安装启动并完成上述 smoke。测试 IDEA 已正常退出并卸载临时挂载，普通 `doc-view – ai-context-assessment.md [doc-view]` 窗口已恢复；doc-demo 基线内35份文件及 HEAD 保持不变。
+- 未完成的 OpenSpec 原生任务保留；没有把发布操作视作验收完成，也未将这些 change 归档。未纳入本次范围的 `.agents/` 本地文件保持原样。
