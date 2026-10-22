@@ -58,7 +58,7 @@
 
 - 实现提交：`cc03fc17cc379604b1ee91171bae8701f001fec3`；PR #109 合并提交：`caf20e9371e3d4da59b947b8241d68ee62718765`。远端 `v1.4.0` 注释 tag 指向该合并提交；合并树与已验证源码一致。
 - GitHub Release 已公开（非 draft / prerelease）。下载文件名为 `Doc.View-1.4.0.zip`，537372 bytes；GitHub 返回的 SHA-256 与上方最终验证包一致。`SHA256SUMS` 使用实际下载文件名。
-- Marketplace 的 `publishPlugin` 执行成功；发布前再次核对固定安装包 SHA。认证后的版本元数据读回 `version=1.4.0`、更新 ID `1200396`、默认渠道、未审核/未公开。公开上架时间由 JetBrains 审核决定，此处不视为已上架。
+- Marketplace 的 `publishPlugin` 执行成功；发布前再次核对固定安装包 SHA。认证后的版本元数据读回 `version=1.4.0`、更新 ID `1200396`、默认渠道、未审核/未公开。公开上架时间由 JetBrains 审核决定，此处不视为已上架。 下载端已可读取该更新的安装包：外层 ZIP 为542968 bytes、SHA-256 `d69acf96099e23e27c253976c8178bae5d24297729d7cf742d64b0caf4ee0bfd`，与上传 ZIP 字节不同；逐条解压比较，文件清单和所有条目内容完全一致，没有新增、删除或变化的 JAR。不能把 Marketplace 下载 ZIP 的外层哈希写成 GitHub 产物哈希。
 - master 分支六份使用指南（index、settings、templates、integrations、troubleshooting、welcome）已公开，GitHub API 返回的 blob SHA 与本地 Git 一致。此前待推送导致的 404 已解决。
 - 最终包已在独立 IU261 profile 安装启动并完成上述 smoke。测试 IDEA 已正常退出并卸载临时挂载，普通 `doc-view – ai-context-assessment.md [doc-view]` 窗口已恢复；doc-demo 基线内35份文件及 HEAD 保持不变。
 - 未完成的 OpenSpec 原生任务保留；没有把发布操作视作验收完成，也未将这些 change 归档。未纳入本次范围的 `.agents/` 本地文件保持原样。
