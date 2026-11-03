@@ -12,6 +12,7 @@ import com.liuzhihang.doc.view.enums.FrameworkEnum;
 import com.liuzhihang.doc.view.service.DtoSchemaCacheService;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
+import com.liuzhihang.doc.view.utils.CustomPsiCommentUtils;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +66,8 @@ public class SpringDocViewServiceImpl implements DocViewService {
         docView.setDocTitle(DocViewUtils.getTitle(psiClass));
         docView.setName(DocViewUtils.getName(psiMethod));
         docView.setDesc(DocViewUtils.getMethodDesc(psiMethod));
+        docView.setSince(CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment(), "since"));
+        docView.setVersion(CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment(), "version"));
         docView.setPath(SpringPsiUtils.path(psiClass, psiMethod));
         docView.setMethod(SpringPsiUtils.method(psiMethod));
         docView.setDomain(Collections.emptyList());

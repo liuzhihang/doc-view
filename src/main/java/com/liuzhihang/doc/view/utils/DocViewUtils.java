@@ -497,7 +497,8 @@ public class DocViewUtils {
                 }
             }
 
-            PsiComment comment = PsiTreeUtil.findChildOfType(psiField, PsiComment.class);
+            PsiField documentationField = DependencySourceComments.documentationField(psiField);
+            PsiComment comment = PsiTreeUtil.findChildOfType(documentationField, PsiComment.class);
 
             if (comment != null) {
                 // param.setExample();

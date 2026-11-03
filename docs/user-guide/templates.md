@@ -50,7 +50,15 @@
 
     ${DocView.desc}
 
-    **请求路径:**
+    #if($DocView.since != "")**生效时间:**
+
+    ${DocView.since}
+
+    #end#if($DocView.version != "")**接口版本:**
+
+    ${DocView.version}
+
+    #end**请求路径:**
 
     ${DocView.path}
 
@@ -94,7 +102,15 @@
 
     ${DocView.desc}
 
-    **请求路径:**
+    #if($DocView.since != "")**生效时间:**
+
+    ${DocView.since}
+
+    #end#if($DocView.version != "")**接口版本:**
+
+    ${DocView.version}
+
+    #end**请求路径:**
 
     ${DocView.path}
 
@@ -118,14 +134,16 @@
 
     ${DocView.responseExample}
 
-## 十个内置文本变量
+## 十二个内置文本变量
 
-模板上下文根对象名是 `DocView`。以下字段均为 `String`：前四个直接复制接口解析结果；后六个由插件预先生成 Markdown 或示例代码。
+模板上下文根对象名是 `DocView`。以下字段均为 `String`：前六个提供接口元数据；后六个由插件预先生成 Markdown 或示例代码。
 
 ### 接口元数据
 
 - `${DocView.name}`：接口名称；直接使用解析结果，不保证未提供时为空串。
 - `${DocView.desc}`：接口描述；直接使用解析结果，不保证未提供时为空串。
+- `${DocView.since}`：接口方法 Javadoc 的 `@since` 内容，可以是生效时间或版本；未声明时为空串。
+- `${DocView.version}`：接口方法 Javadoc 的 `@version` 内容；未声明时为空串。
 - `${DocView.path}`：接口路径文本；Dubbo 下的含义取决于解析结果，不一定是 HTTP URL。
 - `${DocView.method}`：接口方法文本；直接使用解析结果，不保证未提供时为空串。
 
@@ -139,6 +157,8 @@
 - `${DocView.responseExample}`：带 JSON 代码围栏的返回示例；源示例为空或全为空白时输出空串。不要重复套代码围栏。
 
 “空串”表示 DTO 明确生成空字符串；`name`、`desc`、`path`、`method` 是直接拷贝的源字段，不能仅凭变量清单假定缺失值会被转换为空串。若希望某个可选段落完全不出现，可在模板里用 `#if` 条件包住标题和变量，并在虚构输入上先验证。
+
+方法标签只作用于该接口，不自动继承类级标签；实体字段使用各自的标签。内置模板仅在元数据非空时显示对应段落。已有自定义模板不会被替换，可自行插入 `${DocView.since}`、`${DocView.version}` 或使用上面的条件段落；需要使用新版内置模板时，先备份自定义内容再选择“恢复默认模板”。
 
 变量目录还提供 `${DocView.type}`，值为 `SPRING` 或 `DUBBO`，表示框架分类，不是 HTTP method。结构化列表需要用 `#foreach` 等指令遍历；直接插入列表表达式不会生成自定义表格。
 
@@ -155,7 +175,7 @@
 
 - `name` (`String`)：参数名；`type` (`String`)：参数类型。
 - `required` (`Boolean`)：是否必填；`example` (`String`)：示例值；`desc` (`String`)：描述。
-- `since` / `version` (`String`)：起始版本和版本。
+- `since` / `version` (`String`)：实体字段自身 Javadoc 的生效时间或起始版本、版本；普通标量参数沿用方法标签。
 - `prefixSymbol1` / `prefixSymbol2` (`String`)：Body / 返回字段的层级前缀。
 - `childList` (`List<DocViewParamData>`)：下一层字段。
 

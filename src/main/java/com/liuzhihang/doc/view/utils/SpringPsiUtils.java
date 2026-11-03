@@ -6,6 +6,7 @@ import com.intellij.openapi.module.Module;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.util.Computable;
 import com.intellij.psi.CommonClassNames;
+import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiArrayInitializerMemberValue;
@@ -22,7 +23,6 @@ import com.intellij.psi.PsiPrimitiveType;
 import com.intellij.psi.PsiType;
 import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex;
 import com.intellij.psi.javadoc.PsiDocComment;
-import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTypesUtil;
@@ -219,8 +219,10 @@ public class SpringPsiUtils extends ParamPsiUtils {
         if (annotation == null) {
             return "";
         }
-        // 获取注解中 value 字段对应的值
-        String path = AnnotationUtil.getStringAttributeValue(annotation, "value");
+        String path = firstDeclaredPath(annotation, "value");
+        if (path == null) {
+            path = firstDeclaredPath(annotation, "path");
+        }
         if (path != null) {
             if (!path.startsWith("/")) {
                 path = "/" + path;
@@ -233,6 +235,20 @@ public class SpringPsiUtils extends ParamPsiUtils {
             return path;
         }
         return "";
+    }
+
+    private static String firstDeclaredPath(PsiAnnotation annotation, String attribute) {
+        PsiAnnotationMemberValue value = annotation.findDeclaredAttributeValue(attribute);
+        if (value instanceof PsiArrayInitializerMemberValue array) {
+            PsiAnnotationMemberValue[] values = array.getInitializers();
+            value = values.length == 0 ? null : values[0];
+        }
+        if (value == null) {
+            return null;
+        }
+        Object evaluated = JavaPsiFacade.getInstance(annotation.getProject())
+                .getConstantEvaluationHelper().computeConstantExpression(value);
+        return evaluated instanceof String text ? text : null;
     }
 
     /**
@@ -513,6 +529,9 @@ public class SpringPsiUtils extends ParamPsiUtils {
         param.setName(field.getName());
         param.setDesc(DocViewUtils.fieldDesc(field));
         param.setType(field.getType().getPresentableText());
+        PsiDocComment comment = DependencySourceComments.documentationField(field).getDocComment();
+        param.setSince(CustomPsiCommentUtils.tagDocComment(comment, "since"));
+        param.setVersion(CustomPsiCommentUtils.tagDocComment(comment, "version"));
 
         return param;
     }
@@ -541,13 +560,8 @@ public class SpringPsiUtils extends ParamPsiUtils {
             param.setDesc(CustomPsiCommentUtils.paramDocComment(docComment, parameter));
         }
 
-        if (psiMethod.getDocComment() != null) {
-            Optional<PsiDocTag> sinceTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("since")).findFirst();
-            Optional<PsiDocTag> versionTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("version")).findFirst();
-
-            sinceTag.ifPresent(op -> param.setSince(Arrays.stream(op.getDataElements()).map(PsiElement::getText).map(String::trim).collect(Collectors.joining(""))));
-            versionTag.ifPresent(op -> param.setVersion(Arrays.stream(op.getDataElements()).map(PsiElement::getText).map(String::trim).collect(Collectors.joining(""))));
-        }
+        param.setSince(CustomPsiCommentUtils.tagDocComment(docComment, "since"));
+        param.setVersion(CustomPsiCommentUtils.tagDocComment(docComment, "version"));
 
         return param;
     }

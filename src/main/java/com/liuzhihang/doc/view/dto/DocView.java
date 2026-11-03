@@ -58,6 +58,12 @@ public class DocView {
      */
     private String desc;
 
+    /** 方法 Javadoc 声明的生效时间。 */
+    private String since;
+
+    /** 方法 Javadoc 声明的接口版本。 */
+    private String version;
+
     /**
      * 环境地址
      */

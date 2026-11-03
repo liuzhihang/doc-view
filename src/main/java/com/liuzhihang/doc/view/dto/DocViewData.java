@@ -36,6 +36,10 @@ public class DocViewData {
      */
     private final String desc;
 
+    private final String since;
+
+    private final String version;
+
     /**
      * 环境地址
      */
@@ -103,6 +107,8 @@ public class DocViewData {
 
         this.name = docView.getName();
         this.desc = docView.getDesc();
+        this.since = StringUtils.defaultString(docView.getSince());
+        this.version = StringUtils.defaultString(docView.getVersion());
         this.path = docView.getPath();
         this.method = docView.getMethod();
         this.type = docView.getType().toString();
@@ -114,11 +120,11 @@ public class DocViewData {
         this.requestParam = paramMarkdown(requestParamDataList);
 
         this.requestBodyDataList = buildBodyDataList(project, docView.getReqBody().getChildList());
-        this.requestBody = settings.getSeparateParam() ? separateParamMarkdown(requestBodyDataList) : paramMarkdown(requestBodyDataList);
+        this.requestBody = bodyMarkdown(requestBodyDataList, settings.getSeparateParam());
         this.requestExample = requestExample(docView);
 
         this.responseParamDataList = buildBodyDataList(project, docView.getRespBody().getChildList());
-        this.responseParam = settings.getSeparateParam() ? separateParamMarkdown(responseParamDataList) : paramMarkdown(responseParamDataList);
+        this.responseParam = bodyMarkdown(responseParamDataList, settings.getSeparateParam());
         this.responseExample = respBodyExample(docView.getRespExample());
 
     }
@@ -139,6 +145,14 @@ public class DocViewData {
             // 按照 Spring 模版
             return VelocityUtils.convert(TemplateSettings.getInstance(project).getSpringTemplate(), docViewData);
         }
+    }
+
+    /**
+     * Renders the current field values without changing the editor/custom-template tree.
+     */
+    public static String bodyMarkdown(List<DocViewParamData> dataList, boolean separate) {
+        List<DocViewParamData> tableData = BodyTableData.project(dataList);
+        return separate ? separateParamMarkdown(tableData) : paramMarkdown(tableData);
     }
 
     /**
@@ -196,28 +210,6 @@ public class DocViewData {
 
         StringBuilder builder = new StringBuilder();
         for (DocViewParamData data : dataList) {
-            List<DocViewParamData> childList = data.getChildList();
-
-            if (childList != null && !childList.isEmpty()) {
-                if (childList.size() == 1) {
-                    DocViewParamData docViewParamData = childList.get(0);
-                    if (docViewParamData.isCollection()) {
-                        builder.append("\n- ").append(docViewParamData.getType()).append(" ").append(docViewParamData.getName()).append("\n\n");
-                        builder.append(separateParamMarkdown(docViewParamData.getChildList()));
-                        continue;
-                    }
-                }
-                if (childList.size() == 2) {
-                    DocViewParamData docViewParamData = childList.get(1);
-                    if (docViewParamData.isMap()) {
-                        builder.append("\n- ").append(docViewParamData.getType()).append(" ").append(docViewParamData.getName()).append("\n\n");
-                        builder.append(separateParamMarkdown(docViewParamData.getChildList()));
-                        continue;
-                    }
-                }
-            }
-
-
             builder.append("\n- ").append(data.getType()).append(" ").append(data.getName()).append("\n\n");
             builder.append(separateParamMarkdown(data.getChildList()));
         }
@@ -307,12 +299,6 @@ public class DocViewData {
 
             data.setVersion(param.getVersion());
             data.setSince(param.getSince());
-            if (StringUtils.isNotBlank(data.getDesc())) {
-                if (data.getDesc().contains("@since") || data.getDesc().contains("@version")) {
-                    data.setSince("");
-                    data.setDesc("");
-                }
-            }
 
             return data;
         }).collect(Collectors.toList());
@@ -366,12 +352,6 @@ public class DocViewData {
 
             data.setVersion(body.getVersion());
             data.setSince(body.getSince());
-            if (StringUtils.isNotBlank(data.getDesc())) {
-                if (data.getDesc().contains("@since") || data.getDesc().contains("@version")) {
-                    data.setSince("");
-                    data.setDesc("");
-                }
-            }
 
             data.setPrefixSymbol1(prefixSymbol1);
             data.setPrefixSymbol2(prefixSymbol2);
