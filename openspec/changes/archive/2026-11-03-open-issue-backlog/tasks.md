@@ -18,7 +18,7 @@
 
 ## 5. 整体验证与证据
 - [x] 5.1 运行 `./gradlew --offline test --rerun-tasks --no-build-cache`、`buildPlugin verifyPluginProjectConfiguration verifyPlugin`，检查真实测试计数和兼容性报告。
-- [x] 5.2 已尝试 `runIde` 和相同 build 原生启动器；工具绑定失败与 macOS spawn163 阻碍已记录，原生交互仍未验证，不冒称通过。
+- [x] 5.2 记录首次 `runIde` 绑定失败与 wrapper spawn163；续验以完整官方 IU-261.22158.277 原生应用完成普通/分表复制、Required 与活动单元格草稿、空态禁用、提示/弹窗关闭、系统粘贴和无源码写回验证，并用 IU262 补充普通复制烟测。
 - [x] 5.3 更新 CHANGELOG、逐项结论及 verification.md；执行 `openspec validate open-issue-backlog --strict`、`git diff --check`，核对代码范围和未交付状态。
 
 ## Workflow follow-up
