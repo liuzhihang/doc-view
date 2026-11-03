@@ -11,6 +11,7 @@ import com.liuzhihang.doc.view.enums.ContentTypeEnum;
 import com.liuzhihang.doc.view.enums.FrameworkEnum;
 import com.liuzhihang.doc.view.service.DtoSchemaCacheService;
 import com.liuzhihang.doc.view.service.DocViewService;
+import com.liuzhihang.doc.view.utils.CustomPsiCommentUtils;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 import com.liuzhihang.doc.view.utils.DubboPsiUtils;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
@@ -84,6 +85,8 @@ public class DubboDocViewServiceImpl implements DocViewService {
         docView.setDocTitle(DocViewUtils.getTitle(psiClass));
         docView.setName(DocViewUtils.getName(psiMethod));
         docView.setDesc(DocViewUtils.getMethodDesc(psiMethod));
+        docView.setSince(CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment(), "since"));
+        docView.setVersion(CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment(), "version"));
         docView.setPath(psiClass.getName() + "#" + psiMethod.getName());
         docView.setMethod("Dubbo");
         // docView.setDomain();

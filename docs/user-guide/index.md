@@ -69,7 +69,7 @@ HTML 预览依赖 IDE 的 Markdown 支持；如果当前环境无法显示 HTML�
 - **Feign 接口 — Spring 模板**：接口带可解析的 `@FeignClient`，方法带插件支持的 Spring 映射注解。
 - **Dubbo 接口 — Dubbo 模板**：接口、实现类注解或 Dubbo XML 关联能被识别；从接口声明或接口方法执行。
 - **普通 Java 接口 — Dubbo 模板**：先在当前项目设置中开启“普通接口”，然后从支持的抽象接口方法进入。
-- **普通实体类 — 不生成 API 文档**：用 **Doc Editor** 编辑字段说明或复制 JSON。
+- **普通实体类 — 不生成 API 文档**：用 **Doc Editor** 编辑字段说明、复制 JSON 或复制 Markdown 字段表。
 
 Feign 的最小入口示例（要求项目已有 OpenFeign 与 Spring Web 依赖）：
 
@@ -122,6 +122,12 @@ public class UserServiceImpl implements UserService {
 ```
 
 在 **`UserService` 接口**的 `getUser` 上执行 Doc View，应使用 Dubbo 模板。不要只在实现类方法上寻找入口。示例不要求启动注册中心，也不是侧栏自动发现全部 Dubbo 声明方式的验收；若侧栏没出现节点，先按[故障排查](troubleshooting.md)检查识别条件。
+
+## 独立实体复制为 Markdown
+
+在普通 Java 实体类中右键打开 **Doc Editor**，等待字段加载完成，可调整字段描述和必填值，然后点击底部的 **Copy as Markdown / 复制为 Markdown**。复制内容包含当前正在编辑的单元格、嵌套字段与已有版本信息；复制完成后关闭编辑弹窗，源文件保持不变。要将修改写回源码，使用 **Confirm / 确认**。
+
+复制结果使用字段表格格式。设置中的“独立实体”开启时，嵌套对象拆为后续表格；关闭时按缩进展示在同一张表格中。此操作不使用 Spring 或 Dubbo 的整篇 API 模板。字段尚未加载或实体没有可复制字段时，按钮不可用；关闭弹窗或取消后台任务后，未完成的复制不会覆盖剪贴板。
 
 ## 预览、编辑器文件、导出有什么区别
 

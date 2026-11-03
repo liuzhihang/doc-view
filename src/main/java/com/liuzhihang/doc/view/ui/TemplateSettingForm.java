@@ -62,7 +62,8 @@ import java.util.Objects;
 public final class TemplateSettingForm extends DialogWrapper {
 
     private static final List<TemplateVariable> TEMPLATE_VARIABLES = List.of(
-            variable("name"), variable("desc"), variable("path"), variable("method"),
+            variable("name"), variable("desc"), variable("since"), variable("version"),
+            variable("path"), variable("method"),
             variable("requestHeader"), variable("requestParam"), variable("requestBody"),
             variable("requestExample"), variable("responseParam"), variable("responseExample"),
             variable("type"), variable("requestHeaderDataList"), variable("requestParamDataList"),

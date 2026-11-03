@@ -9,7 +9,6 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.java.stubs.index.JavaAnnotationIndex;
-import com.intellij.psi.javadoc.PsiDocTag;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.searches.ClassInheritorsSearch;
 import com.intellij.psi.util.InheritanceUtil;
@@ -123,15 +122,8 @@ public class DubboPsiUtils {
 
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
 
-        // @param 注释
-        List<PsiDocTag> paramTags = new ArrayList<>();
-        Optional<PsiDocTag> sinceTag = Optional.empty();
-        Optional<PsiDocTag> versionTag = Optional.empty();
-        if (psiMethod.getDocComment() != null) {
-            paramTags = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("param")).collect(Collectors.toList());
-             sinceTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("since")).findFirst();
-             versionTag = Arrays.stream(psiMethod.getDocComment().getTags()).filter(a -> a.getName().equals("version")).findFirst();
-        }
+        String since = CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment(), "since");
+        String version = CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment(), "version");
 
         for (PsiParameter parameter : parameters) {
             ProgressManager.checkCanceled();
@@ -145,13 +137,10 @@ public class DubboPsiUtils {
             body.setType(type.getPresentableText());
             body.setParent(root);
             // 获取@param 上的注解描述
-            String desc = paramTags.stream().filter(tag -> tag.getDataElements()[0].getText().equals(parameter.getName()))
-                    .map(a -> Arrays.stream(a.getDataElements()).skip(1).map(PsiElement::getText).collect(Collectors.joining(" ")))
-                    .collect(Collectors.joining());
-            body.setDesc(desc);
+            body.setDesc(CustomPsiCommentUtils.paramDocComment(psiMethod.getDocComment(), parameter));
 
-            sinceTag.ifPresent(op -> body.setSince(Arrays.stream(op.getDataElements()).map(PsiElement::getText).map(String::trim).collect(Collectors.joining(""))));
-            versionTag.ifPresent(op -> body.setVersion(Arrays.stream(op.getDataElements()).map(PsiElement::getText).map(String::trim).collect(Collectors.joining(""))));
+            body.setSince(since);
+            body.setVersion(version);
 
             root.getChildList().add(body);
 

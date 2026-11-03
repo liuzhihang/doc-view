@@ -52,6 +52,9 @@ public class ParamPsiUtils {
         body.setPsiElement(field);
         body.setType(type.getPresentableText());
         body.setDesc(DocViewUtils.fieldDesc(field));
+        PsiField documentationField = DependencySourceComments.documentationField(field);
+        body.setSince(CustomPsiCommentUtils.tagDocComment(documentationField.getDocComment(), "since"));
+        body.setVersion(CustomPsiCommentUtils.tagDocComment(documentationField.getDocComment(), "version"));
         body.setParent(parent);
 
         parent.getChildList().add(body);
@@ -124,7 +127,7 @@ public class ParamPsiUtils {
                 return;
             }
 
-            buildFieldGenericsBody("key", matKeyClass, body);
+            buildFieldGenericsBody("key", matKeyClass, body).setMap(true);
 
             // Value
             PsiType matValueType = PsiUtil.substituteTypeParameter(type, CommonClassNames.JAVA_UTIL_MAP, 1, false);
