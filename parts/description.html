@@ -14,7 +14,8 @@
     <li>Browse APIs by module, class and method, then navigate to their Java source.</li>
     <li>Edit Spring and Dubbo Markdown templates, insert documented variables and preview a fixed sample before saving.</li>
     <li>Export individual or grouped Markdown documents, or generate a project API index with source links and checks for manually edited files.</li>
-    <li>Use Doc Editor to edit supported field descriptions and required flags, or copy entity JSON.</li>
+    <li>Use Doc Editor to edit supported field descriptions and required flags, copy entity JSON, or copy current edits as nested or separate Markdown tables without writing them to source.</li>
+    <li>Include method and entity-field <code>@since</code> / <code>@version</code> tags. Read dependency-field comments when matching sources are attached in IDEA; source files are not downloaded automatically.</li>
     <li>Upload on demand to YApi, ShowDoc or YuQue. Credentials are stored through IDEA PasswordSafe, separately for each project and platform.</li>
     <li>Use English or Simplified Chinese UI, following the IDE language. Templates and generated documents are not translated automatically.</li>
 </ul>
@@ -23,7 +24,7 @@
 <p><b>Help → Doc View Welcome</b> opens the bundled HTML welcome page and update summary in an editor tab.
     These pages use the IDE's JCEF support and work offline; the full user guide is maintained on GitHub and requires network access.</p>
 <p>Custom templates apply to local Markdown and ShowDoc / YuQue content. YApi uses its own structured upload format.</p>
-<p><b>Upgrading:</b> re-enter platform credentials in the new PasswordSafe-backed settings.
+<p><b>Upgrading from before 1.4.0:</b> re-enter platform credentials in the PasswordSafe-backed settings.
     Old XML credentials are not imported or automatically removed. OpenAPI 3 field requirements use
     <code>Schema.requiredMode</code> instead of the deprecated <code>Schema.required</code>.
     See the <a href="https://github.com/liuzhihang/doc-view/blob/master/docs/user-guide/integrations.md#token-与本地保存">credential guide</a>
@@ -36,7 +37,8 @@
     <li>按模块、类和方法浏览接口，支持搜索与源码跳转。</li>
     <li>编辑 Spring、Dubbo 模板，查阅并插入变量，用固定样例检查输出后再保存。</li>
     <li>单项或批量导出 Markdown，也可生成带源码链接的项目 API 索引，并检查手改文件冲突。</li>
-    <li>使用 Doc Editor 编辑支持的字段说明与必填信息，或复制实体 JSON。</li>
+    <li>使用 Doc Editor 编辑支持的字段说明与必填信息，复制实体 JSON，或把当前编辑值复制为普通/分表 Markdown；复制不写回源码。</li>
+    <li>读取接口方法及实体字段的 <code>@since</code> / <code>@version</code>；依赖 JAR 已在 IDEA 关联对应源码时可读取字段注释，不自动下载源码。</li>
     <li>按需上传到 YApi、ShowDoc、语雀；凭据由 IDEA PasswordSafe 按项目和平台分别保存。</li>
     <li>主要界面支持英语和简体中文，跟随 IDE 语言；模板与生成文档不会自动翻译。</li>
 </ul>
@@ -45,7 +47,7 @@
 <p><b>Help → Doc View Welcome</b> 在编辑区打开随包 HTML 欢迎页与更新摘要，依赖 IDE 的 JCEF 支持并可离线查看。
     完整使用指南在 GitHub 维护，阅读需要网络。</p>
 <p>自定义模板影响本地 Markdown 与 ShowDoc / 语雀正文；YApi 使用独立的结构化上传格式。</p>
-<p><b>升级提示：</b>请在新版设置中重新填写平台凭据，插件不迁移或自动清理旧 XML 密钥。
+<p><b>从 1.4.0 之前升级：</b>请在新版设置中重新填写平台凭据，插件不迁移或自动清理旧 XML 密钥。
     OpenAPI 3 字段必填使用 <code>Schema.requiredMode</code>，不再读取已弃用的 <code>Schema.required</code>。
     具体操作见<a href="https://github.com/liuzhihang/doc-view/blob/master/docs/user-guide/integrations.md#token-与本地保存">凭据说明</a>
     和<a href="https://github.com/liuzhihang/doc-view/blob/master/docs/user-guide/settings.md">设置说明</a>。</p>

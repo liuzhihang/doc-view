@@ -13,10 +13,11 @@
 ## 可以做什么
 
 - **生成接口文档**：识别 Spring Controller、Feign 风格接口、Dubbo 和按设置启用的普通 Java 接口，读取 Javadoc、Validation、Swagger / OpenAPI 注解。
+- **保留文档元数据**：读取接口方法和实体字段的 `@since`、`@version`；依赖 JAR 已在 IDEA 关联对应源码时，可读取其字段注释，不自动下载源码。
 - **浏览与定位源码**：按模块、类和方法浏览接口；代码名配合灰色业务说明，支持搜索、源码跳转和 Markdown 编辑器打开。
 - **调整模板与输出**：分别编辑 Spring、Dubbo 模板，搜索并插入变量，用固定样例预览 Markdown，再应用到当前项目。
 - **管理文档文件**：复制、单项或批量导出 Markdown；项目导出生成 `docs/doc-view/` 索引与接口页，附相对源码链接并检查手改冲突。
-- **编辑字段说明**：通过 Doc Editor 编辑实体字段说明和必填信息，确认后写回支持的源码注释或注解；也可复制实体 JSON。
+- **编辑字段说明**：通过 Doc Editor 编辑实体字段说明和必填信息，确认后写回支持的源码注释或注解；也可复制实体 JSON，或将当前编辑值复制为普通/分表 Markdown，复制操作不写回源码。
 - **连接文档平台**：按项目配置 YApi、ShowDoc 或语雀，主动选择目标后上传。凭据使用 IDEA PasswordSafe 保存。
 
 主要界面支持英语和简体中文，跟随 IDEA 界面语言；源码注释、模板和生成文档不会自动翻译。
@@ -64,7 +65,8 @@
 
 ## 升级前注意
 
-- **平台凭据需重新填写**：新版不读取或迁移旧 XML 中的密钥；PasswordSafe 按项目和平台隔离，输入框留空表示保留。旧 XML 和备份不会自动清理，详见[凭据说明](docs/user-guide/integrations.md#token-与本地保存)。
+- **从 1.4.0 之前升级时重新填写平台凭据**：新版不读取或迁移旧 XML 中的密钥；PasswordSafe 按项目和平台隔离，输入框留空表示保留。旧 XML 和备份不会自动清理，详见[凭据说明](docs/user-guide/integrations.md#token-与本地保存)。
+- **新增元数据和依赖注释**：默认模板会展示非空的接口 `@since`、`@version`；已有自定义模板需自行插入对应变量。读取依赖字段 Javadoc 前，请先在 IDEA 关联正确版本的源码包；纯字节码无法恢复注释。
 - **OpenAPI 3 必填使用 `Schema.requiredMode`**：不再读取已弃用的 `Schema.required`。通过 Doc Editor 写回时，项目依赖必须提供 `requiredMode`；缺少该成员时会拒绝本次字段写回，见[必填说明](docs/user-guide/settings.md#必填)。
 - **手写内容放在独立文档**：项目导出会检查生成页的所有权与内容校验标记。手改冲突会中止导出，不自动合并；源码变化后需重新导出，不会双向同步。
 - **需要旧行为时使用旧插件版本**：新版不提供旧模板写法或旧 IDE 的兼容模式。升级前保留需要的自定义模板与配置，降级后的配置兼容性不作保证。
@@ -73,7 +75,7 @@
 
 ## 更新与开发
 
-[CHANGELOG](CHANGELOG.md) 按 `Unreleased` 和已发布版本记录改动；[GitHub Releases](https://github.com/liuzhihang/doc-view/releases) 提供正式发布记录与安装包。当前开发工作的验收范围见[验证记录](docs/validation-2026-10-20.md)，发布前按[检查清单](docs/release-checklist.md)完成收尾。
+[CHANGELOG](CHANGELOG.md) 按 `Unreleased` 和已发布版本记录改动；[GitHub Releases](https://github.com/liuzhihang/doc-view/releases) 提供正式发布记录与安装包。本轮范围和交付状态见[1.5.0 发布记录](docs/release-1.5.0.md)，此前开发工作的验收范围见[验证记录](docs/validation-2026-10-20.md)；发布前按[检查清单](docs/release-checklist.md)完成收尾。
 
 生产代码使用 Java 21，构建使用仓库 Gradle Wrapper。开发、验证与协作约定见 [AGENTS.md](AGENTS.md) 和[架构说明](docs/architecture.md)。
 
