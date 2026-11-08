@@ -19,6 +19,8 @@
 
 ## 4. 发布及回读
 
-- [ ] 4.1 按仓库流程将已验收的冻结版本合入发布分支，创建 1.6.0 tag 并核对其 commit；确认 Release/tag 指向同一已验收源码和制品，发生远端状态变化时先回读、不得覆盖既有版本。
-- [ ] 4.2 发布 GitHub Release 和 Marketplace 更新；分别回读版本、兼容范围、更新说明、制品 SHA 与审核/公开状态。上传成功不代表 Marketplace 已审核或上架。
-- [ ] 4.3 发布后核对公开下载制品与最终 ZIP/JAR 内容及哈希，记录实际安装 smoke test、已知未验证项与回滚版本；若 Marketplace 仍待审，明确标为已接收待审而非公开。
+- [x] 4.1 按仓库流程将已验收的冻结版本合入发布分支，创建 1.6.0 tag 并核对其 commit；确认 Release/tag 指向同一已验收源码和制品，发生远端状态变化时先回读、不得覆盖既有版本。
+- [x] 4.2 发布 GitHub Release 和 Marketplace 更新；分别回读版本、兼容范围、更新说明、制品 SHA 与审核/公开状态。上传成功不代表 Marketplace 已审核或上架。
+- [x] 4.3 发布后核对公开下载制品与最终 ZIP/JAR 内容及哈希，记录实际安装 smoke test、已知未验证项与回滚版本；若 Marketplace 仍待审，明确标为已接收待审而非公开。
+
+2026-11-09 回读：#113/#114 已合并，tag `v1.6.0` 指向 `67d54b700d56d2a662107e81b8ee039bbafdd25c`；GitHub Release 438524712 公开下载和校验文件通过；Marketplace update 1215457 已接收，`approve=false`、`listed=false`，外层重新压缩但全部内部文件与最终包一致。原生 smoke 只覆盖发布记录中的实际执行项，其余功能 change 的未完成任务不变。详细 SHA、渠道状态和回滚版本见 `docs/release-1.6.0.md`。

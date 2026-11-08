@@ -1,6 +1,6 @@
-# Doc View 1.6.0 发布记录（草稿）
+# Doc View 1.6.0 发布记录
 
-> **状态：最终候选已构建；自动门禁、制品审计和部分原生烟测通过，原生矩阵仍有明确缺口。尚未发布。** tag、GitHub Release 与 Marketplace 操作及回读仍待执行。
+> **状态：`v1.6.0` 已打 tag，GitHub Release 已公开；Marketplace 已接收，尚未审核/上架。** 2026-11-09 已回读两个渠道的下载内容；自动门禁和代表性原生烟测通过，完整原生矩阵按维护者批准继续保留未验证项。
 
 ## 版本与兼容基线
 
@@ -9,11 +9,11 @@
 - 最终 ZIP 回读的最低 IntelliJ build 为 `263.7031.23`。Plugin Verifier 使用的 build 与发布版 IDEA 原生回归 build 分别记录，不能互相代替。
 - 2026-11-09 发布前实时预检：GitHub 最新为 `v1.5.0`、Marketplace 最新为 `1.5.0`，两处均未占用 1.6.0；远端 `develop` 与 `master` 均为 `877f0c9cafefc065a92650d99989b42a53ff1cde`。证据在 `build/release-1.6.0/publication-preflight-current.json`。创建发布提交/tag 与上传时仍须按实际操作需要重新回读。
 
-## 拟交付范围
+## 交付范围
 
-最终发布说明只保留在最终包中实现且经回读确认的内容。
+下列内容与已发布包一致；正式 MCP 与 Skill 继续单独开发。
 
-| 范围 | 拟交付内容 | 使用边界 |
+| 范围 | 交付内容 | 使用边界 |
 | --- | --- | --- |
 | IntelliJ 与 Java 基线 | Java 25 / IDEA 263 | 不再支持低于最终 descriptor 所示最低 build 的 IDE；不据此声称未来 build 已验证 |
 | HTTP 请求草稿 | 对适用 Spring Controller / Feign 方法，以 Doc View PSI 规则生成可编辑 `.http` 草稿并交给 IDEA HTTP Client 打开 | 生产路线为 Java 自生成单一路线；生成动作不发送请求。Dubbo、普通非 HTTP 接口及不支持的绑定形式不生成伪请求；未支持输入须明确拒绝 |
@@ -49,11 +49,11 @@
 | 自动测试与项目配置 | **通过** | 最终候选 80 suites / 430 tests，0 failures / errors / skipped；完整门禁命令成功 |
 | Plugin Verifier | **通过，含 Experimental API** | 同一最终候选针对最低 build 与正式发布 build 均 Compatible；每个报告 16 项 Experimental API、0 blocking findings |
 | 原生 IDEA 验收 | **部分通过，矩阵未完成** | 已通过的 Copy、项目文档生成/搜索和停用后重启场景见下文；其余未运行场景单列保留 |
-| Git 提交与 tag | **待执行** | 远端复核后，记录发布提交及 tag 指向的 commit |
-| GitHub Release | **待发布** | 回读公开 Release、ZIP/SHA 与最终制品一致性 |
-| Marketplace | **待发布/审核** | 分开记录上传接收、审核通过与公开上架；上传成功不等于已公开 |
+| Git 提交与 tag | **完成** | #113 合入 develop，#114 合入 master；`v1.6.0` 指向 `67d54b700d56d2a662107e81b8ee039bbafdd25c`，与冻结源码 tree 一致 |
+| GitHub Release | **已公开且下载校验通过** | Release ID `438524712`，正式非预发布；公开 ZIP 与最终制品 SHA 完全相同 |
+| Marketplace | **已接收，待审核/上架** | update ID `1215457`；owner API 回读 `approve=false`、`listed=false`，公开更新列表未出现 1.6.0；下载内部文件与最终包一致 |
 
-自动门禁和制品读回已完成；具体任务状态见[1.6.0 发布 change](../openspec/changes/release-doc-view-1-6-0/tasks.md)。原生结果见下文；发布操作将在证据产生后补入，不把自动门禁替代原生验收。
+自动门禁和制品读回已完成；具体任务状态见[1.6.0 发布 change](../openspec/changes/release-doc-view-1-6-0/tasks.md)。原生结果与实际发布回读见下文，不把自动门禁替代原生验收。
 
 ## 最终包原生烟测
 
@@ -93,6 +93,18 @@ OS 凭据授权拒绝、异步写入失败后的重试也未在最终包原生�
 
 ## 发布与回滚
 
-只有在最终自动门禁通过、制品已读回且未验证原生场景已如实列明后，才按仓库流程合并发布提交、创建 `v1.6.0` tag、发布 GitHub Release 和 Marketplace 更新。每个渠道都要回读其真实状态和可下载制品哈希。不得复用或覆盖已存在的版本。
+本次已在最终自动门禁通过、制品读回且未验证原生场景列明后，完成合并、tag、GitHub Release 和 Marketplace 上传。Marketplace 的人工审核与上架仍待平台完成；不得将上传成功描述为已上架。
 
 如发布后发现阻断问题，先停止继续发布，保留制品、日志和远端状态，按发布清单回滚或准备新的 patch 版本；不重写已公开 tag 或替换已发布 ZIP。
+
+## 2026-11-09 发布渠道回读
+
+- 冻结源码提交：`ca51becdd2d0499018f696d96448604cccb94aa3`，232 个 literal paths。通过 [#113](https://github.com/liuzhihang/doc-view/pull/113) 合入 develop，再由 [#114](https://github.com/liuzhihang/doc-view/pull/114) 合入 master。
+- `v1.6.0` 指向发布提交 `67d54b700d56d2a662107e81b8ee039bbafdd25c`；该提交与冻结源码 tree 相同，325 项构建/测试输入哈希逐项匹配。未移动原工作区的本地 develop/HEAD。
+- [GitHub Release](https://github.com/liuzhihang/doc-view/releases/tag/v1.6.0) 已公开。GitHub 将空格归一化，下载名为 `Doc.View-1.6.0.zip`；已修正 `SHA256SUMS` 对应文件名，公开下载并执行 `shasum -a 256 -c SHA256SUMS` 通过。ZIP SHA-256 仍为 `0f58a4365ac7c026ed588838a34cd71aaf54dfb17b1af7608f24302ba82c4cc4`，未替换插件 ZIP。
+- [Marketplace](https://plugins.jetbrains.com/plugin/15305-doc-view) 上传任务成功，update `1215457` 版本 `1.6.0`、最低 build `263.7031.23`、未设最高 build，审核和上架字段均为 false。发布后的变更说明回读含本版 HTTP、JSON 文档库和重启策略；其中打包前“重启流程仍未验证”的文字属于当时快照，本记录补充的是最终包停用/重启路径通过，完整生命周期组合仍未验证。
+- Marketplace 下载端点已可取得包；外层 ZIP 被平台重新压缩，SHA-256 为 `1d3c2ddd4f18bfeb01f73647a41087dee919ee9df77d47d77b190da578cf6dc0`。解压后全部文件内容与本地最终包一致，JAR SHA-256 为 `868f87dee6f86727af49b32621c2fc759010eb9b4565d27ba6fdd89ce4abadde`，descriptor 版本、最低 build、重启标志也相同。可下载不等于公开列表上架。
+- `publishPlugin` 成功执行，上传前后本地 ZIP SHA 未变；其附带 `patchChangelog` 只产生本地格式改写，已保存诊断副本并恢复冻结源文件，未夹带到发布后文档提交。
+- 公开包内容与原生烟测所安装包相同；没有重新执行第二轮完整原生矩阵。正式 MCP、Skill、未完成的原生验收继续保持独立活动 change，不批量完成/归档。
+
+发布证据位于 `build/release-1.6.0/`：`release-commit-binding.json`、`github-release-readback.json`、`marketplace-publish-result.json`、`marketplace-owner-update-readback.json`、`marketplace-artifact-readback.json`。回滚选择既有 1.5.0 或准备新 patch，不改写本次 tag 或已公开的插件包。
