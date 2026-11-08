@@ -84,3 +84,26 @@ AUTO 保持当前 Doc View 的字段规则：用户配置的 required-field anno
 - [swagger-core `Schema.java`](https://github.com/swagger-api/swagger-core/blob/master/modules/swagger-annotations/src/main/java/io/swagger/v3/oas/annotations/media/Schema.java)：deprecated `required` 的替代项、三种 mode 的官方注释与 Since 版本。
 - [swagger-core `ModelResolver.java`](https://github.com/swagger-api/swagger-core/blob/master/modules/swagger-core/src/main/java/io/swagger/v3/core/jackson/ModelResolver.java)：required 集合处理、`NOT_REQUIRED` 覆盖与 `REQUIRED` 显式加入。
 - [Swagger OpenAPI 3 支持的 Schema 关键字](https://swagger.io/docs/specification/v3_0/data-models/keywords/)：`required` 属于 OpenAPI Schema 支持关键字。
+
+
+## 2026-11-09 原生描述输入追加修复
+
+树 UI 修复包 `03f48336…4205b` 在正式 IU263.7307.200 / PID21400 的独立 `schema-current-project` 中复现：描述单元格粘贴包含真实 LF、引号和反斜杠的文本，Enter 提交后显示 LF 被空格替换；实际 Apply to Source、Save、读取源码并解析 Java 字符串值，再次确认 LF 丢失。原生 Undo/Save 后编辑器全文与磁盘恢复，故该项是描述输入链路缺陷，不能由 PSI 字符串转义测试通过覆盖。
+
+修复范围限定共享参数表的描述单元格输入：保留精确 Java 字符串值，提供可实际查看和编辑多行的方式，维持现有复制/写回、取消和键盘操作。优先公开平台/Swing 组件，不增加全局快捷键、设置、生产依赖或新语言；不把源码转义片段作为用户必须手工输入的替代格式。必填值仍走原有 Boolean 编辑器。普通运行行为和源码写回规则不在此处重写。
+
+先在真实表格 cell editor 上重现粘贴/提交导致 LF 丢失的 RED，再验证精确字符串到 modifiedMap 的 GREEN；测试应覆盖尾部空行、连续空行、引号/反斜杠、取消不提交和原有按钮焦点路径。最终包还须原生验证双向 requiredMode、其他 Schema 成员、复杂描述、Undo/Save，以及缺少 requiredMode 时整批拒绝与草稿保留。选择私有 TableCellEditor + 现有公开 JBTextArea/JBScrollPane，仅描述列使用；不新建弹窗，不改变树表行高。多行在单元格内通过滚动/光标查看，原生必须验证可用性，不能只因字符串保存正确就判 UI 通过。Enter 插入 LF；macOS 的 Command+Enter、Windows/Linux 的 Ctrl+Enter 提交；Tab/Shift+Tab 交回既有表格导航，Escape 取消 cell edit；原 Ctrl+Tab/Ctrl+Shift+Tab 回到图标操作的行为保留。提交继续走现有 setValueAt/modifiedMap/Apply，Required 列保持原编辑器。未运行项不勾选。
+
+### 多行描述的 Markdown 表格投影
+
+复制回归进一步发现共享 `DocViewData.paramMarkdownContent` 直接把 desc 的实际 LF 拼进表格，导致一个字段跨多个物理行、空行终止表格。按 [GFM 表格规则](https://github.github.com/gfm/#tables-extension-)，这是输出格式缺陷。最小修复限于共享参数表格（普通 `paramMarkdownContent` 与分表 `separateParamMarkdown` 两处分支）的描述单元格，复用同一私有投影方法：将 CRLF 作为一次换行、LF 和独立 CR 各作为一次换行，输出为 `<br>`；连续与尾部换行保留为连续/尾部 `<br>`。DTO、UI 草稿、JSON 文档快照和 Java 写回仍保存原始字符串，不全局清洗描述，不改其他单元格或自定义模板 API。单行输出保持原 bytes。复制/默认参数表格共享此投影，自动断言一字段一行、值与必填、嵌套/分表及源码不变；新包原生复制和 Markdown 预览须复验。
+
+### 批量写回的 Undo 边界
+
+419 项候选的原生双字段 Schema 写回已正确保留双向 requiredMode、多行描述和其他成员，但一次 Apply 后第一次 Undo 只撤销 age，第二次才撤销 displayName。根因是 writeComment 按字段启动独立 WriteCommandAction。新增约束：一次确认成功的字段批次作为一个 IDE undoable command；一次 Undo 恢复该批所有实际修改，一次 Redo 恢复整批结果。已知 requiredMode 能力预检仍在任何写入前完成；空批次不产生编辑；不承诺所有未知异常事务回滚，不扩大 Swagger 2 的解析/字符串行为。沿用公开 Command/WriteCommand API，把现有同步写回纳入批次命令，不引入后台写入、全局 undo manager 修改或新依赖。
+
+### 原生键分发边界
+
+419 项包的原生键分发证明 Swing InputMap 不能阻止平台 popup 先处理 Escape。使用公开 ComponentPopupBuilder.setKeyEventHandler，仅在无修饰键的 KEY_PRESSED Escape 且表格正在编辑时取消当前 cell 并消费事件；其余事件返回 false，维持默认非编辑 Escape、鼠标与其他关闭行为。该回调属于 popup 自身生命周期，不注册全局键盘监听器。
+
+提交键收敛为系统主修饰键：macOS Command+Enter、Windows/Linux Ctrl+Enter。mac Ctrl+Enter 是 IDEA 既有 New 动作，不作为本插件提交键，不抢占它。mac Command+Enter 已实测；非 mac 原生行为未测，不冒充通过。对应测试核对平台分支与 popup 分发策略，最终原生再验证 Escape 只取消当前草稿、保留已提交草稿，再次 Escape 正常关闭，以及导航/复制/写回与 GC。

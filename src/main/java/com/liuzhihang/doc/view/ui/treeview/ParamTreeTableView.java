@@ -1,12 +1,16 @@
 package com.liuzhihang.doc.view.ui.treeview;
 
 import com.intellij.ide.util.treeView.NodeRenderer;
+import com.intellij.openapi.util.SystemInfo;
 import com.intellij.openapi.util.NlsContexts;
 import com.intellij.psi.PsiElement;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTextArea;
 import com.intellij.ui.dualView.TreeTableView;
 import com.intellij.ui.treeStructure.treetable.ListTreeTableModelOnColumns;
 import com.intellij.ui.treeStructure.treetable.TreeColumnInfo;
 import com.intellij.util.ui.ColumnInfo;
+import com.intellij.util.ui.JBUI;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.dto.DocViewParamData;
 import lombok.Getter;
@@ -16,7 +20,10 @@ import org.jetbrains.annotations.Nullable;
 import javax.swing.*;
 import javax.swing.table.TableCellEditor;
 import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreeCellRenderer;
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -93,31 +100,29 @@ public class ParamTreeTableView extends TreeTableView {
             }
     };
 
-    private static final NodeRenderer NODE_RENDERER = new NodeRenderer() {
-
-        @Override
-        public void customizeCellRenderer(@NotNull JTree tree, Object value, boolean selected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
-            if (value instanceof DefaultMutableTreeNode node) {
-                if (node.getUserObject() instanceof DocViewParamData paramData) {
-                    append(paramData.getName() == null ? "" : paramData.getName());
-                }
-            }
-        }
-
-    };
-
     /**
      * 修改集合
      */
     private Map<PsiElement, DocViewParamData> modifiedMap = new HashMap<>();
+    private final TableCellEditor descriptionCellEditor = new DescriptionCellEditor();
 
     public ParamTreeTableView(ListTreeTableModelOnColumns treeTableModel) {
         super(treeTableModel);
+        // ColoredTreeCellRenderer retains the last tree it renders; keep one instance per table.
+        super.setTreeCellRenderer(createNodeRenderer());
     }
 
-    @Override
-    public void setTreeCellRenderer(TreeCellRenderer renderer) {
-        super.setTreeCellRenderer(NODE_RENDERER);
+    private static NodeRenderer createNodeRenderer() {
+        return new NodeRenderer() {
+            @Override
+            public void customizeCellRenderer(@NotNull JTree tree, Object value, boolean selected,
+                                              boolean expanded, boolean leaf, int row, boolean hasFocus) {
+                if (value instanceof DefaultMutableTreeNode node
+                        && node.getUserObject() instanceof DocViewParamData paramData) {
+                    append(paramData.getName() == null ? "" : paramData.getName());
+                }
+            }
+        };
     }
 
     @Override
@@ -126,7 +131,72 @@ public class ParamTreeTableView extends TreeTableView {
         if (column == 2) {
             return new DefaultCellEditor(new JComboBox<>(new Boolean[]{true, false}));
         }
+        if (column == 3) {
+            return descriptionCellEditor;
+        }
         return super.getCellEditor(row, column);
+    }
+
+    private static final class DescriptionCellEditor extends AbstractCellEditor implements TableCellEditor {
+        private static final String INSERT_LINE_BREAK = "docView.description.insertLineBreak";
+        private static final String COMMIT_EDITING = "docView.description.commitEditing";
+        private static final String CANCEL_EDITING = "docView.description.cancelEditing";
+        private static final String NO_LOCAL_ACTION = "none";
+
+        private final JBTextArea textArea = new JBTextArea();
+        private final JBScrollPane scrollPane = new JBScrollPane(textArea,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+
+        private DescriptionCellEditor() {
+            textArea.setLineWrap(true);
+            textArea.setWrapStyleWord(true);
+            textArea.setBorder(JBUI.Borders.empty(2, 4));
+            scrollPane.setBorder(JBUI.Borders.empty());
+
+            InputMap inputMap = textArea.getInputMap(JComponent.WHEN_FOCUSED);
+            ActionMap actionMap = textArea.getActionMap();
+            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), INSERT_LINE_BREAK);
+            int primaryModifier = SystemInfo.isMac ? InputEvent.META_DOWN_MASK : InputEvent.CTRL_DOWN_MASK;
+            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, primaryModifier), COMMIT_EDITING);
+            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), CANCEL_EDITING);
+            // Leave Tab navigation to JTable's ancestor binding; Ctrl+Tab remains the popup's focus-transfer key.
+            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, 0), NO_LOCAL_ACTION);
+            inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_TAB, InputEvent.SHIFT_DOWN_MASK), NO_LOCAL_ACTION);
+
+            actionMap.put(INSERT_LINE_BREAK, new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent event) {
+                    textArea.replaceSelection("\n");
+                }
+            });
+            actionMap.put(COMMIT_EDITING, new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent event) {
+                    stopCellEditing();
+                }
+            });
+            actionMap.put(CANCEL_EDITING, new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent event) {
+                    cancelCellEditing();
+                }
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean selected, int row, int column) {
+            textArea.setFont(table.getFont());
+            textArea.setForeground(selected ? table.getSelectionForeground() : table.getForeground());
+            textArea.setBackground(selected ? table.getSelectionBackground() : table.getBackground());
+            textArea.setText(value == null ? "" : value.toString());
+            textArea.setCaretPosition(textArea.getDocument().getLength());
+            return scrollPane;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return textArea.getText();
+        }
     }
 
 

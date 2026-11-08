@@ -5,6 +5,7 @@ import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiParameter;
 import com.intellij.psi.PsiType;
+import com.intellij.psi.PsiTypes;
 import com.liuzhihang.doc.view.dto.Body;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.enums.ContentTypeEnum;
@@ -21,8 +22,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Supplier;
-
-import static com.intellij.psi.PsiKeyword.VOID;
 
 /**
  * @author liuzhihang
@@ -99,7 +98,7 @@ public class SpringDocViewServiceImpl implements DocViewService {
         docView.setHeaderList(SpringPsiUtils.buildHeader(psiMethod));
 
         PsiType returnType = psiMethod.getReturnType();
-        if (returnType != null && returnType.isValid() && !returnType.equalsToText(VOID)) {
+        if (returnType != null && returnType.isValid() && !PsiTypes.voidType().equals(returnType)) {
             docView.setRespBody(cachedBody(psiClass, "spring-response-body", returnType,
                     () -> ParamPsiUtils.buildRespBody(returnType)));
             docView.setRespExample(ParamPsiUtils.getRespBodyJson(returnType));

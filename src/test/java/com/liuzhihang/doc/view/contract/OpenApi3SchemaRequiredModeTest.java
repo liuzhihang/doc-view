@@ -1,11 +1,16 @@
 package com.liuzhihang.doc.view.contract;
 
+import com.intellij.openapi.command.undo.UndoManager;
+import com.intellij.openapi.fileEditor.FileEditor;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiAnnotation;
 import com.intellij.psi.PsiAnnotationMemberValue;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiField;
+import com.intellij.psi.PsiJavaFile;
 import com.intellij.psi.PsiLiteralExpression;
 import com.intellij.psi.PsiMethod;
 import com.intellij.psi.PsiNameValuePair;
@@ -358,6 +363,65 @@ public final class OpenApi3SchemaRequiredModeTest extends LightJavaCodeInsightFi
         assertFalse(declaresAttribute(requiredSchema, "required"));
         assertEquals("另一个标题", stringAttribute(requiredSchema, "title"));
         assertEquals(escapedDescription, stringAttribute(requiredSchema, "description"));
+    }
+
+    public void testBatchWriteBackUsesOneUndoAndRedoCommandAndEmptyBatchAddsNone() {
+        installSchema(true);
+        PsiJavaFile file = (PsiJavaFile) myFixture.configureByText("UndoBatchDto.java", """
+                package contract.openapi3;
+
+                import io.swagger.v3.oas.annotations.media.Schema;
+
+                public class UndoBatchDto {
+                    @Schema(requiredMode = Schema.RequiredMode.AUTO, name = "first")
+                    private String first;
+
+                    @Schema(requiredMode = Schema.RequiredMode.AUTO, title = "Preserve this")
+                    private String second;
+                }
+                """);
+        PsiClass dto = file.getClasses()[0];
+        PsiField first = field(dto, "first");
+        PsiField second = field(dto, "second");
+        String originalText = file.getText();
+        myFixture.openFileInEditor(file.getVirtualFile());
+        FileEditor fileEditor = FileEditorManager.getInstance(getProject()).getSelectedEditor(file.getVirtualFile());
+        assertNotNull("The fixture source must be open in an editor", fileEditor);
+        UndoManager undoManager = UndoManager.getInstance(getProject());
+        boolean undoAvailableBeforeEmptyBatch = undoManager.isUndoAvailable(fileEditor);
+        Object undoActionBeforeEmptyBatch = undoManager.getUndoActionNameAndDescription(fileEditor);
+
+        DocViewUtils.writeComment(getProject(), Map.of());
+
+        assertEquals(originalText, file.getText());
+        assertEquals("An empty batch must not add an undo command", undoAvailableBeforeEmptyBatch,
+                undoManager.isUndoAvailable(fileEditor));
+        assertEquals("An empty batch must not replace the current undo command", undoActionBeforeEmptyBatch,
+                undoManager.getUndoActionNameAndDescription(fileEditor));
+
+        Map<PsiElement, DocViewParamData> changes = new LinkedHashMap<>();
+        changes.put(first, fieldEdit(first, false, "First updated"));
+        changes.put(second, fieldEdit(second, true, "Second updated\ncontinued"));
+        DocViewUtils.writeComment(getProject(), changes);
+        String writtenText = file.getText();
+        assertEquals("The opened editor must reflect the source writeback", writtenText,
+                myFixture.getEditor().getDocument().getText());
+
+        assertTrue("The successful batch must be undoable", undoManager.isUndoAvailable(fileEditor));
+        undoManager.undo(fileEditor);
+        PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+        assertEquals("One Undo must restore the whole source batch", originalText, file.getText());
+
+        assertTrue("The successful batch must be redoable", undoManager.isRedoAvailable(fileEditor));
+        undoManager.redo(fileEditor);
+        PsiDocumentManager.getInstance(getProject()).commitAllDocuments();
+        assertEquals("One Redo must restore the whole source batch", writtenText, file.getText());
+        assertTrue(attributeText(first.getAnnotation("io.swagger.v3.oas.annotations.media.Schema"), "requiredMode")
+                .endsWith("NOT_REQUIRED"));
+        assertTrue(attributeText(second.getAnnotation("io.swagger.v3.oas.annotations.media.Schema"), "requiredMode")
+                .endsWith("REQUIRED"));
+        assertEquals("Preserve this", stringAttribute(
+                second.getAnnotation("io.swagger.v3.oas.annotations.media.Schema"), "title"));
     }
 
     public void testModeOnlyWriteBackPreservesSchemaDescriptionJavaStringValue() {

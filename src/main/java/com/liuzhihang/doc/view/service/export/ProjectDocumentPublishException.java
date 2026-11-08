@@ -9,7 +9,7 @@ public final class ProjectDocumentPublishException extends IOException {
     private final String failedPath;
     private final List<String> temporaryPaths;
 
-    public ProjectDocumentPublishException(IOException cause,
+    public ProjectDocumentPublishException(Throwable cause,
                                            List<String> publishedPaths,
                                            String failedPath,
                                            List<String> temporaryPaths) {

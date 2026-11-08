@@ -10,6 +10,7 @@ import com.intellij.ui.treeStructure.SimpleTree;
 import com.intellij.ui.SimpleTextAttributes;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.service.DocViewService;
+import com.liuzhihang.doc.view.service.http.HttpRequestBuilder;
 import com.liuzhihang.doc.view.utils.CustomFileUtils;
 import com.liuzhihang.doc.view.utils.DocViewUtils;
 
@@ -32,6 +33,7 @@ public class MethodNode extends DocViewNode {
     private final String signature;
     private final String businessName;
     private final String methodName;
+    private final String methodDescription;
 
     protected MethodNode(SimpleNode aParent, PsiClass psiClass, PsiMethod psiMethod) {
         super(aParent);
@@ -41,8 +43,8 @@ public class MethodNode extends DocViewNode {
         signature = methodName + "(" + Arrays.stream(psiMethod.getParameterList().getParameters())
                 .map(parameter -> parameter.getType().getCanonicalText()).collect(Collectors.joining(", ")) + ")";
         businessName = DocViewUtils.getName(psiMethod);
+        methodDescription = DocViewUtils.getMethodDesc(psiMethod);
         getTemplatePresentation().setIcon(AllIcons.Nodes.Method);
-        String methodDescription = DocViewUtils.getMethodDesc(psiMethod);
         String tooltip = signature;
         if (methodDescription != null && !methodDescription.isBlank()) {
             tooltip += " — " + methodDescription;
@@ -71,8 +73,14 @@ public class MethodNode extends DocViewNode {
 
     @Override
     public String getSearchText() {
-        return signature + (businessName == null || businessName.isBlank() || businessName.equals(methodName)
-                ? "" : " " + businessName);
+        StringBuilder searchText = new StringBuilder(signature);
+        if (businessName != null && !businessName.isBlank() && !businessName.equals(methodName)) {
+            searchText.append(' ').append(businessName);
+        }
+        if (methodDescription != null && !methodDescription.isBlank() && !methodDescription.equals(businessName)) {
+            searchText.append(' ').append(methodDescription);
+        }
+        return searchText.toString();
     }
 
     @Override
@@ -122,6 +130,11 @@ public class MethodNode extends DocViewNode {
 
     public PsiMethod getPsiMethod() {
         return psiMethod;
+    }
+
+    /** Direct annotation check: menu state follows edits without parsing DTOs or resolving types. */
+    public boolean isHttpEndpoint() {
+        return psiMethod.isValid() && HttpRequestBuilder.isCandidate(psiMethod);
     }
 
     public PsiClass getPsiClass() {

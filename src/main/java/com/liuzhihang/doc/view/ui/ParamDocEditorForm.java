@@ -3,11 +3,15 @@ package com.liuzhihang.doc.view.ui;
 import com.intellij.find.editorHeaderActions.Utils;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
+import com.intellij.openapi.actionSystem.ex.TooltipDescriptionProvider;
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.ide.CopyPasteManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.ui.popup.ComponentPopupBuilder;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.ui.popup.JBPopupFactory;
 import com.intellij.psi.PsiClass;
@@ -33,11 +37,14 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.table.TableCellEditor;
 import javax.swing.tree.DefaultMutableTreeNode;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.MouseEvent;
+import java.awt.event.ContainerAdapter;
+import java.awt.event.ContainerEvent;
+import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -111,36 +118,109 @@ public class ParamDocEditorForm {
     public void popup() {
 
         // dialog 改成 popup, 第一个为根面板，第二个为焦点面板
-        popup = JBPopupFactory.getInstance().createComponentPopupBuilder(rootPanel, paramScrollPane)
+        ComponentPopupBuilder popupBuilder = JBPopupFactory.getInstance()
+                .createComponentPopupBuilder(rootPanel, paramScrollPane)
                 .setProject(project)
                 .setResizable(true)
                 .setMovable(true)
 
                 .setModalContext(false)
                 .setRequestFocus(true)
+                .setNormalWindowLevel(true)
                 .setBelongsToGlobalPopupStack(true)
                 .setDimensionServiceKey(null, DOC_VIEW_POPUP, true)
                 .setLocateWithinScreenBounds(false)
                 // 鼠标点击外部时是否取消弹窗 外部单击, 未处于 pin 状态则可关闭
-                .setCancelOnMouseOutCallback(event -> event.getID() == MouseEvent.MOUSE_PRESSED && !myIsPinned.get())
+                .setCancelOnMouseOutCallback(event -> PopupMouseOutPolicy.shouldCancel(event, rootPanel, myIsPinned.get()))
 
                 // 单击外部时取消弹窗
                 .setCancelOnClickOutside(false)
                 // 在其他窗口打开时取消
                 .setCancelOnOtherWindowOpen(false)
                 .setMinSize(new Dimension(600, 380))
-                .setCancelOnWindowDeactivation(false)
-                .createPopup();
+                .setCancelOnWindowDeactivation(false);
+        configurePopupEscapeHandler(popupBuilder);
+        popup = popupBuilder.createPopup();
+        registerTableFocusTransferActions(popup);
         popup.showCenteredInCurrentWindow(project);
 
     }
 
+    void configurePopupEscapeHandler(@NotNull ComponentPopupBuilder popupBuilder) {
+        popupBuilder.setKeyEventHandler(event -> {
+            if (event.getID() != KeyEvent.KEY_PRESSED
+                    || event.getKeyCode() != KeyEvent.VK_ESCAPE
+                    || event.getModifiersEx() != 0) {
+                return false;
+            }
+
+            ParamTreeTableView currentTable = tableView;
+            if (currentTable == null || !currentTable.isEditing()) {
+                return false;
+            }
+
+            TableCellEditor cellEditor = currentTable.getCellEditor();
+            if (cellEditor == null) {
+                return false;
+            }
+            cellEditor.cancelCellEditing();
+            return true;
+        });
+    }
+
 
     private void initUI() {
+        rootPanel.setFocusCycleRoot(true);
+        rootPanel.setFocusTraversalPolicy(new LayoutFocusTraversalPolicy());
         // 边框
         paramScrollPane.setBackground(null);
         paramScrollPane.setOpaque(false);
         paramScrollPane.setBorder(JBUI.Borders.empty());
+    }
+
+    private void registerTableFocusTransferActions(@NotNull Disposable popupLifetime) {
+        createTableFocusTransferAction(true).registerCustomShortcutSet(
+                CustomShortcutSet.fromString("ctrl TAB"), rootPanel, popupLifetime);
+        createTableFocusTransferAction(false).registerCustomShortcutSet(
+                CustomShortcutSet.fromString("ctrl shift TAB"), rootPanel, popupLifetime);
+    }
+
+    private AnAction createTableFocusTransferAction(boolean forward) {
+        return new DumbAwareAction() {
+            @Override
+            public void actionPerformed(@NotNull AnActionEvent e) {
+                if (!isTableFocusContext(e) || tableView == null) {
+                    return;
+                }
+                if (tableView.isEditing()) {
+                    TableCellEditor cellEditor = tableView.getCellEditor();
+                    if (cellEditor == null || !cellEditor.stopCellEditing()) {
+                        return;
+                    }
+                }
+                if (forward) {
+                    tableView.transferFocus();
+                } else {
+                    tableView.transferFocusBackward();
+                }
+            }
+
+            @Override
+            public void update(@NotNull AnActionEvent e) {
+                e.getPresentation().setEnabled(isTableFocusContext(e));
+            }
+
+            @Override
+            public @NotNull ActionUpdateThread getActionUpdateThread() {
+                return ActionUpdateThread.EDT;
+            }
+        };
+    }
+
+    private boolean isTableFocusContext(@NotNull AnActionEvent e) {
+        Component contextComponent = e.getData(PlatformCoreDataKeys.CONTEXT_COMPONENT);
+        return tableView != null && contextComponent != null
+                && SwingUtilities.isDescendingFrom(contextComponent, tableView);
     }
 
     /**
@@ -190,8 +270,28 @@ public class ParamDocEditorForm {
 
         keepToolbarPreferredMinimumSize(toolbar);
         Utils.setSmallerFontForChildren(toolbar.getComponent());
+        enableToolbarActionKeyboardFocus(toolbar);
 
         headToolbarPanel.add(toolbar.getComponent(), BorderLayout.EAST);
+    }
+
+    private static void enableToolbarActionKeyboardFocus(@NotNull ActionToolbar toolbar) {
+        JComponent toolbarComponent = toolbar.getComponent();
+        toolbarComponent.addContainerListener(new ContainerAdapter() {
+            @Override
+            public void componentAdded(ContainerEvent event) {
+                makeActionButtonFocusable(event.getChild());
+            }
+        });
+        for (Component component : toolbarComponent.getComponents()) {
+            makeActionButtonFocusable(component);
+        }
+    }
+
+    private static void makeActionButtonFocusable(@NotNull Component component) {
+        if (component instanceof ActionButtonComponent) {
+            component.setFocusable(true);
+        }
     }
 
     private static void keepToolbarPreferredMinimumSize(@NotNull ActionToolbar toolbar) {
@@ -214,6 +314,12 @@ public class ParamDocEditorForm {
         });
     }
 
+    private abstract static class ActionWithTooltipDescription extends AnAction implements TooltipDescriptionProvider {
+        private ActionWithTooltipDescription(String text, String description, Icon icon) {
+            super(text, description, icon);
+        }
+    }
+
     /**
      * 底部 右侧 主要是提交
      */
@@ -221,7 +327,7 @@ public class ParamDocEditorForm {
 
         DefaultActionGroup rightGroup = new DefaultActionGroup();
 
-        rightGroup.add(new AnAction(DocViewBundle.message("action.copy.json"),
+        rightGroup.add(new ActionWithTooltipDescription(DocViewBundle.message("action.copy.json"),
                 DocViewBundle.message("action.copy.json.description"), AllIcons.FileTypes.Json) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
@@ -246,8 +352,8 @@ public class ParamDocEditorForm {
 
         rightGroup.add(createMarkdownCopyAction());
 
-        rightGroup.add(new AnAction(DocViewBundle.message("action.confirm"),
-                DocViewBundle.message("action.confirm.description"), AllIcons.Actions.Checked) {
+        rightGroup.add(new ActionWithTooltipDescription(DocViewBundle.message("action.apply.source"),
+                DocViewBundle.message("action.apply.source.description"), AllIcons.Actions.Checked) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
 
@@ -278,6 +384,7 @@ public class ParamDocEditorForm {
 
         keepToolbarPreferredMinimumSize(toolbar);
         Utils.setSmallerFontForChildren(toolbar.getComponent());
+        enableToolbarActionKeyboardFocus(toolbar);
 
         tailToolbarPanel.add(toolbar.getComponent(), BorderLayout.EAST);
 
@@ -288,8 +395,8 @@ public class ParamDocEditorForm {
     }
 
     private AnAction createMarkdownCopyAction() {
-        return new AnAction(DocViewBundle.message("action.copy.markdown"),
-                DocViewBundle.message("action.copy.markdown.description"), AllIcons.Actions.Copy) {
+        return new ActionWithTooltipDescription(DocViewBundle.message("action.copy.markdown"),
+                DocViewBundle.message("action.copy.markdown.description"), AllIcons.FileTypes.Markdown) {
             @Override
             public void actionPerformed(@NotNull AnActionEvent e) {
                 if (!isMarkdownCopyAvailable()) {

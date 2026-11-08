@@ -14,7 +14,7 @@ Doc View 从 Java 源码、注释和注解生成 API 文档，支持在 IDE 中�
 
 ## 安装
 
-1. 打开 IDE 的 **Settings → Plugins → Marketplace**，搜索 `Doc View`，核对作者与[插件页面](https://plugins.jetbrains.com/plugin/15305-doc-view)，选择兼容版本安装。目标 IDE 为 IntelliJ IDEA Ultimate 2026.1 或更新版本，最低 build 为 261；Java 和 Markdown 插件应启用。
+1. 打开 IDE 的 **Settings → Plugins → Marketplace**，搜索 `Doc View`，核对作者与[插件页面](https://plugins.jetbrains.com/plugin/15305-doc-view)，选择兼容版本安装。1.6.0 的最低 build 为 IU `263.7031.23`，生产 Java 基线为25；安装、更新或停用后按IDE提示重启。旧IDE可选择兼容的旧插件版本。已验证范围和待人工复验项见[发布记录](../release-1.6.0.md)。Java 和 Markdown 插件应启用，具体兼容范围见[兼容性说明](../intellij-compatibility.md)。
 2. 离线安装可从[项目 Releases](https://github.com/liuzhihang/doc-view/releases)取得兼容的插件包，在 **Plugins → 齿轮菜单 → Install Plugin from Disk…** 选择下载包。
 3. 按 IDE 提示完成加载或重启，打开 Java 项目，等待依赖解析与索引完成。
 
@@ -121,11 +121,15 @@ public class UserServiceImpl implements UserService {
 }
 ```
 
-在 **`UserService` 接口**的 `getUser` 上执行 Doc View，应使用 Dubbo 模板。不要只在实现类方法上寻找入口。示例不要求启动注册中心，也不是侧栏自动发现全部 Dubbo 声明方式的验收；若侧栏没出现节点，先按[故障排查](troubleshooting.md)检查识别条件。
+在 **`UserService` 接口**的 `getUser` 上执行 Doc View，应使用 Dubbo 模板；入口位于接口声明或接口方法。目录刷新和项目文档生成也会发现接口注解、注解实现类及 Dubbo XML 注册的接口，并按接口源码所属模块分组、去重。实现类可位于依赖 API 模块的 Provider 模块，XML 的 `interface` 需能从其所在模块的依赖范围解析。示例不要求启动注册中心；若侧栏没出现节点，先按[故障排查](troubleshooting.md)检查识别条件。
 
 ## 独立实体复制为 Markdown
 
-在普通 Java 实体类中右键打开 **Doc Editor**，等待字段加载完成，可调整字段描述和必填值，然后点击底部的 **Copy as Markdown / 复制为 Markdown**。复制内容包含当前正在编辑的单元格、嵌套字段与已有版本信息；复制完成后关闭编辑弹窗，源文件保持不变。要将修改写回源码，使用 **Confirm / 确认**。
+在普通 Java 实体类中右键打开 **Doc Editor**，等待字段加载完成，可调整字段描述和必填值，然后点击底部的 **Copy as Markdown / 复制为 Markdown**。复制内容包含当前正在编辑的单元格、嵌套字段与已有版本信息；复制完成后关闭编辑弹窗，源文件保持不变。要将修改写回源码，使用对勾图标 **Apply to Source / 写回源码**；成功写回的这一批源码修改可以用一次 IDEA Undo 撤销，再用 Redo 恢复。
+
+描述单元格支持多行文本。Enter 插入换行；macOS 使用 Command+Enter、Windows/Linux 使用 Ctrl+Enter 提交当前单元格；Esc 取消当前单元格编辑。单元格内可用方向键或滚动查看各行。复制为 Markdown 时，描述换行会转为表格单元格内的 `<br>`；写回源码仍保留实际换行。
+
+参数表内的 Tab / Shift+Tab 用于切换单元格；Ctrl+Tab / Ctrl+Shift+Tab 先结束当前有效编辑，再移到弹窗内的按钮区域。按钮可用 Tab / Shift+Tab 切换、Space 激活。单元格不能结束编辑时，焦点留在该单元格；关闭弹窗会移除这些局部快捷键。
 
 复制结果使用字段表格格式。设置中的“独立实体”开启时，嵌套对象拆为后续表格；关闭时按缩进展示在同一张表格中。此操作不使用 Spring 或 Dubbo 的整篇 API 模板。字段尚未加载或实体没有可复制字段时，按钮不可用；关闭弹窗或取消后台任务后，未完成的复制不会覆盖剪贴板。
 
@@ -145,22 +149,26 @@ public class UserServiceImpl implements UserService {
 
 #### 刷新、缓存与位置
 
-- **Refresh** 重新扫描接口目录。索引未就绪时会显示等待状态；没有结果时检查注解和普通接口设置。取消或失败会保留已展示的目录，可再次刷新。
-- **Clear Cache** 只清除当前项目的 DTO schema 内存缓存，保留 Scratch、打开的编辑器和项目文档；不会刷新目录或改写已有 Markdown。
+- **Refresh API Catalog / 刷新接口目录** 重新扫描接口目录。索引未就绪时会显示等待状态；没有结果时检查注解和普通接口设置。取消或失败会保留已展示的目录，可再次刷新。
+- **Clear Cache** 清除当前项目的 DTO schema 内存缓存，同时清理文档查询的派生缓存；保留 Scratch、打开的编辑器、项目文档和本会话新鲜度依据，不触发生成。
 - 刷新完成不会主动展开已隐藏的工具窗口。新安装默认位于左侧；用工具窗口菜单 **Move To** 可移到右侧。已有停靠位置由 IDEA 管理。
 
 #### 导出入口
 
-工具栏的 **Export** 菜单包含 **Export Markdown**（选择目录批量导出）和 **Export Project Docs**（生成项目内 API 文档）。工具栏、右键菜单和弹出框中的同类操作使用 IDEA 图标，悬浮提示与菜单名称说明操作。
+Settings 和 Clear Cache 收纳在工具窗口原生 **…** 菜单；HTTP 支持范围与操作见[生成 HTTP 请求](http-requests.md)。
+
+工具栏的 **Export** 菜单包含 **Export Markdown**（选择目录批量导出）和 **Generate or Update Project Docs**（生成或更新项目文档）。工具栏、右键菜单和弹出框中的同类操作使用 IDEA 图标，悬浮提示与菜单名称说明操作。
+
+项目文档入口为 **Generate or Update Project Docs / 生成或更新项目文档**，并在同一菜单加入 **Open Project Docs / 打开项目文档目录**、**Search Project Docs / 搜索项目文档**。操作及状态说明见[项目文档库](mcp.md)。
 
 ### 各操作的输出
 
 #### 预览与编辑
 
 - **源码右键 Doc View**：打开当前方法或类的预览；动作会先保存 IDE 中尚未保存的文档，索引期间入口可能隐藏。
-- **侧栏方法节点 → Open**：在编辑器打开 Markdown。文件位于 IDE 的 Scratch 扩展区域，不会自动进入项目 Git 仓库。
+- **侧栏方法节点 → 打开 Markdown 文档（Open Markdown Document）**：在编辑器打开 Markdown。文件位于 IDE 的 Scratch 扩展区域，不会自动进入项目 Git 仓库。
 - **预览 Copy**：复制当前 Markdown，不会上传或创建项目文件。
-- **Doc Editor / 保存字段说明**：编辑实体字段信息，保存时可能写回源码注释或注解；它和修改 Markdown 模板不同，保存后检查代码差异。
+- **Doc Editor / 参数编辑**：底部使用三个图标按钮，依次为 **JSON 图标：复制字段示例 JSON**、**Markdown 图标：复制当前编辑的参数表**、**对勾：写回源码**。悬停查看完整名称和说明；写回会将支持的字段描述和必填修改更新到源码注释或注解，复制不会写回。写回后检查代码差异；这与修改 Markdown 模板不同。
 
 #### 导出
 
@@ -175,6 +183,8 @@ public class UserServiceImpl implements UserService {
 **源码、生成文件和平台文档不会自动双向同步。** 改注释/设置后重新生成，再按需要导出或上传；手工修改生成 Markdown 不等于修改源码或全局模板。需要长期维护的生成文档请导出到明确目录并自行管理版本。
 
 ## 项目内 API 文档与 AI 检索
+
+项目导出在同一固定目录维护 Markdown、`index.json` 和每个接口的同 stem `.json` 详情；共享生成服务、取消提交点、只读搜索与新鲜度语义见[项目文档库与 MCP](mcp.md)。这些文件由同一次生成维护，查询不会自动更新源码快照。
 
 在 Doc View 工具窗口打开 **Export → Export Project Docs**。等待项目索引完成后，插件在后台扫描支持的 Spring、Feign、Dubbo 与已开启的普通接口，并使用当前项目模板生成 Markdown。
 
@@ -209,11 +219,13 @@ docs/doc-view/
 
 ### AI 检索边界
 
-导出文件是普通 Markdown，可以加入 Git，并由 IDE 或 AI 按普通文件读取。IDE 的 **Find in Files → Project** 可搜索接口名、方法签名或独有词；结果受当前 scope、排除规则与索引状态影响。本功能没有注册自定义 IDEA 索引、MCP 工具或实时知识库；IDE 原生检索能力取决于当前项目的索引状态。
+导出文件是普通 Markdown，可以加入 Git，并由 IDE 或 AI 按普通文件读取。IDE 的 **Find in Files → Project** 可搜索接口名、方法签名或独有词；结果受当前 scope、排除规则与索引状态影响。当前项目导出没有注册自定义 IDEA 索引、正式 MCP 工具或实时知识库。版本化 JSON 文档库和相应的搜索/打开 UI 正在 [`project-document-store`](../../openspec/changes/project-document-store/tasks.md) 中实现验收；只读查询不扫描 PSI、不隐式更新文件，也不能把旧快照当成实时源码。
+
+正式 MCP 计划作为 Doc View 插件内的可选 provider，提供只读状态/搜索/详情和显式生成/更新工具；Codex Skill 计划作为调用 MCP 的客户端工作流，不是另一台服务。这些能力均尚未交付，Skill 规划见 [`doc-view-client-skill`](../../openspec/changes/doc-view-client-skill/proposal.md)。当前与计划边界、IDEA/Codex 注册方式见[MCP 使用说明](mcp.md)，磁盘 JSON 和 MCP 响应格式见[文档格式说明](../mcp-format.md)，取消候选及验收门槛见[取消说明](../mcp-cancellation.md)。
 
 ## 找到设置与帮助
 
-当前入口是 **Settings → Tools → Doc View**。根页设置常规行为；子页为 **Generation Rules**（生成规则）、**Template and Output**（模板与输出）和 **Platform Integrations**（平台集成），三个平台各有独立设置页。插件设置按项目保存；工具窗口齿轮也可进入设置。
+当前入口是 **Settings → Tools → Doc View**。根页设置常规行为；子页为 **Generation Rules**（生成规则）、**Template and Output**（模板与输出）和 **Platform Integrations**（平台集成），三个平台各有独立设置页。插件设置按项目保存；工具窗口原生 **… → Settings** 也可进入设置。
 
 **Help → Doc View Welcome** 打开可关闭、可重新打开的本地欢迎/更新编辑器页；也可在 Find Action 搜索 `Doc View Welcome`。本地页面随插件提供，离线可用，但只包含简短入门和本次开发版本的更新摘要，不含完整手册。
 

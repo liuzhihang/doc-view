@@ -1,8 +1,11 @@
 package com.liuzhihang.doc.view.config;
 
 import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.options.Configurable;
 import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.util.ui.JBUI;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.ui.SettingsForm;
 import org.jetbrains.annotations.Nls;
@@ -15,7 +18,7 @@ import javax.swing.*;
  * @author liuzhihang
  * @date 2020/3/4 13:05
  */
-public class SettingsConfigurable implements SearchableConfigurable {
+public class SettingsConfigurable implements SearchableConfigurable, Configurable.NoScroll {
 
 
     private final Project project;
@@ -43,8 +46,9 @@ public class SettingsConfigurable implements SearchableConfigurable {
     public JComponent createComponent() {
 
         settingsForm = new SettingsForm(project);
-
-        return settingsForm.getRootPanel();
+        JBScrollPane scrollPane = new JBScrollPane(settingsForm.getRootPanel());
+        scrollPane.setBorder(JBUI.Borders.empty());
+        return scrollPane;
     }
 
     @Override

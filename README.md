@@ -16,7 +16,8 @@
 - **保留文档元数据**：读取接口方法和实体字段的 `@since`、`@version`；依赖 JAR 已在 IDEA 关联对应源码时，可读取其字段注释，不自动下载源码。
 - **浏览与定位源码**：按模块、类和方法浏览接口；代码名配合灰色业务说明，支持搜索、源码跳转和 Markdown 编辑器打开。
 - **调整模板与输出**：分别编辑 Spring、Dubbo 模板，搜索并插入变量，用固定样例预览 Markdown，再应用到当前项目。
-- **管理文档文件**：复制、单项或批量导出 Markdown；项目导出生成 `docs/doc-view/` 索引与接口页，附相对源码链接并检查手改冲突。
+- **管理文档文件**：复制、单项或批量导出 Markdown；一键生成或更新 `docs/doc-view/` 的 Markdown、JSON 索引与接口详情，支持搜索、分页和打开文档，检查手改冲突。
+- **生成 HTTP 请求**：为受支持的 Spring/Feign 方法生成新的 `.http` 草稿，区分 Path、Query、Header、Form 与 Body，由 IDEA HTTP Client 编辑并主动执行。
 - **编辑字段说明**：通过 Doc Editor 编辑实体字段说明和必填信息，确认后写回支持的源码注释或注解；也可复制实体 JSON，或将当前编辑值复制为普通/分表 Markdown，复制操作不写回源码。
 - **连接文档平台**：按项目配置 YApi、ShowDoc 或语雀，主动选择目标后上传。凭据使用 IDEA PasswordSafe 保存。
 
@@ -24,7 +25,7 @@
 
 ## 安装与首次使用
 
-当前构建以 **IntelliJ IDEA Ultimate 2026.1（build 261）** 为基线，依赖 Java、Markdown 与 JCEF 支持。插件未设置最高 build，不表示后续所有 IDEA 版本均已验证；具体范围见[兼容性说明](docs/intellij-compatibility.md)。
+**1.6.0 起需要 IntelliJ IDEA IU build `263.7031.23` 或更高版本及 Java 25 运行环境**，依赖 Java、Markdown 与 JCEF 支持。安装、更新或停用插件后需按 IDEA 提示重启；不承诺热更新/热卸载。已检查的精确 IDE build 为 `263.7031.23` 和正式 `263.7307.200`，未设置最高 build 不代表后续所有版本均已验证。旧 IDEA 请使用兼容的旧插件版本；完整验证范围与已知限制见[1.6.0 发布记录](docs/release-1.6.0.md)和[兼容性说明](docs/intellij-compatibility.md)。
 
 1. 在 **Settings → Plugins → Marketplace** 搜索 `Doc View` 安装兼容版本；也可从 [Releases](https://github.com/liuzhihang/doc-view/releases) 下载 ZIP，通过 **Install Plugin from Disk…** 安装。macOS 可从应用菜单进入 Settings。
 2. 打开 Java 项目，等待依赖解析和索引完成。在支持的接口方法内，或类声明处右键选择 **Doc View**。
@@ -34,7 +35,7 @@
 
 ## 设置与模板
 
-设置入口为 **Settings → Tools → Doc View**，工具窗口齿轮也可打开。配置按当前项目保存。
+设置入口为 **Settings → Tools → Doc View**，工具窗口的 `…` 菜单也可打开。配置按当前项目保存。
 
 | 页面 | 主要用途 |
 | --- | --- |
@@ -60,6 +61,8 @@
 - [模板教程](docs/user-guide/templates.md)：变量、内置模板与修改示例。
 - [平台集成](docs/user-guide/integrations.md)：三平台配置、凭据与上传结果。
 - [故障排查](docs/user-guide/troubleshooting.md)：菜单、模板、生成和导出问题。
+- [MCP 使用说明](docs/user-guide/mcp.md)：项目文档库、JSON 格式，以及后续 MCP 工具和客户端 Skill。
+- [文档格式说明](docs/mcp-format.md)与[取消验收说明](docs/mcp-cancellation.md)：查看落盘格式和客户端取消互操作证据。
 
 指南以仓库 `docs/user-guide/` 为维护源，完整手册不打包为离线副本。欢迎页和设置中的指南入口由默认浏览器打开 GitHub；查看已发布版本的使用说明时，请使用对应 Git tag 下的文档。语雀的[旧版文档](https://www.yuque.com/liuzhihangs/doc-view)仅作历史参考。
 
@@ -71,13 +74,13 @@
 - **手写内容放在独立文档**：项目导出会检查生成页的所有权与内容校验标记。手改冲突会中止导出，不自动合并；源码变化后需重新导出，不会双向同步。
 - **需要旧行为时使用旧插件版本**：新版不提供旧模板写法或旧 IDE 的兼容模式。升级前保留需要的自定义模板与配置，降级后的配置兼容性不作保证。
 
-项目导出是普通 Markdown 文件，可由 IDE 或 AI 按文件读取；当前没有发布 Doc View 专用 MCP 工具、自定义 IDEA 文档索引或 Air 集成。后续方向见[路线图](docs/roadmap.md)。
+项目文档同时维护 Markdown、JSON 摘要索引和结构化详情，可由 IDE 或 AI 按文件读取。IDE 的 **Find in Files → Project** 可搜索 Markdown；Doc View 的 **Search Project Docs** 查询落盘 JSON 快照，不会自动解析最新源码或重新生成。源码修改后需显式生成或更新，快照状态区分 current、stale 和 unknown。正式 Doc View MCP provider 和可安装客户端 Skill 尚未实现；Skill 计划调用同一插件注册到 IDEA 的 MCP 工具。当前没有 Doc View 专用 IDEA 索引或 Air 集成。后续顺序、生产门槛及各 change 状态见[路线图](docs/roadmap.md)和[MCP 使用说明](docs/user-guide/mcp.md)。
 
 ## 更新与开发
 
-[CHANGELOG](CHANGELOG.md) 按 `Unreleased` 和已发布版本记录改动；[GitHub Releases](https://github.com/liuzhihang/doc-view/releases) 提供正式发布记录与安装包。本轮范围和交付状态见[1.5.0 发布记录](docs/release-1.5.0.md)，此前开发工作的验收范围见[验证记录](docs/validation-2026-10-20.md)；发布前按[检查清单](docs/release-checklist.md)完成收尾。
+[CHANGELOG](CHANGELOG.md) 按 `Unreleased` 和已发布版本记录改动；[GitHub Releases](https://github.com/liuzhihang/doc-view/releases) 提供正式发布记录与安装包。本轮范围和交付状态见[1.6.0 发布记录](docs/release-1.6.0.md)，此前开发工作的验收范围见[验证记录](docs/validation-2026-10-20.md)；发布前按[检查清单](docs/release-checklist.md)完成收尾。
 
-生产代码使用 Java 21，构建使用仓库 Gradle Wrapper。开发、验证与协作约定见 [AGENTS.md](AGENTS.md) 和[架构说明](docs/architecture.md)。
+1.6.0 生产源码/API/classfile 使用 Java 25 / major 69，IntelliJ Platform Gradle Plugin 为 2.17.0。构建使用仓库 Gradle Wrapper。开发、验证与协作约定见 [AGENTS.md](AGENTS.md) 和[架构说明](docs/architecture.md)。
 
 ## 历史演示
 

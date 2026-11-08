@@ -133,3 +133,19 @@ Native 运行时隔离 profile 内插件 JAR SHA-256 为 `d5f8e6d774cac0d355d492
 - 另在 `/tmp` 临时 fixture 验证空类状态为 `No Doc View content.`，无效 Spring 模板显示 `Failed to render Doc View.`；恢复并应用原模板后重新预览成功。证据见 `iu261-2221-preview-empty.txt`、`iu261-2221-preview-render-failure.txt`、`iu261-2221-template-restored-applied.txt`、`iu261-2221-preview-render-recovered.txt`。这些是状态/恢复核对，不是性能样本。
 
 本轮仍没有重复样本及自然冷/热分布，也未确认用户可见取消终态、无部分结果、JCEF HTML 状态替换或完整导出路径。tasks 3.3 保持未勾选；上述一次性交互观察不作为性能结论。
+
+## IU 263.7307.200 candidate 421 原生自然预览与目录刷新（2026-11-09）
+
+本节记录当前 candidate 421 在隔离 IU 263 实例中的自然运行观察，不替代取消、迟到回调、JCEF 生命周期或卸载验收。候选 `batch-escape-candidate/artifact.json` 记录 ZIP SHA-256 `cbc2c7142094ec1905fc8443a435b23026eb34052a1b4a1418228f5fc39a9a4d`、插件 JAR SHA-256 `4b587f4884f45653eca10e6817aec3ae063c3dd7de684cc134aab788790dbe3f`、342 个 class 且 classfile major 为 69；候选 metadata 记录 79 suites、421 tests，0 failures/errors/skips。原生启动记录绑定 IU build `263.7307.200`、PID `46071`、隔离 profile `unload-clean` 下的 `idea.properties` 和虚构项目 `schema-current-project`；profile 内插件 JAR SHA 与候选 JAR SHA 一致。
+
+所有自然测量均未使用 debugger 或人为暂停。计时为原生按 Enter/action 至 AX 首次观察到完整可见终态，包含事件输入和 AX 观察延迟，只能作为本机交互时延上界；不是纯 PSI/Markdown 生成时间、跨机器性能结论或 SLA。
+
+| 工作负载 | 试次（秒） | 范围 / 中位数（秒） | 观察结果 |
+| --- | --- | --- | --- |
+| Spring `HttpAcceptanceController` 类级预览（3 方法） | 1.498、1.509、1.493 | 1.493–1.509 / 1.498 | 三次列表均包含 `nativeGet`、`nativeJson`、`nativeForm`；首轮逐项读取了 `/native/users/{id}`、`/native/json`、`/native/form`。后两轮确认首项正文可见，未逐项重读全部正文。 |
+| Dubbo `NativeLifecycleDubboService` 接口级预览（3 方法） | 1.502、1.476、1.487 | 1.476–1.502 / 1.487 | 三次列表均包含 `Firstfictionald`、`Secondfictional`、`Thirdfictionald`；首轮逐项读取 `lifecycleFirst`、`lifecycleSecond`、`lifecycleThird`，后两轮确认首项正文可见。首轮从实现类入口时由 FindAction 守卫拒绝，未执行错误动作；随后改从接口声明完成以上三轮，不是产品失败。 |
+| Tool Window Refresh，65 个方法 | collapsed terminal：1.612、1.576、1.649；展开后完整读取：4.158、4.111、4.148 | collapsed：1.576–1.649 / 1.612；展开读取：4.111–4.158 / 4.148 | 三轮完成后折叠树为 9 行；手动 Expand 后均为 74 行、共读到 65 个方法。初次 harness 守卫误以为 Refresh 后应保留展开状态，观察到 9 行时将其挡下；展开状态不是既有 contract。随后按“折叠终态 → 手动 Expand → 核对全部方法”重测，确认结果不是产品失败。 |
+
+本轮没有在预览或 Refresh 的在途任务中取消，也没有验证旧渲染回调在快速切换后不能覆盖新内容；这些仍是任务 3.3 的未验场景。另在同一候选热卸载记录 `unload-result.json` 中，禁用 Doc View 后目标 class 仍存在（`targetClassAbsent=false`），插件仍有 51 个 histogram rows，IDEA 记录 `stillReferencedWarning=true`。这是该候选的热卸载失败证据，根因由主线继续处理；它与上述自然耗时结果分开记录。
+
+因此，本节仅补齐当前候选 Spring/Dubbo 类级自然预览及目录刷新/展开结果的交互观察。tasks 3.3 继续保持未勾选：在途取消、取消后无部分结果、迟到回调保护和响应范围仍未完成；candidate 421 的热卸载也未通过。上述秒数不得用于声称纯 PSI 性能改善或 SLA。

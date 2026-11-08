@@ -1,4 +1,4 @@
-<idea-plugin require-restart="false">
+<idea-plugin require-restart="true">
     <id>com.liuzhihang.doc-view</id>
     <name>Doc View</name>
     <vendor email="liuzhihangs@qq.com" url="https://liuzhihang.com">Liu ZhiHang</vendor>
@@ -10,6 +10,7 @@
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
+    <depends>com.intellij.xml</depends>
     <!-- 暂时不打开预览 -->
     <depends>org.intellij.plugins.markdown</depends>
     <depends>com.intellij.modules.jcef</depends>
@@ -103,8 +104,6 @@
         <!-- 2020.3 需要使用 notificationGroup 配置通知 -->
         <notificationGroup id="doc-view.NotificationGroup" displayType="BALLOON"/>
 
-        <!-- xml 解析的扩展, 解析 SpringBeans-->
-        <dom.fileMetaData implementation="com.liuzhihang.doc.view.dom.BeansDescription"/>
         <!-- 范围搜索 -->
         <definitionsScopedSearch implementation="com.liuzhihang.doc.view.dom.DubboDefinitionSearch"/>
 
@@ -121,6 +120,11 @@
 
     </extensions>
 
+    <applicationListeners>
+        <listener class="com.liuzhihang.doc.view.provider.DocViewPluginLifecycleListener"
+                  topic="com.intellij.ide.plugins.DynamicPluginListener"/>
+    </applicationListeners>
+
     <actions>
         <action id="DocView.Welcome" class="com.liuzhihang.doc.view.action.DocViewWelcomeAction"
                 text="Doc View Welcome" description="Open the Doc View welcome page and update notes">
@@ -128,7 +132,7 @@
         </action>
         <!-- Add your actions here -->
 
-        <group id="liuzhihang.doc" popup="false" compact="true">
+        <group id="liuzhihang.doc" text="Doc View Editor Actions" popup="false" compact="true">
             <add-to-group group-id="EditorPopupMenu" anchor="first"/>
             <action id="liuzhihang.doc.view" class="com.liuzhihang.doc.view.action.PreviewAction" text="Doc View"/>
             <action id="liuzhihang.doc.editor" class="com.liuzhihang.doc.view.action.EditorAction" text="Doc Editor"/>
@@ -146,7 +150,7 @@
         </group>
 
         <!-- preview 界面目录左下角toolbar -->
-        <group id="liuzhihang.doc.preview.toolbar.menu">
+        <group id="liuzhihang.doc.preview.toolbar.menu" text="Doc View Preview Menu Actions">
             <action id="liuzhihang.doc.preview.toolbar.menu.export"
                     class="com.liuzhihang.doc.view.action.toolbar.preview.MenuExportAllAction"
                     text="Export All" description="Export Markdown" icon="AllIcons.ToolbarDecorator.Export"/>
@@ -156,7 +160,7 @@
         </group>
 
         <!-- preview 界面目录右下角 右侧toolbar -->
-        <group id="liuzhihang.doc.preview.toolbar.right">
+        <group id="liuzhihang.doc.preview.toolbar.right" text="Doc View Preview Toolbar Actions">
             <action id="liuzhihang.doc.preview.toolbar.right.upload"
                     class="com.liuzhihang.doc.view.action.toolbar.preview.PreviewRightUploadAction"
                     text="Upload" description="Upload documents" icon="AllIcons.Actions.Upload"/>
@@ -169,7 +173,7 @@
         </group>
 
         <!-- editor 右键菜单 -->
-        <group id="liuzhihang.doc.preview.editor.floating">
+        <group id="liuzhihang.doc.preview.editor.floating" text="Doc View Editor Context Actions">
 
             <action id="liuzhihang.doc.preview.editor.save"
                     class="com.liuzhihang.doc.view.action.toolbar.preview.MenuExportAllAction"
@@ -179,11 +183,11 @@
 
 
         <!-- ToolWindow 的工具栏  -->
-        <group id="liuzhihang.doc.tool.window.toolbar.action">
+        <group id="liuzhihang.doc.tool.window.toolbar.action" text="Doc View Tool Window Toolbar Actions">
 
             <action id="liuzhihang.doc.tool.window.toolbar.action.refresh"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowRefreshAction"
-                    text="Refresh" description="Refresh" icon="AllIcons.Actions.Refresh"/>
+                    text="Refresh API Catalog" description="Refresh the live API catalog" icon="AllIcons.Actions.Refresh"/>
             <separator/>
             <group id="liuzhihang.doc.tool.window.toolbar.action.export.menu"
                    popup="true" text="Export" description="Export Doc View documents"
@@ -193,7 +197,13 @@
                         text="Export Markdown" description="Export Markdown" icon="AllIcons.ToolbarDecorator.Export"/>
                 <action id="liuzhihang.doc.tool.window.toolbar.action.project.export"
                         class="com.liuzhihang.doc.view.action.toolbar.window.ProjectDocumentExportAction"
-                        text="Export Project Docs" description="Export project API documentation" icon="AllIcons.ToolbarDecorator.Export"/>
+                        text="Generate or Update Project Docs" description="Generate or update the current project's Markdown and JSON API documentation" icon="AllIcons.ToolbarDecorator.Export"/>
+                <action id="liuzhihang.doc.tool.window.toolbar.action.project.open"
+                        class="com.liuzhihang.doc.view.action.toolbar.window.OpenProjectDocsAction"
+                        text="Open Project Docs" description="Open the verified project documentation index" icon="AllIcons.Actions.Preview"/>
+                <action id="liuzhihang.doc.tool.window.toolbar.action.project.search"
+                        class="com.liuzhihang.doc.view.action.toolbar.window.SearchProjectDocsAction"
+                        text="Search Project Docs" description="Search the current project's generated API documentation" icon="AllIcons.Actions.Find"/>
             </group>
             <action id="liuzhihang.doc.tool.window.toolbar.action.upload"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowUploadAction"
@@ -206,28 +216,32 @@
             <action id="liuzhihang.doc.tool.window.toolbar.action.collapse"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowCollapseAction"
                     text="Collapse" description="Collapse" icon="AllIcons.Actions.Collapseall"/>
+        </group>
 
-            <separator/>
-            <action id="liuzhihang.doc.tool.window.toolbar.action.clear"
-                    class="com.liuzhihang.doc.view.action.toolbar.window.WindowClearAction"
-                    text="Clear Cache" description="Clear the current project's Doc View schema cache; generated documents are preserved." icon="AllIcons.Actions.ClearCash"/>
-            <separator/>
+        <group id="liuzhihang.doc.tool.window.maintenance.action" text="Doc View Tool Window Maintenance Actions" popup="false">
             <action id="liuzhihang.doc.tool.window.toolbar.action.setting"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowSettingsAction"
                     text="Settings" description="Open Doc View settings" icon="AllIcons.General.Settings"/>
-            <separator/>
-
+            <action id="liuzhihang.doc.tool.window.toolbar.action.clear"
+                    class="com.liuzhihang.doc.view.action.toolbar.window.WindowClearAction"
+                    text="Clear Cache" description="Clear the current project's Doc View and document search caches; generated documents are preserved." icon="AllIcons.Actions.ClearCash"/>
         </group>
+
+        <!-- Preserve the former catalog action ID for user shortcuts and Find Action, without adding it to the catalog menu. -->
+        <action id="liuzhihang.doc.tool.window.catalog.action.clear"
+                class="com.liuzhihang.doc.view.action.toolbar.window.WindowClearAction"
+                text="Clear Cache" description="Clear the current project's Doc View and document search caches; generated documents are preserved." icon="AllIcons.Actions.ClearCash"/>
 
 
         <!-- ToolWindow 目录右键菜单  -->
-        <group id="liuzhihang.doc.tool.window.catalog.action">
+        <group id="liuzhihang.doc.tool.window.catalog.action" text="Doc View API Catalog Actions">
 
             <reference ref="EditSource"/>
 
             <action id="liuzhihang.doc.tool.window.catalog.action.open"
                     class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogOpenAction"
-                    text="Open" description="Open" icon="AllIcons.Actions.Preview"/>
+                    text="Open Markdown Document" description="Open the generated Markdown document for this method."
+                    icon="AllIcons.Actions.Preview"/>
 
             <action id="liuzhihang.doc.tool.window.catalog.action.export"
                     class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogExportAction"
@@ -245,15 +259,11 @@
                         class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogUploadYuQueAction"
                         text="Upload to YuQue" description="YuQue"/>
             </group>
-            <separator/>
-            <action id="liuzhihang.doc.tool.window.catalog.action.clear"
-                    class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogClearAction"
-                    text="Clear Cache" description="Clear the current project's Doc View schema cache; generated documents are preserved." icon="AllIcons.Actions.ClearCash"/>
 
             <action id="liuzhihang.doc.view.action.toolbar.window.catalog.httpclient"
                     class="com.liuzhihang.doc.view.action.toolbar.window.catalog.CatalogHttpClientAction"
-                    text="HTTP Client"
-                    description="Generate an HTTP client request" icon="AllIcons.FileTypes.Http">
+                    text="Generate HTTP Request"
+                    description="Generate an editable HTTP request draft. Run it yourself in HTTP Client." icon="AllIcons.FileTypes.Http">
             </action>
         </group>
 

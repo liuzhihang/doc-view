@@ -61,3 +61,10 @@ IU 261 SDK 字节码检查发现，`BaseKeePassCredentialStore` 和 macOS `KeyCh
 ## JVM Error 传播回归（2026-10-22）
 
 新增的生命周期回归先在旧实现下以 pooled thread 执行，确认直接后台调用会把合成 `AssertionError` 转成 `ConfigurationException`，断言失败（RED）。修复后，直接后台路径与 EDT 发起的 modal task 路径两项回归通过；后者确认 modal task 清理完成后向调用方传播同一个 `AssertionError`。命令：`./gradlew test --tests 'com.liuzhihang.doc.view.contract.IntegrationCredentialLifecycleTest.testFatalCredentialStorageErrorPropagates' --tests 'com.liuzhihang.doc.view.contract.IntegrationCredentialLifecycleTest.testFatalCredentialStorageErrorPropagatesAfterModalTaskCleanup' --rerun-tasks`；2 tests、0 failures、0 errors、0 skipped。普通 `RuntimeException` 的脱敏失败与 Apply 草稿保持语义由既有回归覆盖；本轮只运行这两项目标测试，未重跑全量门禁或原生 UI。
+
+
+## 2026-11-09 IU263 API 核对与本次发布例外
+
+正式IU263.7307.200安装包只读核对发现：公开CredentialStore/PasswordSafe的set为void，没有逐项完成、flush或失败回调接口；macOS native wrapper会先更新待写内存值，再排队写底层，紧随的get可能只读取待写值。底层异步失败不保证抛回Doc View的Apply调用栈。因此不能用立即read-back证明已持久化，也不能以fake-store同步失败测试宣称原生OS拒绝验收通过。详见[官方公开API说明](https://plugins.jetbrains.com/docs/intellij/persisting-sensitive-data.html)；精确安装包字节码调查保存在`build/native-validation/2026-11-09/credential-os-audit/api-write-completion.md`。未读取系统凭据值、改ACL或访问真实上传账号。
+
+维护者随后明确允许本次未能补齐的原生验收留待人工验证与用户反馈，不再阻断1.6.0发布；见[发布检查清单的本次例外](../../../docs/release-checklist.md)。4.3.d仍保持未勾选，OS授权/拒绝及真实后端失败重试不记为通过，后续需要平台公开错误语义或专项原生验证。此例外不改变PasswordSafe实现、不加入internal/reflection访问，也不改变后续版本的默认验收要求。

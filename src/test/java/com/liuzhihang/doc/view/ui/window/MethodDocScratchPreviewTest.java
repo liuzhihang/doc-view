@@ -1,10 +1,12 @@
 package com.liuzhihang.doc.view.ui.window;
 
 import com.intellij.ide.extensionResources.ExtensionsRootType;
+import com.intellij.ide.scratch.ScratchFileService;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.fileEditor.FileEditorManagerListener;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -31,6 +33,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,6 +44,8 @@ public final class MethodDocScratchPreviewTest extends LightJavaCodeInsightFixtu
 
     private static final String TEST_TEMPLATE = "ASYNC|${DocView.name}|${DocView.path}|${DocView.method}\n";
     private static final String TEST_CONTROLLER = "MethodPreviewController";
+    private static final String TEST_LONG_PATH_CONTROLLER = TEST_CONTROLLER + "LongPath";
+    private static final String TEST_SCRATCH_PROJECT_ROOT = "Doc View/light_idea_test_case";
 
     private PsiClass controller;
     private TemplateSettings templateSettings;
@@ -51,6 +56,16 @@ public final class MethodDocScratchPreviewTest extends LightJavaCodeInsightFixtu
     @Override
     protected void setUp() throws Exception {
         super.setUp();
+        cleanOwnedScratchState();
+        VirtualFileManager.getInstance().addVirtualFileListener(new VirtualFileListener() {
+            @Override
+            public void fileCreated(VirtualFileEvent event) {
+                VirtualFile file = event.getFile();
+                if (!file.isDirectory() && isTestScratch(file) && !createdScratchFiles.contains(file)) {
+                    createdScratchFiles.add(file);
+                }
+            }
+        }, getTestRootDisposable());
         AnnotationStubs.installSpringWeb(myFixture);
         controller = myFixture.addClass("""
                 package contract.asyncpreview;
@@ -71,30 +86,7 @@ public final class MethodDocScratchPreviewTest extends LightJavaCodeInsightFixtu
     @Override
     protected void tearDown() throws Exception {
         try {
-            Set<VirtualFile> testScratchFiles = new HashSet<>(createdScratchFiles);
-            EdtTestUtil.runInEdtAndWait(() -> {
-                FileEditorManager manager = FileEditorManager.getInstance(getProject());
-                for (VirtualFile file : manager.getOpenFiles()) {
-                    if (isTestScratch(file)) {
-                        testScratchFiles.add(file);
-                        manager.closeFile(file);
-                    }
-                }
-            });
-            WriteCommandAction.runWriteCommandAction(getProject(), () -> {
-                for (VirtualFile file : testScratchFiles) {
-                    if (isTestScratch(file) && file.isValid()) {
-                        try {
-                            if (!file.isWritable()) {
-                                file.setWritable(true);
-                            }
-                            file.delete(getProject());
-                        } catch (IOException ignored) {
-                            // The light test project is discarded after this fixture.
-                        }
-                    }
-                }
-            });
+            cleanOwnedScratchState();
         } finally {
             if (templateSettings != null) {
                 templateSettings.setSpringTemplate(originalSpringTemplate);
@@ -109,6 +101,7 @@ public final class MethodDocScratchPreviewTest extends LightJavaCodeInsightFixtu
         MethodNode node = methodNode();
         String expectedDocPath = node.docPath(getProject());
         Set<VirtualFile> openedBefore = openedFiles();
+        CompletableFuture<VirtualFile> openedScratch = watchNewOpenedScratch(openedBefore);
         CountDownLatch generationStarted = new CountDownLatch(1);
         CountDownLatch releaseGeneration = new CountDownLatch(1);
         CountDownLatch uiProbeCompleted = new CountDownLatch(1);
@@ -153,7 +146,7 @@ public final class MethodDocScratchPreviewTest extends LightJavaCodeInsightFixtu
         assertFalse("Method PSI generation must run away from EDT", generationRanOnEdt.get());
         assertTrue("The method generator must run under read access", generationHeldReadAction.get());
 
-        VirtualFile scratch = awaitNewOpenedScratch(openedBefore);
+        VirtualFile scratch = awaitNewOpenedScratch(openedScratch);
         String normalizedPath = scratch.getPath().replace('\\', '/');
         String normalizedDocPath = expectedDocPath.replace('\\', '/');
         assertTrue("The existing method document path must be preserved: " + normalizedPath,
@@ -286,9 +279,8 @@ public final class MethodDocScratchPreviewTest extends LightJavaCodeInsightFixtu
                 """.formatted(methodName));
         MethodNode node = methodNode(longPathController);
         Set<VirtualFile> openedBefore = openedFiles();
-        AtomicReference<Boolean> notified = new AtomicReference<>(false);
+        CompletableFuture<Boolean> notified = subscribeToDocViewNotification();
         AtomicBoolean generationCompleted = new AtomicBoolean();
-        subscribeToDocViewNotifications(notified);
         ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), SpringDocViewServiceImpl.class,
                 new SpringDocViewServiceImpl() {
                     @Override
@@ -311,10 +303,9 @@ public final class MethodDocScratchPreviewTest extends LightJavaCodeInsightFixtu
     public void testScratchWriteFailureNotifiesWithoutOpeningDocument() throws Exception {
         MethodNode node = methodNode();
         Set<VirtualFile> openedBefore = openedFiles();
-        AtomicReference<Boolean> notified = new AtomicReference<>(false);
+        CompletableFuture<Boolean> notified = subscribeToDocViewNotification();
         AtomicBoolean generationCompleted = new AtomicBoolean();
         AtomicBoolean scratchWasMadeReadOnly = new AtomicBoolean();
-        subscribeToDocViewNotifications(notified);
         ServiceContainerUtil.replaceService(ApplicationManager.getApplication(), SpringDocViewServiceImpl.class,
                 new SpringDocViewServiceImpl() {
                     @Override
@@ -328,11 +319,10 @@ public final class MethodDocScratchPreviewTest extends LightJavaCodeInsightFixtu
             @Override
             public void fileCreated(VirtualFileEvent event) {
                 VirtualFile scratchFile = event.getFile();
-                if (!scratchFile.getPath().replace('\\', '/').contains(TEST_CONTROLLER)
+                if (!isTestScratch(scratchFile)
                         || !"status.md".equals(scratchFile.getName())) {
                     return;
                 }
-                createdScratchFiles.add(scratchFile);
                 try {
                     scratchFile.setWritable(false);
                     scratchWasMadeReadOnly.set(!scratchFile.isWritable());
@@ -371,25 +361,25 @@ public final class MethodDocScratchPreviewTest extends LightJavaCodeInsightFixtu
         return result.get();
     }
 
-    private VirtualFile awaitNewOpenedScratch(Set<VirtualFile> openedBefore) throws Exception {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(15);
-        while (System.nanoTime() < deadline) {
-            AtomicReference<VirtualFile> result = new AtomicReference<>();
-            EdtTestUtil.runInEdtAndWait(() -> {
-                for (VirtualFile file : FileEditorManager.getInstance(getProject()).getOpenFiles()) {
-                    if (!openedBefore.contains(file) && isTestScratch(file)) {
-                        result.set(file);
-                        break;
+    private CompletableFuture<VirtualFile> watchNewOpenedScratch(Set<VirtualFile> openedBefore) {
+        CompletableFuture<VirtualFile> openedScratch = new CompletableFuture<>();
+        getProject().getMessageBus().connect(getTestRootDisposable()).subscribe(
+                FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
+                    @Override
+                    public void fileOpened(FileEditorManager source, VirtualFile file) {
+                        if (!openedBefore.contains(file) && isTestScratch(file)) {
+                            openedScratch.complete(file);
+                        }
                     }
-                }
-            });
-            if (result.get() != null) {
-                return result.get();
-            }
-            Thread.sleep(20);
-        }
-        fail("A successful method generation should open its Scratch file");
-        throw new AssertionError("Unreachable");
+                });
+        return openedScratch;
+    }
+
+    private VirtualFile awaitNewOpenedScratch(CompletableFuture<VirtualFile> openedScratch) throws Exception {
+        VirtualFile file = PlatformTestUtil.waitForFuture(openedScratch, 15_000);
+        assertTrue("The successful method generation must leave its Scratch file open",
+                FileEditorManager.getInstance(getProject()).isFileOpen(file));
+        return file;
     }
 
     private void assertNoNewOpenedScratch(Set<VirtualFile> openedBefore) {
@@ -408,9 +398,74 @@ public final class MethodDocScratchPreviewTest extends LightJavaCodeInsightFixtu
         assertTrue("A Scratch create/write error must notify the user", notified.get());
     }
 
+    private void awaitNotification(CompletableFuture<Boolean> notified) throws Exception {
+        assertTrue("A Scratch create/write error must notify the user",
+                PlatformTestUtil.waitForFuture(notified, 10_000));
+    }
+
     private boolean isTestScratch(VirtualFile file) {
-        return file.isValid() && ExtensionsRootType.getInstance().containsFile(file)
-                && file.getPath().replace('\\', '/').contains(TEST_CONTROLLER);
+        if (!file.isValid() || !ExtensionsRootType.getInstance().containsFile(file)) {
+            return false;
+        }
+        String path = file.getPath().replace('\\', '/');
+        return isAtOrBelowController(path, TEST_CONTROLLER)
+                || isAtOrBelowController(path, TEST_LONG_PATH_CONTROLLER);
+    }
+
+    private boolean isAtOrBelowController(String path, String directoryName) {
+        return path.contains("/" + directoryName + "/") || path.endsWith("/" + directoryName);
+    }
+
+    private void cleanOwnedScratchState() throws Exception {
+        Set<VirtualFile> testScratchFiles = new HashSet<>(createdScratchFiles);
+        EdtTestUtil.runInEdtAndWait(() -> {
+            FileEditorManager manager = FileEditorManager.getInstance(getProject());
+            for (VirtualFile file : manager.getOpenFiles()) {
+                if (isTestScratch(file)) {
+                    testScratchFiles.add(file);
+                    manager.closeFile(file);
+                }
+            }
+        });
+
+        WriteCommandAction.writeCommandAction(getProject()).withName("Clean method preview test scratch")
+                .compute(() -> {
+                    for (VirtualFile file : testScratchFiles) {
+                        if (isTestScratch(file) && file.isValid()) {
+                            deleteScratchRecursively(file);
+                        }
+                    }
+                    VirtualFile scratchRoot = ScratchFileService.getInstance()
+                            .getVirtualFile(ExtensionsRootType.getInstance());
+                    if (scratchRoot != null && scratchRoot.isValid()) {
+                        VirtualFile projectScratchRoot = scratchRoot.findFileByRelativePath(TEST_SCRATCH_PROJECT_ROOT);
+                        if (projectScratchRoot != null && projectScratchRoot.isValid()) {
+                            deleteOwnedDirectory(projectScratchRoot, TEST_CONTROLLER);
+                            deleteOwnedDirectory(projectScratchRoot, TEST_LONG_PATH_CONTROLLER);
+                        }
+                    }
+                    createdScratchFiles.clear();
+                    return null;
+                });
+    }
+
+    private void deleteOwnedDirectory(VirtualFile parent, String name) throws IOException {
+        VirtualFile directory = parent.findChild(name);
+        if (directory != null && directory.isValid()) {
+            deleteScratchRecursively(directory);
+        }
+    }
+
+    private void deleteScratchRecursively(VirtualFile file) throws IOException {
+        if (file.isDirectory()) {
+            for (VirtualFile child : file.getChildren()) {
+                deleteScratchRecursively(child);
+            }
+        }
+        if (!file.isWritable()) {
+            file.setWritable(true);
+        }
+        file.delete(getProject());
     }
 
     private void subscribeToDocViewNotifications(AtomicReference<Boolean> notified) {
@@ -426,6 +481,23 @@ public final class MethodDocScratchPreviewTest extends LightJavaCodeInsightFixtu
                 .subscribe(com.intellij.notification.Notifications.TOPIC, listener);
         getProject().getMessageBus().connect(getTestRootDisposable())
                 .subscribe(com.intellij.notification.Notifications.TOPIC, listener);
+    }
+
+    private CompletableFuture<Boolean> subscribeToDocViewNotification() {
+        CompletableFuture<Boolean> notified = new CompletableFuture<>();
+        com.intellij.notification.Notifications listener = new com.intellij.notification.Notifications() {
+            @Override
+            public void notify(com.intellij.notification.Notification notification) {
+                if ("doc-view.NotificationGroup".equals(notification.getGroupId())) {
+                    notified.complete(true);
+                }
+            }
+        };
+        ApplicationManager.getApplication().getMessageBus().connect(getTestRootDisposable())
+                .subscribe(com.intellij.notification.Notifications.TOPIC, listener);
+        getProject().getMessageBus().connect(getTestRootDisposable())
+                .subscribe(com.intellij.notification.Notifications.TOPIC, listener);
+        return notified;
     }
 
     private static void awaitRelease(CountDownLatch release) {

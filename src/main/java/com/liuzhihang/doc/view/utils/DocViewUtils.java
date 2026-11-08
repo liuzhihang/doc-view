@@ -527,6 +527,17 @@ public class DocViewUtils {
             }
         }
 
+        if (modifyBodyMap.isEmpty()) {
+            return;
+        }
+
+        WriteCommandAction.writeCommandAction(project)
+                .withName(DocViewBundle.message("action.apply.source"))
+                .run(() -> writeCommentFields(project, modifyBodyMap));
+    }
+
+    private static void writeCommentFields(Project project,
+                                           @NotNull Map<PsiElement, DocViewParamData> modifyBodyMap) {
         for (PsiElement element : modifyBodyMap.keySet()) {
             DocViewParamData data = modifyBodyMap.get(element);
             String docComment;

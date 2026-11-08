@@ -1,16 +1,26 @@
 package com.liuzhihang.doc.view.ui.window;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.util.Alarm;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import com.intellij.ui.treeStructure.SimpleTree;
 import com.liuzhihang.doc.view.DocViewBundle;
+import com.liuzhihang.doc.view.service.document.ProjectDocumentData.EntryData;
+import com.liuzhihang.doc.view.service.document.ProjectDocumentData.FileData;
+import com.liuzhihang.doc.view.service.document.ProjectDocumentData.IdentityData;
+import com.liuzhihang.doc.view.service.document.ProjectDocumentData.SourceData;
 
-import javax.swing.JLabel;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JList;
+import javax.swing.event.TreeExpansionListener;
+import javax.swing.tree.DefaultTreeModel;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /** Exercises terminal callbacks in a controlled order against the real Swing panel. */
@@ -87,6 +97,60 @@ public final class ApiTreeRefreshTest extends LightJavaCodeInsightFixtureTestCas
         assertEquals(0, showCalls.get());
     }
 
+    public void testDisposeDetachesCatalogTreeAndReleasesItsModel() throws Exception {
+        SimpleTree tree = (SimpleTree) field("catalogTree");
+        Object originalModel = tree.getModel();
+        TreeExpansionListener[] expansionListenersBeforeDispose = tree.getTreeExpansionListeners();
+        assertNotNull("The catalog tree must start attached to its scroll pane", tree.getParent());
+        assertNotNull("The catalog tree must start with its platform UI delegate", tree.getUI());
+        assertTrue("The platform UI must install an expansion listener for this regression",
+                expansionListenersBeforeDispose.length > 0);
+
+        Disposer.dispose((Disposable) panel);
+
+        assertTrue("Disposal must replace the Doc View model", tree.getModel() instanceof DefaultTreeModel);
+        assertNotSame("The disposed plugin model must no longer be held by JTree", originalModel, tree.getModel());
+        assertNull("The disposed tree must no longer retain its panel through the component parent", tree.getParent());
+        assertEquals("A disposed catalog tree must not retain listeners that cache node paths",
+                0, tree.getMouseListeners().length);
+        int retainedExpansionListeners = 0;
+        for (TreeExpansionListener before : expansionListenersBeforeDispose) {
+            for (TreeExpansionListener after : tree.getTreeExpansionListeners()) {
+                if (before == after) retainedExpansionListeners++;
+            }
+        }
+        assertEquals("Disposal must detach the old UI expansion listener that retains its pressed TreePath",
+                0, retainedExpansionListeners);
+        assertNull("A permanently disposed catalog tree must uninstall its UI delegate", tree.getUI());
+        assertNull(tree.getSelectionPath());
+    }
+
+    @SuppressWarnings("unchecked")
+    public void testSingleSelectionEnablesAndClearingSelectionDisablesOpenMarkdown() throws Exception {
+        DefaultListModel<EntryData> model = (DefaultListModel<EntryData>) field("searchResultsModel");
+        JList<EntryData> results = (JList<EntryData>) field("searchResults");
+        JButton openButton = (JButton) field("openSelectedButton");
+        setField("searchSnapshotId", "snapshot-test");
+        model.addElement(sampleEntry());
+
+        assertFalse(openButton.isEnabled());
+        results.setSelectedIndex(0);
+        assertTrue("A single-click selection must enable the Markdown action", openButton.isEnabled());
+        results.clearSelection();
+        assertFalse("Clearing the selection must disable the Markdown action", openButton.isEnabled());
+    }
+
+    public void testProjectDocumentStatusEventsAreDebouncedIntoOneRead() throws Exception {
+        Method schedule = DocViewWindowPanel.class.getDeclaredMethod("scheduleProjectDocumentStatusRefresh");
+        schedule.setAccessible(true);
+        schedule.invoke(panel);
+        schedule.invoke(panel);
+
+        Alarm alarm = (Alarm) field("projectStatusRefreshAlarm");
+        assertEquals("Repeated PSI/document changes should leave one pending status read", 1,
+                alarm.getActiveRequestCount());
+    }
+
     private long begin() throws Exception {
         Method method = DocViewWindowPanel.class.getDeclaredMethod("beginRefresh");
         method.setAccessible(true);
@@ -101,12 +165,26 @@ public final class ApiTreeRefreshTest extends LightJavaCodeInsightFixtureTestCas
     }
 
     private String status() throws Exception {
-        return ((JLabel) field("refreshStatus")).getText();
+        return (String) field("catalogStatusText");
     }
 
     private Object field(String name) throws Exception {
         Field field = DocViewWindowPanel.class.getDeclaredField(name);
         field.setAccessible(true);
         return field.get(panel);
+    }
+
+    private void setField(String name, Object value) throws Exception {
+        Field field = DocViewWindowPanel.class.getDeclaredField(name);
+        field.setAccessible(true);
+        field.set(panel, value);
+    }
+
+    private static EntryData sampleEntry() {
+        IdentityData identity = new IdentityData("main", "sample.Api", "find", List.of(), "find()", "canonical");
+        SourceData source = new SourceData("src/main/java/sample/Api.java", 1, "a".repeat(64), "ide-document-text");
+        return new EntryData("a".repeat(64), identity, "Find API", "Sample", "spring", "GET", "/find",
+                List.of(), source, new FileData("apis/find.md", "b".repeat(64)),
+                new FileData("apis/find.json", "c".repeat(64)));
     }
 }

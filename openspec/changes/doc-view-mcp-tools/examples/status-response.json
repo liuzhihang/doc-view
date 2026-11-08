@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "status": "ok",
+  "projectPath": "/example/demo",
+  "snapshotId": "52b03d205c1fd845f22d5b9b0a08391f79283ec15fb07ecbfaf44eab38539a2b",
+  "freshness": "unknown",
+  "hasUnsavedDocuments": false,
+  "data": {
+    "root": "docs/doc-view",
+    "indexState": "ready",
+    "entryCount": 1,
+    "generatedAt": "2026-10-24T00:00:00Z",
+    "generating": false,
+    "toolContractVersion": 1,
+    "pluginVersion": "1.4.0"
+  },
+  "error": null
+}

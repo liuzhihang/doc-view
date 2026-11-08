@@ -4,17 +4,22 @@ import com.intellij.openapi.project.Project;
 import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.ui.JBUI;
+import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.JButton;
+import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
-import javax.swing.BoxLayout;
+import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Rectangle;
 
 /**
  * The project-wide behavior settings shown on the Doc View root page.
@@ -22,7 +27,7 @@ import java.awt.FlowLayout;
 public final class SettingsForm {
 
     private final Project project;
-    private final JPanel rootPanel = new JPanel(new BorderLayout());
+    private final JPanel rootPanel = new SettingsRootPanel();
     private final JCheckBox lineMarkerCheckBox = new JCheckBox();
     private final JCheckBox includeNormalInterfaceCheckBox = new JCheckBox();
 
@@ -112,10 +117,47 @@ public final class SettingsForm {
         help.setEditable(false);
         help.setFocusable(false);
         help.setOpaque(false);
+        help.setFont(JBUI.Fonts.smallFont());
+        help.setForeground(UIUtil.getContextHelpForeground());
         help.setLineWrap(true);
         help.setWrapStyleWord(true);
         help.setAlignmentX(Component.LEFT_ALIGNMENT);
         help.setBorder(JBUI.Borders.empty(2, 0));
         return help;
+    }
+
+    // SettingsConfigurable owns the viewport so help follows its width when the settings sidebar changes size.
+    private static final class SettingsRootPanel extends JPanel implements Scrollable {
+
+        private SettingsRootPanel() {
+            super(new BorderLayout());
+        }
+
+        @Override
+        public Dimension getPreferredScrollableViewportSize() {
+            return getPreferredSize();
+        }
+
+        @Override
+        public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+            return JBUI.scale(16);
+        }
+
+        @Override
+        public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+            int visibleSpan = orientation == SwingConstants.VERTICAL
+                    ? visibleRect.height : visibleRect.width;
+            return Math.max(JBUI.scale(16), visibleSpan - JBUI.scale(16));
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportWidth() {
+            return true;
+        }
+
+        @Override
+        public boolean getScrollableTracksViewportHeight() {
+            return false;
+        }
     }
 }

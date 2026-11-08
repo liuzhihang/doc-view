@@ -5,15 +5,17 @@
 Doc View 是一个 JetBrains IDE 插件，用于从 Java 源码生成 Markdown API 文档。项目支持 Spring/Spring Boot Controller、Feign 风格接口和 Dubbo
 Service，并提供 Markdown 预览、复制、导出，以及上传到 YApi、ShowDoc、YuQue 等平台的能力。
 
-- 生产代码语言：Java 21
+- 当前开发基线生产代码：Java 25 / classfile major 69；旧发布版本使用 Java 21，升级验收见对应 change
 - 构建系统：Gradle 9.5.0
-- IntelliJ Platform Gradle Plugin：`org.jetbrains.intellij.platform` 2.16.0
-- 目标平台：IntelliJ IDEA IU 2026.1+
-- 插件版本：1.5.0
-- Bundled plugin：Java、Markdown
+- IntelliJ Platform Gradle Plugin：`org.jetbrains.intellij.platform` 2.17.0
+- 当前开发目标平台：IntelliJ IDEA IU `263.7031.23`，最低 build 同值；完整自动与原生验收见对应 change，未来 build 尚未验证
+- 插件版本：1.6.0
+- Bundled plugin：Java、XML、Markdown（欢迎页另依赖 JCEF module）
 - 主包名：`com.liuzhihang.doc.view`
 
 版本与兼容性事实以 `gradle.properties`、`build.gradle`、Gradle wrapper 和 `plugin.xml` 为准；上述摘要随基线 change 同步更新。
+IU 263 / Java 25 升级状态见 [基线升级 change](openspec/changes/intellij-263-baseline-upgrade/proposal.md) 与[验证记录](openspec/changes/intellij-263-baseline-upgrade/verification.md)；用户批准目标不等于构建、Verifier 或原生验收完成。
+该 change 选用 IPGP 2.17.0 是为采用其正式发布源码中的 build 262+ Java 25 映射；这只升级构建期工具，不增加 production/runtime dependency。项目实际 build 版本与验收状态仍以 `build.gradle` 和 change verification 为准。
 
 ## 维护范围与变更管理
 

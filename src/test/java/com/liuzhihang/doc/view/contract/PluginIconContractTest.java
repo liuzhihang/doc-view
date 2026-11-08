@@ -41,7 +41,7 @@ public final class PluginIconContractTest extends LightJavaCodeInsightFixtureTes
                 "DocViewIcons.DOC_VIEW_TOOL_WINDOW", toolWindow.getAttribute("icon"));
     }
 
-    public void testToolWindowExportsShareOneNamedDropdownAndKeepActionIds() throws Exception {
+    public void testToolWindowDocumentActionsShareOneNamedDropdownAndKeepActionIds() throws Exception {
         Document descriptor = loadPluginDescriptor();
         Element exportGroup = findById(descriptor, "group", "liuzhihang.doc.tool.window.toolbar.action.export.menu");
         assertEquals("true", exportGroup.getAttribute("popup"));
@@ -68,13 +68,17 @@ public final class PluginIconContractTest extends LightJavaCodeInsightFixtureTes
             }
         }
         assertEquals(Set.of("liuzhihang.doc.tool.window.toolbar.action.export",
-                        "liuzhihang.doc.tool.window.toolbar.action.project.export"), children);
+                        "liuzhihang.doc.tool.window.toolbar.action.project.export",
+                        "liuzhihang.doc.tool.window.toolbar.action.project.open",
+                        "liuzhihang.doc.tool.window.toolbar.action.project.search"), children);
         Element markdownAction = findById(descriptor, "action", "liuzhihang.doc.tool.window.toolbar.action.export");
         Element projectAction = findById(descriptor, "action", "liuzhihang.doc.tool.window.toolbar.action.project.export");
         assertFalse(DocViewBundle.message("action.export.markdown").isBlank());
-        assertFalse(DocViewBundle.message("action.export.project.docs").isBlank());
+        String projectActionName = DocViewBundle.message(
+                "action.liuzhihang.doc.tool.window.toolbar.action.project.export.text");
+        assertFalse(projectActionName.isBlank());
         assertEquals(DocViewBundle.message("action.export.markdown"), markdownAction.getAttribute("text"));
-        assertEquals(DocViewBundle.message("action.export.project.docs"), projectAction.getAttribute("text"));
+        assertEquals(projectActionName, projectAction.getAttribute("text"));
         assertEquals("AllIcons.ToolbarDecorator.Export", markdownAction.getAttribute("icon"));
         assertEquals("AllIcons.ToolbarDecorator.Export", projectAction.getAttribute("icon"));
     }

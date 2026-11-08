@@ -5,6 +5,7 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.NonBlockingReadAction;
 import com.intellij.openapi.application.impl.NonBlockingReadActionImpl;
 import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.*;
@@ -15,11 +16,9 @@ import com.intellij.psi.util.InheritanceUtil;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.psi.util.PsiTypesUtil;
 import com.intellij.psi.util.PsiUtil;
-import com.intellij.util.xml.DomFileElement;
-import com.intellij.util.xml.DomService;
 import com.liuzhihang.doc.view.constant.DubboConstant;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
-import com.liuzhihang.doc.view.dom.BeansDomElement;
+import com.liuzhihang.doc.view.dom.DubboXmlPsi;
 import com.liuzhihang.doc.view.dto.Body;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -61,16 +60,20 @@ public class DubboPsiUtils {
 
         Project project = psiClass.getProject();
 
-        // xml 中的所有配置
-        List<DomFileElement<BeansDomElement>> fileElements = DomService.getInstance().getFileElements(BeansDomElement.class, project, GlobalSearchScope.allScope(project));
-
-        // 只需要判断namespace
         String qualifiedName = psiClass.getQualifiedName();
+        if (qualifiedName == null) {
+            return false;
+        }
 
-        return fileElements.stream().anyMatch(elements ->
-                elements.getRootElement().getDubboServiceDomElements()
-                        .stream()
-                        .anyMatch(dubboServiceDomElement -> Objects.requireNonNull(dubboServiceDomElement.getInterface().getRawText()).equals(qualifiedName)));
+        boolean[] declared = {false};
+        DubboXmlPsi.processServiceTags(project, GlobalSearchScope.allScope(project), serviceTag -> {
+            if (qualifiedName.equals(DubboXmlPsi.getInterfaceName(serviceTag))) {
+                declared[0] = true;
+                return false;
+            }
+            return true;
+        });
+        return declared[0];
     }
 
     /**
@@ -95,22 +98,94 @@ public class DubboPsiUtils {
 
 
     public static List<PsiClass> findDocViewFromModule(Module module) {
+        ProgressManager.checkCanceled();
+        if (module.isDisposed()) {
+            return List.of();
+        }
 
-        Collection<PsiAnnotation> psiAnnotations = new ArrayList<>(JavaAnnotationIndex.getInstance().getAnnotations("Service", module.getProject(), GlobalSearchScope.moduleScope(module)));
-        psiAnnotations.addAll(JavaAnnotationIndex.getInstance().getAnnotations("DubboService", module.getProject(), GlobalSearchScope.moduleScope(module)));
+        Project project = module.getProject();
+        GlobalSearchScope projectScope = GlobalSearchScope.projectScope(project);
+        Set<PsiClass> interfaces = new LinkedHashSet<>();
 
-        List<PsiClass> psiClasses = new LinkedList<>();
-
-        for (PsiAnnotation psiAnnotation : psiAnnotations) {
+        // Implementations can live in a provider module while their API interfaces live in
+        // another module. Query the project annotation index, then attribute each interface
+        // to its source module below. Short-name hits are only candidates: exact FQNs prevent
+        // Spring or user annotations named Service/DubboService from becoming Dubbo APIs.
+        ProgressManager.checkCanceled();
+        Collection<PsiAnnotation> serviceAnnotations = new ArrayList<>(
+                JavaAnnotationIndex.getInstance().getAnnotations("Service", project, projectScope));
+        serviceAnnotations.addAll(JavaAnnotationIndex.getInstance()
+                .getAnnotations("DubboService", project, projectScope));
+        ProgressManager.checkCanceled();
+        for (PsiAnnotation annotation : serviceAnnotations) {
             ProgressManager.checkCanceled();
-            PsiModifierList psiModifierList = (PsiModifierList) psiAnnotation.getParent();
-            PsiElement psiElement = psiModifierList.getParent();
-
-            if (psiElement instanceof PsiClass && isDubboClass((PsiClass) psiElement)) {
-                psiClasses.add((PsiClass) psiElement);
+            if (!DubboConstant.SERVICE_ANNOTATIONS.contains(annotation.getQualifiedName())) {
+                continue;
+            }
+            PsiElement parent = annotation.getParent();
+            if (!(parent instanceof PsiModifierList modifierList)
+                    || !(modifierList.getParent() instanceof PsiClass serviceClass)) {
+                continue;
+            }
+            if (serviceClass.isInterface()) {
+                addIfOwnedInterface(serviceClass, module, interfaces);
+            } else {
+                addImplementedInterfaces(serviceClass, module, interfaces);
             }
         }
-        return psiClasses;
+
+        // XML declarations are project-discovered because the configuration file may live
+        // in a provider module. Resolve each FQN using only that declaring module's
+        // dependencies, then add it to the catalog belonging to the interface source module.
+        DubboXmlPsi.processServiceTags(project, projectScope, serviceTag -> {
+            Module declarationModule = ModuleUtilCore.findModuleForPsiElement(serviceTag);
+            if (declarationModule == null || declarationModule.isDisposed()) {
+                return true;
+            }
+            GlobalSearchScope declarationScope = GlobalSearchScope.moduleWithDependenciesAndLibrariesScope(declarationModule);
+            String qualifiedName = DubboXmlPsi.getInterfaceName(serviceTag);
+            if (qualifiedName == null || qualifiedName.isBlank()) {
+                return true;
+            }
+            PsiClass serviceInterface = JavaPsiFacade.getInstance(project)
+                    .findClass(qualifiedName, declarationScope);
+            if (serviceInterface != null) {
+                addIfOwnedInterface(serviceInterface, module, interfaces);
+            }
+            return true;
+        });
+
+        return interfaces.stream()
+                .sorted(Comparator.comparing(PsiClass::getQualifiedName, Comparator.nullsLast(String::compareTo)))
+                .toList();
+    }
+
+    private static void addImplementedInterfaces(PsiClass serviceClass, Module module, Set<PsiClass> output) {
+        Set<PsiClass> visited = new HashSet<>();
+        Deque<PsiClass> pending = new ArrayDeque<>();
+        pending.add(serviceClass);
+        while (!pending.isEmpty()) {
+            ProgressManager.checkCanceled();
+            PsiClass current = pending.removeFirst();
+            if (!visited.add(current)) {
+                continue;
+            }
+            for (PsiClass superClass : current.getSupers()) {
+                ProgressManager.checkCanceled();
+                if (superClass.isInterface()) {
+                    addIfOwnedInterface(superClass, module, output);
+                }
+                pending.addLast(superClass);
+            }
+        }
+    }
+
+    private static void addIfOwnedInterface(PsiClass psiClass, Module module, Set<PsiClass> output) {
+        ProgressManager.checkCanceled();
+        if (psiClass.isValid() && psiClass.isInterface()
+                && ModuleUtilCore.findModuleForPsiElement(psiClass) == module) {
+            output.add(psiClass);
+        }
     }
 
     @NotNull

@@ -6,14 +6,13 @@ import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.PropertyKey;
 
-public final class DocViewBundle extends DynamicBundle {
+public final class DocViewBundle {
 
     @NonNls
     private static final String BUNDLE = "messages.DocViewBundle";
-    private static final DocViewBundle INSTANCE = new DocViewBundle();
+    private static final DynamicBundle INSTANCE = new DynamicBundle(DocViewBundle.class, BUNDLE);
 
     private DocViewBundle() {
-        super(BUNDLE);
     }
 
     @NotNull

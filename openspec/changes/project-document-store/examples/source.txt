@@ -1,0 +1,3 @@
+package example;
+// Fictional schema example, not a production export.
+class GreetingController { String greet(String name) { return "Hello " + name; } }

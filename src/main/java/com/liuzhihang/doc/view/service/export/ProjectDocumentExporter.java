@@ -4,7 +4,20 @@ import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 
+import com.liuzhihang.doc.view.service.document.DocumentStoreLocks;
+import com.liuzhihang.doc.view.service.document.ProjectDocumentData.*;
+import com.liuzhihang.doc.view.service.document.ProjectDocumentFormat;
+import com.liuzhihang.doc.view.service.document.ProjectDocumentQueryException;
+
 import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.FileAlreadyExistsException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.function.Consumer;
 import java.nio.charset.StandardCharsets;
 import java.nio.charset.CharacterCodingException;
 import java.nio.file.AtomicMoveNotSupportedException;
@@ -38,6 +51,9 @@ public final class ProjectDocumentExporter {
     private static final String OUTPUT_ROOT = "docs/doc-view";
     private static final String API_DIRECTORY = OUTPUT_ROOT + "/apis";
     private static final String INDEX_PATH = OUTPUT_ROOT + "/index.md";
+    private static final String JSON_INDEX_PATH = OUTPUT_ROOT + "/index.json";
+    private static final long MAX_PAGE_BYTES = 1024 * 1024;
+    private static final long MAX_INDEX_BYTES = 32 * 1024 * 1024;
     private final ExportObserver observer;
 
     public ProjectDocumentExporter() {
@@ -49,73 +65,137 @@ public final class ProjectDocumentExporter {
         this.observer = Objects.requireNonNull(observer, "observer");
     }
 
-    public ProjectDocumentExportResult export(Path projectRoot, List<ProjectDocumentPage> pages) throws IOException {
-        return export(projectRoot, pages, new EmptyProgressIndicator());
+    public ProjectDocumentExportResult export(Path projectRoot, ProjectDocumentSnapshot snapshot) throws IOException {
+        return export(projectRoot, snapshot, new EmptyProgressIndicator());
     }
 
-    public ProjectDocumentExportResult export(Path projectRoot,
-                                              List<ProjectDocumentPage> pages,
+    public ProjectDocumentExportResult export(Path projectRoot, ProjectDocumentSnapshot snapshot,
                                               ProgressIndicator indicator) throws IOException {
-        return export(projectRoot, pages, indicator, () -> true);
+        return export(projectRoot, snapshot, indicator, () -> true, () -> {}, index -> {});
     }
 
-    public ProjectDocumentExportResult export(Path projectRoot,
-                                              List<ProjectDocumentPage> pages,
-                                              ProgressIndicator indicator,
-                                              BooleanSupplier publicationAllowed) throws IOException {
-        return publish(projectRoot, pages, indicator, publicationAllowed);
-    }
-
-    private ProjectDocumentExportResult publish(Path projectRoot,
-                                                List<ProjectDocumentPage> pages,
-                                                ProgressIndicator indicator,
-                                                BooleanSupplier publicationAllowed) throws IOException {
+    /** index.json is the commit point; the callback installs the already validated immutable snapshot. */
+    public ProjectDocumentExportResult export(Path projectRoot, ProjectDocumentSnapshot snapshot,
+                                              ProgressIndicator indicator, BooleanSupplier publicationAllowed,
+                                              Runnable checkInputs, Consumer<IndexData> onCommitted) throws IOException {
         Objects.requireNonNull(projectRoot, "projectRoot");
-        Objects.requireNonNull(pages, "pages");
+        Objects.requireNonNull(snapshot, "snapshot");
         Objects.requireNonNull(indicator, "indicator");
         Objects.requireNonNull(publicationAllowed, "publicationAllowed");
-        indicator.checkCanceled();
-        if (!publicationAllowed.getAsBoolean()) {
-            throw new ProcessCanceledException();
-        }
-
-        Path canonicalRoot = projectRoot.toRealPath();
-        if (!Files.isDirectory(canonicalRoot, LinkOption.NOFOLLOW_LINKS)) {
+        Objects.requireNonNull(checkInputs, "checkInputs");
+        Objects.requireNonNull(onCommitted, "onCommitted");
+        checkPublication(indicator, publicationAllowed, checkInputs);
+        Path root = projectRoot.toRealPath();
+        if (!Files.isDirectory(root, LinkOption.NOFOLLOW_LINKS)) {
             throw new IOException("Project root is not a directory");
         }
-
-        List<ProjectDocumentPage> sortedPages = normalizePages(pages);
-        LinkedHashMap<String, byte[]> contents = new LinkedHashMap<>();
-        for (ProjectDocumentPage page : sortedPages) {
-            indicator.checkCanceled();
-            String relativePath = API_DIRECTORY + "/" + page.identity().pageFileName();
-            String body = pageBody(canonicalRoot, page, relativePath);
-            contents.put(relativePath, markedContent("page", page.identity().canonicalForm(), body));
+        List<ProjectDocumentPage> pages = normalizePages(snapshot.pages());
+        List<String> conflicts = preflight(root, pages);
+        if (!conflicts.isEmpty()) {
+            throw new ProjectDocumentConflictException(conflicts);
         }
-        String indexBody = indexBody(canonicalRoot, sortedPages);
-        contents.put(INDEX_PATH, markedIndex(indexBody));
+        try (DocumentStoreLocks.Lease lease = DocumentStoreLocks.tryAcquireWrite(root, indicator, Duration.ofSeconds(1))) {
+            if (lease == null) {
+                throw busy();
+            }
+            ensureDirectory(root.resolve("docs"));
+            validateExistingOutputDirectories(root);
+            ensureDirectory(root.resolve(OUTPUT_ROOT));
+            validateExistingOutputDirectories(root);
+            ensureDirectory(root.resolve(API_DIRECTORY));
+            validateOutputDirectories(root);
+            Path lockPath = root.resolve(OUTPUT_ROOT).resolve(".doc-view.lock");
+            if (Files.exists(lockPath, LinkOption.NOFOLLOW_LINKS)
+                    && (Files.isSymbolicLink(lockPath) || !Files.isRegularFile(lockPath, LinkOption.NOFOLLOW_LINKS))) {
+                throw new ProjectDocumentConflictException(List.of(OUTPUT_ROOT + "/.doc-view.lock"));
+            }
+            // Keep the lock inode after release: deleting it lets another IDE lock a different inode.
+            try (FileChannel channel = FileChannel.open(lockPath, StandardOpenOption.CREATE,
+                    StandardOpenOption.WRITE, LinkOption.NOFOLLOW_LINKS)) {
+                FileLock lock;
+                try {
+                    lock = channel.tryLock();
+                } catch (OverlappingFileLockException overlap) {
+                    throw busy();
+                }
+                if (lock == null) {
+                    throw busy();
+                }
+                try (lock) {
+                    checkPublication(indicator, publicationAllowed, checkInputs);
+                    return publish(root, snapshot, pages, indicator, publicationAllowed, checkInputs, onCommitted);
+                }
+            }
+        }
+    }
 
+    private static ProjectDocumentQueryException busy() {
+        return new ProjectDocumentQueryException(ProjectDocumentQueryException.Code.BUSY,
+                "Project documentation is being generated");
+    }
+
+    private static void checkPublication(ProgressIndicator indicator, BooleanSupplier allowed, Runnable checkInputs) {
+        indicator.checkCanceled();
+        if (!allowed.getAsBoolean()) {
+            throw new ProcessCanceledException();
+        }
+        checkInputs.run();
+    }
+
+    private ProjectDocumentExportResult publish(Path canonicalRoot, ProjectDocumentSnapshot snapshot,
+                                                List<ProjectDocumentPage> sortedPages, ProgressIndicator indicator,
+                                                BooleanSupplier publicationAllowed, Runnable checkInputs,
+                                                Consumer<IndexData> onCommitted) throws IOException {
+        LinkedHashMap<String, byte[]> contents = new LinkedHashMap<>();
+        List<EntryData> entries = new ArrayList<>();
+        for (ProjectDocumentPage page : sortedPages) {
+            checkPublication(indicator, publicationAllowed, checkInputs);
+            String markdownPath = "apis/" + page.identity().pageFileName();
+            String detailPath = markdownPath.substring(0, markdownPath.length() - 3) + ".json";
+            byte[] markdown = markedContent("page", page.identity().canonicalForm(),
+                    pageBody(canonicalRoot, page, OUTPUT_ROOT + "/" + markdownPath));
+            if (markdown.length > MAX_PAGE_BYTES) {
+                throw new ProjectDocumentQueryException(ProjectDocumentQueryException.Code.LIMIT_EXCEEDED,
+                        "Generated Markdown exceeds the page limit", markdownPath);
+            }
+            byte[] detail = ProjectDocumentFormat.writeApi(page.data());
+            contents.put(OUTPUT_ROOT + "/" + markdownPath, markdown);
+            contents.put(OUTPUT_ROOT + "/" + detailPath, detail);
+            ApiData data = page.data();
+            entries.add(new EntryData(data.apiId(), data.identity(), data.name(), data.description(), data.framework(),
+                    data.httpMethod(), data.httpPath(), data.tags(), data.source(),
+                    new FileData(markdownPath, sha256(markdown)), new FileData(detailPath, sha256(detail))));
+        }
+        byte[] markdownIndex = markedIndex(indexBody(canonicalRoot, sortedPages));
+        if (markdownIndex.length > MAX_INDEX_BYTES) {
+            throw new ProjectDocumentQueryException(ProjectDocumentQueryException.Code.LIMIT_EXCEEDED,
+                    "Generated Markdown index exceeds the index limit", "index.md");
+        }
+        contents.put(INDEX_PATH, markdownIndex);
+        IndexData candidate = new IndexData("", Instant.now().toString(), snapshot.producerVersion(),
+                snapshot.generatorFingerprint(), snapshot.hasUnsavedDocuments(),
+                new FileData("index.md", sha256(markdownIndex)), entries);
+        String snapshotId = ProjectDocumentFormat.computeSnapshotId(candidate);
+        String generatedAt = candidate.generatedAt();
+        Path previousIndex = canonicalRoot.resolve(JSON_INDEX_PATH);
+        if (Files.isRegularFile(previousIndex, LinkOption.NOFOLLOW_LINKS) && Files.size(previousIndex) <= MAX_INDEX_BYTES) {
+            try {
+                IndexData previous = ProjectDocumentFormat.readIndex(readBounded(previousIndex));
+                if (snapshotId.equals(previous.snapshotId())) {
+                    generatedAt = previous.generatedAt();
+                }
+            } catch (IllegalArgumentException ignored) {
+                // Ownership is checked below. An unknown owned schema may be explicitly regenerated.
+            }
+        }
+        IndexData index = new IndexData(snapshotId, generatedAt, candidate.producerVersion(),
+                candidate.generatorFingerprint(), candidate.hasUnsavedDocuments(), candidate.markdownIndex(), entries);
+        contents.put(JSON_INDEX_PATH, ProjectDocumentFormat.writeIndex(index));
         List<String> conflicts = preflight(canonicalRoot, sortedPages);
         if (!conflicts.isEmpty()) {
             throw new ProjectDocumentConflictException(conflicts);
         }
-
-        Path docsPath = canonicalRoot.resolve("docs");
-        Path outputRoot = canonicalRoot.resolve(OUTPUT_ROOT);
-        Path apiDirectory = canonicalRoot.resolve(API_DIRECTORY);
-        ensureDirectory(docsPath);
-        validateExistingOutputDirectories(canonicalRoot);
-        ensureDirectory(outputRoot);
-        validateExistingOutputDirectories(canonicalRoot);
-        ensureDirectory(apiDirectory);
-        validateOutputDirectories(canonicalRoot);
-
-        conflicts = preflight(canonicalRoot, sortedPages);
-        if (!conflicts.isEmpty()) {
-            throw new ProjectDocumentConflictException(conflicts);
-        }
         Map<Path, TargetState> expectedTargets = snapshotTargets(canonicalRoot, contents.keySet());
-
         Map<Path, byte[]> changed = new LinkedHashMap<>();
         List<String> unchanged = new ArrayList<>();
         for (Map.Entry<String, byte[]> entry : contents.entrySet()) {
@@ -127,30 +207,21 @@ public final class ProjectDocumentExporter {
                 changed.put(target, entry.getValue());
             }
         }
-
         List<StagedFile> staged = new ArrayList<>();
         try {
             for (Map.Entry<Path, byte[]> entry : changed.entrySet()) {
-                indicator.checkCanceled();
-                Path parent = entry.getKey().getParent();
+                checkPublication(indicator, publicationAllowed, checkInputs);
                 validateOutputDirectories(canonicalRoot);
-                Path temporary = Files.createTempFile(parent, ".doc-view-", ".tmp");
+                Path temporary = Files.createTempFile(entry.getKey().getParent(), ".doc-view-", ".tmp");
                 staged.add(new StagedFile(entry.getKey(), temporary, entry.getValue(), relative(canonicalRoot, entry.getKey())));
                 Files.write(temporary, entry.getValue());
             }
             observer.afterStaging(canonicalRoot);
-            indicator.checkCanceled();
+            checkPublication(indicator, publicationAllowed, checkInputs);
             validateOutputDirectories(canonicalRoot);
             conflicts = changedTargets(canonicalRoot, expectedTargets);
             if (!conflicts.isEmpty()) {
-                List<String> leftovers = cleanup(canonicalRoot, staged);
-                if (!leftovers.isEmpty()) {
-                    throw new ProjectDocumentTemporaryCleanupException(leftovers);
-                }
                 throw new ProjectDocumentConflictException(conflicts);
-            }
-            if (!publicationAllowed.getAsBoolean()) {
-                throw new ProcessCanceledException();
             }
         } catch (IOException | RuntimeException | Error throwable) {
             List<String> leftovers = cleanup(canonicalRoot, staged);
@@ -159,50 +230,55 @@ public final class ProjectDocumentExporter {
             }
             throw throwable;
         }
-
         List<String> published = new ArrayList<>();
         StagedFile current = null;
         try {
+            // LinkedHashMap insertion order guarantees that index.json is always the final move.
             for (StagedFile file : staged) {
-                if (file.target().equals(canonicalRoot.resolve(INDEX_PATH))) {
-                    continue;
-                }
                 current = file;
+                checkPublication(indicator, publicationAllowed, checkInputs);
                 observer.beforeMove(file.relativePath());
+                checkPublication(indicator, publicationAllowed, checkInputs);
                 validateOutputDirectories(canonicalRoot);
                 if (!expectedTargets.get(file.target()).matches(file.target())) {
                     throw new ProjectDocumentConflictException(List.of(file.relativePath()));
                 }
+                if (file.relativePath().equals(JSON_INDEX_PATH)) {
+                    conflicts = changedTargets(canonicalRoot, expectedTargets);
+                    if (!conflicts.isEmpty()) {
+                        throw new ProjectDocumentConflictException(conflicts);
+                    }
+                    checkPublication(indicator, publicationAllowed, checkInputs);
+                }
                 atomicReplace(file);
                 published.add(file.relativePath());
                 expectedTargets.put(file.target(), TargetState.of(file.content()));
-            }
-            for (StagedFile file : staged) {
-                if (file.target().equals(canonicalRoot.resolve(INDEX_PATH))) {
-                    current = file;
-                    observer.beforeMove(file.relativePath());
-                    validateOutputDirectories(canonicalRoot);
-                    if (!expectedTargets.get(file.target()).matches(file.target())) {
-                        throw new ProjectDocumentConflictException(List.of(file.relativePath()));
-                    }
-                    atomicReplace(file);
-                    published.add(file.relativePath());
-                    expectedTargets.put(file.target(), TargetState.of(file.content()));
-                    break;
+                if (!file.relativePath().equals(JSON_INDEX_PATH)) {
+                    observer.afterMove(file.relativePath());
+                    checkPublication(indicator, publicationAllowed, checkInputs);
                 }
             }
-        } catch (IOException exception) {
+        } catch (IOException | RuntimeException exception) {
             List<String> leftovers = cleanup(canonicalRoot, staged);
-            if (published.isEmpty() && exception instanceof ProjectDocumentConflictException conflict) {
+            if (published.isEmpty()) {
                 if (!leftovers.isEmpty()) {
-                    throw new ProjectDocumentTemporaryCleanupException(leftovers, conflict);
+                    throw new ProjectDocumentTemporaryCleanupException(leftovers, exception);
                 }
-                throw conflict;
+                throw exception;
             }
-            throw new ProjectDocumentPublishException(exception, published,
-                    current == null ? null : current.relativePath(), leftovers);
+            String failedPath = current == null || published.contains(current.relativePath())
+                    ? null : current.relativePath();
+            throw new ProjectDocumentPublishException(exception, published, failedPath, leftovers);
         }
-
+        // A late cancellation cannot turn a committed generation into a cancelled result.
+        try {
+            onCommitted.accept(index);
+        } catch (ProcessCanceledException lateCancellation) {
+            // The final move already committed; only the optional derived-cache installation was interrupted.
+        } catch (RuntimeException cacheFailure) {
+            com.intellij.openapi.diagnostic.Logger.getInstance(ProjectDocumentExporter.class)
+                    .warn("Project documents were committed but their derived cache could not be installed", cacheFailure);
+        }
         return new ProjectDocumentExportResult(sortedPages.size(), published, unchanged);
     }
 
@@ -211,7 +287,7 @@ public final class ProjectDocumentExporter {
         for (ProjectDocumentPage page : pages) {
             Objects.requireNonNull(page, "pages must not contain null");
             ProjectDocumentPage previous = byIdentity.putIfAbsent(page.identity().canonicalForm(), page);
-            if (previous != null && !previous.markdown().equals(page.markdown())) {
+            if (previous != null && (!previous.markdown().equals(page.markdown()) || !previous.data().equals(page.data()))) {
                 throw new IllegalArgumentException("Duplicate project document identity has different content");
             }
         }
@@ -300,9 +376,29 @@ public final class ProjectDocumentExporter {
         for (ProjectDocumentPage page : pages) {
             String relativePath = API_DIRECTORY + "/" + page.identity().pageFileName();
             checkPageTarget(projectRoot.resolve(relativePath), page.identity(), relativePath, conflicts);
+            String jsonPath = relativePath.substring(0, relativePath.length() - 3) + ".json";
+            checkJsonTarget(projectRoot.resolve(jsonPath), "api", page.identity(), jsonPath, conflicts);
         }
         checkIndexTarget(projectRoot.resolve(INDEX_PATH), INDEX_PATH, conflicts);
+        checkJsonTarget(projectRoot.resolve(JSON_INDEX_PATH), "index", null, JSON_INDEX_PATH, conflicts);
         return conflicts.stream().distinct().sorted().toList();
+    }
+
+    private static void checkJsonTarget(Path target, String kind, ProjectDocumentIdentity identity,
+                                        String relative, List<String> conflicts) throws IOException {
+        if (!Files.exists(target, LinkOption.NOFOLLOW_LINKS)) {
+            return;
+        }
+        if (Files.isSymbolicLink(target) || !Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS)
+                || Files.size(target) > (kind.equals("index") ? MAX_INDEX_BYTES : MAX_PAGE_BYTES)) {
+            conflicts.add(relative);
+            return;
+        }
+        try {
+            ProjectDocumentFormat.validateOwnedJson(readBounded(target), kind, identity);
+        } catch (IllegalArgumentException invalid) {
+            conflicts.add(relative);
+        }
     }
 
     private static Map<Path, TargetState> snapshotTargets(Path projectRoot,
@@ -316,7 +412,7 @@ public final class ProjectDocumentExporter {
                     || !Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS)) {
                 throw new ProjectDocumentConflictException(List.of(relativePath));
             } else {
-                states.put(target, TargetState.of(Files.readAllBytes(target)));
+                states.put(target, TargetState.of(readBounded(target)));
             }
         }
         return states;
@@ -382,9 +478,13 @@ public final class ProjectDocumentExporter {
             conflicts.add(relative);
             return;
         }
+        if (Files.size(target) > (relative.equals(INDEX_PATH) ? MAX_INDEX_BYTES : MAX_PAGE_BYTES)) {
+            conflicts.add(relative);
+            return;
+        }
         String content;
         try {
-            content = Files.readString(target, StandardCharsets.UTF_8);
+            content = StandardCharsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(readBounded(target))).toString();
         } catch (CharacterCodingException invalidUtf8) {
             conflicts.add(relative);
             return;
@@ -408,9 +508,13 @@ public final class ProjectDocumentExporter {
             conflicts.add(relative);
             return;
         }
+        if (Files.size(target) > (relative.equals(INDEX_PATH) ? MAX_INDEX_BYTES : MAX_PAGE_BYTES)) {
+            conflicts.add(relative);
+            return;
+        }
         String content;
         try {
-            content = Files.readString(target, StandardCharsets.UTF_8);
+            content = StandardCharsets.UTF_8.newDecoder().decode(java.nio.ByteBuffer.wrap(readBounded(target))).toString();
         } catch (CharacterCodingException invalidUtf8) {
             conflicts.add(relative);
             return;
@@ -428,7 +532,11 @@ public final class ProjectDocumentExporter {
 
     private static void ensureDirectory(Path directory) throws IOException {
         if (!Files.exists(directory, LinkOption.NOFOLLOW_LINKS)) {
-            Files.createDirectory(directory);
+            try {
+                Files.createDirectory(directory);
+            } catch (FileAlreadyExistsException raced) {
+                // Another IDE may have created the same directory; validate it below.
+            }
         }
         if (Files.isSymbolicLink(directory) || !Files.isDirectory(directory, LinkOption.NOFOLLOW_LINKS)) {
             throw new IOException("Project documentation path is not a regular directory: " + directory.getFileName());
@@ -455,6 +563,17 @@ public final class ProjectDocumentExporter {
             }
         }
         return leftovers.stream().distinct().sorted().toList();
+    }
+
+    private static byte[] readBounded(Path path) throws IOException {
+        long limit = path.getFileName().toString().startsWith("index.") ? MAX_INDEX_BYTES : MAX_PAGE_BYTES;
+        try (var input = Files.newInputStream(path, LinkOption.NOFOLLOW_LINKS)) {
+            byte[] bytes = input.readNBytes((int) limit + 1);
+            if (bytes.length > limit) {
+                throw new IOException("Project document exceeds its size limit");
+            }
+            return bytes;
+        }
     }
 
     private static String relative(Path root, Path path) {
@@ -504,6 +623,9 @@ public final class ProjectDocumentExporter {
 
         default void beforeMove(String relativePath) throws IOException {
         }
+
+        default void afterMove(String relativePath) throws IOException {
+        }
     }
 
     private record TargetState(boolean exists, byte[] content) {
@@ -529,7 +651,7 @@ public final class ProjectDocumentExporter {
             }
             return exists && !Files.isSymbolicLink(target)
                     && Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS)
-                    && MessageDigest.isEqual(content, Files.readAllBytes(target));
+                    && MessageDigest.isEqual(content, readBounded(target));
         }
     }
 }

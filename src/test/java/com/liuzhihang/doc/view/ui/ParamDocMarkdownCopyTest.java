@@ -16,13 +16,14 @@ import com.intellij.psi.PsiJavaFile;
 import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
+import com.intellij.ui.components.JBScrollPane;
+import com.intellij.ui.components.JBTextArea;
 import com.intellij.util.messages.MessageBusConnection;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.ui.treeview.ParamTreeTableView;
 
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.datatransfer.DataFlavor;
@@ -72,21 +73,32 @@ public final class ParamDocMarkdownCopyTest extends LightJavaCodeInsightFixtureT
                 }
                 """);
         String originalSource = myFixture.getFile().getText();
+        String unsavedDescription = "Unsaved edited description\nsecond line with \"quotes\" and \\\\slash\n\n";
         AnAction action = markdownAction(fixture.form());
 
         EdtTestUtil.runInEdtAndWait(() -> {
             ParamTreeTableView table = field(fixture.form(), "tableView", ParamTreeTableView.class);
             int row = rowFor(table, "id");
+            String originalCellDescription = String.valueOf(table.getValueAt(row, 3));
             table.setValueAt(true, row, 2);
             assertTrue("The description must be editable in the real field table", table.editCellAt(row, 3));
-            assertInstanceOf(table.getEditorComponent(), JTextField.class);
-            ((JTextField) table.getEditorComponent()).setText("Unsaved edited description");
+            assertTrue("The description editor should provide a scrollable multi-line component",
+                    table.getEditorComponent() instanceof JBScrollPane);
+            JBScrollPane scrollPane = (JBScrollPane) table.getEditorComponent();
+            Component view = scrollPane.getViewport().getView();
+            assertTrue("The description editor should contain a JBTextArea", view instanceof JBTextArea);
+            assertEquals("The model should still contain the original value before the copy action commits editing",
+                    originalCellDescription, table.getValueAt(row, 3));
+            ((JBTextArea) view).setText(unsavedDescription);
+            assertTrue("The cell must still be editing when the copy action reads its current value", table.isEditing());
             action.actionPerformed(event(action));
+            assertFalse("The copy action should commit the active cell before producing Markdown", table.isEditing());
         });
 
         await(fixture.closed()::get, "Copying Markdown must finish and close the editor popup");
         assertTrue(clipboard(), clipboard().startsWith("|参数名|类型|必选|描述|版本|\n"));
-        assertTrue(clipboard(), clipboard().contains("|id|String|Y|Unsaved edited description|"));
+        assertTrue("Markdown copy should render each logical newline as <br> in the original field row",
+                clipboard().contains("|id|String|Y|Unsaved edited description<br>second line with \"quotes\" and \\\\slash<br><br>|"));
         assertFalse("Entity copy must not wrap the table in an API document", clipboard().contains("##"));
         assertEquals("Copy must not save the editor's pending values into source", originalSource,
                 myFixture.getFile().getText());
