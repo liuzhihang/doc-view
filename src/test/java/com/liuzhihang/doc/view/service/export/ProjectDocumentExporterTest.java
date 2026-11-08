@@ -4,6 +4,7 @@ import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.ProgressIndicator;
 import junit.framework.TestCase;
+import static com.liuzhihang.doc.view.service.export.ProjectDocumentFixtures.snapshot;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,8 +49,13 @@ public final class ProjectDocumentExporterTest extends TestCase {
         Path unrelated = projectRoot.resolve("docs/doc-view/notes.md");
         Files.writeString(unrelated, "user-owned\n", StandardCharsets.UTF_8);
 
-        export(exporter, List.of(first, second));
+        byte[] jsonIndexBefore = Files.readAllBytes(indexFile.resolveSibling("index.json"));
+        ProjectDocumentExportResult repeated = export(exporter, List.of(first, second));
 
+        assertEquals(6, initial.changedPaths().size());
+        assertTrue(repeated.changedPaths().isEmpty());
+        assertEquals(6, repeated.unchangedPaths().size());
+        assertTrue(java.util.Arrays.equals(jsonIndexBefore, Files.readAllBytes(indexFile.resolveSibling("index.json"))));
         assertTrue(initial.exportedPageCount() == 2);
         assertTrue(java.util.Arrays.equals(firstBytes, Files.readAllBytes(firstFile)));
         assertTrue(java.util.Arrays.equals(indexBytes, Files.readAllBytes(indexFile)));
@@ -283,7 +289,7 @@ public final class ProjectDocumentExporterTest extends TestCase {
             }
         });
         try {
-            cancelAfterStaging.export(projectRoot, List.of(changed), indicator);
+            cancelAfterStaging.export(projectRoot, snapshot(List.of(changed)), indicator);
             fail("expected cancellation after all files were staged");
         } catch (com.intellij.openapi.progress.ProcessCanceledException expected) {
             // No target is published until every new file is staged and cancellation is checked.
@@ -312,7 +318,7 @@ public final class ProjectDocumentExporterTest extends TestCase {
             }
         });
         try {
-            exporter.export(projectRoot, List.of(page), new TestProgressIndicator(), projectOpen::get);
+            exporter.export(projectRoot, snapshot(List.of(page)), new TestProgressIndicator(), projectOpen::get, () -> {}, index -> {});
             fail("expected cancellation before publication");
         } catch (com.intellij.openapi.progress.ProcessCanceledException expected) {
             // Expected: no page or index can be published after the project closes.
@@ -327,8 +333,8 @@ public final class ProjectDocumentExporterTest extends TestCase {
     public void testProjectAlreadyClosedBeforeWritingDoesNotCreateOutputDirectories() throws Exception {
         ProjectDocumentPage page = page("core", "src/main/java/example/NewApi.java", "create", List.of(), "# New\n");
         try {
-            new ProjectDocumentExporter().export(projectRoot, List.of(page), new TestProgressIndicator(),
-                    () -> false);
+            new ProjectDocumentExporter().export(projectRoot, snapshot(List.of(page)), new TestProgressIndicator(),
+                    () -> false, () -> {}, index -> {});
             fail("expected cancellation before output directories are created");
         } catch (com.intellij.openapi.progress.ProcessCanceledException expected) {
             // A project that is already closed must not leave directories or staged output behind.
@@ -424,12 +430,49 @@ public final class ProjectDocumentExporterTest extends TestCase {
         }
     }
 
-    private ProjectDocumentExportResult export(ProjectDocumentExporter exporter,
-                                                List<ProjectDocumentPage> pages) throws IOException {
-        return exporter.export(projectRoot, pages, new TestProgressIndicator());
+    public void testUnmanagedJsonRejectsBatchBeforeAnyManagedFileIsPublished() throws Exception {
+        ProjectDocumentPage page = page("core", "src/Api.java", "get", List.of(), "# Api\n");
+        Path apiDirectory = Files.createDirectories(projectRoot.resolve("docs/doc-view/apis"));
+        Path detail = apiDirectory.resolve(page.identity().pageFileName().replace(".md", ".json"));
+        Files.writeString(detail, "{\"user\":true}\n");
+        try {
+            export(new ProjectDocumentExporter(), List.of(page));
+            fail("must preserve unmanaged JSON");
+        } catch (ProjectDocumentConflictException expected) {
+            assertTrue(expected.conflicts().contains("docs/doc-view/apis/" + detail.getFileName()));
+        }
+        assertEquals("{\"user\":true}\n", Files.readString(detail));
+        assertFalse(Files.exists(apiDirectory.resolve(page.identity().pageFileName())));
+        assertFalse(Files.exists(projectRoot.resolve("docs/doc-view/index.json")));
+        assertNoTemporaryFiles();
     }
 
-    private static final class TestProgressIndicator implements ProgressIndicator {
+    public void testHandEditedDetailCannotBeOverwrittenByRegeneration() throws Exception {
+        ProjectDocumentPage page = page("core", "src/Api.java", "get", List.of(), "# Api\n");
+        export(new ProjectDocumentExporter(), List.of(page));
+        Path detail = projectRoot.resolve("docs/doc-view/apis")
+                .resolve(page.identity().pageFileName().replace(".md", ".json"));
+        Path index = projectRoot.resolve("docs/doc-view/index.json");
+        byte[] originalIndex = Files.readAllBytes(index);
+        String edited = Files.readString(detail).replace("Fixture", "User text");
+        Files.writeString(detail, edited);
+        try {
+            export(new ProjectDocumentExporter(), List.of(page));
+            fail("must reject edited detail even when its owner matches");
+        } catch (ProjectDocumentConflictException expected) {
+            assertFalse(expected.conflicts().isEmpty());
+        }
+        assertEquals(edited, Files.readString(detail));
+        assertTrue(java.util.Arrays.equals(originalIndex, Files.readAllBytes(index)));
+        assertNoTemporaryFiles();
+    }
+
+    private ProjectDocumentExportResult export(ProjectDocumentExporter exporter,
+                                                List<ProjectDocumentPage> pages) throws IOException {
+        return exporter.export(projectRoot, snapshot(pages), new TestProgressIndicator());
+    }
+
+    static final class TestProgressIndicator implements ProgressIndicator {
         private volatile boolean canceled;
 
         @Override
@@ -538,7 +581,7 @@ public final class ProjectDocumentExporterTest extends TestCase {
                                             String markdown) {
         ProjectDocumentIdentity identity = ProjectDocumentIdentity.of(module, sourcePath, qualifiedClassName,
                 methodName, parameterTypes);
-        return new ProjectDocumentPage(identity, "Spring", markdown);
+        return ProjectDocumentFixtures.page(identity, "Spring", markdown);
     }
 
     private static String identityMarker(ProjectDocumentIdentity identity) {

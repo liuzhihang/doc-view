@@ -43,3 +43,28 @@
 首轮 IU 261.22158.277 实验已编译成功，但 Java `String!` 返回类型进入 schema 属性解析并失败，尚未执行工具正文。官方 `schema.util.kt` 对 Kotlin 非平台 String 使用类型相等检查，对 MCP 自有结果接口另有 subtype 分支。因此保留原始 String 失败实验，并另测公开 `McpToolCallResultContent.Text` 作为明确的工具返回类型；这仍是虚构 Markdown 文本输出，不复制/修改平台实现、不添加兼容分支或 Kotlin 源码。Java DTO 作为独立实验，即使文本路径失败也应记录结果。
 
 262.10968.63 的 MCP jar 为 class major 69（Java 25），现有 Java 21 编译器不能读取；可显式使用该 IDE 自带且已存在的 JBR javac/java 执行前向实验，探针仍 `--release 21`，不改生产 Java 21 配置或下载 JDK。若编译结果因方法签名不同失败，记录差异而不增加跨版本桥接。
+
+## 263 隔离前向实验（2026-10-23 追加授权）
+
+维护者要求继续用隔离 IDEA 263 验证官方取消修复，并明确本轮不改生产基线。可以从 JetBrains 官方来源下载完整 macOS ARM64 IDE 包，核对官方 checksum、签名、product-info、MCP descriptor 和实际 SDK 类；不能把 Marketplace 插件 ZIP 或源码分支声明替代分发包证据。使用新临时 profile、虚构项目、同一公开工具扩展入口及随包 JBR；测试端只暴露虚构工具，保留命令执行确认，结束后关闭服务及本轮实例。
+
+先用既有有界协作取消探针测试正常完成、显式通知取消和重复取消；取消须有服务端 cancelled/cleanup 且无完成成功证据，仅 202、客户端断流或超时均不算通过。再分别测试在途禁用测试扩展、在途关闭 MCP 服务及项目关闭，核对任务结束、工具不可调用和重新启用后的恢复。探针或临时客户端若有自身缺陷，保留失败证据后用公开 API 最小修复，再对变动场景复验，不修改宿主 SDK 或接入内部实现。
+
+资源验收比较相同 IDE 进程的空闲基线、任务结束和卸载后对象/线程/端口观察，检查探针 Run、continuation、provider/tool 及插件类加载器；能取得 retained-path 则进一步定位。单次 heap histogram 无实例只能证明该时点的对象观察，不能表述为任意资源均无泄漏。所有结果与 261 历史失败分开记录；263 通过也不自动改变生产最低版本，升级需按确切首个通过的 build 单独完成兼容性 contract、构建、Verifier 与原生回归。
+
+
+### 263 补充资源与客户端验收
+
+后续隔离续验复用已核对的 263.7031.23、修复探针 0.1.1 与同一测试 profile；新进程、新证据目录，不覆盖前轮失败记录。固定三轮“显式取消 → 在途禁用 → 重新启用”，在同一 PID 取得空闲、任务结束、卸载后的 Thread.print、具名对象直方图及 classloader/class-unload 证据。成功标准是每个调用恰好终止/清理、无迟到成功；每次禁用后工具最终移除、具名 Run/wrapper/service/provider/tool 无存活实例且探针类卸载；启用后工具恢复。IDE 通用线程池数量波动不等于探针泄漏，须结合运行栈和探针资源所有权判断。只有观测到残留或卸载失败时才进一步查 retained-path，不把没有 heap dump 本身视作失败；本实验始终不证明长期或全 IDE 无泄漏。
+
+客户端互操作优先使用本机已有的官方 MCP SDK，明确其版本和来源，分别记录用户侧取消、发出的通知、原 HTTP 响应及同会话后续调用；不修改用户客户端配置，不新增生产依赖。若无可用客户端，只记录公开源码与临时探针结果，正式客户端验收保持未完成。
+
+## 2026-10-23：Codex turn interrupt 与正式产品边界
+
+在用户明确授权后，使用仓库外临时的 Codex `0.163.0-alpha.11.2` app-server 配置调用 263 隔离 IDEA MCP Server。直接调用三轮的 Codex turn 均成为 `interrupted`，后续同会话 echo 成功；其中 run 3 正常 `completed`，run 4/5 则在客户端进程于 23:37:41 退出时被取消，不能归因于 turn interrupt。两轮透明 wire 均没有观察到 `notifications/cancelled`：第一轮在请求派发后约 160 ms 中断，IDE 请求仍运行约 30.7 秒并 `completed` / `cleanup`；第二轮确认服务器任务已启动并等待约两秒后中断，任务仍运行约 30.4 秒并 `completed` / `cleanup`。两轮均在同一会话随后成功调用 echo。不能把 app-server turn 状态或客户端进程退出当作服务端任务已由 turn interrupt 取消。
+
+另经授权在仓库外临时安装官方 `@modelcontextprotocol/sdk` 1.32.1，三轮 AbortSignal 取消均向同一 263 隔离服务器发送取消通知，服务端关联日志为 `cancelled` 后 `cleanup`，且每轮同会话 echo 成功。原调用返回空 HTTP 202 被 SDK 标为取消错误而非工具成功。这个结果补充证明官方 SDK 取消路径可用，但不能替代 Codex turn-interrupt 门槛。
+
+临时 SDK 安装与 Codex app-server `-c` 进程覆盖使用用户授权的隔离证据目录；未修改全局 Codex 配置、生产插件、普通 IDEA profile 或用户日常 MCP 设置。实测使用的是隔离测试插件工具，不能表示 Doc View 正式工具已注册。
+
+正式集成方向是在同一个 Doc View 插件中增加可选 MCP 扩展、注册到 IDEA 自带 MCP Server，并复用 UI 按钮调用的文档服务；所需 API 边界仅在插件内部。当前没有正式的 Doc View 接口搜索/详情工具，也没有未来显式生成/更新工具。独立 PoC 继续作为隔离准入探针。因 Codex turn interrupt 仍未传播到服务端，task 2.4 保持未完成，生产 IDEA 最低版本仍为 261；条件升级单独跟踪在 [proposal](../intellij-263-baseline-upgrade/proposal.md) 和 [verification](../intellij-263-baseline-upgrade/verification.md)，不能把 263 前向实验计为生产升级回归。

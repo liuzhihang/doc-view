@@ -5,16 +5,23 @@ import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import com.intellij.ui.ContextHelpLabel;
 import com.intellij.ui.TitledSeparator;
 import com.intellij.ui.components.JBTextArea;
+import com.intellij.openapi.options.ex.ConfigurableCardPanel;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.config.Settings;
+import com.liuzhihang.doc.view.config.SettingsConfigurable;
 import com.liuzhihang.doc.view.ui.GenerationRulesForm;
 import com.liuzhihang.doc.view.ui.SettingsForm;
 
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.Scrollable;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Rectangle;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -151,8 +158,74 @@ public final class GenerationRulesLayoutTest extends LightJavaCodeInsightFixture
 
         JBTextArea lineMarker = assertWrappingHelp(root, "settingsLineMarkerDescription");
         JBTextArea normalInterfaces = assertWrappingHelp(root, "settingsNormalInterfaceDescription");
+        for (JBTextArea description : List.of(lineMarker, normalInterfaces)) {
+            assertEquals("General settings help must use the theme's secondary text color",
+                    UIUtil.getContextHelpForeground(), description.getForeground());
+            JCheckBox option = findCheckBox(root, "lineMarkerCheckBox");
+            assertEquals("Help text must use the UI font family rather than the editor font",
+                    option.getFont().getFamily(), description.getFont().getFamily());
+            assertTrue("Help text should be smaller than its option label",
+                    description.getFont().getSize2D() < option.getFont().getSize2D());
+        }
         assertNarrowerWidthReducesHelpWidth(root, lineMarker);
         assertNarrowerWidthReducesHelpWidth(root, normalInterfaces);
+    }
+
+    public void testGeneralSettingsHelpReflowsInsideThePlatformConfigurableViewport() {
+        SettingsConfigurable configurable = new SettingsConfigurable(getProject());
+        try {
+            JComponent configurableComponent = ConfigurableCardPanel.createConfigurableComponent(configurable);
+            List<JScrollPane> scrollPanes = new ArrayList<>();
+            collectScrollPanes(configurableComponent, scrollPanes);
+            assertEquals("The general settings page should own one scroll pane at the platform wrapper boundary",
+                    1, scrollPanes.size());
+
+            JScrollPane settingsScrollPane = scrollPanes.getFirst();
+            Component view = settingsScrollPane.getViewport().getView();
+            JBTextArea lineMarker = (JBTextArea) findByName(configurableComponent,
+                    "settingsLineMarkerDescription");
+            JBTextArea normalInterfaces = (JBTextArea) findByName(configurableComponent,
+                    "settingsNormalInterfaceDescription");
+
+            int preferredWidth = view.getPreferredSize().width;
+            assertTrue("The help text fixture needs enough intrinsic width to exercise viewport reflow",
+                    preferredWidth > 80);
+            int wideViewport = layoutSettingsViewport(configurableComponent, settingsScrollPane, preferredWidth + 40);
+            int wideViewWidth = view.getWidth();
+            int wideLineMarkerWidth = lineMarker.getWidth();
+            int wideNormalInterfacesWidth = normalInterfaces.getWidth();
+            assertFalse("The initial wide settings viewport should not need horizontal scrolling",
+                    settingsScrollPane.getHorizontalScrollBar().isVisible());
+
+            int narrowViewport = layoutSettingsViewport(configurableComponent, settingsScrollPane, preferredWidth - 40);
+            int narrowViewWidth = view.getWidth();
+            assertTrue("The fixture must really narrow the platform settings viewport", narrowViewport < wideViewport);
+            assertTrue("The settings view must follow the narrowed viewport width", narrowViewWidth < wideViewWidth);
+            assertFalse("A narrowed platform settings viewport should not expose a horizontal scrollbar",
+                    settingsScrollPane.getHorizontalScrollBar().isVisible());
+            assertTrue("The settings view must fit its viewport", narrowViewWidth <= narrowViewport);
+            assertTrue("The viewport view must advertise width tracking to the platform wrapper",
+                    view instanceof Scrollable && ((Scrollable) view).getScrollableTracksViewportWidth());
+
+            assertTrue("The gutter help must reflow with the platform viewport",
+                    lineMarker.getWidth() < wideLineMarkerWidth);
+            assertTrue("The interface scanning help must reflow with the platform viewport",
+                    normalInterfaces.getWidth() < wideNormalInterfacesWidth);
+            for (JBTextArea description : List.of(lineMarker, normalInterfaces)) {
+                int preferredHeight = description.getPreferredSize().height;
+                assertTrue("Wrapped help must retain enough height for every visible line: " + description.getName()
+                                + " actual=" + description.getWidth() + "x" + description.getHeight()
+                                + ", preferred=" + description.getPreferredSize()
+                                + ", configurable=" + configurableComponent.getWidth() + "x"
+                                + configurableComponent.getHeight()
+                                + ", viewport=" + settingsScrollPane.getViewport().getExtentSize(),
+                        description.getHeight() >= preferredHeight);
+            }
+            assertComponentInsideViewport(settingsScrollPane, lineMarker, "gutter help");
+            assertComponentInsideViewport(settingsScrollPane, normalInterfaces, "interface scanning help");
+        } finally {
+            configurable.disposeUIResources();
+        }
     }
 
     public void testSettingsGuideUsesNativeContextHelpIcon() {
@@ -198,11 +271,48 @@ public final class GenerationRulesLayoutTest extends LightJavaCodeInsightFixture
         return textArea.getWidth();
     }
 
+    private static int layoutSettingsViewport(Container configurableComponent, JScrollPane scrollPane, int width) {
+        configurableComponent.setSize(width, 900);
+        for (int pass = 0; pass < 3; pass++) {
+            invalidateRecursively(configurableComponent);
+            layoutRecursively(configurableComponent);
+        }
+        return scrollPane.getViewport().getExtentSize().width;
+    }
+
+    private void assertComponentInsideViewport(JScrollPane scrollPane, Component component, String description) {
+        Rectangle bounds = SwingUtilities.convertRectangle(component.getParent(), component.getBounds(),
+                scrollPane.getViewport());
+        assertTrue(description + " must not extend past the viewport's left edge", bounds.x >= 0);
+        assertTrue(description + " must not be clipped by the viewport's right edge",
+                bounds.x + bounds.width <= scrollPane.getViewport().getExtentSize().width);
+    }
+
     private static void layoutRecursively(Container container) {
         container.doLayout();
         for (Component child : container.getComponents()) {
             if (child instanceof Container nested) {
                 layoutRecursively(nested);
+            }
+        }
+    }
+
+    private static void invalidateRecursively(Container container) {
+        for (Component child : container.getComponents()) {
+            if (child instanceof Container nested) {
+                invalidateRecursively(nested);
+            }
+        }
+        container.invalidate();
+    }
+
+    private static void collectScrollPanes(Container container, List<JScrollPane> scrollPanes) {
+        if (container instanceof JScrollPane scrollPane) {
+            scrollPanes.add(scrollPane);
+        }
+        for (Component child : container.getComponents()) {
+            if (child instanceof Container nested) {
+                collectScrollPanes(nested, scrollPanes);
             }
         }
     }

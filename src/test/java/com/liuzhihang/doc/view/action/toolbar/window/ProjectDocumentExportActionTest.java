@@ -19,6 +19,7 @@ import com.liuzhihang.doc.view.testsupport.LocalProjectJavaSources;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.concurrent.TimeUnit;
 
 public final class ProjectDocumentExportActionTest extends LightJavaCodeInsightFixtureTestCase {
@@ -35,6 +36,7 @@ public final class ProjectDocumentExportActionTest extends LightJavaCodeInsightF
     protected void setUp() throws Exception {
         super.setUp();
         sources = new LocalProjectJavaSources(getProject(), getModule());
+        clearExportOutput();
         sources.installApiAnnotationStubs();
         originalIncludeNormalInterface = Settings.getInstance(getProject()).getIncludeNormalInterface();
         sources.addClass("projectdocs/action/ProjectController.java", """
@@ -57,12 +59,40 @@ public final class ProjectDocumentExportActionTest extends LightJavaCodeInsightF
             Settings.getInstance(getProject()).setIncludeNormalInterface(originalIncludeNormalInterface);
         } finally {
             try {
-                if (sources != null) {
-                    sources.cleanup();
-                }
+                clearExportOutput();
             } finally {
-                super.tearDown();
+                try {
+                    if (sources != null) {
+                        sources.cleanup();
+                    }
+                } finally {
+                    super.tearDown();
+                }
             }
+        }
+    }
+
+    private void clearExportOutput() throws Exception {
+        Path projectRoot = Path.of(getProject().getBasePath());
+        Path output = projectRoot.resolve("docs/doc-view");
+        if (Files.exists(output)) {
+            try (var paths = Files.walk(output)) {
+                for (Path path : paths.sorted(Comparator.reverseOrder()).toList()) {
+                    Files.deleteIfExists(path);
+                }
+            }
+        }
+        Path docs = output.getParent();
+        if (Files.isDirectory(docs)) {
+            try (var children = Files.list(docs)) {
+                if (children.findAny().isEmpty()) {
+                    Files.deleteIfExists(docs);
+                }
+            }
+        }
+        VirtualFile root = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(projectRoot);
+        if (root != null) {
+            root.refresh(false, true, null);
         }
     }
 
@@ -78,11 +108,22 @@ public final class ProjectDocumentExportActionTest extends LightJavaCodeInsightF
         assertTrue("The action is available when the project index is ready",
                 event.getPresentation().isEnabledAndVisible());
 
+        java.util.List<String> notifications = new java.util.concurrent.CopyOnWriteArrayList<>();
+        getProject().getMessageBus().connect(getTestRootDisposable()).subscribe(
+                com.intellij.notification.Notifications.TOPIC, new com.intellij.notification.Notifications() {
+                    @Override public void notify(com.intellij.notification.Notification notification) {
+                        if ("doc-view.NotificationGroup".equals(notification.getGroupId())) {
+                            notifications.add(notification.getContent());
+                        }
+                    }
+                });
         ApplicationManager.getApplication().invokeAndWait(() -> action.actionPerformed(event));
 
-        Path index = Path.of(getProject().getBasePath()).resolve("docs/doc-view/index.md");
-        assertTrue("The action must finish its background scan and publish the project index", awaitFile(index));
-        String indexText = Files.readString(index);
+        Path index = Path.of(getProject().getBasePath()).resolve("docs/doc-view/index.json");
+        boolean published = awaitFile(index);
+        assertTrue("The action must finish its background scan and publish the project index; notifications="
+                + notifications, published);
+        String indexText = Files.readString(index.resolveSibling("index.md"));
         assertTrue(indexText.contains("### `projectdocs.action.ProjectController`"));
         assertTrue(indexText.contains("`find("));
         assertTrue(indexText.contains("[Document](apis/ProjectController-find-"));
@@ -94,18 +135,18 @@ public final class ProjectDocumentExportActionTest extends LightJavaCodeInsightF
                 awaitProjectDocumentVfs(projectRoot));
     }
 
-    public void testActionIsHiddenAndDoesNotExportDuringDumbMode() throws Exception {
+    public void testActionIsDisabledAndDoesNotExportDuringDumbMode() throws Exception {
         ProjectDocumentExportAction action = new ProjectDocumentExportAction();
         AnActionEvent event = event(action);
         DumbModeTestUtils.runInDumbModeSynchronously(getProject(), () -> {
             assertTrue(DumbService.getInstance(getProject()).isDumb());
             action.update(event);
             assertFalse(event.getPresentation().isEnabled());
-            assertFalse(event.getPresentation().isVisible());
+            assertTrue(event.getPresentation().isVisible());
             action.actionPerformed(event);
         });
 
-        Path index = Path.of(getProject().getBasePath()).resolve("docs/doc-view/index.md");
+        Path index = Path.of(getProject().getBasePath()).resolve("docs/doc-view/index.json");
         assertFalse("Dumb Mode must not start a partial export", Files.exists(index));
     }
 
@@ -135,7 +176,7 @@ public final class ProjectDocumentExportActionTest extends LightJavaCodeInsightF
             VirtualFile index = docView == null ? null : docView.findChild("index.md");
             VirtualFile apis = docView == null ? null : docView.findChild("apis");
             if (index != null && index.isValid() && apis != null && apis.isValid()
-                    && apis.getChildren().length == 1) {
+                    && apis.getChildren().length == 2) {
                 return true;
             }
             if (application.isDispatchThread()) {

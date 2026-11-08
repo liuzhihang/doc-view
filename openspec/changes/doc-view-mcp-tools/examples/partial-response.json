@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "status": "error",
+  "projectPath": "/example/demo",
+  "snapshotId": "52b03d205c1fd845f22d5b9b0a08391f79283ec15fb07ecbfaf44eab38539a2b",
+  "freshness": "unknown",
+  "hasUnsavedDocuments": false,
+  "data": null,
+  "error": {
+    "code": "PARTIAL_PUBLICATION",
+    "message": "取消发生在部分页面发布后，旧索引保留。",
+    "relativePaths": [],
+    "relativePathsTotal": 0,
+    "retryable": true,
+    "details": {
+      "publishedPaths": [
+        "apis/GreetingController-greet-b57b3f3f36aeb624a3bdc7d4fbbef8e0ae7f8278da113e0f313eefb884ef28b4.md"
+      ],
+      "publishedPathsTotal": 1,
+      "indexCommitted": false,
+      "cleanupFailures": [],
+      "cleanupFailuresTotal": 0
+    }
+  }
+}

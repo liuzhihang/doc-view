@@ -1,8 +1,28 @@
 # IntelliJ 兼容性
 
+## 1.6.0 兼容范围
+
+1.6.0 的最低 IDEA 为 IU `263.7031.23`，生产 Java 为25（classfile major69）；构建使用 Gradle9.5.0 与 IntelliJ Platform Gradle Plugin2.17.0。自动检查覆盖最低 build 和正式 `263.7307.200`；未设置最高build不表示未来版本均已验证。安装、更新和卸载采用 `require-restart=true`，不承诺热更新/热卸载。完整最终包证据和公开渠道状态见[1.6.0发布记录](release-1.6.0.md)。
+
+维护者已批准本次无法补齐的原生检查留待发布后人工验证/用户反馈；未验证项仍未通过，不批量勾选活动change。旧IDE可继续选择兼容的旧插件版本。
+
+## 历史诊断与升级过程
+
+以下按原候选和日期保留，不作为1.6.0最终包的当前发布结论。
+
+2026-11-09 最新状态：树 UI 修复包 `03f48336…4205b` 通过 414 tests、构建与两个精确 build 的 Verifier。原生 XML/Dubbo 目录与导航、文档库 XML freshness 和三轮资源复验通过；解除树 UI 展开监听器旧路径后，同一 PID19963 真实禁用插件，GC 插件对象记录归零、目标类消失、无类加载器保留告警。store 1.6 与基线 6.3 完成；此前 partial/retry、复制/写回、HTTP 草稿、导出和 Finder 遮挡证据仍按各包记录。HTTP L01–L03、当前包 Send、Schema/预览/凭据等独立原生门槛仍保留，尚不升级或发布。 详见[续验记录](../openspec/changes/http-client-generation-and-ui/verification-2026-11-08-remaining-native.md)。下文保留旧包历史边界。
+
+2026-11-09 生命周期策略：用户批准源 `plugin.xml` 根声明 `require-restart="true"`，让 IDEA 对安装、更新和卸载要求重启；descriptor 测试 3/3 通过。最终 ZIP 的属性读回和隔离 IDEA 原生提示/重启后状态尚未验证。429 包及无 JDWP 对照的动态热卸载失败与 FileChooser/ActionToolbar 根链保留为历史结果，未声称修复。功能已验收后，用户允许将无法执行的原生检查在发布说明中列为未验证，并发布后收集反馈；详情见[已批准选项](../openspec/changes/intellij-263-baseline-upgrade/restart-required-option.md)。
+
+2026-11-08 卸载 API 续验：已新增仅在 Doc View 自身 `beforePluginUnload` 调用公开 `IconLoader.clearCache()` 的修复。新包在正式 263 的无 UI 卸载对照中类加载器已释放；打开目录后仍被 macOS 无障碍 Local JNI 引用，官方新堆报告确认热卸载未通过。未找到可供插件释放该 JNI 根的公开 API 或官方已发布修复。剩余弹窗验收继续保留；构建、测试修正和两 build Verifier 的精确进度见[本轮记录](../openspec/changes/intellij-263-baseline-upgrade/verification-2026-11-08-unload-api.md)。原工作区与 Junie 保留，不发布。下方未清缓存等描述是此前旧包阶段。
+
 本文解释 Doc View 的 IntelliJ Platform、Java、Gradle 和 Plugin Verifier 联动规则。当前值必须从 `gradle.properties`、`build.gradle`、Gradle wrapper 和 `plugin.xml` 读取，不以本文副本替代构建事实。
 
 ## 配置来源
+
+2026-11-08 最新整合包：230 项生产/构建输入与已通过 395 tests、EAP `263.7031.23` / 正式 `263.7307.200` 两个 Verifier 的最终清单相同；在正式 build 补齐部分原生功能和有限资源回归。原生 HTTP Client 三种回环请求及参数弹窗 Pin 开启时真实切到 Finder 的遮挡场景通过。热卸载仍失败，官方本机分析分别发现无障碍 JNI、平台图标缓存保留 ClassLoader，未验证修复。诊断运行时为 `JBR-25.0.4.1+1-635.79-nomod`，未替换 JBR 或修改生产基线。完整弹窗/菜单及其余矩阵未完成，R2/4.2 未勾选，最低 build 仍为 `263.7031.23`，未发布。详见[新整合包原生记录](../openspec/changes/intellij-263-baseline-upgrade/verification-2026-11-08-integration-native.md)。下文 full-17 是旧包历史证据，不与整合包混用。
+
+截至 2026-11-07，full-17 已修复七个 Keymap 组的中英文标题，70 suites / 362 tests、构建及 EAP `263.7031.23` / 正式 `263.7307.200` 两个 Verifier 通过，仍有 16 Experimental usages。同包原生已验中英 Keymap、参数 Copy JSON、预览 Copy/Export、中文 Schema 写回与一次 Undo、上传菜单取消、目录 Enter，以及 Pin 开/关跨应用草稿保留和前台交互。三轮关闭后静置约 150 秒，表单、Markdown JCEF panel、RemoteBrowser 和客户端 Java 对象全部归零，FD 无逐轮增长；正常重启/退出后对应 IDEA 与 CEF 进程已消失。完整桌面视觉遮挡、`…`/目录右键菜单可见结果、CEF native peer/listener/性能及其余矩阵仍未通过，R2/4.2 保持未勾选，正式 MCP 不推进。Junie 保留，临时语言与源码已恢复；最低 build 仍为 `263.7031.23`。详情见[full-17 续验记录](../openspec/changes/intellij-263-baseline-upgrade/verification-2026-11-07-full17.md)；full-13/14/16 和下方旧日期均保留为历史阶段。
 
 | 事实 | 权威来源 |
 | --- | --- |
@@ -12,6 +32,10 @@
 | plugin ID、modules、extensions、actions | `src/main/resources/META-INF/plugin.xml` |
 
 这些值必须一起评估：提高 Java 字节码或使用新 IntelliJ API 时，不能继续声明不兼容的旧 since build；空 `pluginUntilBuild` 也不代表未来 IDE 已被验证。
+
+截至 2026-10-24，已发布的兼容范围仍以已发布插件及其 descriptor 为准。当前工作树已配置未发布候选 IU `263.7031.23`、Java 25 和正式 IPGP 2.17.0；用户已批准该基线调整，但新包原生验收尚未完成，因此不能把候选值描述为已发布支持范围。平台/Verifier 实际目标已读回为 `IU-263.7031.23`，Java 25 配置检查、`--release 25` 参数和 full-10 ZIP 中 329 个 major 69 生产 class 已通过核验。IPGP 2.17.0（release `61cf376`，2026-06-26）更新 build 262 起的 Java 映射；它只升级构建期工具，不增加生产运行时依赖。
+
+`263-full-10` 自动构建成功，67 个 suite 的 352 个测试全部通过（0 failures/errors/skips），18 个 Gradle tasks 全部执行，用时 1 分 55 秒。测试源码编译另有 15 条 test-only deprecated/removal warnings，不能将结果表述为全项目零警告。Plugin Verifier 对精确目标报告 Compatible，production 报告无 deprecated、internal、override-only 或 compatibility 问题；报告仍列出 16 处 Experimental API 使用。full-10 ZIP SHA-256 为 `b238f5412d134ff4311ba5422fb78d50562bfecf80826964858984d5d69bcc0b`，大小 722,118 bytes；嵌套 JAR SHA-256 为 `b3615cd1f5a44de8dd472c3f2c8715ecd4126fe6892374fc307a5a1d7ca6f267`。产品元数据读回目标为 `IU-263.7031.23`；插件 descriptor 与构建元数据读回插件 ID/version 和 `since-build=263.7031.23`，ZIP 不含测试依赖，329 个生产 class 均为 major 69。full-9 的 350、full-8 的 349、full-7 的 344 项全绿作为历史结果保留；full-5 与 targeted-6 的失败记录也保留，targeted-7 已通过 51 个针对性测试。full-10 当时原生回归只有部分代表路径通过；其 Copy/Export 等未验描述保留为历史，后续 full-17 已补验项及剩余边界见首段，不混合不同包的完整矩阵。正式 Doc View MCP 仍受原生回归和项目文档库验收约束。详细日志和范围见[基线升级验证记录](../openspec/changes/intellij-263-baseline-upgrade/verification.md)；原生回归通过前，不将 IU 263/Java 25 写成已完成支持声明。
 
 ## 版本演进策略
 

@@ -20,6 +20,11 @@ PoC SHALL 记录所用 IDE 的精确 build、Java 版本、MCP 捆绑组件和�
 - **THEN** 报告明确失败或未验证原因
 - **AND** 不自动提高插件平台基线或安装新的语言运行时
 
+#### Scenario: 明确授权的 263 官方分发包实验
+- **WHEN** 维护者指定隔离 IDEA 263 进行前向验证
+- **THEN** 可以下载官方完整 IDE 包并核对 checksum、产品 build、实际 MCP/SDK 内容，使用其随包 JBR 和独立 profile
+- **AND** 普通 IDEA 配置和生产基线保持不变，263 的通过、失败和未验证项与此前版本分别记录
+
 ### Requirement: Java 工具参数与结果必须经过实际调用
 
 PoC SHALL 分别记录 Java 普通方法的发现、输入 schema、具名参数绑定及输出；输入至少包含字符串与整数，并以虚构 Markdown 字符串作为受支持结果。

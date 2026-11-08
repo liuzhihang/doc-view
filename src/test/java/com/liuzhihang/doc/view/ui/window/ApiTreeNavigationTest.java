@@ -4,9 +4,15 @@ import com.intellij.ide.projectView.PresentationData;
 import com.intellij.psi.PsiClass;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import com.intellij.ui.SimpleTextAttributes;
+import com.intellij.ui.TreeSpeedSearch;
+import com.intellij.ui.tree.StructureTreeModel;
 import com.intellij.ui.treeStructure.SimpleNode;
+import com.intellij.ui.treeStructure.SimpleTreeStructure;
 import com.liuzhihang.doc.view.testsupport.AnnotationStubs;
 
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 import java.util.Arrays;
 import java.util.List;
 
@@ -103,10 +109,52 @@ public final class ApiTreeNavigationTest extends LightJavaCodeInsightFixtureTest
 
     public void testSpeedSearchIncludesCodeSignatureAndBusinessDescription() throws Exception {
         ClassNode node = classNode();
+        MethodNode method = (MethodNode) node.getChildren()[0];
         var searchText = DocViewNode.class.getMethod("getSearchText");
         assertEquals("UsersController 用户接口", searchText.invoke(node));
-        assertEquals("find(java.lang.String) 查询用户", searchText.invoke(node.getChildren()[0]));
+        assertEquals("find(java.lang.String) 查询用户", searchText.invoke(method));
         assertEquals("ping()", searchText.invoke(node.getChildren()[2]));
+        assertEquals("The platform formatter must keep the class search text", node.getSearchText(),
+                TreeSpeedSearch.NODE_PRESENTATION_FUNCTION.apply(pathFor(node)));
+        assertEquals("The platform formatter must keep the full method signature and title",
+                method.getSearchText(), TreeSpeedSearch.NODE_PRESENTATION_FUNCTION.apply(pathFor(method)));
+        assertEquals("The method's renderer fallback must retain the prior search text",
+                method.getSearchText(), method.toString());
+    }
+
+    public void testSpeedSearchIncludesFullDescriptionThroughStructureTreeModel() throws Exception {
+        PsiClass describedController = myFixture.addClass("""
+                package contract.navigation;
+                import org.springframework.web.bind.annotation.GetMapping;
+                import org.springframework.web.bind.annotation.RestController;
+
+                @RestController
+                public class SearchDescriptionController {
+                    /** Nativepageitem23 tailneedle */
+                    @GetMapping("/search-description")
+                    public void searchDescription() {}
+                }
+                """);
+        ClassNode node = new ClassNode(new ModuleNode(new RootNode(), getModule()), describedController);
+        MethodNode method = Arrays.stream(node.getChildren()).map(MethodNode.class::cast)
+                .filter(candidate -> "searchDescription".equals(candidate.getPsiMethod().getName()))
+                .findFirst().orElseThrow();
+
+        assertEquals("The visible business title keeps the existing 15-character rule",
+                "Nativepageitem2", method.getName());
+        assertTrue("The tooltip keeps the complete method description",
+                method.getPresentation().getTooltip().contains("Nativepageitem23tailneedle"));
+        method.update();
+        assertEquals("The method row keeps the existing truncated business title", "Nativepageitem2",
+                method.getPresentation().getColoredText().get(1).getText().trim());
+        assertTrue("The speed-search text must include description characters beyond the title limit",
+                method.getSearchText().contains("tailneedle"));
+        assertTrue("The platform formatter on a real StructureTreeModel path must include the description tail",
+                speedSearchTextFromStructureTreeModel(node, method).contains("tailneedle"));
+        assertTrue("Markdown file naming must keep the existing truncated business title",
+                method.docPath(getProject()).endsWith("/Nativepageitem2.md"));
+        assertTrue("HTTP file naming must keep the existing truncated business title",
+                method.httpPath(getProject()).endsWith("/Nativepageitem2.http"));
     }
 
     public void testSourceNavigationUsesValidPsiAndIgnoresDeletedMethods() throws Exception {
@@ -175,5 +223,28 @@ public final class ApiTreeNavigationTest extends LightJavaCodeInsightFixtureTest
 
     private ClassNode classNode() {
         return new ClassNode(new ModuleNode(new RootNode(), getModule()), controller);
+    }
+
+    private static TreePath pathFor(DocViewNode node) {
+        return new TreePath(new DefaultMutableTreeNode(node));
+    }
+
+    private String speedSearchTextFromStructureTreeModel(ClassNode root, MethodNode target) throws Exception {
+        StructureTreeModel<SimpleTreeStructure> model = new StructureTreeModel<>(new SimpleTreeStructure() {
+            @Override
+            public Object getRootElement() {
+                return root;
+            }
+        }, getTestRootDisposable());
+        return model.getInvoker().compute(() -> {
+            TreeNode modelRoot = model.getRootImmediately();
+            for (int index = 0; index < model.getChildCount(modelRoot); index++) {
+                TreeNode child = model.getChild(modelRoot, index);
+                if (child instanceof DefaultMutableTreeNode wrapper && wrapper.getUserObject() == target) {
+                    return TreeSpeedSearch.NODE_PRESENTATION_FUNCTION.apply(new TreePath(new Object[]{modelRoot, child}));
+                }
+            }
+            throw new AssertionError("The StructureTreeModel wrapper must contain the target MethodNode");
+        }).blockingGet(10, java.util.concurrent.TimeUnit.SECONDS);
     }
 }

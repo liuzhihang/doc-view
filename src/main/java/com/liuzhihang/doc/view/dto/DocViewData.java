@@ -189,7 +189,7 @@ public class DocViewData {
             builder.append("|").append(data.getName())
                     .append("|").append(data.getType())
                     .append("|").append(data.getRequired() ? "Y" : "N")
-                    .append("|").append(data.getDesc())
+                    .append("|").append(markdownCellDescription(data.getDesc()))
                     .append("|").append(Arrays.stream(new String[]{data.getSince(), data.getVersion()}).filter(StringUtils::isNotBlank).collect(Collectors.joining("-")))
                     .append("|").append("\n");
             if (data.getChildList() != null && !data.getChildList().isEmpty()) {
@@ -229,7 +229,7 @@ public class DocViewData {
             builder.append("|").append(data.getPrefixSymbol1()).append(data.getPrefixSymbol2()).append(data.getName())
                     .append("|").append(data.getType())
                     .append("|").append(data.getRequired() ? "Y" : "N")
-                    .append("|").append(data.getDesc())
+                    .append("|").append(markdownCellDescription(data.getDesc()))
                     .append("|").append(Arrays.stream(new String[]{data.getSince(), data.getVersion()}).filter(StringUtils::isNotBlank).collect(Collectors.joining("-")))
                     .append("|").append("\n");
             if (data.getChildList() != null && !data.getChildList().isEmpty()) {
@@ -238,6 +238,15 @@ public class DocViewData {
         }
 
         return builder;
+    }
+
+    private static String markdownCellDescription(String description) {
+        if (description == null || (description.indexOf('\r') < 0 && description.indexOf('\n') < 0)) {
+            return description;
+        }
+        return description.replace("\r\n", "<br>")
+                .replace("\r", "<br>")
+                .replace("\n", "<br>");
     }
 
     @NotNull

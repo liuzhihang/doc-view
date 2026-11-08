@@ -37,15 +37,15 @@
       <ol class="update-list">
         <li>
           <span class="update-index">01</span>
-          <div><h3>实体复制为 Markdown</h3><p>Doc Editor 可以把当前说明、必填标记及仍在编辑的单元格复制为 Markdown 字段表，遵循普通或独立分表设置；复制不写回源码。</p></div>
+          <div><h3>生成 HTTP 请求草稿</h3><p>为受支持的 Spring/Feign 方法新建可编辑请求，区分请求头、Query、JSON 与表单。生成可取消并保留旧草稿；实际发送需在 IDEA HTTP Client 中主动执行。</p></div>
         </li>
         <li>
           <span class="update-index">02</span>
-          <div><h3>文档标签与依赖源码</h3><p>接口方法和实体字段支持 @since、@version，已有自定义模板可自行插入新增变量。依赖 JAR 已在 IDEA 关联对应源码时，可读取其字段注释；插件不会自动下载源码。</p></div>
+          <div><h3>生成与搜索项目文档</h3><p>同步生成 Markdown、JSON 摘要索引及结构化接口详情，通过 Export 菜单搜索和打开落盘快照；源码变化后显式更新。正式 MCP 和可安装 Skill 仍是后续计划。</p></div>
         </li>
         <li>
           <span class="update-index">03</span>
-          <div><h3>路由、参数描述与字段层级</h3><p>Spring 路由数组取第一项，支持 path 别名和常量。Javadoc 参数按完整名称匹配并保留多行描述；Markdown 隐藏集合和 Map 的合成中间层，保留真实字段与 JSON 示例。</p></div>
+          <div><h3>精简编辑操作与升级 IDE 基线</h3><p>采用清晰的图标按钮，支持多行描述和源码写回的一次 Undo/Redo。需要 IDEA IU build 263.7031.23 或更高版本及 Java 25；安装、更新或停用后需重启 IDE。</p></div>
         </li>
       </ol>
     </section>

@@ -6,6 +6,10 @@
 
 文档加载和渲染使用 `DocViewBackgroundTasks`。它会静默捕获 `ProcessCanceledException`，其他错误只调用通用错误回调（[DocViewBackgroundTasks.java#L22](../../../src/main/java/com/liuzhihang/doc/view/utils/DocViewBackgroundTasks.java#L22)、[lines 51–80](../../../src/main/java/com/liuzhihang/doc/view/utils/DocViewBackgroundTasks.java#L51)）。因此当前“Loading/Rendering”提示在这些路径上没有终态。已有渲染请求编号只保护成功的 Markdown 应用；`applyMarkdown()` 仍在 EDT 内生成 HTML 字符串（[PreviewForm.java#L654](../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L654)、[lines 702–742](../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L702)）。单次 Dubbo 卡在“Rendering Doc View...”的观察没有对应异常或已确认根因，本 change 不将它描述为已定位的故障。
 
+2026-11-09 的 IU 263.7307.200 原生日志发现另一项已定位的线程错误：用户在目录列表中选择预览项时，`PreviewForm.lambda$applyDocViewList$1` 从 EDT 直接调用 `currentDocView.getPsiClass().getQualifiedName()`；`idea.log` 报 `Read access is allowed from inside read-action only`，调用栈经 `JList.fireSelectionValueChanged`。该日志来自 `build/native-validation/2026-11-08/unload-clean/log/idea.log:48085` 附近。此前预览画面成功不能证明日志无线程错误。
+
+同一候选的 JCEF 日志还在 02:28:41 与 02:58:00 记录 `MarkdownJCEFHtmlPanel - Failed to update the Markdown preview`，浏览器侧异常为 `First body child is expected to be the root of the document!`。当前 `showPreviewStatus()` 自行拼接 `<html><body><p>…</p></body></html>` 后交给 Markdown panel；平台 Markdown JCEF 的滚动同步脚本要求 renderer 生成的文档根节点/源码位置结构。第一条日志附近没有取消或关闭事件；第二条发生在一次预览取消后，说明取消会走到该状态路径，但相同错误也能独立发生，现有证据不支持将它归因为 panel dispose 竞态。Java 调用栈在异步 JS worker 处终止，没有足够信息确认每次错误对应的具体 `setHtml()` 调用；将状态 HTML 改为复用当前公开 Markdown renderer，并在新状态、正文应用或关闭时使待处理状态结果失效，再以 JCEF 日志复验。
+
 Export 与 Export All 当前先取消 popup，再读取实例字段（[PreviewForm.java#L538](../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L538)、[lines 590–601](../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L590)）。关闭处理若清空这些字段，导出会读到空值，因此动作必须先取得所需快照。
 
 ## Goals / Non-Goals
@@ -16,6 +20,7 @@ Export 与 Export All 当前先取消 popup，再读取实例字段（[PreviewFo
 - 让初始化、popup 创建或显示失败时也能释放部分创建的资源。
 - 让当前请求报告成功、空结果、失败或取消，并忽略过期请求和关闭后的回调。
 - 在后台生成 Markdown/HTML，在 UI 线程更新 Swing、editor 和 Markdown preview 组件。
+- 让 HTML 状态页采用 Markdown panel 支持的文档结构；状态生成不阻塞 UI，迟到状态不会覆盖正文或更新状态。
 - 在关闭 popup 前捕获导出数据，保持 Export/Export All 可用。
 
 **Non-Goals:**
@@ -44,7 +49,9 @@ Export 与 Export All 当前先取消 popup，再读取实例字段（[PreviewFo
 
 为文档列表加载和每次渲染分别保留请求编号，并在关闭时标记 form 已结束。新选择开始渲染时将 `currentMarkdownText` 清空，并将源码和 HTML 面板都替换为渲染中状态；仅成功状态写入可复制、可导出的 Markdown。失败或当前请求被取消时显示相应终态；切换选择导致的旧任务取消以及迟到错误均忽略。空列表显示空状态。成功状态继续展示实际 Markdown，不增加成功提示条。
 
-状态更新需覆盖两种预览模式：源码模式写入状态文本，HTML 模式向 HTML panel 设置静态、受控的状态页，让上一个成功文档立即消失。状态页不经 Markdown/HTML 正文转换，不写入 `currentMarkdownText`，因此不会成为复制或导出内容。HTML panel 的状态更新与其他 UI 更新一样在 EDT 执行；成功正文的 Markdown 和 HTML 仍在后台生成。
+状态更新需覆盖两种预览模式：源码模式写入状态文本，HTML 模式让上一个成功文档立即消失。HTML 状态文本使用当前已集成的公开 `MarkdownUtil.generateMarkdownHtml(VirtualFile, String, Project)` 生成平台兼容的 HTML；不手写 HTML DOM，也不将状态写入 `currentMarkdownText`，因此状态不会成为复制或导出内容。状态 Markdown/HTML 在后台生成，HTML panel 和源码 editor 仍只在 EDT 更新。以 form 所有的非阻塞 read task/promise 处理短状态渲染；每个状态请求使用代际标识，新正文、新状态和 dispose 均使旧状态失效并取消仍在运行的任务。应用回调再次校验代际与 form 生命周期，防止慢状态覆盖随后成功的正文或状态。状态生成不创建额外的可见 Backgroundable 进度任务。
+
+状态 HTML promise 被新请求或 dispose 取消时属于预期终止，不能当作 renderer 错误写 `WARN`。用公开 `CancellablePromise.isCancelled()` 状态判断取消，不按平台内部 cancellation sentinel 的具体类名做分支；只有未取消且非 `ProcessCanceledException` 的 renderer 异常继续记录 warning。
 
 Markdown 缓存命中时也需在后台生成 HTML，避免缓存路径重新在 EDT 调用转换。`markdownCache` 继续由 UI 线程读写，除非实现验证出真实并发需求。Velocity evaluate 返回 `false` 时生成的既有 `ERROR` 文本保持原输出语义；异常状态与这段 Markdown 内容分别处理。
 
@@ -53,6 +60,8 @@ Markdown 缓存命中时也需在后台生成 HTML，避免缓存路径重新在
 ### 将 Markdown 和 HTML 字符串生成移出 EDT
 
 在后台任务中计算 Markdown 与 HTML 字符串；涉及 PSI/VFS 的读取仅在所需的 read access 内执行。后台返回不可变字符串后，再在 EDT 校验请求身份并更新 `Document`、HTML panel 和状态。不得在 read action 中执行 Swing 更新或编辑器写入。
+
+目录选择监听器也不得从 `DocView` 解引用 PSI。列表加载在已有后台 read action 中为每个文档捕获要显示的限定类名等不可变 UI 元数据；EDT 监听器只读取该元数据、选择当前 `DocView` 并调度渲染。不得为修复该访问而把 PSI 解引用或渲染工作整体包进 EDT 的 `runReadAction`。
 
 替代方案：只把 `DocViewData.markdownText()` 放到后台会留下 `MarkdownUtil.generateMarkdownHtml()` 的同步 EDT 工作，未覆盖当前 `applyMarkdown()` 中的另一段转换。
 

@@ -41,7 +41,7 @@ public final class ProjectDocumentExportGuardTest extends TestCase {
                 }
             });
             assertTrue(activeWriteStarted.await(5, TimeUnit.SECONDS));
-            var overlappingWrite = executor.submit(guard::tryStart);
+            var overlappingWrite = executor.submit((java.util.concurrent.Callable<Boolean>) guard::tryStart);
             assertFalse(overlappingWrite.get(5, TimeUnit.SECONDS));
 
             finishActiveWrite.countDown();

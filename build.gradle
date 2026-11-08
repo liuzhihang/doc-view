@@ -7,7 +7,7 @@ import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij.platform' version '2.16.0'
+    id 'org.jetbrains.intellij.platform' version '2.17.0'
     id 'org.jetbrains.changelog' version '2.1.2'
 }
 
@@ -35,12 +35,19 @@ dependencies {
     }
 
     intellijPlatform {
-        create(project.platformType, project.platformVersion)
+        create(project.platformType, project.platformVersion) {
+            useInstaller = false
+        }
         bundledPlugin 'com.intellij.java'
+        bundledPlugin 'com.intellij.xml'
         bundledPlugin 'org.intellij.plugins.markdown'
         bundledPlugin 'com.intellij.modules.jcef'
         testFramework TestFrameworkType.Platform.INSTANCE
         testFramework TestFrameworkType.Plugin.Java.INSTANCE
+        testBundledModule 'intellij.platform.credentialStore.impl'
+        testBundledPlugin 'com.intellij.structureView'
+        testBundledPlugin 'com.intellij.platform.vcs'
+        testBundledPlugin 'intellij.java.aetherDependencyResolver.plugin'
     }
 }
 
@@ -90,7 +97,7 @@ intellijPlatform {
                     .split(',')
                     .collect { it.trim() }
                     .findAll { !it.isEmpty() }
-                    .each { create(IntelliJPlatformType.IntellijIdeaUltimate, it) }
+                    .each { create(IntelliJPlatformType.IntellijIdea, it) }
         }
     }
 
@@ -117,6 +124,15 @@ changelog {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = "UTF-8"
+    options.release = project.javaVersion as Integer
+}
+
+def pluginBuildVersion = project.pluginVersion
+tasks.named('processResources') {
+    inputs.property('pluginVersion', pluginBuildVersion)
+    filesMatching('META-INF/doc-view-build.properties') {
+        expand(pluginVersion: pluginBuildVersion)
+    }
 }
 
 tasks.named('test') {
