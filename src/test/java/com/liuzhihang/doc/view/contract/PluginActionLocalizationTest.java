@@ -28,6 +28,21 @@ public final class PluginActionLocalizationTest extends LightPlatformTestCase {
         assertPresentation(actionManager, "liuzhihang.doc.tool.window.catalog.action.upload.yuque",
                 "action.liuzhihang.doc.tool.window.catalog.action.upload.yuque.text",
                 "action.liuzhihang.doc.tool.window.catalog.action.upload.yuque.description");
+        assertPresentation(actionManager, "liuzhihang.doc.tool.window.toolbar.action.setting",
+                "action.liuzhihang.doc.tool.window.toolbar.action.setting.text",
+                "action.liuzhihang.doc.tool.window.toolbar.action.setting.description");
+        assertPresentation(actionManager, "liuzhihang.doc.tool.window.toolbar.action.clear",
+                "action.liuzhihang.doc.tool.window.toolbar.action.clear.text",
+                "action.liuzhihang.doc.tool.window.toolbar.action.clear.description");
+        assertPresentation(actionManager, "liuzhihang.doc.tool.window.catalog.action.clear",
+                "action.liuzhihang.doc.tool.window.catalog.action.clear.text",
+                "action.liuzhihang.doc.tool.window.catalog.action.clear.description");
+        assertPresentation(actionManager, "liuzhihang.doc.tool.window.catalog.action.open",
+                "action.liuzhihang.doc.tool.window.catalog.action.open.text",
+                "action.liuzhihang.doc.tool.window.catalog.action.open.description");
+        assertPresentation(actionManager, "liuzhihang.doc.view.action.toolbar.window.catalog.httpclient",
+                "action.liuzhihang.doc.view.action.toolbar.window.catalog.httpclient.text",
+                "action.liuzhihang.doc.view.action.toolbar.window.catalog.httpclient.description");
     }
 
     private static void assertPresentation(ActionManager actionManager, String actionId,

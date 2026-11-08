@@ -16,6 +16,7 @@
 
 - Spring 类需被识别为 `@Controller`、`@RestController` 等支持类型，方法需有当前支持的映射注解，例如 `@GetMapping`、`@PostMapping`、`@PutMapping`、`@DeleteMapping`、`@PatchMapping` 或 `@RequestMapping`。
 - Feign、Dubbo 入口需符合插件当前识别规则；指南中的[源码入口示例](index.md#支持的源码入口)可用于核对形态。
+- Dubbo XML 的 `interface` 需解析为项目源码中的接口；检查 XML 所在模块到 API 模块的依赖。服务实现与接口可以位于不同模块，目录按接口源码所属模块归类；普通同名 `@Service` 注解不构成 Dubbo 注册。
 - 普通接口默认关闭。在 Doc View 根设置页开启“普通接口识别与扫描”后 Apply，再刷新目录。它与编辑器行标记独立；无需为了扫描普通接口开启行标记。
 - 当前扫描不代表依赖库、外部模块或任意接口都能生成完整 API 文档。检查类所在模块是否属于当前项目，及 IDE 是否已完成项目索引和依赖解析。
 
@@ -66,7 +67,7 @@ Doc View 为一个方法生成一篇文档。类和方法的 `@RequestMapping` /
 
 ## Clear Cache 与刷新有什么区别
 
-工具栏和目录菜单的 **Clear Cache** 只清当前项目 DTO schema 的内存缓存。它保留 Scratch 文档、打开的编辑器和项目文件；没有选中目录节点时也可执行。它不会重新扫描接口、重写 Markdown 或显示删除确认框。
+Unreleased 中工具窗口原生 **…** 菜单的 **Clear Cache** 清理当前项目的 DTO schema 和文档查询派生内存缓存。它保留磁盘索引、快照新鲜度依据、Scratch 文档、打开的编辑器和项目文件；没有选中目录节点时也可执行。它不会重新扫描接口、重写 Markdown 或显示删除确认框。
 
 重新扫描用 **Refresh**；更新文档则重新生成或导出。旧版 Clear 曾删除生成的 Scratch 文档，新行为不会恢复先前已删除的手写内容。
 
@@ -103,3 +104,7 @@ Doc View 为一个方法生成一篇文档。类和方法的 `@RequestMapping` /
 `Export Project Docs` 会检查 `docs/doc-view/` 的索引和目标页面。未标记文件、手工改动的生成页或同名目录都可能造成冲突。备份要保留的内容，再按提示处理路径；手写说明应放在单独文件，不能期待它与生成内容自动合并。
 
 磁盘故障可能造成部分页面已更新、索引仍旧。通知会列出成功、失败及未清理的临时路径。检查空间、权限和目录状态后重试；这不是整批事务。不要自动删除所有旧页。详见[项目文档说明](index.md#项目内-api-文档与-ai-检索)。
+
+## IDEA 或 Codex 中没有 Doc View MCP 工具
+
+当前版本可以生成项目 Markdown；可用 **Find in Files → Project** 搜索已落盘的接口文档。结构化 JSON 文档库、Doc View 正式 MCP 工具和可安装的 Codex Skill 仍未交付，因此 IDEA MCP Server 中暂时不会出现 Doc View 工具。查看当前状态、注册步骤和计划中的能力，请读[MCP 使用说明](mcp.md)；客户端取消验收状态见[取消说明](../mcp-cancellation.md)。

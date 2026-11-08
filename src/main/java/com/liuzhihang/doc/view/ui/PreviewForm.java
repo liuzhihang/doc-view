@@ -5,6 +5,8 @@ import com.intellij.icons.AllIcons;
 import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.toolbarLayout.ToolbarLayoutStrategy;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.EditorFactory;
@@ -15,9 +17,11 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.progress.ProgressIndicator;
+import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Computable;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.ui.popup.JBPopup;
@@ -31,6 +35,7 @@ import com.intellij.ui.*;
 import com.intellij.ui.components.JBList;
 import com.intellij.ui.components.JBPanel;
 import com.intellij.ui.jcef.JBCefApp;
+import com.intellij.util.concurrency.AppExecutorUtil;
 import com.intellij.util.ui.JBUI;
 import com.intellij.util.ui.UIUtil;
 import com.liuzhihang.doc.view.DocViewBundle;
@@ -54,12 +59,14 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.concurrency.CancellablePromise;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.awt.event.MouseEvent;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -189,9 +196,16 @@ public class PreviewForm implements Disposable {
      */
     private Map<String, DocView> docViewMap;
 
+    /**
+     * Class names captured with read access while loading the list.
+     */
+    private Map<DocView, String> docViewQualifiedNames = Map.of();
+
     private final Map<String, String> markdownCache = new HashMap<>();
     private final AtomicLong renderRequest = new AtomicLong();
     private final AtomicLong loadRequest = new AtomicLong();
+    private long statusHtmlRequest;
+    private CancellablePromise<String> statusHtmlPromise;
     private final ConcurrentMap<Long, ProgressIndicator> renderIndicators = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, ProgressIndicator> loadIndicators = new ConcurrentHashMap<>();
     private boolean uiInitialized;
@@ -245,13 +259,12 @@ public class PreviewForm implements Disposable {
                     .setMovable(true)
                     .setModalContext(false)
                     .setRequestFocus(true)
+                    .setNormalWindowLevel(true)
                     .setBelongsToGlobalPopupStack(true)
                     .setDimensionServiceKey(null, DOC_VIEW_POPUP, true)
                     .setLocateWithinScreenBounds(false)
                     // 鼠标点击外部时是否取消弹窗 外部单击, 未处于 pin 状态则可关闭
-                    .setCancelOnMouseOutCallback(event ->
-                            event.getID() == MouseEvent.MOUSE_PRESSED && !myIsPinned.get()
-                    )
+                    .setCancelOnMouseOutCallback(event -> PopupMouseOutPolicy.shouldCancel(event, rootPanel, myIsPinned.get()))
                     // 单击外部时取消弹窗
                     .setCancelOnClickOutside(false)
                     .setCancelOnOtherWindowOpen(false)
@@ -299,6 +312,7 @@ public class PreviewForm implements Disposable {
         disposed = true;
         loadRequest.incrementAndGet();
         renderRequest.incrementAndGet();
+        invalidateStatusHtml();
         cancelIndicators(loadIndicators);
         cancelIndicators(renderIndicators);
         markdownCache.clear();
@@ -316,6 +330,7 @@ public class PreviewForm implements Disposable {
         currentDocView = null;
         docViewList = null;
         docViewMap = null;
+        docViewQualifiedNames = Map.of();
     }
 
     private static void cancelIndicators(@NotNull ConcurrentMap<Long, ProgressIndicator> indicators) {
@@ -749,16 +764,24 @@ public class PreviewForm implements Disposable {
         cancelIndicators(loadIndicators);
         showPreviewStatus(DocViewBundle.message("ui.preview.loading"));
 
-        AtomicReference<List<DocView>> result = new AtomicReference<>();
+        AtomicReference<PreviewListSnapshot> result = new AtomicReference<>();
         new Task.Backgroundable(psiClass.getProject(), DocViewBundle.message("task.docview.preview"), true) {
             @Override
             public void run(@NotNull ProgressIndicator indicator) {
                 indicator.setIndeterminate(true);
                 trackIndicator(loadIndicators, requestId, indicator, loadRequest, psiClass.getProject());
                 try {
-                    result.set(ApplicationManager.getApplication().runReadAction((Computable<List<DocView>>) () -> {
+                    result.set(ApplicationManager.getApplication().runReadAction((Computable<PreviewListSnapshot>) () -> {
                         indicator.checkCanceled();
-                        return DocViewService.getInstance(psiClass.getProject(), psiClass).buildDoc(psiClass, psiMethod);
+                        List<DocView> docViews = DocViewService.getInstance(psiClass.getProject(), psiClass)
+                                .buildDoc(psiClass, psiMethod);
+                        Map<DocView, String> qualifiedNames = new IdentityHashMap<>();
+                        for (DocView docView : docViews) {
+                            indicator.checkCanceled();
+                            PsiClass owner = docView.getPsiClass();
+                            qualifiedNames.put(docView, owner == null ? null : owner.getQualifiedName());
+                        }
+                        return new PreviewListSnapshot(docViews, qualifiedNames);
                     }));
                 } finally {
                     loadIndicators.remove(requestId, indicator);
@@ -769,7 +792,8 @@ public class PreviewForm implements Disposable {
             public void onSuccess() {
                 if (isCurrentLoad(requestId)) {
                     try {
-                        applyDocViewList(result.get(), requestId);
+                        PreviewListSnapshot snapshot = result.get();
+                        applyDocViewList(snapshot.documents(), snapshot.qualifiedNames(), requestId);
                     } catch (RuntimeException exception) {
                         handleLoadFailure(requestId, exception);
                     }
@@ -788,12 +812,15 @@ public class PreviewForm implements Disposable {
         }.queue();
     }
 
-    private void applyDocViewList(@NotNull List<DocView> loadedDocViewList, long requestId) {
+    private void applyDocViewList(@NotNull List<DocView> loadedDocViewList,
+                                  @NotNull Map<DocView, String> qualifiedNames,
+                                  long requestId) {
         if (!isCurrentLoad(requestId)) {
             return;
         }
 
         docViewList = List.copyOf(loadedDocViewList);
+        docViewQualifiedNames = Collections.unmodifiableMap(new IdentityHashMap<>(qualifiedNames));
 
         docViewMap = docViewList.stream().collect(Collectors.toMap(DocView::getName, docView -> docView));
 
@@ -811,7 +838,7 @@ public class PreviewForm implements Disposable {
                 return;
             }
 
-            docNameLabel.setText(currentDocView.getPsiClass().getQualifiedName());
+            docNameLabel.setText(docViewQualifiedNames.get(currentDocView));
 
             renderMarkdown(currentDocView);
 
@@ -904,6 +931,7 @@ public class PreviewForm implements Disposable {
             return;
         }
 
+        invalidateStatusHtml();
         currentMarkdownText = markdownText;
 
         if (markdownHtmlPanel != null && htmlText != null) {
@@ -918,19 +946,61 @@ public class PreviewForm implements Disposable {
         if (disposed) {
             return;
         }
+        invalidateStatusHtml();
         currentMarkdownText = null;
         setMarkdownText(message);
-        if (markdownHtmlPanel != null) {
-            markdownHtmlPanel.setHtml("<!doctype html><html><body><p>" + escapeHtml(message) + "</p></body></html>", 0);
+        if (markdownHtmlPanel == null || psiClass.getProject().isDisposed()) {
+            return;
+        }
+
+        long requestId = statusHtmlRequest;
+        Project project = psiClass.getProject();
+        CancellablePromise<String> promise = ReadAction.nonBlocking(() -> {
+                    if (project.isDisposed() || disposed || !psiClass.isValid()) {
+                        throw new ProcessCanceledException();
+                    }
+                    VirtualFile sourceFile = psiClass.getContainingFile().getVirtualFile();
+                    if (sourceFile == null || !sourceFile.isValid()) {
+                        throw new ProcessCanceledException();
+                    }
+                    return MarkdownUtil.INSTANCE.generateMarkdownHtml(sourceFile, message, project);
+                })
+                .expireWith(project)
+                .expireWith(this)
+                .finishOnUiThread(ModalityState.any(), html -> {
+                    if (!isCurrentStatusHtml(requestId, project)) {
+                        return;
+                    }
+                    MarkdownHtmlPanel panel = markdownHtmlPanel;
+                    if (panel != null) {
+                        panel.setHtml(html, 0);
+                    }
+                })
+                .submit(AppExecutorUtil.getAppExecutorService());
+        statusHtmlPromise = promise;
+        promise.onError(failure -> {
+            if (shouldLogStatusHtmlFailure(promise, failure)) {
+                log.warn("Unable to render Doc View preview status", failure);
+            }
+        });
+    }
+
+    static boolean shouldLogStatusHtmlFailure(@NotNull CancellablePromise<?> promise,
+                                              @NotNull Throwable failure) {
+        return !promise.isCancelled() && !(failure instanceof ProcessCanceledException);
+    }
+
+    private void invalidateStatusHtml() {
+        statusHtmlRequest++;
+        CancellablePromise<String> promise = statusHtmlPromise;
+        statusHtmlPromise = null;
+        if (promise != null) {
+            promise.cancel();
         }
     }
 
-    private static String escapeHtml(@NotNull String value) {
-        return value.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&#39;");
+    private boolean isCurrentStatusHtml(long requestId, @NotNull Project project) {
+        return !disposed && !project.isDisposed() && requestId == statusHtmlRequest;
     }
 
     private void handleLoadCancellation(long requestId) {
@@ -1012,6 +1082,14 @@ public class PreviewForm implements Disposable {
     }
 
     private record RenderResult(@NotNull String markdownText, @Nullable String htmlText) {
+    }
+
+    private record PreviewListSnapshot(@NotNull List<DocView> documents,
+                                       @NotNull Map<DocView, String> qualifiedNames) {
+        private PreviewListSnapshot {
+            documents = List.copyOf(documents);
+            qualifiedNames = Collections.unmodifiableMap(new IdentityHashMap<>(qualifiedNames));
+        }
     }
 
     private record SingleExportSnapshot(@NotNull String fileName, @NotNull String markdownText) {

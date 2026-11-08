@@ -98,6 +98,28 @@ public final class ContainerMarkdownHierarchyTest extends LightJavaCodeInsightFi
         assertFalse(data.getRequestBody(), data.getRequestBody().contains("element|Directory|"));
     }
 
+    public void testDescriptionLineEndingsRenderAsBreaksWithoutMutatingDto() {
+        String description = "first\r\nsecond\n\nthird\rfour\r\n";
+        DocViewParamData multiline = parameter("multiline", true, description);
+        DocViewParamData singleLine = parameter("singleLine", false, "Plain text");
+        List<DocViewParamData> parameters = List.of(multiline, singleLine);
+        String expectedRow = "|multiline|String|Y|first<br>second<br><br>third<br>four<br>|";
+
+        String defaultMarkdown = DocViewData.bodyMarkdown(parameters, false);
+        assertTrue("Default parameter Markdown must keep multiline text on one physical row", defaultMarkdown.contains(expectedRow));
+        assertTrue("Single-line description output must remain unchanged",
+                defaultMarkdown.contains("|singleLine|String|N|Plain text|"));
+        assertEquals("Markdown rendering must not normalize the original DTO description", description, multiline.getDesc());
+        assertEquals("Single-line DTO data must remain unchanged", "Plain text", singleLine.getDesc());
+
+        String separateMarkdown = DocViewData.bodyMarkdown(parameters, true);
+        assertTrue("Separated parameter Markdown must use the same line-break projection", separateMarkdown.contains(expectedRow));
+        assertTrue("Separated single-line output must remain unchanged",
+                separateMarkdown.contains("|singleLine|String|N|Plain text|"));
+        assertEquals("Separated rendering must not normalize the original DTO description", description, multiline.getDesc());
+        assertEquals("Single-line DTO data must remain unchanged after both renderers", "Plain text", singleLine.getDesc());
+    }
+
     public void testCustomPrefixTracksVisibleDepthWithoutMutatingTreesOrExamples() {
         Settings settings = Settings.getInstance(getProject());
         settings.setPrefixSymbol1("branch:");
@@ -179,6 +201,15 @@ public final class ContainerMarkdownHierarchyTest extends LightJavaCodeInsightFi
 
     private static void assertRow(String markdown, String name, String type) {
         assertTrue(markdown, markdown.contains("|" + name + "|" + type + "|"));
+    }
+
+    private static DocViewParamData parameter(String name, boolean required, String description) {
+        DocViewParamData parameter = new DocViewParamData();
+        parameter.setName(name);
+        parameter.setType("String");
+        parameter.setRequired(required);
+        parameter.setDesc(description);
+        return parameter;
     }
 
     private static int countNodes(Body body) {

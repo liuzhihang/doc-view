@@ -1,0 +1,9 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"data\":{\"items\":[{\"apiId\":\"b57b3f3f36aeb624a3bdc7d4fbbef8e0ae7f8278da113e0f313eefb884ef28b4\",\"description\":\"虚构接口，仅用于格式示例。\",\"detail\":{\"path\":\"apis/GreetingController-greet-b57b3f3f36aeb624a3bdc7d4fbbef8e0ae7f8278da113e0f313eefb884ef28b4.json\",\"sha256\":\"1f5ec6e5df755c934e1dc8e4c24f537a990336ba0b87527673f6a06ba0645a61\"},\"framework\":\"spring\",\"httpMethod\":\"GET\",\"httpPath\":\"/greeting\",\"identity\":{\"canonicalForm\":\"AAAAAQAAAARkZW1vAAAAMmRlbW8vc3JjL21haW4vamF2YS9leGFtcGxlL0dyZWV0aW5nQ29udHJvbGxlci5qYXZhAAAAGmV4YW1wbGUuR3JlZXRpbmdDb250cm9sbGVyAAAABWdyZWV0AAAAAQAAABBqYXZhLmxhbmcuU3RyaW5n\",\"fullSignature\":\"greet(java.lang.String)\",\"methodName\":\"greet\",\"module\":\"demo\",\"parameterTypes\":[\"java.lang.String\"],\"qualifiedClass\":\"example.GreetingController\"},\"markdown\":{\"path\":\"apis/GreetingController-greet-b57b3f3f36aeb624a3bdc7d4fbbef8e0ae7f8278da113e0f313eefb884ef28b4.md\",\"sha256\":\"d3ac27109d6a2ae5c0682659d7dc5c0142bd5d9569b9534ef2c2e8bef808585b\"},\"name\":\"查询问候\",\"source\":{\"basis\":\"ide-document-text\",\"capturedContentSha256\":\"52abde98de9a35d87f92e9aba3aec74b1ad84769afff8b95b9ea42dad7521729\",\"line\":3,\"path\":\"demo/src/main/java/example/GreetingController.java\"},\"tags\":[\"示例\"]}],\"nextCursor\":null,\"totalMatched\":1},\"error\":null,\"freshness\":\"unknown\",\"hasUnsavedDocuments\":false,\"projectPath\":\"/example/demo\",\"schemaVersion\":1,\"snapshotId\":\"52b03d205c1fd845f22d5b9b0a08391f79283ec15fb07ecbfaf44eab38539a2b\",\"status\":\"ok\"}"
+    }
+  ],
+  "isError": false
+}

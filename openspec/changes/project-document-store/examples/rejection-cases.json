@@ -1,0 +1,40 @@
+{
+  "description": "Apply one mutation to index.json per case; semantic checks are in addition to JSON Schema.",
+  "cases": [
+    {
+      "name": "unknown-version",
+      "pointer": "/schemaVersion",
+      "replace": 2,
+      "expected": "UNSUPPORTED_SCHEMA"
+    },
+    {
+      "name": "unknown-field",
+      "pointer": "/payload/extra",
+      "replace": true,
+      "expected": "INDEX_INVALID"
+    },
+    {
+      "name": "path-escape",
+      "pointer": "/payload/entries/0/detail/path",
+      "replace": "../private.json",
+      "expected": "INDEX_INVALID"
+    },
+    {
+      "name": "self-hash-mismatch",
+      "pointer": "/payload/entries/0/name",
+      "replace": "Changed",
+      "expected": "INDEX_INVALID"
+    },
+    {
+      "name": "missing-detail",
+      "removeFile": "apis/GreetingController-greet-b57b3f3f36aeb624a3bdc7d4fbbef8e0ae7f8278da113e0f313eefb884ef28b4.json",
+      "expected": "INDEX_INCONSISTENT"
+    },
+    {
+      "name": "modified-detail-bytes",
+      "appendFile": "apis/GreetingController-greet-b57b3f3f36aeb624a3bdc7d4fbbef8e0ae7f8278da113e0f313eefb884ef28b4.json",
+      "bytes": " ",
+      "expected": "INDEX_INCONSISTENT"
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.testFramework.EdtTestUtil;
 import com.intellij.testFramework.LightPlatformTestCase;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -15,6 +16,7 @@ import com.liuzhihang.doc.view.notification.DocViewStartupNotification;
 import com.liuzhihang.doc.view.ui.welcome.DocViewWelcomeService;
 import com.liuzhihang.doc.view.ui.welcome.DocViewWelcomeFile;
 import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
 
 public final class WelcomeLifecycleTest extends LightPlatformTestCase {
     public void testFirstSameUpgradeDowngradeAndDisabledNotification() throws Exception {
@@ -59,19 +61,21 @@ public final class WelcomeLifecycleTest extends LightPlatformTestCase {
     public void testReopeningWelcomeReusesProjectVirtualFile() throws Exception {
         DocViewWelcomeService service = DocViewWelcomeService.getInstance(getProject());
         FileEditorManager manager = FileEditorManager.getInstance(getProject());
-        service.open("updates");
-        VirtualFile first = Arrays.stream(manager.getOpenFiles()).filter(DocViewWelcomeFile.class::isInstance).findFirst().orElseThrow();
+        DocViewWelcomeFile first = awaitWelcomeOpen(() -> service.open("updates"));
         try {
             assertPage(first, "updates");
-            service.open("welcome");
+            EdtTestUtil.runInEdtAndWait(() -> service.open("welcome"));
             assertEquals(1, Arrays.stream(manager.getOpenFiles()).filter(DocViewWelcomeFile.class::isInstance).count());
             assertSame(first, Arrays.stream(manager.getOpenFiles()).filter(DocViewWelcomeFile.class::isInstance).findFirst().orElseThrow());
             assertPage(first, "welcome");
-            manager.closeFile(first);
-            service.open("updates");
+            EdtTestUtil.runInEdtAndWait(() -> manager.closeFile(first));
+            DocViewWelcomeFile reopened = awaitWelcomeOpen(() -> service.open("updates"));
+            assertSame("Closing and reopening must reuse the service-owned virtual file", first, reopened);
             assertPage(first, "updates");
         } finally {
-            manager.closeFile(first);
+            EdtTestUtil.runInEdtAndWait(() -> {
+                if (manager.isFileOpen(first)) manager.closeFile(first);
+            });
         }
     }
 
@@ -110,6 +114,27 @@ public final class WelcomeLifecycleTest extends LightPlatformTestCase {
     private FileEditorProvider provider() {
         return FileEditorProvider.EP_FILE_EDITOR_PROVIDER.getExtensionList().stream()
                 .filter(item -> item.getEditorTypeId().equals("doc-view-welcome")).findFirst().orElseThrow();
+    }
+
+    private DocViewWelcomeFile awaitWelcomeOpen(Runnable openRequest) throws Exception {
+        CompletableFuture<DocViewWelcomeFile> opened = new CompletableFuture<>();
+        var listenerLifetime = Disposer.newDisposable("welcome-file-open-listener");
+        try {
+            getProject().getMessageBus().connect(listenerLifetime).subscribe(
+                    FileEditorManagerListener.FILE_EDITOR_MANAGER, new FileEditorManagerListener() {
+                        @Override
+                        public void fileOpened(FileEditorManager source, VirtualFile file) {
+                            if (file instanceof DocViewWelcomeFile welcomeFile) opened.complete(welcomeFile);
+                        }
+                    });
+            EdtTestUtil.runInEdtAndWait(openRequest::run);
+            DocViewWelcomeFile file = PlatformTestUtil.waitForFuture(opened, 5_000);
+            assertTrue("The welcome file must be open when the asynchronous open completes",
+                    FileEditorManager.getInstance(getProject()).isFileOpen(file));
+            return file;
+        } finally {
+            Disposer.dispose(listenerLifetime);
+        }
     }
 
     private void assertPage(VirtualFile file, String page) throws Exception {

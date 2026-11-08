@@ -4,6 +4,7 @@ import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.project.Project;
 import com.liuzhihang.doc.view.service.DtoSchemaCacheService;
+import com.liuzhihang.doc.view.service.document.ProjectDocumentIndexService;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -15,10 +16,11 @@ public class WindowClearAction extends AnAction {
     @Override
     public void actionPerformed(@NotNull AnActionEvent e) {
         Project project = e.getProject();
-        if (project == null) {
+        if (project == null || project.isDisposed()) {
             return;
         }
         DtoSchemaCacheService.getInstance(project).clear();
+        ProjectDocumentIndexService.getInstance(project).clearDerivedCache();
     }
 
 }

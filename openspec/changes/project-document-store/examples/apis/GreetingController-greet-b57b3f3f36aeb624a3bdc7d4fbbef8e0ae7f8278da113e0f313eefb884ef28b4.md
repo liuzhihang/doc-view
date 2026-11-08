@@ -1,0 +1,6 @@
+<!-- doc-view-page:v1 identity=AAAAAQAAAARkZW1vAAAAMmRlbW8vc3JjL21haW4vamF2YS9leGFtcGxlL0dyZWV0aW5nQ29udHJvbGxlci5qYXZhAAAAGmV4YW1wbGUuR3JlZXRpbmdDb250cm9sbGVyAAAABWdyZWV0AAAAAQAAABBqYXZhLmxhbmcuU3RyaW5n sha256=ed56167603573e31cb64fe57ee11370f89defb24dd44fd327304db1c0ec9b288 -->
+# 查询问候
+
+虚构格式示例。
+
+`GET /greeting`

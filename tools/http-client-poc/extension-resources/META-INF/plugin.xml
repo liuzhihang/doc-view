@@ -1,0 +1,20 @@
+<idea-plugin>
+    <id>org.docview.httpclient.poc</id>
+    <name>Doc View HTTP Client PoC</name>
+    <version>0.1.0</version>
+    <vendor>Doc View isolated feasibility probe</vendor>
+    <description>Inspects native HTTP Client URL context without generating or executing requests.</description>
+    <idea-version since-build="261" until-build="261.*" />
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>com.intellij.spring.mvc</depends>
+    <depends>com.intellij.microservices.jvm</depends>
+    <depends>com.jetbrains.restClient</depends>
+    <actions>
+        <action id="org.docview.httpclient.poc.InspectSelectedMethodContext"
+                class="org.docview.http.poc.HttpClientPocAction"
+                text="Doc View HTTP Client PoC: Inspect selected method context">
+            <add-to-group group-id="ToolsMenu" anchor="last" />
+        </action>
+    </actions>
+</idea-plugin>

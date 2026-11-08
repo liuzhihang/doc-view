@@ -140,3 +140,47 @@
 #### Scenario: 方法参数带 Parameter 注解
 - **WHEN** 方法参数声明 `@Parameter(required = false)` 或 `required = true`
 - **THEN** 本 capability 不以该注解改变 `isRequired(PsiParameter)`、Query/Form 参数或 request-body 参数
+
+
+### Requirement: 描述编辑过程不丢失多行文本
+参数表的描述单元格 SHALL 在用户输入、粘贴、查看、提交及复制/写回之间保留精确字符串，包括真实 LF、连续/尾部空行、引号与反斜杠；不得静默将换行替换为空格。共享编辑器不改变各注解的解析和源码写回规则。
+
+#### Scenario: 原生粘贴多行描述并写回 Schema
+- **WHEN** 用户在描述单元格输入含真实换行、引号与反斜杠的文本并提交后确认写回
+- **THEN** 表格保存精确草稿，且可查看/编辑多行；Schema.description 作为合法 Java 字符串写回后求值与草稿逐字符一致
+- **AND** requiredMode 与未编辑 Schema 成员按既有规则处理，原生一次 Undo 可恢复此次写回前的源码
+
+#### Scenario: 取消描述单元格编辑
+- **WHEN** 用户编辑多行描述后取消该 cell edit 或关闭整个参数弹窗而未写回
+- **THEN** 取消 cell edit 不提交新的字段草稿，关闭弹窗不改源码
+- **AND** 编辑器保留既有表格导航、取消和到复制/写回按钮的键盘可达性，不依赖全局快捷键或新增设置
+
+### Requirement: 多行参数描述不得破坏 Markdown 表格
+系统 SHALL 在共享参数 Markdown 表格的描述单元格中将每个逻辑换行输出为 `<br>`，保持字段位于单个物理表格行。系统 SHALL 保留原始 DTO、编辑草稿和 Schema 写回字符串；单行描述的输出 SHALL 保持不变。
+
+#### Scenario: 复制尚未提交的多行描述
+- **WHEN** 用户在描述单元格输入含 LF、连续或尾部空行、引号及反斜杠的草稿并复制 Markdown
+- **THEN** 复制动作先提交该单元格，描述中的每个换行投影为 `<br>`，字段和必填状态仍在原表格行，源码保持原样
+
+#### Scenario: 不同换行格式和原始值保留
+- **WHEN** 参数描述含 CRLF、LF 或独立 CR 并生成默认参数表格
+- **THEN** CRLF 只计一次换行，其余各计一次；连续和尾部换行不丢失，原 DTO 字符串保持逐字不变
+
+### Requirement: 一次确认的字段批次可以整体撤销
+系统 SHALL 将一次成功的参数编辑确认中的字段写回纳入同一个 IDE 撤销单元。Schema 能力预检失败时 SHALL 不修改任何字段，不以该保证承诺未知异常的事务回滚。
+
+#### Scenario: 双字段写回后一次撤销和重做
+- **WHEN** 用户在一次确认中修改两个 Schema 字段的描述和必填状态，写回后执行一次 Undo
+- **THEN** 两个字段的源码均恢复到确认前，再执行一次 Redo 时两字段均恢复该次写回结果
+
+#### Scenario: 缺少 requiredMode 时无部分写回
+- **WHEN** 同批字段包含普通字段以及无法提供 requiredMode 的 Schema 字段
+- **THEN** 确认前的全部源码保持不变，草稿和现有错误提示保留
+
+#### Scenario: 原生 Escape 仅取消正在编辑的单元格
+- **WHEN** 用户在描述单元格编辑未提交文本并按下不带修饰键的 Escape
+- **THEN** 当前单元格恢复编辑前值，弹窗与其他已提交草稿保留；随后非编辑状态再次 Escape 时沿用平台关闭行为
+
+#### Scenario: 系统主提交快捷键
+- **WHEN** 用户在 macOS 按 Command+Enter，或在 Windows/Linux 按 Ctrl+Enter
+- **THEN** 当前描述单元格提交；macOS Ctrl+Enter 不作为本插件提交键，也不抢占 IDEA 的原快捷键

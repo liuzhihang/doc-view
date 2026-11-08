@@ -7,6 +7,8 @@ import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.event.DocumentEvent;
 import com.intellij.openapi.editor.event.DocumentListener;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
+import com.intellij.openapi.application.ReadAction;
 import com.intellij.openapi.util.Computable;
 import com.intellij.openapi.ui.popup.JBPopup;
 import com.intellij.openapi.project.Project;
@@ -20,8 +22,13 @@ import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.ServiceContainerUtil;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import com.intellij.ui.jcef.JBCefApp;
+import com.intellij.util.concurrency.AppExecutorUtil;
+import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanel;
+import org.intellij.plugins.markdown.ui.preview.html.MarkdownUtil;
+import org.jetbrains.concurrency.CancellablePromise;
 import com.liuzhihang.doc.view.dto.DocView;
 import com.liuzhihang.doc.view.dto.DocViewData;
 import com.liuzhihang.doc.view.DocViewBundle;
@@ -32,14 +39,21 @@ import com.liuzhihang.doc.view.testsupport.AnnotationStubs;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -203,7 +217,7 @@ public final class PreviewLifecycleTest extends LightJavaCodeInsightFixtureTestC
         EdtTestUtil.runInEdtAndWait(() -> {
             initializeUi(form);
             fieldValue(form, "loadRequest", AtomicLong.class).set(1L);
-            invoke(form, "applyDocViewList", new Class<?>[]{List.class, long.class}, List.of(), 1L);
+            invoke(form, "applyDocViewList", new Class<?>[]{List.class, Map.class, long.class}, List.of(), Map.of(), 1L);
         });
 
         assertEquals(DocViewBundle.message("ui.preview.empty"), documentText(form));
@@ -217,6 +231,245 @@ public final class PreviewLifecycleTest extends LightJavaCodeInsightFixtureTestC
         assertQueuedListTerminal(() -> { throw new ProcessCanceledException(); },
                 DocViewBundle.message("ui.preview.load.cancelled"));
         assertQueuedListTerminal(List::of, DocViewBundle.message("ui.preview.empty"));
+    }
+
+    public void testSelectedDocumentLabelDoesNotReadPsiOnDispatchThread() throws Exception {
+        Disposable serviceOwner = Disposer.newDisposable();
+        CountDownLatch serviceCalled = new CountDownLatch(1);
+        AtomicBoolean psiReadOnDispatchThread = new AtomicBoolean();
+        PreviewForm form = createListForm();
+        DocView sourceDoc = buildMethodDoc(listFixtureClass, "request");
+        DocView observedDoc = observingPsiAccess(sourceDoc, psiReadOnDispatchThread);
+        String expectedQualifiedName = ApplicationManager.getApplication()
+                .runReadAction((Computable<String>) listFixtureClass::getQualifiedName);
+
+        try {
+            replaceListService(serviceOwner, () -> {
+                serviceCalled.countDown();
+                return List.of(observedDoc);
+            });
+            EdtTestUtil.runInEdtAndWait(() -> {
+                initializeUi(form);
+                invoke(form, "buildDoc", new Class<?>[0]); // Exercise the real load callback and Swing selection listener.
+            });
+
+            assertTrue("The real list task must reach its service boundary", serviceCalled.await(5, TimeUnit.SECONDS));
+            long deadline = System.nanoTime() + 5_000_000_000L;
+            AtomicReference<DocView> currentDoc = new AtomicReference<>();
+            AtomicReference<String> displayedClassName = new AtomicReference<>();
+            while (System.nanoTime() < deadline) {
+                EdtTestUtil.runInEdtAndWait(() -> {
+                    currentDoc.set(fieldValue(form, "currentDocView", DocView.class));
+                    displayedClassName.set(fieldValue(form, "docNameLabel", javax.swing.JLabel.class).getText());
+                });
+                if (currentDoc.get() == observedDoc) {
+                    break;
+                }
+                Thread.sleep(20);
+            }
+
+            assertSame("The list selection must become the current preview document", observedDoc, currentDoc.get());
+            assertEquals("The preview must keep displaying the target class qualified name",
+                    expectedQualifiedName, displayedClassName.get());
+            assertFalse("The Swing selection callback must use class-name metadata captured during the background PSI read",
+                    psiReadOnDispatchThread.get());
+        } finally {
+            EdtTestUtil.runInEdtAndWait(() -> invoke(form, "dispose", new Class<?>[0]));
+            Disposer.dispose(serviceOwner);
+            PlatformTestUtil.waitForAllBackgroundActivityToCalmDown();
+            EdtTestUtil.runInEdtAndWait(PlatformTestUtil::dispatchAllInvocationEventsInIdeEventQueue);
+        }
+    }
+
+    public void testHtmlStatusUsesMarkdownRendererOutputWithRootSourceRange() throws Exception {
+        String status = "HTML preview status fixture";
+        String expectedHtml = renderMarkdownHtml(fixtureClass.getContainingFile().getVirtualFile(), status);
+        assertFirstBodyChildHasSourceRange(expectedHtml);
+
+        List<String> htmlUpdates = Collections.synchronizedList(new ArrayList<>());
+        AtomicBoolean htmlUpdatedOnEdt = new AtomicBoolean();
+        CountDownLatch htmlUpdated = new CountDownLatch(1);
+        MarkdownHtmlPanel panel = capturingHtmlPanel(htmlUpdates, htmlUpdatedOnEdt, htmlUpdated);
+        PreviewForm form = createForm();
+
+        try {
+            EdtTestUtil.runInEdtAndWait(() -> {
+                initializeUi(form);
+                setField(form, "markdownHtmlPanel", panel);
+                invoke(form, "showPreviewStatus", new Class<?>[]{String.class}, status);
+            });
+
+            awaitHtmlUpdate(htmlUpdated, "The current HTML status should reach the preview panel");
+            assertEquals("Status HTML must come from the bundled Markdown renderer", expectedHtml, htmlUpdates.get(0));
+            assertTrue("The status should still update the source editor immediately", status.equals(documentText(form)));
+            assertNull("A visible status must not become exportable Markdown",
+                    fieldValue(form, "currentMarkdownText", String.class));
+            assertTrue("The Markdown panel should be updated on EDT", htmlUpdatedOnEdt.get());
+        } finally {
+            EdtTestUtil.runInEdtAndWait(() -> invoke(form, "dispose", new Class<?>[0]));
+            PlatformTestUtil.waitForAllBackgroundActivityToCalmDown();
+            EdtTestUtil.runInEdtAndWait(PlatformTestUtil::dispatchAllInvocationEventsInIdeEventQueue);
+        }
+    }
+
+    public void testHtmlStatusDoesNotReplaceNewerStatus() throws Exception {
+        String staleStatus = "Stale HTML status fixture";
+        String currentStatus = "Current HTML status fixture";
+        String expectedHtml = renderMarkdownHtml(fixtureClass.getContainingFile().getVirtualFile(), currentStatus);
+        List<String> htmlUpdates = Collections.synchronizedList(new ArrayList<>());
+        AtomicBoolean htmlUpdatedOnEdt = new AtomicBoolean();
+        CountDownLatch htmlUpdated = new CountDownLatch(1);
+        MarkdownHtmlPanel panel = capturingHtmlPanel(htmlUpdates, htmlUpdatedOnEdt, htmlUpdated);
+        PreviewForm form = createForm();
+
+        try {
+            EdtTestUtil.runInEdtAndWait(() -> {
+                initializeUi(form);
+                setField(form, "markdownHtmlPanel", panel);
+                invoke(form, "showPreviewStatus", new Class<?>[]{String.class}, staleStatus);
+                invoke(form, "showPreviewStatus", new Class<?>[]{String.class}, currentStatus);
+            });
+
+            awaitHtmlUpdate(htmlUpdated, "The latest status should reach the preview panel");
+            awaitPreviewStatusCallbacks();
+            assertEquals("Only the current status may be applied", List.of(expectedHtml), htmlUpdates);
+            assertEquals(currentStatus, documentText(form));
+            assertNull(fieldValue(form, "currentMarkdownText", String.class));
+            assertTrue(htmlUpdatedOnEdt.get());
+        } finally {
+            EdtTestUtil.runInEdtAndWait(() -> invoke(form, "dispose", new Class<?>[0]));
+            awaitPreviewStatusCallbacks();
+        }
+    }
+
+    public void testHtmlStatusCannotReplaceNewerRenderedBody() throws Exception {
+        DocView bodyDoc = new DocView("RenderedAfterStatus");
+        bodyDoc.setPsiClass(fixtureClass);
+        String markdown = "Rendered document after pending status";
+        String expectedHtml = renderMarkdownHtml(fixtureClass.getContainingFile().getVirtualFile(), markdown);
+        List<String> htmlUpdates = Collections.synchronizedList(new ArrayList<>());
+        AtomicBoolean htmlUpdatedOnEdt = new AtomicBoolean();
+        CountDownLatch htmlUpdated = new CountDownLatch(1);
+        MarkdownHtmlPanel panel = capturingHtmlPanel(htmlUpdates, htmlUpdatedOnEdt, htmlUpdated);
+        PreviewForm form = createForm();
+
+        try {
+            EdtTestUtil.runInEdtAndWait(() -> {
+                initializeUi(form);
+                setField(form, "markdownHtmlPanel", panel);
+                setField(form, "currentDocView", bodyDoc);
+                fieldValue(form, "renderRequest", AtomicLong.class).set(1L);
+                invoke(form, "showPreviewStatus", new Class<?>[]{String.class}, "Pending status fixture");
+                invoke(form, "applyMarkdown",
+                        new Class<?>[]{DocView.class, String.class, String.class, long.class},
+                        bodyDoc, markdown, expectedHtml, 1L);
+            });
+
+            awaitHtmlUpdate(htmlUpdated, "The rendered body should reach the preview panel");
+            awaitPreviewStatusCallbacks();
+            assertEquals("A pending status must not replace the newer rendered body", List.of(expectedHtml), htmlUpdates);
+            assertEquals(markdown, documentText(form));
+            assertEquals(markdown, fieldValue(form, "currentMarkdownText", String.class));
+        } finally {
+            EdtTestUtil.runInEdtAndWait(() -> invoke(form, "dispose", new Class<?>[0]));
+            awaitPreviewStatusCallbacks();
+        }
+    }
+
+    public void testDisposedPreviewRejectsLateHtmlStatus() throws Exception {
+        List<String> htmlUpdates = Collections.synchronizedList(new ArrayList<>());
+        AtomicBoolean htmlUpdatedOnEdt = new AtomicBoolean();
+        CountDownLatch htmlUpdated = new CountDownLatch(1);
+        MarkdownHtmlPanel panel = capturingHtmlPanel(htmlUpdates, htmlUpdatedOnEdt, htmlUpdated);
+        PreviewForm form = createForm();
+
+        EdtTestUtil.runInEdtAndWait(() -> {
+            initializeUi(form);
+            setField(form, "markdownHtmlPanel", panel);
+            invoke(form, "showPreviewStatus", new Class<?>[]{String.class}, "Status before dispose");
+            invoke(form, "dispose", new Class<?>[0]);
+        });
+        awaitPreviewStatusCallbacks();
+
+        assertTrue("A disposed preview must not apply a late status", htmlUpdates.isEmpty());
+        assertNull(fieldValue(form, "currentMarkdownText", String.class));
+    }
+
+    public void testCancelledNonBlockingPromiseIsNotLoggedAsStatusFailure() throws Exception {
+        CountDownLatch started = new CountDownLatch(1);
+        CountDownLatch workerFinished = new CountDownLatch(1);
+        CountDownLatch cancellationReported = new CountDownLatch(1);
+        AtomicBoolean release = new AtomicBoolean();
+        AtomicReference<Throwable> cancellationFailure = new AtomicReference<>();
+        CancellablePromise<String> promise = ReadAction.nonBlocking((java.util.concurrent.Callable<String>) () -> {
+            try {
+                started.countDown();
+                while (!release.get()) {
+                    ProgressManager.checkCanceled();
+                    LockSupport.parkNanos(TimeUnit.MILLISECONDS.toNanos(10));
+                }
+                ProgressManager.checkCanceled();
+                return "unexpected status result";
+            } finally {
+                workerFinished.countDown();
+            }
+        }).expireWith(project).submit(AppExecutorUtil.getAppExecutorService());
+        promise.onError(failure -> {
+            cancellationFailure.set(failure);
+            cancellationReported.countDown();
+        });
+
+        try {
+            assertTrue("The real non-blocking read task should start", started.await(5, TimeUnit.SECONDS));
+            promise.cancel();
+            assertTrue("CancellablePromise must expose its canceled state", promise.isCancelled());
+            assertTrue("Cancellation should reach the real promise error callback",
+                    cancellationReported.await(5, TimeUnit.SECONDS));
+            assertNotNull(cancellationFailure.get());
+            assertFalse("The platform cancellation sentinel need not be ProcessCanceledException",
+                    cancellationFailure.get() instanceof ProcessCanceledException);
+            assertFalse("A canceled promise must not be logged as a renderer failure",
+                    PreviewForm.shouldLogStatusHtmlFailure(promise, cancellationFailure.get()));
+        } finally {
+            release.set(true);
+            promise.cancel();
+            assertTrue("The canceled read task should release its worker", workerFinished.await(5, TimeUnit.SECONDS));
+        }
+
+        CountDownLatch renderFailureReported = new CountDownLatch(1);
+        AtomicReference<Throwable> renderFailure = new AtomicReference<>();
+        CancellablePromise<String> failedPromise = ReadAction.nonBlocking((java.util.concurrent.Callable<String>) () -> {
+            throw new IllegalStateException("fixture renderer failure");
+        }).expireWith(project).submit(AppExecutorUtil.getAppExecutorService());
+        failedPromise.onError(failure -> {
+            renderFailure.set(failure);
+            renderFailureReported.countDown();
+        });
+        assertTrue("A genuine renderer failure should reach the promise error callback",
+                renderFailureReported.await(5, TimeUnit.SECONDS));
+        assertFalse(failedPromise.isCancelled());
+        assertTrue("A non-canceled renderer failure must remain loggable",
+                PreviewForm.shouldLogStatusHtmlFailure(failedPromise, renderFailure.get()));
+    }
+
+    private void awaitPreviewStatusCallbacks() {
+        PlatformTestUtil.waitForAllBackgroundActivityToCalmDown();
+        EdtTestUtil.runInEdtAndWait(PlatformTestUtil::dispatchAllInvocationEventsInIdeEventQueue);
+    }
+
+    private static void awaitHtmlUpdate(CountDownLatch updated, String failureMessage) throws Exception {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (updated.getCount() != 0 && System.nanoTime() < deadline) {
+            if (ApplicationManager.getApplication().isDispatchThread()) {
+                PlatformTestUtil.dispatchAllInvocationEventsInIdeEventQueue();
+            } else {
+                EdtTestUtil.runInEdtAndWait(PlatformTestUtil::dispatchAllInvocationEventsInIdeEventQueue);
+            }
+            if (updated.getCount() != 0) {
+                Thread.sleep(10);
+            }
+        }
+        assertEquals(failureMessage, 0, updated.getCount());
     }
 
     private void assertQueuedListTerminal(Supplier<List<DocView>> result, String terminal) throws Exception {
@@ -247,41 +500,99 @@ public final class PreviewLifecycleTest extends LightJavaCodeInsightFixtureTestC
             CountDownLatch started = new CountDownLatch(1);
             CountDownLatch release = new CountDownLatch(1);
             CountDownLatch returned = new CountDownLatch(1);
+            CountDownLatch disposedOnEdt = new CountDownLatch(1);
+            AtomicBoolean formDisposed = new AtomicBoolean();
+            AtomicBoolean returnedAfterDispose = new AtomicBoolean();
+            AtomicBoolean serviceTimedOut = new AtomicBoolean();
+            AtomicBoolean observerTimedOut = new AtomicBoolean();
+            AtomicReference<Throwable> uiFailure = new AtomicReference<>();
+            AtomicReference<Throwable> observerFailure = new AtomicReference<>();
+            Future<?> observer = null;
             try {
                 replaceListService(serviceOwner, () -> {
                     started.countDown();
                     try {
-                        if (!release.await(5, TimeUnit.SECONDS)) throw new AssertionError("Test did not release list task");
+                        if (!release.await(10, TimeUnit.SECONDS)) {
+                            serviceTimedOut.set(true);
+                            throw new AssertionError("The test did not release the queued list task");
+                        }
                         if (fail) throw new IllegalStateException("late list failure");
                         return List.of();
                     } catch (InterruptedException exception) {
                         Thread.currentThread().interrupt();
                         throw new AssertionError(exception);
                     } finally {
+                        returnedAfterDispose.set(formDisposed.get());
                         returned.countDown();
                     }
                 });
                 Set<Editor> before = editorsForProject();
                 PreviewForm form = createListForm();
-                EdtTestUtil.runInEdtAndWait(() -> {
-                    initializeUi(form);
-                    invoke(form, "buildDoc", new Class<?>[0]);
-                });
-                assertTrue("The background task must be running before close", started.await(5, TimeUnit.SECONDS));
+                EdtTestUtil.runInEdtAndWait(() -> initializeUi(form));
                 Document document = fieldValue(form, "markdownDocument", Document.class);
-                String loading = documentText(form);
-                EdtTestUtil.runInEdtAndWait(form::dispose);
-                assertEquals("Dispose must release the preview before the late result arrives", before, editorsForProject());
-                release.countDown();
-                assertTrue(returned.await(5, TimeUnit.SECONDS));
+                String loading = DocViewBundle.message("ui.preview.loading");
+                observer = ApplicationManager.getApplication().executeOnPooledThread(() -> {
+                    try {
+                        if (!started.await(5, TimeUnit.SECONDS)) {
+                            observerTimedOut.set(true);
+                            release.countDown();
+                            return;
+                        }
+                        ApplicationManager.getApplication().invokeLater(() -> {
+                            try {
+                                form.dispose();
+                                formDisposed.set(true);
+                            } catch (Throwable throwable) {
+                                uiFailure.set(throwable);
+                            } finally {
+                                release.countDown();
+                                disposedOnEdt.countDown();
+                            }
+                        }, ModalityState.any());
+                    } catch (Throwable throwable) {
+                        observerFailure.set(throwable);
+                        release.countDown();
+                    }
+                });
+
+                // This call enters Task.Backgroundable's modal event loop in the light fixture.
+                // The pooled observer can wait for the service to start and post disposal while
+                // that nested loop is pumping events; waiting for started here would deadlock EDT.
+                EdtTestUtil.runInEdtAndWait(() -> invoke(form, "buildDoc", new Class<?>[0]));
+
+                assertTrue("The test must dispose the preview inside the progress modal event loop",
+                        disposedOnEdt.await(5, TimeUnit.SECONDS));
+                assertTrue("The service must return after the test releases its latch",
+                        returned.await(5, TimeUnit.SECONDS));
+                assertNull("The controlled EDT disposal must not fail", uiFailure.get());
+                observer.get(5, TimeUnit.SECONDS);
+                assertNull("The pooled observer must not fail", observerFailure.get());
+                assertFalse("The observer must see the service start before its bounded wait expires",
+                        observerTimedOut.get());
+                assertFalse("The service must return because the test released it, not from its timeout",
+                        serviceTimedOut.get());
+                assertTrue("The service result must arrive after the preview has been disposed",
+                        returnedAfterDispose.get());
+
                 PlatformTestUtil.waitForAllBackgroundActivityToCalmDown();
                 EdtTestUtil.runInEdtAndWait(PlatformTestUtil::dispatchAllInvocationEventsInIdeEventQueue);
-                assertEquals("Late success/error/cancel must not update the released document", loading, document.getText());
-                assertNull(fieldValue(form, "currentMarkdownText", String.class));
-                assertNull(invoke(form, "captureSingleExport", new Class<?>[0]));
-                assertEquals(before, editorsForProject());
+                AtomicReference<String> releasedDocumentText = new AtomicReference<>();
+                AtomicReference<String> currentMarkdownText = new AtomicReference<>();
+                AtomicReference<Object> exportSnapshot = new AtomicReference<>();
+                EdtTestUtil.runInEdtAndWait(() -> {
+                    releasedDocumentText.set(document.getText());
+                    currentMarkdownText.set(fieldValue(form, "currentMarkdownText", String.class));
+                    exportSnapshot.set(invoke(form, "captureSingleExport", new Class<?>[0]));
+                    assertEquals("Dispose must release the preview editors before the late result arrives",
+                            before, editorsForProject());
+                });
+                assertEquals("Late success/error/cancel must not update the released document",
+                        loading, releasedDocumentText.get());
+                assertNull(currentMarkdownText.get());
+                assertNull(exportSnapshot.get());
             } finally {
                 release.countDown();
+                if (observer != null) observer.cancel(true);
                 Disposer.dispose(serviceOwner);
             }
         }
@@ -494,6 +805,55 @@ public final class PreviewLifecycleTest extends LightJavaCodeInsightFixtureTestC
                 (Computable<String>) () -> DocViewData.markdownText(project, docView));
     }
 
+    private String renderMarkdownHtml(com.intellij.openapi.vfs.VirtualFile file, String text) {
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () ->
+                MarkdownUtil.INSTANCE.generateMarkdownHtml(file, text, project));
+    }
+
+    private static void assertFirstBodyChildHasSourceRange(String html) {
+        Matcher firstBodyChild = Pattern.compile("(?is)<body\\b[^>]*>\\s*<[^>]+>").matcher(html);
+        assertTrue("The platform renderer should emit a body with a root element", firstBodyChild.find());
+        Matcher sourceRange = Pattern.compile("(?is)(?:^|\\s)[-\\w:]+\\s*=\\s*[\\\"'][0-9]+\\.\\.[0-9]+[\\\"']")
+                .matcher(firstBodyChild.group());
+        assertTrue("The platform-generated root must carry its source-position range", sourceRange.find());
+    }
+
+    private static MarkdownHtmlPanel capturingHtmlPanel(List<String> htmlUpdates,
+                                                          AtomicBoolean htmlUpdatedOnEdt,
+                                                          CountDownLatch htmlUpdated) {
+        return (MarkdownHtmlPanel) Proxy.newProxyInstance(
+                MarkdownHtmlPanel.class.getClassLoader(),
+                new Class<?>[]{MarkdownHtmlPanel.class},
+                (proxy, method, arguments) -> {
+                    if (method.getDeclaringClass() == Object.class) {
+                        return switch (method.getName()) {
+                            case "hashCode" -> System.identityHashCode(proxy);
+                            case "equals" -> proxy == arguments[0];
+                            case "toString" -> "CapturingMarkdownHtmlPanel";
+                            default -> null;
+                        };
+                    }
+                    if ("setHtml".equals(method.getName())) {
+                        htmlUpdates.add((String) arguments[0]);
+                        htmlUpdatedOnEdt.set(ApplicationManager.getApplication().isDispatchThread());
+                        htmlUpdated.countDown();
+                    }
+                    if ("getComponent".equals(method.getName())) {
+                        return new javax.swing.JPanel();
+                    }
+                    if (method.getReturnType() == boolean.class) {
+                        return false;
+                    }
+                    if (method.getReturnType() == int.class) {
+                        return 0;
+                    }
+                    if (method.getReturnType() == long.class) {
+                        return 0L;
+                    }
+                    return null;
+                });
+    }
+
     private void renderAndAssert(PreviewForm form, DocView sourceDoc, String expectedMarkdown, Thread dispatchThread)
             throws Exception {
         AtomicReference<Thread> generationThread = new AtomicReference<>();
@@ -558,6 +918,34 @@ public final class PreviewLifecycleTest extends LightJavaCodeInsightFixtureTestC
         return observed;
     }
 
+    private static DocView observingPsiAccess(DocView source, AtomicBoolean psiReadOnDispatchThread) {
+        PsiAccessObservingDocView observed = new PsiAccessObservingDocView(psiReadOnDispatchThread);
+        observed.setPsiClass(source.getPsiClass());
+        observed.setPsiMethod(source.getPsiMethod());
+        observed.setDocTitle(source.getDocTitle());
+        observed.setClassTags(source.getClassTags());
+        observed.setTags(source.getTags());
+        observed.setName(source.getName());
+        observed.setDesc(source.getDesc());
+        observed.setSince(source.getSince());
+        observed.setVersion(source.getVersion());
+        observed.setDomain(source.getDomain());
+        observed.setPath(source.getPath());
+        observed.setMethod(source.getMethod());
+        observed.setChangeLog(source.getChangeLog());
+        observed.setHeaderList(source.getHeaderList());
+        observed.setReqBody(source.getReqBody());
+        observed.setRespBody(source.getRespBody());
+        observed.setReqParamList(source.getReqParamList());
+        observed.setReqBodyExample(source.getReqBodyExample());
+        observed.setReqFormExample(source.getReqFormExample());
+        observed.setContentType(source.getContentType());
+        observed.setRespExample(source.getRespExample());
+        observed.setRemark(source.getRemark());
+        observed.setType(source.getType());
+        return observed;
+    }
+
     private void awaitMarkdown(PreviewForm form, String expectedMarkdown) throws Exception {
         long deadline = System.nanoTime() + 5_000_000_000L;
         String actual = documentText(form);
@@ -579,6 +967,22 @@ public final class PreviewLifecycleTest extends LightJavaCodeInsightFixtureTestC
         public FrameworkEnum getType() {
             observedThread.set(Thread.currentThread());
             return super.getType();
+        }
+    }
+
+    private static final class PsiAccessObservingDocView extends DocView {
+        private final AtomicBoolean psiReadOnDispatchThread;
+
+        private PsiAccessObservingDocView(AtomicBoolean psiReadOnDispatchThread) {
+            this.psiReadOnDispatchThread = psiReadOnDispatchThread;
+        }
+
+        @Override
+        public PsiClass getPsiClass() {
+            if (ApplicationManager.getApplication().isDispatchThread()) {
+                psiReadOnDispatchThread.set(true);
+            }
+            return super.getPsiClass();
         }
     }
 

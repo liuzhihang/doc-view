@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "status": "error",
+  "projectPath": "/example/demo",
+  "snapshotId": null,
+  "freshness": "unknown",
+  "hasUnsavedDocuments": null,
+  "data": null,
+  "error": {
+    "code": "INDEX_NOT_FOUND",
+    "message": "尚未生成项目文档库。",
+    "relativePaths": [
+      "index.json"
+    ],
+    "relativePathsTotal": 1,
+    "retryable": false,
+    "details": {
+      "publishedPaths": [],
+      "publishedPathsTotal": 0,
+      "indexCommitted": null,
+      "cleanupFailures": [],
+      "cleanupFailuresTotal": 0
+    }
+  }
+}

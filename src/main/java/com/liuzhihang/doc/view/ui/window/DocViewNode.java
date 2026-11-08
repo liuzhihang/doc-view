@@ -31,6 +31,12 @@ public abstract class DocViewNode extends CachingSimpleNode {
         return getName();
     }
 
+    /** The platform tree formatter uses NodeDescriptor.toString() for speed-search text. */
+    @Override
+    public String toString() {
+        return getSearchText();
+    }
+
     public abstract List<DocView> docViewList();
 
     public abstract void updateNode(Project project);

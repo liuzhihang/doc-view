@@ -14,6 +14,44 @@ import javax.xml.parsers.DocumentBuilderFactory;
 
 public final class PluginDescriptorLocalizationTest extends TestCase {
 
+    public void testPluginDescriptorRequiresRestartForLifecycleChanges() throws Exception {
+        Element root = readDescriptor().getDocumentElement();
+
+        assertEquals("idea-plugin", root.getTagName());
+        assertEquals("Plugin installation, update, and uninstallation must require IDE restart",
+                "true", root.getAttribute("require-restart"));
+    }
+
+    public void testEveryRegisteredActionGroupHasLocalizedVisibleText() throws Exception {
+        Document descriptor = readDescriptor();
+        Properties base = loadProperties("messages/DocViewBundle.properties");
+        Properties simplifiedChinese = loadProperties("messages/DocViewBundle_zh_CN.properties");
+
+        NodeList groups = descriptor.getElementsByTagName("group");
+        int registeredGroups = 0;
+        for (int index = 0; index < groups.getLength(); index++) {
+            Element group = (Element) groups.item(index);
+            String id = group.getAttribute("id");
+            if (id.isBlank()) continue;
+
+            registeredGroups++;
+            String key = "group." + id + ".text";
+            assertTrue("Action group " + id + " must declare a readable English fallback",
+                    group.hasAttribute("text") && !group.getAttribute("text").isBlank());
+
+            String english = base.getProperty(key);
+            assertNotNull("Missing English ActionSystem convention message " + key, english);
+            assertFalse("English ActionSystem message must not be blank " + key, english.isBlank());
+
+            String chinese = simplifiedChinese.getProperty(key);
+            assertNotNull("Missing zh_CN ActionSystem convention message " + key, chinese);
+            assertFalse("zh_CN ActionSystem message must not be blank " + key, chinese.isBlank());
+            assertEquals("XML fallback must remain readable English for " + key,
+                    english, group.getAttribute("text"));
+        }
+        assertTrue("The plugin descriptor must declare action groups with IDs", registeredGroups > 0);
+    }
+
     public void testPluginDescriptorUsesTheLocalizationBundleForVisibleLabels() throws Exception {
         Document descriptor = readDescriptor();
         Properties base = loadProperties("messages/DocViewBundle.properties");

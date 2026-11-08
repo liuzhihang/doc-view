@@ -12,6 +12,7 @@ Swagger 官方将 `requiredMode` 定义为当前字段必填控制方式：`REQU
 - `AUTO` 使用 Doc View 当前的验证注解、Swagger 2 字段注解与可选文档 tag 规则；不声称复刻 swagger-core 的所有自动推断。
 - 停止读取和生成已弃用的 `@Schema.required`；不为旧源码写法增加兼容 fallback 或批量迁移。Swagger 2 `@ApiModelProperty(required = true)` 保持为独立现有来源。
 - 写回已有 `@Schema` 时用 `requiredMode` 表示当前编辑结果，保留其他 Schema 属性，并对 description 字符串做 Java 注解字面量转义。
+- 参数编辑器的描述输入必须保留真实换行、引号和反斜杠；修复原生粘贴 LF 后被单行编辑器替换为空格的问题。沿用现有字段模型和复制/写回入口，不新增设置或运行时依赖。
 - 用真实 Java PSI fixture、`DocView`/Markdown 断言及注解写回断言验证；不新增 Swagger runtime 依赖或插件设置。
 
 ## Capabilities
@@ -27,3 +28,7 @@ Swagger 官方将 `requiredMode` 定义为当前字段必填控制方式：`REQU
 ## Impact
 
 影响 `DocViewUtils.isRequired(PsiField)`、已有 `@Schema` 字段的 `writeComment`、经 `Body.required`/`Param.required` 生成的字段状态及对应 Markdown 内容。源码支持范围限于字段注解；方法参数上的 `@Parameter` 元数据属于独立的 `openapi3-parameter-metadata` change。生产实现继续 Java-only，Swagger 注解仅按 PSI 全限定名解析，不增加插件运行时依赖。
+
+原生多行编辑修复后的复制回归同时补齐 Markdown 表格边界：描述换行只在默认参数表格输出时转换为 `<br>`，避免拆散表格行，UI/DTO/Schema 原始值保持不变。
+
+双字段原生验收发现一次 Apply 需要两次 Undo。将一次成功批量确认收为同一 IDE 撤销单元，保持 Schema 前置能力预检，补齐一次 Undo/Redo 整批恢复的验收。
