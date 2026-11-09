@@ -61,7 +61,7 @@ Doc View 为一个方法生成一篇文档。类和方法的 `@RequestMapping` /
 
 ## 模板 Reset 后自定义内容异常
 
-**Revert changes**（部分 IDE 页面称 Reset）恢复到最近一次 Apply/OK 保存的两份模板。Cancel 丢弃未应用草稿，但保留此前已 Apply 的修改。模板保存与重启的历史检查见[验证记录](../../openspec/changes/fix-template-settings-lifecycle/verification.md)。
+**Revert changes**（部分 IDE 页面称 Reset）恢复到最近一次 Apply/OK 保存的两份模板。Cancel 丢弃未应用草稿，但保留此前已 Apply 的修改。模板保存与重启的历史检查见[验证记录](../../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/verification.md)。
 
 **恢复默认模板** 是另一个操作：同时替换 Spring 和 Dubbo 的当前草稿，Apply 后才保存。若原自定义模板尚未被覆盖保存，可用 Revert changes 恢复；若已经保存默认内容，需要从自己的备份恢复自定义文本。
 

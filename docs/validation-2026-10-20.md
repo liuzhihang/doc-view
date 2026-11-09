@@ -129,7 +129,7 @@
 - 中文模板页用临时Spring草稿实际点恢复，原生编辑器回到默认内容；Preview complete可达且恢复按钮不属于预览页；Cancel后重开Apply禁用。所有DocView项目XML字节保持，无新增模板XML。未点击Apply、未录入凭据、未上传。
 - 工具没有悬停动作，点击问号不能取得真实气泡；旧用户长箭头截图仅为缺陷证据。本轮分行HTML/可访问描述回归已通过，完整气泡视觉和气泡内指南链接点击仍待人工验收，相关tasks保持未勾选。
 
-完整检查、包身份与证据目录见[中英界面验证](../openspec/changes/localize-plugin-ui/verification.md)。本节环境恢复及深色主题结果在实际完成后追加。
+完整检查、包身份与证据目录见[中英界面验证](../openspec/changes/archive/2026-11-09-localize-plugin-ui/verification.md)。本节环境恢复及深色主题结果在实际完成后追加。
 
 ### 最新包收尾结果
 
@@ -142,7 +142,7 @@
 
 复用e0b6包，在隔离doc-demo打开中文浅色生成规则；Computer Use仍无悬停API，现有指针动作没有显示真实气泡。本次没有修改运行时代码，尚未完成气泡阅读或气泡内链接点击。已询问是否明确指定macOS系统鼠标移动，或由用户手动悬停，等待选择；未擅自运行其它鼠标技术或改变系统权限。
 
-结束前已正常退出测试实例并恢复本轮profile备份，项目DocView XML保持字节一致，普通doc-view IDEA窗口已实际确认恢复。未验项不勾选，未提交、发布或归档。证据在 `/tmp/doc-view-tooltip-20261021/`，详见[联合验证](../openspec/changes/localize-plugin-ui/verification.md)。
+结束前已正常退出测试实例并恢复本轮profile备份，项目DocView XML保持字节一致，普通doc-view IDEA窗口已实际确认恢复。未验项不勾选，未提交、发布或归档。证据在 `/tmp/doc-view-tooltip-20261021/`，详见[联合验证](../openspec/changes/archive/2026-11-09-localize-plugin-ui/verification.md)。
 
 ### 系统鼠标移动授权后的实际结果
 
@@ -154,7 +154,7 @@
 
 ### 气泡人工验收已完成（2026-10-21）
 
-用户确认“人工验收气泡完毕”，现将气泡阅读和分行复验登记为维护者人工验收完成；configuration任务4.2c/4.3b与localize任务4.2c同步更新。该确认没有逐项列明语言/主题/窗口或包身份，也未确认指南气泡内链接点击与草稿保持，因此不扩展为完整矩阵或指南点击通过；后两项继续见[本地化任务4.2d](../openspec/changes/localize-plugin-ui/tasks.md)。此前工具未显示气泡的记录保留为历史过程。
+用户确认“人工验收气泡完毕”，现将气泡阅读和分行复验登记为维护者人工验收完成；configuration任务4.2c/4.3b与localize任务4.2c同步更新。该确认没有逐项列明语言/主题/窗口或包身份，也未确认指南气泡内链接点击与草稿保持，因此不扩展为完整矩阵或指南点击通过；后两项继续见[本地化任务4.2d](../openspec/changes/archive/2026-11-09-localize-plugin-ui/tasks.md)。此前工具未显示气泡的记录保留为历史过程。
 
 本次只维护文档和任务记录，没有再次操作IDEA、修改运行时代码、提交、发布或归档。
 
@@ -162,7 +162,7 @@
 
 同一e0b6候选包在隔离IU262/doc-demo补齐中英浅色目录扫描与工具栏Upload列表、DTO参数编辑及方法预览按钮、欢迎/更新HTML正文和目录/模板/平台设置主要导航。参数弹窗仅阅读并Esc关闭，设置未Apply，未选择真实上传平台，源码业务名称和原默认Markdown保持。英语和简中更新页返回首页均已实际点击并核对截图。本轮不扩展为完整深浅/Compact矩阵。
 
-目录右键与预览内Upload仍受工具输入限制。维护者确认三处指南已点击、气泡覆盖简中及英语；模板和集成指南实际地址仍为develop并返回404，明确要求master。工具核对指南往返保留临时模板草稿，Cancel后重开草稿标记消失且Apply禁用；旧测试实例已正常退出。随后针对分支缺陷修复并复验，见[双语联合验证](../openspec/changes/localize-plugin-ui/verification.md)最新节；远端master正文亦尚未可用，不因修复链接而宣称404解决。不提交、发布或归档。
+目录右键与预览内Upload仍受工具输入限制。维护者确认三处指南已点击、气泡覆盖简中及英语；模板和集成指南实际地址仍为develop并返回404，明确要求master。工具核对指南往返保留临时模板草稿，Cancel后重开草稿标记消失且Apply禁用；旧测试实例已正常退出。随后针对分支缺陷修复并复验，见[双语联合验证](../openspec/changes/archive/2026-11-09-localize-plugin-ui/verification.md)最新节；远端master正文亦尚未可用，不因修复链接而宣称404解决。不提交、发布或归档。
 
 ### 2026-10-22 文档分支修正及收尾
 
@@ -180,11 +180,11 @@
 
 本轮隔离实例正常退出，语言/主题/Compact/颜色及设置窗口几何恢复，普通doc-view IDEA窗口已实际确认。完整键盘仍按用户要求跳过，真实上传未验；模板/集成master指南此前公开读取返回404，本轮没有重新联网核对，目标正确不代表正文已上线，仍需发布流程核对。其它change的生命周期、凭据、导出等未验项保持，因此不能把本地化完成当作整批可发布。没有提交、推送、sync/archive或发布。
 
-原始证据 `/tmp/doc-view-native-20261022-menus/`，详见[本地化验证](../openspec/changes/localize-plugin-ui/verification.md)及[设置扫描验证](../openspec/changes/doc-view-configuration/verification.md)。
+原始证据 `/tmp/doc-view-native-20261022-menus/`，详见[本地化验证](../openspec/changes/archive/2026-11-09-localize-plugin-ui/verification.md)及[设置扫描验证](../openspec/changes/archive/2026-11-09-doc-view-configuration/verification.md)。
 
 ### 2026-10-22 项目隔离与设置生命周期续验
 
-在同进程隔离IU262中，以专用doc-demo(A)和本轮创建的临时B项目验证：常规、生成规则、模板/输出及三平台普通字段的Apply/Revert/Cancel后重开均保持最近保存值；A/B分别保存模板标记、输出前缀和虚构平台字段，切回A与正常退出重启后逐页读回均未串项目。平台集成总览没有独立保存字段，导航不产生脏状态。本轮每页使用代表字段，未逐个点击所有控件；凭据留空、清除未选、未触发上传。具体字段和AX/磁盘证据见[设置验收](../openspec/changes/doc-view-configuration/verification.md#2026-10-22-项目隔离设置生命周期及窄窗口修复)。
+在同进程隔离IU262中，以专用doc-demo(A)和本轮创建的临时B项目验证：常规、生成规则、模板/输出及三平台普通字段的Apply/Revert/Cancel后重开均保持最近保存值；A/B分别保存模板标记、输出前缀和虚构平台字段，切回A与正常退出重启后逐页读回均未串项目。平台集成总览没有独立保存字段，导航不产生脏状态。本轮每页使用代表字段，未逐个点击所有控件；凭据留空、清除未选、未触发上传。具体字段和AX/磁盘证据见[设置验收](../openspec/changes/archive/2026-11-09-doc-view-configuration/verification.md#2026-10-22-项目隔离设置生命周期及窄窗口修复)。
 
 验收发现ShowDoc窄窗口的清除标签裁切；先新增布局测试取得1项RED，再将三平台清除选项移至对应密码框下方。专项1/1通过，全量49 suites/229 tests零失败、错误、跳过，18 tasks执行，IU261.22158.277 Verifier Compatible。新ZIP `df21ba775bd79032a3667e7ddef3984efee271a0511140977ceb33415cf50adb`，JAR `6eec14f6752b1a31aa9f16e1bffde276bacf7d92b6f18b2a24fd85534b0e4c2e`。新包在900×700逻辑窗口完成英语深色/简中浅色三平台视觉复验，清除标签完整，独立视觉复核一致。首轮生命周期使用af61；新包完成重启A/B读回及布局复验，不把两者混为同包全部交互重跑。
 
@@ -196,7 +196,7 @@
 
 维护者随后明确反馈“切主题验收完毕”，configuration任务3.4c据此登记为人工验收通过，该change现为29/29完成、未归档。此前工具未能即时切换的记录保留为历史过程；本次不新增语言/Compact/窗口/包身份矩阵声明，也没有重跑229项自动门禁。
 
-本次只维护四份任务/验收/路线图文档，没有操作IDEA或修改运行时代码。凭据、真实上传、完整键盘及其它change缺口保持，整批发布就绪结论不变；未提交、推送、sync/archive或发布。详见[主题人工验收记录](../openspec/changes/doc-view-configuration/verification.md#2026-10-22-即时主题切换人工验收完成)。
+本次只维护四份任务/验收/路线图文档，没有操作IDEA或修改运行时代码。凭据、真实上传、完整键盘及其它change缺口保持，整批发布就绪结论不变；未提交、推送、sync/archive或发布。详见[主题人工验收记录](../openspec/changes/archive/2026-11-09-doc-view-configuration/verification.md#2026-10-22-即时主题切换人工验收完成)。
 
 ### 2026-10-22 真实上传从本轮验收排除
 

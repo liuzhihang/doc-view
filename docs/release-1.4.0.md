@@ -62,3 +62,55 @@
 - master 分支六份使用指南（index、settings、templates、integrations、troubleshooting、welcome）已公开，GitHub API 返回的 blob SHA 与本地 Git 一致。此前待推送导致的 404 已解决。
 - 最终包已在独立 IU261 profile 安装启动并完成上述 smoke。测试 IDEA 已正常退出并卸载临时挂载，普通 `doc-view – ai-context-assessment.md [doc-view]` 窗口已恢复；doc-demo 基线内35份文件及 HEAD 保持不变。
 - 未完成的 OpenSpec 原生任务保留；没有把发布操作视作验收完成，也未将这些 change 归档。未纳入本次范围的 `.agents/` 本地文件保持原样。
+
+## 路线图迁入的历史进度摘要
+
+以下为 2026-11-09 文档整理时从旧路线图迁入的历史摘要，保留当时的包、平台和验证边界；不是本次重新验证，也不覆盖上文最终发布包记录。旧文中的“待验”“不发布”和“正在”均描述对应阶段，不表示当前状态。任务现状以各 change 的 tasks 与 verification 为准。
+
+### 功能验收摘要（历史阶段）
+
+**[`fix-template-settings-lifecycle`](../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/proposal.md)**
+
+模板草稿、Apply/Reset/Cancel 状态与资源释放问题已修复，自动回归及原生验收完成，并已随 1.4.0 交付。详见[验证记录](../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/verification.md)。
+
+**[`fix-integration-settings-state`](../openspec/changes/archive/2026-11-09-fix-integration-settings-state/proposal.md)**
+
+设置空值、地址规范化、YApi 校验/部分提交、语雀导航和配置注册 ID 已修复并通过回归；原生 Apply/Revert 与缺配置导航已验。真实平台上传按维护者要求从本轮验收排除，不作阻断；详见[验证记录](../openspec/changes/archive/2026-11-09-fix-integration-settings-state/verification.md)。
+
+**[`api-tree-navigation`](../openspec/changes/archive/2026-11-09-api-tree-navigation/proposal.md)**
+
+目录排序、源码/文档导航、刷新/隐藏、菜单、上传入口、深浅主题及 Compact Mode 等已实现；主要原生矩阵已验。证据范围和未覆盖项见[验证记录](../openspec/changes/archive/2026-11-09-api-tree-navigation/verification.md)。
+
+**[`doc-view-configuration`](../openspec/changes/archive/2026-11-09-doc-view-configuration/proposal.md)**
+
+设置分类、模板预览与规则说明已实现；截至 2026-10-22，各页代表字段保存/撤销/取消、A/B 项目隔离和重启读回已补验，并修复三平台窄窗口清除标签裁切。即时主题切换由维护者人工确认通过；凭据原生验收另见 credential change。任务与剩余范围见[验证记录](../openspec/changes/archive/2026-11-09-doc-view-configuration/verification.md)。
+
+**[`doc-view-welcome`](../openspec/changes/archive/2026-11-09-doc-view-welcome/proposal.md)**
+
+已改为随包 HTML/CSS + JCEF 欢迎页与更新页，7 个设置帮助入口打开 GitHub 指南。键盘专项按用户要求暂缓；截至 2026-10-22，发布记录确认六份 GitHub 指南已公开且与本地一致。详见[验证记录](../openspec/changes/archive/2026-11-09-doc-view-welcome/verification.md)和[1.4.0 发布记录](release-1.4.0.md)。
+
+**[`openapi3-parameter-metadata`](../openspec/changes/archive/2026-11-09-openapi3-parameter-metadata/proposal.md)**
+
+方法参数名称、描述、示例及 Spring 绑定/required 冲突规则已实现并通过自动回归。详见[验证记录](../openspec/changes/archive/2026-11-09-openapi3-parameter-metadata/verification.md)。
+
+**[`doc-export-workspace`](../openspec/changes/archive/2026-11-09-doc-export-workspace/proposal.md)**
+
+项目 Markdown、稳定身份/源码链接、冲突保护和后台快照已实现。IU261 已补覆盖确认、扫描取消和关闭项目不发布；IU261/IU262 已补两模块索引及页面/源码导航。导出前关闭项目仍创建空目录的缺陷已修复并原生复验；目录动作通过 Find Action 执行，未冒充右键菜单点击。详见[验证记录](../openspec/changes/archive/2026-11-09-doc-export-workspace/verification.md)。
+
+**轻量 API Wiki / [`doc-export-index-readability`](../openspec/changes/archive/2026-11-09-doc-export-index-readability/proposal.md)**
+
+已将宽表改为模块/类/方法分组；IU261/IU262 两模块的接口页、重载及 Document/Source 导航已原生验证。模型目录只在实测缺口后考虑；不拆独立 Wiki 插件，也不要求 MCP 先成功。
+
+**[`platform-upload-stability`](../openspec/changes/archive/2026-11-09-platform-upload-stability/proposal.md)**
+
+语雀错误分类、响应校验、编码、超时、资源关闭与取消已修复并通过本机 HTTP/上传服务测试。真实上传按维护者要求移为本轮非阻断排除项，第三方账户未访问，不标记实测通过。详见[验证记录](../openspec/changes/archive/2026-11-09-platform-upload-stability/verification.md)。
+
+**[`annotation-text-fallback`](../openspec/changes/archive/2026-11-09-annotation-text-fallback/proposal.md)**
+
+空白注解回退及 Swagger2 常量名处理已修复，并通过回归测试。详见[验证记录](../openspec/changes/archive/2026-11-09-annotation-text-fallback/verification.md)。
+
+**[`async-method-doc-preview`](../openspec/changes/archive/2026-11-09-async-method-doc-preview/proposal.md)**
+
+方法文档以可取消后台文本快照生成，再于 EDT 打开 Scratch；IU261 原生 Enter/双击、任务取消和项目关闭后丢弃迟到结果已验，未产生部分 Scratch。受控断点不作为自然耗时证据。详见[验证记录](../openspec/changes/archive/2026-11-09-async-method-doc-preview/verification.md)。
+
+candidate 235 是此前阶段的历史候选，不是最终 1.4.0 包；完整测试数、hash 和 Verifier 记录见 [2026-10-20 验证记录](validation-2026-10-20.md)。不同候选包不能合并成同一包的全量矩阵。主要界面中英化的原生语言、窄窗及问号验收也记录于该文；没有更新远程语雀。

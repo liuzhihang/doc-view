@@ -14,7 +14,7 @@
 - **Reset（IDE 设置界面显示 `Revert changes`）**：恢复最近一次已保存（Apply/OK）的模板和输出选项；它不是“恢复出厂默认”，也会丢弃当前尚未应用的编辑。
 - **Cancel**：丢弃尚未应用的编辑。如果先 Apply，再继续编辑后按 Cancel，前一次 Apply 的内容仍保留，只有后续草稿被丢弃。
 
-模板状态修复的原生保存与重启记录见[验证记录](../../openspec/changes/fix-template-settings-lifecycle/verification.md)。模板编辑、变量插入、预览和设置界面的检查记录见[配置验证记录](../../openspec/changes/doc-view-configuration/verification.md)。
+模板状态修复的原生保存与重启记录见[验证记录](../../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/verification.md)。模板编辑、变量插入、预览和设置界面的检查记录见[配置验证记录](../../openspec/changes/archive/2026-11-09-doc-view-configuration/verification.md)。
 
 ## 选择哪份模板
 

@@ -23,7 +23,7 @@
 
 ### Modified Capabilities
 
-无长期 spec 修改。现有项目导出与 Markdown 索引仍在未归档的 [doc-export-workspace](../doc-export-workspace/specs/project-document-export/spec.md) 和 [doc-export-index-readability](../doc-export-index-readability/specs/project-document-index/spec.md) 中；本 change 在它们之上新增机器格式，不同步/归档旧 change，也不改变 Markdown 正文模板和页面身份算法。
+无长期 spec 修改。现有项目导出与 Markdown 索引仍在未归档的 [doc-export-workspace](../archive/2026-11-09-doc-export-workspace/specs/project-document-export/spec.md) 和 [doc-export-index-readability](../archive/2026-11-09-doc-export-index-readability/specs/project-document-index/spec.md) 中；本 change 在它们之上新增机器格式，不同步/归档旧 change，也不改变 Markdown 正文模板和页面身份算法。
 
 ## Impact
 

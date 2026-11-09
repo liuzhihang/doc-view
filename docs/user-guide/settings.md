@@ -19,7 +19,7 @@
 
 界面翻译不会翻译源码注释、业务名称、已有默认模板、用户保存的模板或生成的 Markdown/JSON。需要英文文档时，请自行编辑模板与源码说明；当前 GitHub 用户指南仍以中文维护。语言覆盖和实际验收范围见[本轮记录](../validation-2026-10-20.md)。
 
-**Revert changes**（部分页面称 Reset）恢复最近一次 Apply/OK 保存的设置；Cancel 丢弃未应用草稿，不撤销此前成功 Apply 的修改。模板修复的验证见[记录](../../openspec/changes/fix-template-settings-lifecycle/verification.md)；操作步骤见[模板教程](templates.md)，异常处理见[故障排查](troubleshooting.md#模板-reset-后自定义内容异常)。
+**Revert changes**（部分页面称 Reset）恢复最近一次 Apply/OK 保存的设置；Cancel 丢弃未应用草稿，不撤销此前成功 Apply 的修改。模板修复的验证见[记录](../../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/verification.md)；操作步骤见[模板教程](templates.md)，异常处理见[故障排查](troubleshooting.md#模板-reset-后自定义内容异常)。
 
 ## 阅读生成规则
 
