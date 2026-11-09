@@ -10,7 +10,7 @@ Doc View 从 Java 源码、注释和注解生成 API 文档，支持在 IDE 中�
 - **连接 YApi、ShowDoc 或语雀**：阅读[平台集成](integrations.md)。
 - **排查菜单、模板或导出问题**：阅读[故障排查](troubleshooting.md)。
 
-模板设置中的 Apply、Reset 和 Cancel 各自作用不同；细节见[模板状态验证记录](../../openspec/changes/fix-template-settings-lifecycle/verification.md)。
+模板设置中的 Apply、Reset 和 Cancel 各自作用不同；细节见[模板状态验证记录](../../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/verification.md)。
 
 ## 安装
 
@@ -237,4 +237,4 @@ docs/doc-view/
 
 ## 文档版本与本次覆盖范围
 
-各指南示例使用虚构数据。历史模板专用构建的 Apply/Reset/Cancel 与重启证据见[验证记录](../../openspec/changes/fix-template-settings-lifecycle/verification.md)；相关设置评估与后续顺序见[设置评估](../settings-audit.md)及[路线图](../roadmap.md)。验证记录按实际插件包分别记录，历史结果不能代替后续构建的复验。
+各指南示例使用虚构数据。历史模板专用构建的 Apply/Reset/Cancel 与重启证据见[验证记录](../../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/verification.md)；相关设置评估与后续顺序见[设置评估](../settings-audit.md)及[路线图](../roadmap.md)。验证记录按实际插件包分别记录，历史结果不能代替后续构建的复验。

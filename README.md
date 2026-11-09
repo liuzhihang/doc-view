@@ -16,6 +16,18 @@
 
 **环境要求：** IDEA IU `263.7031.23` 起、Java 25。旧 IDEA 请选择兼容的旧插件版本。可安装版本以 [Marketplace](https://plugins.jetbrains.com/plugin/15305-doc-view/versions) 和 [Releases](https://github.com/liuzhihang/doc-view/releases) 为准；完整边界见[兼容性说明](docs/intellij-compatibility.md)。
 
+## 功能演示
+
+以下 GIF 展示**历史版本界面**；当前菜单、设置和操作步骤以[用户指南](docs/user-guide/index.md)为准。
+
+**接口文档生成**
+
+![历史版本：接口文档生成演示](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/122-zbZ9ps.gif)
+
+**字段说明编辑**
+
+![历史版本：字段说明编辑演示](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/0YyY3m-CQdmD6.gif)
+
 ## 日常使用
 
 | 想做什么 | 从这里开始 |
@@ -49,11 +61,11 @@
 </details>
 
 <details>
-<summary>开发与历史演示</summary>
+<summary>开发与贡献</summary>
 
 构建使用 Java 25、仓库 Gradle Wrapper。协作规范见 [AGENTS.md](AGENTS.md)，模块边界见[架构](docs/architecture.md)，发布前遵循[检查清单](docs/release-checklist.md)。
 
-[1.6.0 发布记录](docs/release-1.6.0.md) · [历史演示与截图](https://github.com/liuzhihang/doc-view/discussions/17) · [旧版语雀文档](https://www.yuque.com/liuzhihangs/doc-view)
+[1.6.1 发布记录](docs/release-1.6.1.md) · [历史演示与截图](https://github.com/liuzhihang/doc-view/discussions/17) · [旧版语雀文档](https://www.yuque.com/liuzhihangs/doc-view)
 
 </details>
 

@@ -41,7 +41,7 @@ Fixture 仍关闭 JCEF；上述结果不能证明 HTML panel 创建、状态切�
 
 ## Round50 原生 Markdown 渲染及混合主题补验
 
-IU262 隔离 profile 安装 Round50 包后，从 `doc-demo` 的 `UserController.respGenericTest` 行标记打开真实文档，点击 Preview 后实际显示渲染后的标题、POST路径与参数表（`/tmp/doc-view-reliability-20261018/native-round50-preview-toggle.png`）。深色 IDE/浅色 editor scheme 与浅色 IDE/深色 editor scheme 的浮窗操作区均跟随 IDE 主题、正文保留 editor scheme（`native-round50-preview-dark.png`、`native-round50-preview-light.png`）。本轮完成一次渲染切换，未覆盖反复切换后资源数量/项目关闭/泄漏压力；相关原生生命周期任务不据此整体勾选。图标与背景修正、后续包及普通窗口恢复证据见 [API tree verification](../api-tree-navigation/verification.md)。
+IU262 隔离 profile 安装 Round50 包后，从 `doc-demo` 的 `UserController.respGenericTest` 行标记打开真实文档，点击 Preview 后实际显示渲染后的标题、POST路径与参数表（`/tmp/doc-view-reliability-20261018/native-round50-preview-toggle.png`）。深色 IDE/浅色 editor scheme 与浅色 IDE/深色 editor scheme 的浮窗操作区均跟随 IDE 主题、正文保留 editor scheme（`native-round50-preview-dark.png`、`native-round50-preview-light.png`）。本轮完成一次渲染切换，未覆盖反复切换后资源数量/项目关闭/泄漏压力；相关原生生命周期任务不据此整体勾选。图标与背景修正、后续包及普通窗口恢复证据见 [API tree verification](../archive/2026-11-09-api-tree-navigation/verification.md)。
 
 ## IU 261 JCEF 生命周期观测与 candidate caaf 原生预览（2026-10-22）
 
