@@ -62,4 +62,4 @@
 
 本机证据目录为`doc-view-compact-ui-evidence/`（本次任务根目录下），包含release-1.6.2-gates.log、release-1.6.2-local-verifier.log、release-test-summary.json、release-package-audit.json、release-frozen-inputs.json、最终测试XML和Verifier报告。原始profile与日志不公开。
 
-实现与验证完成后按用户授权先同步并归档；GitHub发布任务在归档时仍待执行，成功回读后补记，不提前勾选。渠道结果见[1.6.2发布记录](../../../../docs/release-1.6.2.md)。
+实现与验证完成后按用户授权先同步并归档；GitHub发布任务在归档时保持待执行；现已完成PR#122（develop）和#123（master）、v1.6.2 tag与正式Release。下载ZIP及SHA256SUMS均匹配，GitHub资产digest也一致；release commit为dc733ed9e3650ec4264064bf724ba9e3d5adb07c，与候选34d792f完整tree及336输入相同。该提交check-runs数量为0，不冒称CI运行通过。Marketplace未上传。渠道结果见[1.6.2发布记录](../../../../docs/release-1.6.2.md)。
