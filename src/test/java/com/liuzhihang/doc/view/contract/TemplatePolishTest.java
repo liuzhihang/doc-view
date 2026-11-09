@@ -18,11 +18,11 @@ public final class TemplatePolishTest extends LightJavaCodeInsightFixtureTestCas
             WriteCommandAction.runWriteCommandAction(getProject(), () -> editor.getDocument().setText("# ${DocView.name}\n"));
             editor.getCaretModel().moveToOffset(3);
             JTabbedPane tabs = (JTabbedPane) find(root, "templateMainTabs");
-            JButton preview = (JButton) find(root, "previewSpringButton");
-            preview.doClick();
+            Runnable preview = () -> TemplateActionTestSupport.click(root, "template.preview.spring");
+            preview.run();
             assertEquals("Preview stays in the editor workspace", 0, tabs.getSelectedIndex());
             assertFalse("Source is hidden when rendered preview is selected", editor.getComponent().isVisible());
-            preview.doClick();
+            preview.run();
             assertTrue(editor.getComponent().isVisible());
             assertEquals("# ${DocView.name}\n", editor.getDocument().getText());
             assertEquals(3, editor.getCaretModel().getOffset());
@@ -33,16 +33,16 @@ public final class TemplatePolishTest extends LightJavaCodeInsightFixtureTestCas
         try {
             JComponent root = form.createCenterPanel();
             var editor = form.getSpringTemplateEditor();
-            JButton preview = (JButton) find(root, "previewSpringButton");
-            ((JButton) find(root, "toggleVariablesButton")).doClick();
-            preview.doClick();
+            Runnable preview = () -> TemplateActionTestSupport.click(root, "template.preview.spring");
+            TemplateActionTestSupport.click(root, "template.variables.show");
+            preview.run();
             ((JButton) find(root, "insertVariableButton")).doClick();
             assertTrue("Inserting a variable reveals the edited source", editor.getComponent().isVisible());
             assertTrue(editor.getDocument().getText().contains("${DocView."));
-            preview.doClick();
-            ((JButton) find(root, "restoreDefaultsButton")).doClick();
+            preview.run();
+            TemplateActionTestSupport.restoreDefaults(root);
             assertTrue("Restoring defaults reveals the source draft", editor.getComponent().isVisible());
-            preview.doClick();
+            preview.run();
             form.reset();
             assertTrue("Reset reveals persisted source", editor.getComponent().isVisible());
             assertFalse(form.isModified());
