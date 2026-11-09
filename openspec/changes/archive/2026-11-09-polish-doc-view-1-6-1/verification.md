@@ -71,3 +71,7 @@ macOS accessibility 在读取隐藏 JTree 时曾有 IllegalComponentStateExcepti
 本轮新增/修改 UI 场景已完成，不沿用 1.6.0 原生例外冒充本轮通过。虚构项目未配置 JDK，原生检查覆盖 PSI/预览/UI，不宣称编译该工程。完整继承的凭据拒绝/写入失败、真实平台上传、HTTP Send、Schema 写回、性能取消、全语言/窗口/生命周期组合未重新做原生矩阵；现有相关自动回归在 447 项中执行。未来 IDE build 未验证；仍有既有 16 项 experimental API。类正文只增加 DTO/模板与 Markdown 路径，JSON v1 不新增独立字段。字段/参数普通注释的旧空格处理不在本轮改动范围。
 
 正式发布状态及链接见 [发布记录](../../../../docs/release-1.6.1.md)。如发现阻断问题，保留日志/包，停止追加发布，回退选择 1.6.0 或另发 patch；不覆写已有 tag/ZIP。
+
+## 发布结果
+
+已按 develop→master 合并，v1.6.1 指向 255be07017c4b233eb27aca32beef9ce616abb90；与冻结实现 tree 及 334 项输入一致。GitHub Release 公开下载 SHA 校验通过；Marketplace update 1215689 实际上传、内部文件核对通过，approve/listed 均 false（待平台审核上架）。发布链接、首次 offline 跳过与随后在线成功的区分见发布记录。
