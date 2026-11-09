@@ -136,6 +136,33 @@ public class CustomPsiCommentUtils {
 
     }
 
+    /** Ordinary class/method Javadoc, with physical lines and spaces preserved. */
+    public static JavadocText documentation(PsiDocComment comment) {
+        return ApplicationManager.getApplication().runReadAction((Computable<JavadocText>) () -> {
+            if (comment == null) return new JavadocText("", "");
+            String text = comment.getText();
+            int end = text.length() - 2;
+            PsiDocTag[] tags = comment.getTags();
+            if (tags.length > 0) end = tags[0].getTextRange().getStartOffset() - comment.getTextRange().getStartOffset();
+            String ordinary = text.substring(Math.min(3, end), end)
+                    .replace("\r\n", "\n").replace('\r', '\n');
+            List<String> lines = new java.util.ArrayList<>();
+            for (String line : ordinary.split("\n", -1)) {
+                lines.add(line.replaceFirst("^\\s*\\* ?", "").strip());
+            }
+            while (!lines.isEmpty() && lines.getFirst().isBlank()) lines.removeFirst();
+            while (!lines.isEmpty() && lines.getLast().isBlank()) lines.removeLast();
+            if (lines.isEmpty()) return new JavadocText("", "");
+            return new JavadocText(lines.getFirst(), String.join("\n", lines.subList(1, lines.size())).strip());
+        });
+    }
+
+    public record JavadocText(String title, String description) {
+        public String allText() {
+            return (title + " " + description).replaceAll("\\s+", " ").strip();
+        }
+    }
+
     /**
      * 获取字段的注释
      * <p>

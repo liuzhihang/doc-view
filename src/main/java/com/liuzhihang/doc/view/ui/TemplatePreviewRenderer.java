@@ -25,6 +25,7 @@ public final class TemplatePreviewRenderer {
 
     private static DocView sample(FrameworkEnum framework) {
         DocView docView = new DocView("查询示例用户");
+        docView.setClassDesc("用于模板预览的虚构用户接口。");
         docView.setDesc("根据示例用户编号查询虚构的用户资料。");
         docView.setPath(framework == FrameworkEnum.DUBBO
                 ? "com.example.demo.DemoUserService.findUser"

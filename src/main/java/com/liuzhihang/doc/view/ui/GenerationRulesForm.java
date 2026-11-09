@@ -14,6 +14,9 @@ import javax.accessibility.AccessibleContext;
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JPanel;
+import javax.swing.JLabel;
+import com.intellij.ui.components.JBTextField;
+import com.intellij.openapi.options.ConfigurationException;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
@@ -42,6 +45,10 @@ public final class GenerationRulesForm {
     private final JCheckBox requireCommentTagCheckBox = checkBox("settings.doc.required.comment.tag", "requireCommentTagCheckBox");
     private final JCheckBox fieldNameJsonPropertyCheckBox = checkBox("settings.doc.field.name.JsonProperty", "fieldNameJsonPropertyCheckBox");
 
+    private final JCheckBox nameCommentFirstLineCheckBox = checkBox("settings.doc.name.comment.first.line", "nameCommentFirstLineCheckBox");
+    private final JCheckBox descCommentBodyCheckBox = checkBox("settings.doc.desc.comment.body", "descCommentBodyCheckBox");
+    private final JBTextField commentTitleMaxLengthField = new JBTextField(4);
+
     public GenerationRulesForm(@NotNull Project project) {
         this.project = project;
         rootPanel.setLayout(new BoxLayout(rootPanel, BoxLayout.Y_AXIS));
@@ -52,13 +59,23 @@ public final class GenerationRulesForm {
                 "settings.rules.title.help.name", DocViewBundle.message("settings.rules.title.order"),
                 titleCommentTagCheckBox, titleClassCommentCheckBox,
                 titleSimpleClassNameCheckBox, titleFullClassNameCheckBox));
+        JPanel limitRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 4));
+        limitRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        commentTitleMaxLengthField.setName("commentTitleMaxLengthField");
+        JLabel limitLabel = new JLabel(DocViewBundle.message("settings.doc.comment.title.limit"));
+        limitLabel.setLabelFor(commentTitleMaxLengthField);
+        limitRow.add(limitLabel);
+        limitRow.add(commentTitleMaxLengthField);
+        rootPanel.add(limitRow);
+        nameCommentFirstLineCheckBox.setBorder(JBUI.Borders.emptyLeft(20));
+        nameMethodCommentCheckBox.addActionListener(event -> nameCommentFirstLineCheckBox.setEnabled(nameMethodCommentCheckBox.isSelected()));
         rootPanel.add(group("settings.doc.name", "generationName", "settings.rules.name.summary",
                 "settings.rules.name.help.name", DocViewBundle.message("settings.rules.name.order"),
                 nameSwagger3CheckBox, nameSwaggerCheckBox,
-                nameCommentTagCheckBox, nameMethodCommentCheckBox));
+                nameCommentTagCheckBox, nameMethodCommentCheckBox, nameCommentFirstLineCheckBox));
         rootPanel.add(group("settings.doc.desc", "generationDescription", "settings.rules.desc.summary",
                 "settings.rules.desc.help.name", DocViewBundle.message("settings.rules.desc.order"),
-                descSwagger3CheckBox, descSwaggerCheckBox));
+                descSwagger3CheckBox, descSwaggerCheckBox, descCommentBodyCheckBox));
 
         String requiredHelp = String.join("\n\n",
                 DocViewBundle.message("settings.rules.required.fixed"),
@@ -150,7 +167,10 @@ public final class GenerationRulesForm {
 
     public boolean isModified() {
         Settings settings = Settings.getInstance(project);
-        return titleCommentTagCheckBox.isSelected() != settings.getTitleUseCommentTag()
+        return !Integer.toString(settings.getCommentTitleMaxLength()).equals(commentTitleMaxLengthField.getText().trim())
+                || nameCommentFirstLineCheckBox.isSelected() != settings.isNameCommentFirstLine()
+                || descCommentBodyCheckBox.isSelected() != settings.isDescCommentBody()
+                || titleCommentTagCheckBox.isSelected() != settings.getTitleUseCommentTag()
                 || titleFullClassNameCheckBox.isSelected() != settings.getTitleUseFullClassName()
                 || titleSimpleClassNameCheckBox.isSelected() != settings.getTitleUseSimpleClassName()
                 || titleClassCommentCheckBox.isSelected() != settings.getTitleClassComment()
@@ -164,8 +184,18 @@ public final class GenerationRulesForm {
                 || fieldNameJsonPropertyCheckBox.isSelected() != settings.getFieldNameJsonProperty();
     }
 
-    public void apply() {
+    public void apply() throws ConfigurationException {
+        final int limit;
+        try {
+            limit = Integer.parseInt(commentTitleMaxLengthField.getText().trim());
+            if (limit < 1 || limit > 200) throw new NumberFormatException();
+        } catch (NumberFormatException exception) {
+            throw new ConfigurationException(DocViewBundle.message("settings.doc.comment.title.limit.error"));
+        }
         Settings settings = Settings.getInstance(project);
+        settings.setCommentTitleMaxLength(limit);
+        settings.setNameCommentFirstLine(nameCommentFirstLineCheckBox.isSelected());
+        settings.setDescCommentBody(descCommentBodyCheckBox.isSelected());
         settings.setTitleUseCommentTag(titleCommentTagCheckBox.isSelected());
         settings.setTitleUseFullClassName(titleFullClassNameCheckBox.isSelected());
         settings.setTitleUseSimpleClassName(titleSimpleClassNameCheckBox.isSelected());
@@ -182,6 +212,10 @@ public final class GenerationRulesForm {
 
     public void reset() {
         Settings settings = Settings.getInstance(project);
+        commentTitleMaxLengthField.setText(Integer.toString(settings.getCommentTitleMaxLength()));
+        nameCommentFirstLineCheckBox.setSelected(settings.isNameCommentFirstLine());
+        nameCommentFirstLineCheckBox.setEnabled(settings.getNameMethodComment());
+        descCommentBodyCheckBox.setSelected(settings.isDescCommentBody());
         titleCommentTagCheckBox.setSelected(settings.getTitleUseCommentTag());
         titleFullClassNameCheckBox.setSelected(settings.getTitleUseFullClassName());
         titleSimpleClassNameCheckBox.setSelected(settings.getTitleUseSimpleClassName());

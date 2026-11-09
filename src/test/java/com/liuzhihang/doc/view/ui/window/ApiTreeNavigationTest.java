@@ -130,7 +130,8 @@ public final class ApiTreeNavigationTest extends LightJavaCodeInsightFixtureTest
 
                 @RestController
                 public class SearchDescriptionController {
-                    /** Nativepageitem23 tailneedle */
+                    /** Native title
+                     * Native page item23 tailneedle */
                     @GetMapping("/search-description")
                     public void searchDescription() {}
                 }
@@ -140,21 +141,21 @@ public final class ApiTreeNavigationTest extends LightJavaCodeInsightFixtureTest
                 .filter(candidate -> "searchDescription".equals(candidate.getPsiMethod().getName()))
                 .findFirst().orElseThrow();
 
-        assertEquals("The visible business title keeps the existing 15-character rule",
-                "Nativepageitem2", method.getName());
+        assertEquals("The visible business title uses the first Javadoc line",
+                "Native title", method.getName());
         assertTrue("The tooltip keeps the complete method description",
-                method.getPresentation().getTooltip().contains("Nativepageitem23tailneedle"));
+                method.getPresentation().getTooltip().contains("Native page item23 tailneedle"));
         method.update();
-        assertEquals("The method row keeps the existing truncated business title", "Nativepageitem2",
+        assertEquals("The method row keeps the first-line business title", "Native title",
                 method.getPresentation().getColoredText().get(1).getText().trim());
         assertTrue("The speed-search text must include description characters beyond the title limit",
                 method.getSearchText().contains("tailneedle"));
         assertTrue("The platform formatter on a real StructureTreeModel path must include the description tail",
                 speedSearchTextFromStructureTreeModel(node, method).contains("tailneedle"));
-        assertTrue("Markdown file naming must keep the existing truncated business title",
-                method.docPath(getProject()).endsWith("/Nativepageitem2.md"));
-        assertTrue("HTTP file naming must keep the existing truncated business title",
-                method.httpPath(getProject()).endsWith("/Nativepageitem2.http"));
+        assertTrue("Markdown file naming must keep the first-line business title",
+                method.docPath(getProject()).endsWith("/Native title.md"));
+        assertTrue("HTTP file naming must keep the first-line business title",
+                method.httpPath(getProject()).endsWith("/Native title.http"));
     }
 
     public void testSourceNavigationUsesValidPsiAndIgnoresDeletedMethods() throws Exception {

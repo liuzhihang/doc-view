@@ -225,8 +225,8 @@ public final class ProjectDocumentPartialLibraryUiTest extends LightJavaCodeInsi
         String repairedMarkdown = Files.readString(
                 documentRoot.resolve(repairedApi.markdown().path()), StandardCharsets.UTF_8);
         String expectedUpdatedSummary = changedMethodName.equals("alpha")
-                ? "Alphaupdatedsummary."
-                : "Betaupdatedsummary.";
+                ? "Alpha updated summary."
+                : "Beta updated summary.";
         assertTrue("The repaired Markdown for " + changedMethodName + " should contain the updated summary "
                         + expectedUpdatedSummary + "; actual Markdown:\n" + repairedMarkdown,
                 repairedMarkdown.contains(expectedUpdatedSummary));

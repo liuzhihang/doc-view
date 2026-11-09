@@ -45,6 +45,13 @@ public class Settings implements PersistentStateComponent<Settings> {
     private Boolean nameUseSwagger = true;
     private Boolean nameUseCommentTag = true;
     private Boolean nameMethodComment = true;
+    private int commentTitleMaxLength = 80;
+    private boolean nameCommentFirstLine = true;
+    private boolean descCommentBody = true;
+
+    public int getCommentTitleMaxLength() {
+        return commentTitleMaxLength >= 1 && commentTitleMaxLength <= 200 ? commentTitleMaxLength : 80;
+    }
 
     /**
      * 文档描述

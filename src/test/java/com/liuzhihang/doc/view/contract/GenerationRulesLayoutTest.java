@@ -108,7 +108,7 @@ public final class GenerationRulesLayoutTest extends LightJavaCodeInsightFixture
                 settingsGuide instanceof ContextHelpLabel);
         assertEquals("The page should have five rule details and one separate guide icon",
                 6, findAll(root, ContextHelpLabel.class).size());
-        assertEquals("The visual change must retain the existing rule controls", 12, findAll(root, JCheckBox.class).size());
+        assertEquals("Existing rule controls plus Javadoc title/body options", 14, findAll(root, JCheckBox.class).size());
         for (String name : CHECKBOX_NAMES) {
             assertNotNull("Missing existing rule control " + name, findByName(root, name));
         }
@@ -125,7 +125,7 @@ public final class GenerationRulesLayoutTest extends LightJavaCodeInsightFixture
                 toTooltipHtml("<label> & value\nnext\n\nsection"));
     }
 
-    public void testRuleControlsRetainApplyResetAndModifiedSemantics() {
+    public void testRuleControlsRetainApplyResetAndModifiedSemantics() throws Exception {
         GenerationRulesForm form = new GenerationRulesForm(getProject());
         Settings settings = Settings.getInstance(getProject());
         form.reset();

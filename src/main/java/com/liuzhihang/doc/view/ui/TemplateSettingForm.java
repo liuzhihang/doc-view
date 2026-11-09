@@ -1,6 +1,16 @@
 package com.liuzhihang.doc.view.ui;
 
 import com.intellij.ide.highlighter.HighlighterFactory;
+import com.intellij.openapi.application.ReadAction;
+import com.intellij.icons.AllIcons;
+import com.intellij.ui.jcef.JBCefApp;
+import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanel;
+import org.intellij.plugins.markdown.ui.preview.MarkdownHtmlPanelProvider;
+import org.intellij.plugins.markdown.settings.MarkdownSettings;
+import com.liuzhihang.doc.view.utils.MarkdownPreviewHtml;
+import java.awt.CardLayout;
+import java.util.IdentityHashMap;
+import java.util.Map;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.WriteCommandAction;
@@ -62,7 +72,7 @@ import java.util.Objects;
 public final class TemplateSettingForm extends DialogWrapper {
 
     private static final List<TemplateVariable> TEMPLATE_VARIABLES = List.of(
-            variable("name"), variable("desc"), variable("since"), variable("version"),
+            variable("name"), variable("classDesc"), variable("desc"), variable("since"), variable("version"),
             variable("path"), variable("method"),
             variable("requestHeader"), variable("requestParam"), variable("requestBody"),
             variable("requestExample"), variable("responseParam"), variable("responseExample"),
@@ -97,6 +107,10 @@ public final class TemplateSettingForm extends DialogWrapper {
     private com.intellij.openapi.editor.event.DocumentListener templateChangeListener;
     private boolean suppressPreviewInvalidation;
     private boolean variablesVisible;
+    private MarkdownHtmlPanel htmlPreview;
+    private EditorEx activePreviewEditor;
+    private final Map<EditorEx, JPanel> templateContents = new IdentityHashMap<>();
+    private final Map<EditorEx, JButton> previewButtons = new IdentityHashMap<>();
 
     public TemplateSettingForm(@NotNull Project project) {
         super(project, true);
@@ -107,7 +121,7 @@ public final class TemplateSettingForm extends DialogWrapper {
                 (template, framework) -> {
                     if (project.isDisposed()) return "";
                     return TemplatePreviewRenderer.render(project, template, framework);
-                });
+                }, markdown -> ReadAction.computeBlocking(() -> project.isDisposed() ? "" : MarkdownPreviewHtml.render(project, markdown)));
         init();
     }
 
@@ -154,7 +168,10 @@ public final class TemplateSettingForm extends DialogWrapper {
         templateTabledPane.setName("templateFrameworkTabs");
         templateTabledPane.addTab("Spring", templatePanel(springTemplateEditor, FrameworkEnum.SPRING));
         templateTabledPane.addTab("Dubbo", templatePanel(dubboTemplateEditor, FrameworkEnum.DUBBO));
-        templateTabledPane.addChangeListener(event -> updateInsertButton());
+        templateTabledPane.addChangeListener(event -> {
+            showTemplateEditor();
+            updateInsertButton();
+        });
         templateTabledPane.setBorder(JBUI.Borders.empty(4, 0, 0, 0));
 
         variablesPanel = createVariablesPanel();
@@ -185,12 +202,19 @@ public final class TemplateSettingForm extends DialogWrapper {
         previewHeader.add(previewStatusLabel, BorderLayout.CENTER);
         previewPanel.add(previewHeader, BorderLayout.NORTH);
         previewPanel.add(previewEditor.getComponent(), BorderLayout.CENTER);
+        if (JBCefApp.isSupported()) {
+            htmlPreview = MarkdownHtmlPanelProvider.createFromInfo(MarkdownSettings.getDefaultProviderInfo()).createHtmlPanel();
+            previewPanel.remove(previewEditor.getComponent());
+            previewPanel.add(htmlPreview.getComponent(), BorderLayout.CENTER);
+        }
         previewPanel.setBorder(BorderFactory.createEmptyBorder(JBUI.scale(4), 0, 0, 0));
 
+        JPanel firstContent = templateContents.get(springTemplateEditor);
+        firstContent.add(previewPanel, "preview");
+        ((CardLayout) firstContent.getLayout()).show(firstContent, "editor");
         workspaceTabs = new JTabbedPane();
         workspaceTabs.setName("templateMainTabs");
         workspaceTabs.addTab(DocViewBundle.message("template.tab.editor"), editorPage);
-        workspaceTabs.addTab(DocViewBundle.message("template.tab.preview"), previewPanel);
         workspaceTabs.addTab(DocViewBundle.message("template.tab.output"), createOutputSettingsPanel());
         workspaceTabs.setSelectedIndex(0);
         rootPanel.add(workspaceTabs, BorderLayout.CENTER);
@@ -316,13 +340,22 @@ public final class TemplateSettingForm extends DialogWrapper {
         JButton previewButton = new JButton(DocViewBundle.message(framework == FrameworkEnum.SPRING
                 ? "template.preview.spring" : "template.preview.dubbo"));
         previewButton.setName(framework == FrameworkEnum.SPRING ? "previewSpringButton" : "previewDubboButton");
-        previewButton.addActionListener(event -> requestPreview(editor, framework));
+        previewButton.setIcon(AllIcons.Actions.Preview);
+        previewButtons.put(editor, previewButton);
+        previewButton.addActionListener(event -> {
+            if (activePreviewEditor == editor) showTemplateEditor();
+            else requestPreview(editor, framework);
+        });
         previewActions.add(previewButton);
         controls.add(previewActions, BorderLayout.NORTH);
         controls.add(wrappedHint(DocViewBundle.message("template.preview.fixed.sample"),
                 "fixedSampleHelp" + frameworkName), BorderLayout.CENTER);
         panel.add(controls, BorderLayout.NORTH);
-        panel.add(editor.getComponent(), BorderLayout.CENTER);
+        JPanel content = new JPanel(new CardLayout());
+        content.setName("templateContent" + frameworkName);
+        content.add(editor.getComponent(), "editor");
+        templateContents.put(editor, content);
+        panel.add(content, BorderLayout.CENTER);
         return panel;
     }
 
@@ -388,7 +421,7 @@ public final class TemplateSettingForm extends DialogWrapper {
             propertyName.setName("templateVariablePropertyName");
             JLabel displayName = new JBLabel(value.displayName());
             displayName.setName("templateVariableDisplayName");
-            propertyName.setFont(list.getFont());
+            propertyName.setFont(list.getFont().deriveFont(java.awt.Font.BOLD));
             displayName.setFont(list.getFont());
             row.add(propertyName);
             row.add(displayName);
@@ -397,7 +430,7 @@ public final class TemplateSettingForm extends DialogWrapper {
             Color foreground = selected ? list.getSelectionForeground() : list.getForeground();
             row.setBackground(background);
             propertyName.setForeground(foreground);
-            displayName.setForeground(foreground);
+            displayName.setForeground(selected ? foreground : UIUtil.getContextHelpForeground());
             return row;
         });
         variableList.addListSelectionListener(event -> {
@@ -482,6 +515,7 @@ public final class TemplateSettingForm extends DialogWrapper {
         EditorUtils.renderMarkdownEditor(editor);
         editor.setHighlighter(HighlighterFactory.createHighlighter(
                 fileType, EditorColorsManager.getInstance().getGlobalScheme(), project));
+        if (!viewer) TemplateSyntaxHighlighting.install(editor, documentListenerLifetime);
         return editor;
     }
 
@@ -507,6 +541,7 @@ public final class TemplateSettingForm extends DialogWrapper {
     private void insertSelectedVariable() {
         TemplateVariable variable = variableList.getSelectedValue();
         if (variable == null) return;
+        showTemplateEditor();
         EditorEx editor = selectedTemplateEditor();
         boolean selected = editor.getSelectionModel().hasSelection();
         int start = selected ? editor.getSelectionModel().getSelectionStart() : editor.getCaretModel().getOffset();
@@ -522,6 +557,7 @@ public final class TemplateSettingForm extends DialogWrapper {
     }
 
     private void restoreDefaultsDraft() {
+        showTemplateEditor();
         String spring = DocViewBundle.message("template.spring.init");
         String dubbo = DocViewBundle.message("template.dubbo.init");
         WriteCommandAction.runWriteCommandAction(project, () -> {
@@ -532,7 +568,15 @@ public final class TemplateSettingForm extends DialogWrapper {
 
     private void requestPreview(EditorEx editor, FrameworkEnum framework) {
         if (isDisposed() || project.isDisposed()) return;
-        workspaceTabs.setSelectedComponent(previewPanel);
+        showTemplateEditor();
+        activePreviewEditor = editor;
+        JPanel content = templateContents.get(editor);
+        content.add(previewPanel, "preview");
+        ((CardLayout) content.getLayout()).show(content, "preview");
+        previewButtons.get(editor).setText(DocViewBundle.message("template.preview.edit"));
+        previewButtons.get(editor).setIcon(AllIcons.Actions.Edit);
+        content.revalidate();
+        content.repaint();
         setPreviewText("");
         previewStatusLabel.setText(DocViewBundle.message("template.preview.status.loading"));
         previewCoordinator.requestPreview(documentText(editor), framework, result -> {
@@ -545,14 +589,31 @@ public final class TemplateSettingForm extends DialogWrapper {
                 previewStatusLabel.setText(DocViewBundle.message("template.preview.status.empty"));
             } else {
                 setPreviewText(result.markdown());
+                if (htmlPreview != null) htmlPreview.setHtml(result.html(), 0);
                 previewStatusLabel.setText(DocViewBundle.message("template.preview.status.success"));
             }
         });
     }
 
+    private void showTemplateEditor() {
+        previewCoordinator.invalidate();
+        if (activePreviewEditor == null) return;
+        EditorEx editor = activePreviewEditor;
+        JPanel content = templateContents.get(editor);
+        ((CardLayout) content.getLayout()).show(content, "editor");
+        content.remove(previewPanel);
+        JButton button = previewButtons.get(editor);
+        button.setText(DocViewBundle.message(editor == springTemplateEditor ? "template.preview.spring" : "template.preview.dubbo"));
+        button.setIcon(AllIcons.Actions.Preview);
+        activePreviewEditor = null;
+        content.revalidate();
+        content.repaint();
+    }
+
     private void setPreviewText(String text) {
         if (previewEditor == null || project.isDisposed()) return;
         WriteCommandAction.runWriteCommandAction(project, () -> previewEditor.getDocument().setText(text));
+        if (htmlPreview != null && text.isEmpty()) htmlPreview.setHtml("<body md-src-pos=\"0..0\"><p md-src-pos=\"0..0\"></p></body>", 0);
     }
 
     private static String documentText(EditorEx editor) {
@@ -604,7 +665,7 @@ public final class TemplateSettingForm extends DialogWrapper {
         TemplateSettings settings = TemplateSettings.getInstance(project);
         Settings outputSettings = Settings.getInstance(project);
         resetOutputSettings(outputSettings);
-        previewCoordinator.invalidate();
+        showTemplateEditor();
         suppressPreviewInvalidation = true;
         try {
             WriteCommandAction.runWriteCommandAction(project, () -> {
@@ -633,6 +694,10 @@ public final class TemplateSettingForm extends DialogWrapper {
     @Override
     protected void dispose() {
         previewCoordinator.dispose();
+        if (htmlPreview != null) { Disposer.dispose(htmlPreview); htmlPreview = null; }
+        templateContents.clear();
+        previewButtons.clear();
+        activePreviewEditor = null;
         Disposer.dispose(documentListenerLifetime);
         templateChangeListener = null;
         Editor[] editors = {springTemplateEditor, dubboTemplateEditor, previewEditor};

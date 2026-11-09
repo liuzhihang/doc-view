@@ -36,6 +36,8 @@ public class DocViewData {
      */
     private final String desc;
 
+    private final String classDesc;
+
     private final String since;
 
     private final String version;
@@ -107,6 +109,7 @@ public class DocViewData {
 
         this.name = docView.getName();
         this.desc = docView.getDesc();
+        this.classDesc = StringUtils.defaultString(docView.getClassDesc());
         this.since = StringUtils.defaultString(docView.getSince());
         this.version = StringUtils.defaultString(docView.getVersion());
         this.path = docView.getPath();

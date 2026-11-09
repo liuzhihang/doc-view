@@ -224,13 +224,13 @@
                     text="Settings" description="Open Doc View settings" icon="AllIcons.General.Settings"/>
             <action id="liuzhihang.doc.tool.window.toolbar.action.clear"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowClearAction"
-                    text="Clear Cache" description="Clear the current project's Doc View and document search caches; generated documents are preserved." icon="AllIcons.Actions.ClearCash"/>
+                    text="Clear Cache" description="Clear the current project's Doc View and document search caches; generated documents are preserved." icon="AllIcons.Actions.GC"/>
         </group>
 
         <!-- Preserve the former catalog action ID for user shortcuts and Find Action, without adding it to the catalog menu. -->
         <action id="liuzhihang.doc.tool.window.catalog.action.clear"
                 class="com.liuzhihang.doc.view.action.toolbar.window.WindowClearAction"
-                text="Clear Cache" description="Clear the current project's Doc View and document search caches; generated documents are preserved." icon="AllIcons.Actions.ClearCash"/>
+                text="Clear Cache" description="Clear the current project's Doc View and document search caches; generated documents are preserved." icon="AllIcons.Actions.GC"/>
 
 
         <!-- ToolWindow 目录右键菜单  -->
