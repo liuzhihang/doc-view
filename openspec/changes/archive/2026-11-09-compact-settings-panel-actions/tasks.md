@@ -18,11 +18,17 @@
 ## Workflow follow-up
 
 - 仅在本次实现与验证完成后同步并归档 compact-settings-panel-actions；其他 changes 不变。
-- 用户后续明确授权1.6.2 GitHub小修订版本与Release，取消截图要求；不上传Marketplace。
+- 用户后续明确授权1.6.2 GitHub小修订版本与Release，取消截图要求；GitHub阶段不上传Marketplace，后续追加的Marketplace授权见第5节。
 
 ## 4. 授权的 GitHub 发布
 
 - [x] 4.1 核实远端最新1.6.1和发布工作流，准备1.6.2版本/changelog/欢迎页/发布记录，审计最终包和冻结构建输入。
 - [x] 4.2 在实现验证及本次归档后，按develop→master流程同步、打v1.6.2 tag并创建GitHub Release；下载回读核对SHA与commit/CI，记录Marketplace未执行。
 
-发布任务4.2在GitHub正式Release及下载回读成功后完成；Marketplace未执行。
+发布任务4.2在GitHub正式Release及下载回读成功后完成；当时Marketplace未执行。
+
+## 5. 后续授权的 Marketplace 提交
+
+- [x] 5.1 核实既有发布者身份及无1.6.2记录，校验 GitHub/本地工件 SHA，上传同一已验收包；回读唯一 update `1216086`，下载内部文件、JAR、描述符与说明一致，准确记录待审核状态。
+
+JetBrains审核/上架为外部待处理状态；`approve=false / listed=false`，不得将上传完成描述为审核通过，也不重复提交。

@@ -6,7 +6,7 @@
 
 ## Goals / Non-Goals
 
-目标是减少模板按钮占用、清楚表达共享设置，并保持焦点和草稿行为。不得改变 PSI、DTO、生成 Markdown、存储字段、上传/导出或基线。不添加 Ask AI、悬浮遮挡编辑内容或新依赖。发布仅限既有 GitHub 仓库的小修订版本和 Release，Marketplace 明确排除。
+目标是减少模板按钮占用、清楚表达共享设置，并保持焦点和草稿行为。不得改变 PSI、DTO、生成 Markdown、存储字段、上传/导出或基线。不添加 Ask AI、悬浮遮挡编辑内容或新依赖。最初发布仅限既有 GitHub 仓库的小修订版本和 Release，Marketplace 当时明确排除；GitHub 发布后用户另行授权上传同一已验收1.6.2工件，发布渠道结果见 verification。
 
 ## Decisions
 
@@ -23,5 +23,5 @@
 - [图标 tooltip/状态未及时刷新] → 状态切换后更新工具栏，重复点击与框架切换回归。
 - [变量目录重挂载造成焦点丢失] → 在重挂载前捕获触发按钮，重挂载后恢复仍可见的按钮焦点，原生 Tab/Space 复验。
 - [工具栏尚未挂载时主动刷新] → 初次渲染由平台 addNotify 负责；后续只异步更新可见工具栏。无窗口布局测试显式初始化动作，不通过生产代码补偿测试生命周期。
-- [发布渠道范围] → 已核实远端 master/develop 无 .github/workflows，GitHub API 返回0个工作流；创建 GitHub Release 不调用 publishPlugin，不上传 Marketplace。
+- [发布渠道范围] → 已核实远端 master/develop 无 .github/workflows，GitHub API 返回0个工作流；创建 GitHub Release 不调用 publishPlugin；Marketplace 由后续单独授权的显式发布步骤执行，提交前查重、提交后下载核对且区分审核状态。
 - [参考图/截图] → 原图本机物化失败，依据父会话实际审阅反馈实施；截图保存路径受阻后用户取消交付，不再等待截图授权。
