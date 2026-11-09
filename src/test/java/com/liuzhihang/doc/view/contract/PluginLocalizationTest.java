@@ -64,11 +64,11 @@ public final class PluginLocalizationTest extends TestCase {
         Properties base = load(BASE_BUNDLE);
         Properties simplifiedChinese = load(SIMPLIFIED_CHINESE_BUNDLE);
 
-        // open-issue-backlog adds conditional method since/version sections (Issue #89).
+        // 1.6.1 adds an independent, conditional class description.
         // Templates remain locale-independent; the no-tag output has a separate Markdown golden.
-        assertEquals("Spring default template changed", "472710c8f7c689789c64368c536cbe57d9b40aca83051d6ad7353dd79297879c",
+        assertEquals("Spring default template changed", "c7e10408db8da344a25105e9a2b462cf65ff7d2b45906b66e5b6b4c596efded4",
                 sha256(base.getProperty("template.spring.init")));
-        assertEquals("Dubbo default template changed", "3cf2ac1188fe4379bfe45d7193fe9de2fe58355fb3f114126ba8d44267497dbd",
+        assertEquals("Dubbo default template changed", "42b689e1f2298536e4a564a762b9e71b07892edf6504c2a5b513ed09af6d0e2b",
                 sha256(base.getProperty("template.dubbo.init")));
         for (String key : GENERATED_TEMPLATE_KEYS) {
             assertEquals("Generated template must not vary by IDE locale: " + key,

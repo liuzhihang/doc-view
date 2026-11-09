@@ -121,7 +121,7 @@ public class DocViewUtils {
             if (settings.getTitleClassComment()) {
                 // 获取类注释
 
-                String comment = CustomPsiCommentUtils.tagDocComment(psiClass.getDocComment());
+                String comment = limitCommentTitle(CustomPsiCommentUtils.documentation(psiClass.getDocComment()).title(), settings);
 
                 if (StringUtils.isNotBlank(comment)) {
                     return comment;
@@ -155,7 +155,7 @@ public class DocViewUtils {
      * <p>
      * 支持 Swagger/方法名/自定义注释 tag
      * <p>
-     * 如果是方法注释, 则限制 15 个字符
+     * 普通方法注释遵循首行和字符上限设置
      *
      * @param psiMethod 当前方法
      * @return
@@ -198,15 +198,10 @@ public class DocViewUtils {
             if (settings.getNameMethodComment()) {
 
                 // 方法注释
-                String comment = CustomPsiCommentUtils.tagDocCommentForOneLine(psiMethod.getDocComment());
-
+                CustomPsiCommentUtils.JavadocText text = CustomPsiCommentUtils.documentation(psiMethod.getDocComment());
+                String comment = settings.isNameCommentFirstLine() ? text.title() : text.allText();
                 if (StringUtils.isNotBlank(comment)) {
-
-                    if (comment.length() > 15) {
-                        comment = comment.substring(0, 15);
-                    }
-
-                    return comment;
+                    return limitCommentTitle(comment, settings);
                 }
             }
 
@@ -251,7 +246,7 @@ public class DocViewUtils {
             }
             // 最后从注释中获取
 
-            return CustomPsiCommentUtils.tagDocComment(psiMethod.getDocComment());
+            return settings.isDescCommentBody() ? CustomPsiCommentUtils.documentation(psiMethod.getDocComment()).description() : "";
         });
     }
 
@@ -316,6 +311,18 @@ public class DocViewUtils {
         }
 
         return false;
+    }
+
+    public static String getClassDesc(@NotNull PsiClass psiClass) {
+        return ApplicationManager.getApplication().runReadAction((Computable<String>) () ->
+                Settings.getInstance(psiClass.getProject()).isDescCommentBody()
+                        ? CustomPsiCommentUtils.documentation(psiClass.getDocComment()).description() : "");
+    }
+
+    private static String limitCommentTitle(String text, Settings settings) {
+        int count = text.codePointCount(0, text.length());
+        int limit = settings.getCommentTitleMaxLength();
+        return count <= limit ? text : text.substring(0, text.offsetByCodePoints(0, limit));
     }
 
     /**

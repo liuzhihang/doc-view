@@ -172,7 +172,7 @@ public final class AnnotationTextFallbackTest extends LightJavaCodeInsightFixtur
                 """);
 
         assertEquals("TagFallback", name(controller, "tagFallback"));
-        assertEquals("abcdefghijklmno", name(controller, "javadocFallback"));
+        assertEquals("abcdefghijklmnopqr", name(controller, "javadocFallback"));
         assertEquals("DefaultFallback", name(controller, "defaultFallback"));
         assertEquals("methodFallback", name(controller, "methodFallback"));
     }
@@ -213,7 +213,7 @@ public final class AnnotationTextFallbackTest extends LightJavaCodeInsightFixtur
         assertEquals("TagFallback", name(controller, "nameSources"));
 
         settings.setNameUseCommentTag(false);
-        assertEquals("abcdefghijklmno", name(controller, "nameSources"));
+        assertEquals("abcdefghijklmnopqr", name(controller, "nameSources"));
 
         settings.setNameMethodComment(false);
         assertEquals("nameSources", name(controller, "nameSources"));
@@ -230,7 +230,8 @@ public final class AnnotationTextFallbackTest extends LightJavaCodeInsightFixtur
 
                 @RestController
                 public class DescriptionFallbackController {
-                    /** JavadocDescription */
+                    /** Method title
+                     * JavadocDescription */
                     @Operation(description = AnnotationValues.OPENAPI3_DESCRIPTION)
                     @ApiOperation(notes = AnnotationValues.SWAGGER2_NOTES)
                     @GetMapping("/priority")
@@ -243,7 +244,8 @@ public final class AnnotationTextFallbackTest extends LightJavaCodeInsightFixtur
                     public void notesFallback() {
                     }
 
-                    /** JavadocFallback */
+                    /** Method title
+                     * JavadocFallback */
                     @Operation(description = MissingValues.DESCRIPTION)
                     @ApiOperation(notes = "   ")
                     @GetMapping("/javadoc")

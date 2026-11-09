@@ -271,7 +271,11 @@ public final class PreviewLifecycleTest extends LightJavaCodeInsightFixtureTestC
             assertSame("The list selection must become the current preview document", observedDoc, currentDoc.get());
             assertEquals("The preview must keep displaying the target class qualified name",
                     expectedQualifiedName, displayedClassName.get());
-            assertFalse("The Swing selection callback must use class-name metadata captured during the background PSI read",
+            EdtTestUtil.runInEdtAndWait(() -> {
+                Object export = invoke(form, "captureAllExport", new Class<?>[0]);
+                assertNotNull(export);
+            });
+            assertFalse("Selection and export must use class-name metadata captured during the background PSI read",
                     psiReadOnDispatchThread.get());
         } finally {
             EdtTestUtil.runInEdtAndWait(() -> invoke(form, "dispose", new Class<?>[0]));
@@ -701,6 +705,7 @@ public final class PreviewLifecycleTest extends LightJavaCodeInsightFixtureTestC
             setField(form, "currentDocView", current);
             setField(form, "currentMarkdownText", "# 业务文档-A\n正文\n");
             setField(form, "docViewList", sourceList);
+            setField(form, "docViewClassNames", Map.of(current, fixtureClass.getName()));
         });
 
         Object singleExport = invoke(form, "captureSingleExport", new Class<?>[0]);
