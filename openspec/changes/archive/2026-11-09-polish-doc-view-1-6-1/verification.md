@@ -4,8 +4,8 @@
 
 日期：2026-11-09。从已发布 1.6.0 创建独立工作区，已纳入 origin/master `6fbc102` 的发布结果文档；未修改旧 develop 和其他发布 worktree。生产 Java 25、IU 263.7031.23、Gradle 9.5.0、IPGP 2.17.0 及依赖保持不变。
 
-- ZIP `Doc View-1.6.1.zip` SHA-256：`086b14b853da7bd3643ce4a5b80d3a43fe8eed75711b8a4872ea5bf29cf32f9c`。
-- JAR `doc-view-1.6.1.jar` SHA-256：`ad32191d3c641e38b76f1664e050dfd8731d3627c55e42eaf9988f20f9577571`。
+- ZIP `Doc View-1.6.1.zip` SHA-256：`dfef1c63f72a4049d6f108ebdb23697a158e592a100c4b9ecf4168bfa433ddb3`。
+- JAR `doc-view-1.6.1.jar` SHA-256：`db8e09f5b2bd59af6354267549d8ca2c6010690edc61583a45f11233a03bc24d`。
 - ZIP 仅插件目录/lib/单个 JAR；JAR 413 项、348 个 class 全为 major 69。无测试/fixture/PoC 类路径。
 - descriptor 1.6.1、sinceBuild 263.7031.23、无 untilBuild、require-restart=true；依赖 platform/java/xml/markdown/jcef。description 与当前源文件逐字回读一致，change-notes 为 1.6.1。
 
@@ -29,9 +29,9 @@
 JAVA_HOME='/Applications/IntelliJ IDEA.app/Contents/jbr/Contents/Home' ./gradlew test verifyPluginProjectConfiguration buildPlugin verifyPlugin --offline --rerun-tasks --no-build-cache --no-parallel --console=plain
 ```
 
-结果：**84 suites / 447 tests，0 failures / errors / skipped**；18 个任务全部执行，BUILD SUCCESSFUL，1m49s。
+结果：**84 suites / 447 tests，0 failures / errors / skipped**；18 个任务全部执行，BUILD SUCCESSFUL，2m1s。
 
-另以 Gradle 官方 `pluginVerification.ides.local(file('/Applications/IntelliJ IDEA.app'))` 指定已安装正式版，执行 `verifyPlugin -PpluginVerifierIdeVersions= -I <local-init.gradle> --offline --no-configuration-cache --rerun-tasks --no-build-cache --no-parallel --console=plain`，12 个任务执行，BUILD SUCCESSFUL，1m44s。该构建产物与上面 ZIP/JAR 哈希相同。
+另以 Gradle 官方 `pluginVerification.ides.local(file('/Applications/IntelliJ IDEA.app'))` 指定已安装正式版，执行 `verifyPlugin -PpluginVerifierIdeVersions= -I <local-init.gradle> --offline --no-configuration-cache --rerun-tasks --no-build-cache --no-parallel --console=plain`，12 个任务执行，BUILD SUCCESSFUL，1m20s。该构建产物与上面 ZIP/JAR 哈希相同。
 
 | Verifier 1.411 目标 | 结果 |
 | --- | --- |
@@ -40,9 +40,9 @@ JAVA_HOME='/Applications/IntelliJ IDEA.app/Contents/jbr/Contents/Home' ./gradlew
 
 正式版远程 SDK archive 未缓存的下载尝试被取消，随后使用官方 local IDE 输入完成验证；不将取消的下载当成通过。最初 SSH fetch 网络拒绝已经正式 require_escalated 审批后解除并成功执行；不是待解决阻塞，也未改协议/代理绕过。
 
-## 最终包原生验收
+## 原生验收与文案修订补验
 
-官方 IU 263.7307.200 的独立应用副本及 config/system/plugins/log，安装上述最终 ZIP。使用虚构 sample Java/Spring stubs；未使用真实业务源码、账号或 endpoint。通过 CUA 实际观察窗口与截图，非仅依赖加载日志。
+官方 IU 263.7307.200 的独立应用副本及 config/system/plugins/log。下表完整原生矩阵实际安装的是文案修订前 ZIP `086b14b853da7bd3643ce4a5b80d3a43fe8eed75711b8a4872ea5bf29cf32f9c`，不冒充当前最终哈希。使用虚构 sample Java/Spring stubs；未使用真实业务源码、账号或 endpoint。通过 CUA 实际观察窗口与截图，非仅依赖加载日志。
 
 | 场景 | 实际结果 |
 | --- | --- |
@@ -59,6 +59,12 @@ JAVA_HOME='/Applications/IntelliJ IDEA.app/Contents/jbr/Contents/Home' ./gradlew
 截图保存在本会话 CUA 工具结果中。机器可读证据及测试 XML、Verifier 报告、包审计、原生 summary 位于本机 `doc-view-1.6.1-evidence/`（工作任务目录），不将完整 IDE 日志或 profile 打入仓库/公开 artifact。
 
 macOS accessibility 在读取隐藏 JTree 时曾有 IllegalComponentStateException，栈为 JTree/CAccessibility，未包含 Doc View；独立窗口可继续操作，最终上述场景已完成。官方应用同 bundle 的窗口定位先前产生干扰，改用官方副本独立路径后完成；旧 launcher 关闭日志不代表最终包验收失败。
+
+## 最终文案修订与等价范围
+
+最后将 changelog 的“平台扫帚图标”校准为“平台清理图标”，对应当前主题实际显示的 GC 清理桶图标。重新执行全部自动门禁：84 suites / 447 tests 全绿，两个 Verifier 均 Compatible；最终哈希见本页首节。对前后 JAR 逐条比较：只有 META-INF/plugin.xml 不同，且 XML 精确差异仅该 change-notes 字词；348 个 class 与其他全部资源逐字节相同。
+
+最终 ZIP 又安装到相同隔离官方 IDEA，实际观察启动后的可见窗口、首行目录、分离的类/方法描述、GET→POST 列表选择及浅色 JSON key/string/number/boolean 高亮，并正常退出。最终实例日志无 Read-access assertion/ERROR。没有重跑整套深浅主题/保存取消/全部导出矩阵；这些场景沿用上述前一 SHA 的实测，并以字节等价范围连接，不能表述为新 SHA 全部重新人工执行。证据：wording-equivalence.json、native-followup.json、test-summary-final.json、最终两份门禁日志。
 
 ## 边界与回滚
 
