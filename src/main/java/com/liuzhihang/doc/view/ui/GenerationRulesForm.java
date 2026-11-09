@@ -55,24 +55,30 @@ public final class GenerationRulesForm {
         rootPanel.setBorder(JBUI.Borders.empty(8, 12));
         rootPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        rootPanel.add(group("settings.doc.title", "generationTitle", "settings.rules.title.summary",
-                "settings.rules.title.help.name", DocViewBundle.message("settings.rules.title.order"),
-                titleCommentTagCheckBox, titleClassCommentCheckBox,
-                titleSimpleClassNameCheckBox, titleFullClassNameCheckBox));
         JPanel limitRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 4));
         limitRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        limitRow.setOpaque(false);
+        limitRow.setBorder(JBUI.Borders.emptyLeft(20));
         commentTitleMaxLengthField.setName("commentTitleMaxLengthField");
         JLabel limitLabel = new JLabel(DocViewBundle.message("settings.doc.comment.title.limit"));
         limitLabel.setLabelFor(commentTitleMaxLengthField);
         limitRow.add(limitLabel);
         limitRow.add(commentTitleMaxLengthField);
-        rootPanel.add(limitRow);
+        rootPanel.add(group("settings.doc.title", "generationTitle", "settings.rules.title.summary",
+                "settings.rules.title.help.name", DocViewBundle.message("settings.rules.title.order"),
+                titleCommentTagCheckBox, titleClassCommentCheckBox, limitRow,
+                titleSimpleClassNameCheckBox, titleFullClassNameCheckBox));
         nameCommentFirstLineCheckBox.setBorder(JBUI.Borders.emptyLeft(20));
         nameMethodCommentCheckBox.addActionListener(event -> nameCommentFirstLineCheckBox.setEnabled(nameMethodCommentCheckBox.isSelected()));
+        JLabel methodLimitHint = new JLabel(DocViewBundle.message("settings.doc.comment.title.shared.hint"));
+        methodLimitHint.setName("methodCommentLimitHint");
+        methodLimitHint.setFont(JBUI.Fonts.smallFont());
+        methodLimitHint.setForeground(UIUtil.getContextHelpForeground());
+        methodLimitHint.setBorder(JBUI.Borders.emptyLeft(20));
         rootPanel.add(group("settings.doc.name", "generationName", "settings.rules.name.summary",
                 "settings.rules.name.help.name", DocViewBundle.message("settings.rules.name.order"),
                 nameSwagger3CheckBox, nameSwaggerCheckBox,
-                nameCommentTagCheckBox, nameMethodCommentCheckBox, nameCommentFirstLineCheckBox));
+                nameCommentTagCheckBox, nameMethodCommentCheckBox, nameCommentFirstLineCheckBox, methodLimitHint));
         rootPanel.add(group("settings.doc.desc", "generationDescription", "settings.rules.desc.summary",
                 "settings.rules.desc.help.name", DocViewBundle.message("settings.rules.desc.order"),
                 descSwagger3CheckBox, descSwaggerCheckBox, descCommentBodyCheckBox));
@@ -96,7 +102,7 @@ public final class GenerationRulesForm {
     }
 
     private JPanel group(String titleKey, String groupName, String summaryKey, String helpAccessibleNameKey,
-                         String detailedHelp, JCheckBox... options) {
+                         String detailedHelp, javax.swing.JComponent... options) {
         JPanel group = new JPanel();
         group.setLayout(new BoxLayout(group, BoxLayout.Y_AXIS));
         group.setName(groupName + "Group");
@@ -123,7 +129,7 @@ public final class GenerationRulesForm {
         heading.add(helpIcon, BorderLayout.EAST);
         group.add(heading);
 
-        for (JCheckBox option : options) {
+        for (javax.swing.JComponent option : options) {
             option.setAlignmentX(Component.LEFT_ALIGNMENT);
             group.add(option);
         }
