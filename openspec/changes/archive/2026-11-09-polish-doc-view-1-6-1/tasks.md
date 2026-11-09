@@ -21,6 +21,6 @@
 ## Workflow follow-up
 
 - 状态：主 specs 已同步，本 change 已归档；其他活动 changes 保持不动。
-- 在网络及必要验收通过后按develop→master发布，创建v1.6.1 tag/GitHub Release并按现有Marketplace流程发布；记录实际链接、状态和阻塞。
+- 状态：develop→master 已完成（#117/#119→#118），v1.6.1 tag 与 GitHub Release 已公开并下载校验；Marketplace 实际上传成功，update 1215689 待审核上架，下载内部文件匹配。详见 docs/release-1.6.1.md。
 
-发布结果跟踪位置：归档后的 verification.md 与 docs/release-1.6.1.md；合并/tag/Release/Marketplace 回读逐项记录，不预先标记成功。
+发布结果跟踪位置：归档后的 verification.md 与 docs/release-1.6.1.md；合并/tag/Release/Marketplace 回读已逐项记录；人工审核上架仍等待平台，不冒充已完成。
