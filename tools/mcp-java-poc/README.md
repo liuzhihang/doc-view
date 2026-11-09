@@ -15,7 +15,7 @@ macOS 可直接传 `.app` 或其 `Contents`。可选 `--java-home` 指定已有 
 
 探针以 `-parameters` 编译 Java 方法，并通过平台的反射工具发现/schema 和 `McpTool.call` 调用；它使用平台实现类做诊断，不承诺这些实现类可成为生产 API。原始 Java String、平台 Text 文本返回和普通 Java DTO 分别记录，平台 Text 成功不能证明原始 String 或任意 DTO 可序列化。
 
-真实 IDEA 扩展注册、MCP `tools/list`/`tools/call`、取消、项目结束与禁用仍是独立门禁。独立 JVM 全绿不能宣布 IDEA MCP 集成成功。实际结果见 [OpenSpec 验证记录](../../openspec/changes/mcp-java-feasibility/verification.md)。
+真实 IDEA 扩展注册、MCP `tools/list`/`tools/call`、取消、项目结束与禁用仍是独立门禁。独立 JVM 全绿不能宣布 IDEA MCP 集成成功。实际结果见 [OpenSpec 验证记录](../../openspec/changes/archive/2026-11-09-mcp-java-feasibility/verification.md)。
 
 ## 隔离测试插件包
 

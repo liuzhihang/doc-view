@@ -21,7 +21,7 @@ Doc View 已有界面生成/导出，但尚无生产 MCP 工具。需要让 Code
 
 ### Modified Capabilities
 
-无。PoC 准入规范、平台升级分别由 [mcp-java-feasibility](../mcp-java-feasibility/proposal.md) 与 [intellij-263-baseline-upgrade](../intellij-263-baseline-upgrade/proposal.md) 管理，不在本 change 放宽门槛。
+无。PoC 准入规范、平台升级分别由 [mcp-java-feasibility](../archive/2026-11-09-mcp-java-feasibility/proposal.md) 与 [intellij-263-baseline-upgrade](../intellij-263-baseline-upgrade/proposal.md) 管理，不在本 change 放宽门槛。
 
 ## Impact
 

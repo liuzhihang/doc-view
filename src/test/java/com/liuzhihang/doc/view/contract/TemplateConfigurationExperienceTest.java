@@ -87,7 +87,7 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             JComponent root = form.createCenterPanel();
 
             JTabbedPane workspaces = component(root, "templateMainTabs", JTabbedPane.class);
-            JButton toggleVariables = component(root, "toggleVariablesButton", JButton.class);
+            Runnable toggleVariables = () -> TemplateActionTestSupport.click(root, "template.variables.show");
 
             assertNotNull(workspaces);
             assertEquals(2, workspaces.getTabCount());
@@ -97,13 +97,13 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             assertEquals(2, component(root, "templateFrameworkTabs", JTabbedPane.class).getTabCount());
             assertNull("The variable sidebar should be collapsed on first open",
                     component(root, "templateVariableSplitter", JBSplitter.class));
-            assertEquals(DocViewBundle.message("template.variables.show"), toggleVariables.getText());
-            toggleVariables.doClick();
+            assertEquals(DocViewBundle.message("template.variables.show"), TemplateActionTestSupport.presentation(root, "template.variables.show").getText());
+            toggleVariables.run();
             JBSplitter variableSplitter = component(root, "templateVariableSplitter", JBSplitter.class);
             assertTrue(variableSplitter instanceof OnePixelSplitter);
             assertTrue(variableSplitter.getFirstComponent().getMinimumSize().width >= 360);
             assertTrue(variableSplitter.getSecondComponent().getMinimumSize().width >= 240);
-            assertEquals(DocViewBundle.message("template.variables.hide"), toggleVariables.getText());
+            assertEquals(DocViewBundle.message("template.variables.hide"), TemplateActionTestSupport.presentation(root, "template.variables.show").getText());
             JBTextField search = component(root, "variableSearchField", JBTextField.class);
             JList<?> variables = component(root, "variableList", JList.class);
             JTextArea description = component(root, "variableDescription", JTextArea.class);
@@ -165,11 +165,11 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
 
             assertTrue(form.getSpringTemplateEditor().getDocument().getText()
                     .startsWith("${DocView.requestExample}"));
-            toggleVariables.doClick();
+            toggleVariables.run();
             assertNull("The variable sidebar should collapse on demand",
                     component(root, "templateVariableSplitter", JBSplitter.class));
-            assertEquals(DocViewBundle.message("template.variables.show"), toggleVariables.getText());
-            toggleVariables.doClick();
+            assertEquals(DocViewBundle.message("template.variables.show"), TemplateActionTestSupport.presentation(root, "template.variables.show").getText());
+            toggleVariables.run();
             JTabbedPane frameworks = component(root, "templateFrameworkTabs", JTabbedPane.class);
             frameworks.setSelectedIndex(1);
             form.getDubboTemplateEditor().getCaretModel().moveToOffset(0);
@@ -191,16 +191,14 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             JTextArea summary = component(root, "templateSettingsSummary", JTextArea.class);
             JPanel header = component(root, "templateSettingsHeader", JPanel.class);
             ContextHelpLabel help = component(root, "templateHelpLabel", ContextHelpLabel.class);
-            JPanel editorActions = component(root, "templateEditorActions", JPanel.class);
-            JButton restore = component(root, "restoreDefaultsButton", JButton.class);
-            JButton variables = component(root, "toggleVariablesButton", JButton.class);
             assertNotNull(summary);
             assertNotNull(header);
             assertNotNull(help);
-            assertNotNull(editorActions);
-            assertNotNull(restore);
-            assertNotNull(variables);
 
+            // This layout fixture has no native window/addNotify lifecycle. Populate the platform actions explicitly.
+            TemplateActionTestSupport.toolbar(root, "Spring").updateActionsAsync();
+            TemplateActionTestSupport.toolbar(root, "Dubbo").updateActionsAsync();
+            com.intellij.util.ui.UIUtil.dispatchAllInvocationEvents();
             for (int width : new int[]{900, 640}) {
                 for (ResourceBundle locale : new ResourceBundle[]{english, simplifiedChinese}) {
                     summary.setText(locale.getString("template.settings.summary"));
@@ -234,11 +232,9 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
                                         && help.getY() >= 0
                                         && help.getY() + help.getHeight() <= header.getHeight()
                                         && help.getX() + help.getWidth() <= header.getWidth());
-                        assertTrue("The editor operation row should fit the selected viewport",
-                                editorActions.getWidth() > 0 && editorActions.getX() >= 0
-                                        && editorActions.getX() + editorActions.getWidth() <= root.getWidth());
-                        assertSame(editorActions, restore.getParent());
-                        assertSame(editorActions, variables.getParent());
+                        JComponent toolbar = TemplateActionTestSupport.toolbar(root, frameworkName).getComponent();
+                        assertTrue("The compact toolbar fits its right-aligned action area: " + toolbar.getWidth() + "/" + previewActions.getWidth(), toolbar.getWidth() > 0
+                                && toolbar.getWidth() <= previewActions.getWidth());
                         assertTrue("The header should no longer reserve a second button row",
                                 header.getHeight() <= summary.getHeight() + JBUI.scale(8));
                         assertEquals(DocViewBundle.message("template.preview.fixed.sample"), fixedSampleHelp.getText());
@@ -248,8 +244,8 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
                                 fixedSampleHelp.getWidth() > 0 && fixedSampleHelp.getWidth() <= previewControls.getWidth());
                         assertTrue("The fixed-sample guidance must have enough height for its wrapped rows",
                                 fixedSampleHelp.getHeight() >= fixedSampleHelp.getPreferredSize().height);
-                        assertTrue("Preview guidance must have its own row below the preview action",
-                                fixedSampleHelp.getY() >= previewActions.getY() + previewActions.getHeight());
+                        assertTrue("Compact actions sit to the right of fixed-sample guidance",
+                                fixedSampleHelp.getX() + fixedSampleHelp.getWidth() <= previewActions.getX());
                         assertTrue("The preview guidance must remain inside its control area",
                                 fixedSampleHelp.getY() + fixedSampleHelp.getHeight() <= previewControls.getHeight()
                                         && previewControls.getY() + previewControls.getHeight() <= templatePanel.getHeight());
@@ -259,34 +255,30 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
         });
     }
 
-    public void testTemplateHelpUsesContextIconAndRestoreBelongsToEditorActions() {
+    public void testTemplateHelpUsesContextIconAndToolbarBelongsToEditorWorkspace() {
         EdtTestUtil.runInEdtAndWait(() -> {
             TemplateSettingForm form = createForm();
             JComponent root = form.createCenterPanel();
             ContextHelpLabel help = component(root, "templateHelpLabel", ContextHelpLabel.class);
-            JPanel editorActions = component(root, "templateEditorActions", JPanel.class);
-            JButton restore = component(root, "restoreDefaultsButton", JButton.class);
-            JButton variables = component(root, "toggleVariablesButton", JButton.class);
 
             assertNotNull("Template guidance should be a native context-help icon", help);
             assertEquals(DocViewBundle.message("template.help.open"),
                     help.getAccessibleContext().getAccessibleName());
             assertEquals(DocViewBundle.message("template.help.description"),
                     help.getAccessibleContext().getAccessibleDescription());
-            assertNotNull(editorActions);
-            assertSame("Restore and variable actions should share the template editor operation row",
-                    editorActions, restore.getParent());
-            assertSame(editorActions, variables.getParent());
+            JComponent toolbar = TemplateActionTestSupport.toolbar(root, "Spring").getComponent();
+            assertNotNull(toolbar);
+            assertNull(component(root, "templateEditorActions", JPanel.class));
             assertNull("The page header should not contain a large help button",
                     component(root, "templateHelpButton", JButton.class));
             assertNull("The page header should not contain a separate actions row",
                     component(root, "templateHeaderActions", JPanel.class));
 
             JTabbedPane workspaces = component(root, "templateMainTabs", JTabbedPane.class);
-            assertTrue("The restore action should be contained by the editor workspace",
-                    isDescendant(workspaces.getComponentAt(0), restore));
-            assertFalse("The restore action should not be part of output settings",
-                    isDescendant(workspaces.getComponentAt(1), restore));
+            assertTrue("The toolbar should be contained by the editor workspace",
+                    isDescendant(workspaces.getComponentAt(0), toolbar));
+            assertFalse("The toolbar should not be part of output settings",
+                    isDescendant(workspaces.getComponentAt(1), toolbar));
         });
     }
 
@@ -314,7 +306,7 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
                 }
             });
 
-            component(root, "previewSpringButton", JButton.class).doClick();
+            TemplateActionTestSupport.click(root, "template.preview.spring");
             assertEquals("Requesting a preview should stay in its editor workspace", 0,
                     workspaces.getSelectedIndex());
             assertEquals(DocViewBundle.message("template.preview.status.loading"), status.getText());
@@ -378,7 +370,7 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
                 }
             });
 
-            component(root, "previewSpringButton", JButton.class).doClick();
+            TemplateActionTestSupport.click(root, "template.preview.spring");
             assertEquals(0, workspaces.getSelectedIndex());
             assertEquals(DocViewBundle.message("template.preview.status.loading"), status.getText());
         });
@@ -390,10 +382,10 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             assertTrue(previewEditorRef[0].getDocument().getImmutableCharSequence().toString()
                     .contains("/api/demo/users/{userId}"));
 
-            component(rootRef[0], "previewSpringButton", JButton.class).doClick();
+            TemplateActionTestSupport.click(rootRef[0], "template.preview.spring");
             WriteCommandAction.runWriteCommandAction(project,
                     () -> formRef[0].getSpringTemplateEditor().getDocument().setText(""));
-            component(rootRef[0], "previewSpringButton", JButton.class).doClick();
+            TemplateActionTestSupport.click(rootRef[0], "template.preview.spring");
             assertEquals(0, workspacesRef[0].getSelectedIndex());
         });
 
@@ -404,11 +396,11 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             assertEquals("An empty result must clear the prior successful Markdown", "",
                     previewEditorRef[0].getDocument().getImmutableCharSequence().toString());
 
-            component(rootRef[0], "previewSpringButton", JButton.class).doClick();
+            TemplateActionTestSupport.click(rootRef[0], "template.preview.spring");
             WriteCommandAction.runWriteCommandAction(project,
                     () -> formRef[0].getSpringTemplateEditor().getDocument()
                             .setText("#if($DocView.name)\nunfinished"));
-            component(rootRef[0], "previewSpringButton", JButton.class).doClick();
+            TemplateActionTestSupport.click(rootRef[0], "template.preview.spring");
             assertEquals(0, workspacesRef[0].getSelectedIndex());
         });
 
@@ -450,7 +442,7 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
         EdtTestUtil.runInEdtAndWait(() -> {
             TemplateSettingForm form = createForm();
             JComponent root = form.createCenterPanel();
-            component(root, "restoreDefaultsButton", JButton.class).doClick();
+            TemplateActionTestSupport.restoreDefaults(root);
 
             assertEquals(DocViewBundle.message("template.spring.init"),
                     form.getSpringTemplateEditor().getDocument().getText());
@@ -466,7 +458,7 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             assertEquals(savedSpring, reopened.getSpringTemplateEditor().getDocument().getText());
             assertEquals(savedDubbo, reopened.getDubboTemplateEditor().getDocument().getText());
 
-            component(reopened.createCenterPanel(), "restoreDefaultsButton", JButton.class).doClick();
+            TemplateActionTestSupport.restoreDefaults(reopened.createCenterPanel());
             reopened.apply();
             assertEquals(DocViewBundle.message("template.spring.init"), settings.getSpringTemplate());
             assertEquals(DocViewBundle.message("template.dubbo.init"), settings.getDubboTemplate());

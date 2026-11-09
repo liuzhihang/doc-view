@@ -53,7 +53,7 @@
 | GitHub Release | **已公开且下载校验通过** | Release ID `438524712`，正式非预发布；公开 ZIP 与最终制品 SHA 完全相同 |
 | Marketplace | **已接收，待审核/上架** | update ID `1215457`；owner API 回读 `approve=false`、`listed=false`，公开更新列表未出现 1.6.0；下载内部文件与最终包一致 |
 
-自动门禁和制品读回已完成；具体任务状态见[1.6.0 发布 change](../openspec/changes/release-doc-view-1-6-0/tasks.md)。原生结果与实际发布回读见下文，不把自动门禁替代原生验收。
+自动门禁和制品读回已完成；具体任务状态见[1.6.0 发布 change](../openspec/changes/archive/2026-11-09-release-doc-view-1-6-0/tasks.md)。原生结果与实际发布回读见下文，不把自动门禁替代原生验收。
 
 ## 最终包原生烟测
 
@@ -108,3 +108,81 @@ OS 凭据授权拒绝、异步写入失败后的重试也未在最终包原生�
 - 公开包内容与原生烟测所安装包相同；没有重新执行第二轮完整原生矩阵。正式 MCP、Skill、未完成的原生验收继续保持独立活动 change，不批量完成/归档。
 
 发布证据位于 `build/release-1.6.0/`：`release-commit-binding.json`、`github-release-readback.json`、`marketplace-publish-result.json`、`marketplace-owner-update-readback.json`、`marketplace-artifact-readback.json`。回滚选择既有 1.5.0 或准备新 patch，不改写本次 tag 或已公开的插件包。
+
+## 路线图迁入的历史进度摘要
+
+以下为 2026-11-09 文档整理时从旧路线图迁入的历史摘要，保留当时的包、平台和验证边界；不是本次重新验证，也不覆盖上文最终发布包记录。旧文中的“待验”“不发布”和“正在”均描述对应阶段，不表示当前状态。任务现状以各 change 的 tasks 与 verification 为准。
+
+### 2026-11-07 至 2026-11-09 候选续验
+
+2026-11-09 历史候选门槛（发布前）：429 候选（ZIP `6c789b81…8370`）已通过 80 suites / 429 tests、构建及最低 `263.7031.23` / 正式 `263.7307.200` 两个精确 build 的 Verifier。原生补齐 HTML 加载/渲染/空/失败/取消状态、旧回调防覆盖、Copy/Export，以及项目文档生成和搜索取消后重试；测试临时模板和源码已恢复。三轮实际 HTML 关闭后 renderer 子进程退出、FD 均为512，但随后热卸载仍有56条 Doc View histogram rows、类加载器仍被引用，正在分析新 heap。428 的特定原生序列曾卸载成功，不能覆盖429这次失败。搜索取消提示误称“状态检查”已改为通用文案，下一候选构建与原生复验进行中。OS 凭据拒绝/失败重试、最终发布包原生验收和完整资源门槛继续保留；未升级版本、打 tag 或发布，正式 MCP 尚不推进。原工作区584个冻结文件与 HEAD 已复核未变，Junie 保留。
+
+2026-11-08 派生缓存/异常/UI 续验：同一 d094 候选补齐双项目派生索引缓存隔离和不同设置值读回，HTTP/UI 5.4 完成，累计 35/41；HTTP 拒绝、写入失败、Dumb Mode、源码变更/删除、依赖禁用与恢复重试取得原生证据，Copy/写回/导出、中英窄窗及有限三轮 GC/一次热卸载也已补验。完整矩阵仍保留。另确认 XML-only/实现类注解的 Dubbo 目录发现属于既有缺口，正在补契约、测试和修复，修复后新候选必须重新核对自动门禁与受影响原生路径。普通 IDEA 误开的虚构项目已在单独授权后关闭，未操作 Junie；最近项目记录不宣称字节未变。详见[本轮记录](../openspec/changes/http-client-generation-and-ui/verification-2026-11-08-remaining-native.md)。未升级版本、打 tag 或发布；下文为相应旧包的历史进度。
+
+2026-11-08 HTTP/缓存/搜索续验：修复完整方法说明尾部不可检索；新包 403 tests、构建和两个精确 build 的 Verifier 通过。原生目录及落盘文档搜索、双项目 DTO 缓存/文件保护、HTTP 取消重试与在途关闭已取得证据；固定模型进程首次/热生成各 7 次，p50/p95 分别为 394.121/419.352 ms 与 137.470/180.368 ms。HTTP/UI 完成 34/41，派生索引缓存双项目隔离、完整 L01–L05 和新包 UI/GC 矩阵仍保留，尚不发布。详见[本轮记录](../openspec/changes/http-client-generation-and-ui/verification-2026-11-08-http-cache-search.md)。下文保留对应旧包的历史边界。
+
+2026-11-08 中文/键盘/JNI 续验已推进：修复参数按钮焦点、表格 Ctrl+Tab 返回按钮，以及目录销毁时的模型、父组件和鼠标路径引用。最新包 402 tests、构建与两个精确 build Verifier 通过；原生键盘写回/Undo、目录菜单/Enter、四种 Pin 状态跨应用，以及同进程两轮目录热卸载通过。中文深浅色、Compact/非 Compact、窄窗和三轮资源结果按各包身份记录；完整取消、跨项目和性能矩阵仍待验，不发布。详见[续验记录](../openspec/changes/http-client-generation-and-ui/verification-2026-11-08-keyboard-resources.md)。以下旧包失败和旧待验描述保留历史边界。
+
+2026-11-08 辅助功能续验：在获准的隔离窗口中补齐参数/预览 Pin 开关的真实 Finder 往返，以及设置、导出和上传选择取消，HTTP/UI 5.8 完成。发现按钮说明未进入浮动提示，已用公开 TooltipDescriptionProvider 修复；最终包 398 tests、构建和两个精确 build Verifier 通过，英语深色的三按钮提示、复制、Schema 写回与 Undo 原生通过。中文/浅色/窄窗/键盘和完整资源矩阵仍待验；JNI 热卸载仍未通过，不发布。详见[纯图标验收记录](../openspec/changes/http-client-generation-and-ui/verification-2026-11-08-icon-buttons.md)。
+
+2026-11-08 卸载 API 续验：已新增仅在 Doc View 自身 `beforePluginUnload` 调用公开 `IconLoader.clearCache()` 的修复。新包在正式 263 的无 UI 卸载对照中类加载器已释放；打开目录后仍被 macOS 无障碍 Local JNI 引用，官方新堆报告确认热卸载未通过。未找到可供插件释放该 JNI 根的公开 API 或官方已发布修复。剩余弹窗验收继续保留；构建、测试修正和两 build Verifier 的精确进度见[本轮记录](../openspec/changes/intellij-263-baseline-upgrade/verification-2026-11-08-unload-api.md)。原工作区与 Junie 保留，不发布。下方未清缓存等描述是此前旧包阶段。
+
+2026-11-08：独立工作树已整合已发布 1.5.0 与 263/HTTP/UI/文档库改动；首轮按钮测试和索引取消问题已修复，同一整合包此前 395 tests、构建和两个 Verifier 通过，本轮补齐 Copy/Export、Schema 写回与 Undo、文档分页/冲突保护及有限资源回归。隔离实例由维护者激活后，原生 HTTP Client 的 GET/JSON POST/表单 POST 回环执行通过，部分桌面菜单可见结果已补齐；真实激活 Finder 后，参数弹窗 Pin 开启这一遮挡场景通过。热卸载仍失败，官方本机分析已分别取得无障碍 JNI 与平台图标缓存保留 ClassLoader 的引用链，修复方案尚未验证。完整弹窗、菜单与剩余矩阵未通过，未升级或发布。详见[发布前核对记录](release-preflight-2026-11-07.md)和[新整合包原生记录](../openspec/changes/http-client-generation-and-ui/verification-2026-11-08-http-cache-search.md#历史证据边界)；下方 full-17 及更早结果仍是对应旧包证据。
+
+截至 2026-11-07，full-17 已修复七个 Keymap 组的中英文标题，70 suites / 362 tests、构建及 EAP `263.7031.23` / 正式 `263.7307.200` 两个 Verifier 通过，仍有 16 Experimental usages。同包原生已验中英 Keymap、参数 Copy JSON、预览 Copy/Export、中文 Schema 写回与一次 Undo、上传菜单取消、目录 Enter，以及 Pin 开/关跨应用草稿保留和前台交互。三轮关闭后静置约 150 秒，表单、Markdown JCEF panel、RemoteBrowser 和客户端 Java 对象全部归零，FD 无逐轮增长；正常重启/退出后对应 IDEA 与 CEF 进程已消失。完整桌面视觉遮挡、`…`/目录右键菜单可见结果、CEF native peer/listener/性能及其余矩阵仍未通过，R2/4.2 保持未勾选，正式 MCP 不推进。Junie 保留，临时语言与源码已恢复；最低 build 仍为 `263.7031.23`。详情见[full-17 续验记录](../openspec/changes/intellij-263-baseline-upgrade/verification-2026-11-07-full17.md)；full-13/14/16 和下方旧日期均保留为历史阶段。
+
+2026-11-09 补充：421 包已补受控原生目录取消/恢复、预览加载取消、HTTP 同方法在途合并和未保存草稿保护。新增线程断言正在修复；热卸载根已确定为已关闭项目仍保留 Doc View ToolWindowEntry，公开 API 清理方案需 RED/GREEN 与最终包原生复验。受控断点数据不作性能结论；发布门槛仍未通过。
+
+2026-11-09 最新状态：多行输入、Markdown 换行、批量 Undo/Redo 与 Escape 修复包 `cbc2c714…a9a4d` 已通过 421 tests、构建和最低/正式两个精确 build 的 Verifier。原生 Schema 必填/转义/成员保留/拒绝/单次 Undo/Redo、导航/复制、四组 Finder 遮挡，以及整类 Spring/Dubbo、空预览、模板异常/恢复已补验；HTTP L01 空目录与 L02 双项目重载有对应 419 包证据。当前 421 包在新增整类/模板异常使用顺序后热卸载再次失败，已保存日志及 heap，正在定位新的类加载器引用；不能沿用旧 414 包的卸载通过。HTTP L03、受控取消/迟到回调、凭据 OS 拒绝/重试等独立门槛仍开放，未升级或发布。 详见[续验记录](../openspec/changes/http-client-generation-and-ui/verification-2026-11-08-remaining-native.md)。下文保留旧包历史边界。
+
+### 早期 full-10 / full-17 与客户端候选
+
+**项目文档库与 UI（历史阶段）**
+
+固定 `docs/doc-view/` 下的 JSON 摘要/详情及共享生成、搜索和打开 UI 已实现。IU263/Java25 的 full-10 自动回归 67 suites / 352 tests 全绿，构建和严格 Verifier 通过；另有 15 条 test-only deprecated/removal warnings 与 16 处 Experimental API 使用，分别记录。近期修复了恢复后的 Markdown 状态仍显示 `INCONSISTENT`；针对性自动回归已纳入 full-10。full-10 ZIP SHA-256 为 `b238f5412d134ff4311ba5422fb78d50562bfecf80826964858984d5d69bcc0b`。该包部分原生场景已通过：精确还原 Markdown 后重新加载、Search/Open 成功，banner 自动显示 `CURRENT · 30 API(s)`，63 个文件 bytes/hash 与 30 个条目 schema/hash 有效；Spring/Feign/Dubbo 预览、Welcome 关闭重开、GET/form 草稿生成并在 HTTP Client 打开也已通过。no-op 场景重开后初始显示 `unknown`，之后 Generate 返回 `30 API(s) / No content changes`，不点 Refresh 即自动变为 `CURRENT`，约 +4.7 秒与 +20.45 秒读回仍为 current，未复现持续刷新问题。HTTP Client Run 未执行。2026-10-25 同包新增通过文档库20+5分页/末页打开、用户编辑冲突保护与恢复、真实I/O部分发布/重试、8,030接口生成在途取消/取消后重试及关闭重开freshness。上述为 full-10 阶段证据；full-17 已补代表性 Copy/Export、写回/Undo 和有限资源回归，独立菜单、完整参数/HTTP取消及资源矩阵仍待完成。具体包与收尾读回见[验证记录](../openspec/changes/intellij-263-baseline-upgrade/verification.md)。
+
+**Codex 取消候选实测（与第 1 项并行）（历史阶段）**
+
+官方 `0.165.0-alpha.1` app-server 候选在隔离 IU 263.7031.23、协议 `2025-06-18` 上三轮真实 turn interrupt 取消通过；旧 `0.163.0-alpha.11.2` 失败记录保留，不能推导所有 Codex 版本行为相同。证据见[取消说明](mcp-cancellation.md)。
+
+**精确 263 生产基线（历史阶段）**
+
+用户已授权按 [`intellij-263-baseline-upgrade`](../openspec/changes/intellij-263-baseline-upgrade/proposal.md) 使用最低 `IU-263.7031.23` 与 Java 25。最新 full-17 的 362 tests、构建、配置检查及 EAP/正式版两个 Verifier 通过，production compatibility/deprecated/internal/override-only 为 0，保留 16 Experimental 和 15 条 test-only 警告。同包代表性 Copy/Export、中文写回/Undo、中英 Keymap 与有限资源回归通过；独立菜单、视觉遮挡及完整生命周期矩阵未完。文档库取消/partial/retry 的 full-10 历史证据另行保留，不混成同一包全量验收。此为未发布开发包，不推导未来 build 兼容性。
+
+### 功能验收摘要（历史阶段）
+
+**[`fix-preview-lifecycle`](../openspec/changes/fix-preview-lifecycle/proposal.md)**
+
+预览生成、后台任务列表和渲染切换已实现并完成自动验证；原生打开/重开与主题场景已验。JCEF 预览窗口关闭及释放的剩余边界见[验证记录](../openspec/changes/fix-preview-lifecycle/verification.md)。
+
+**[`integration-credential-storage`](../openspec/changes/integration-credential-storage/proposal.md)**
+
+已修复 PasswordSafe 同 serviceName 的跨项目覆盖：生成键按平台与项目位置隔离，并由真实 IU261 InMemoryCredentialStore 取得 RED/GREEN。IU261 原生已验证 A/B 保存、同包重启回读及清除 A 后 B 仍保留；OS 授权/拒绝和后端失败重试仍待验。真实上传本轮排除，旧 XML 不迁移。详见[验证记录](../openspec/changes/integration-credential-storage/verification.md)。
+
+**[`openapi3-schema-required-mode`](../openspec/changes/openapi3-schema-required-mode/proposal.md)**
+
+`requiredMode` 三态、优先级、安全写回及 DTO golden 已实现；421 项候选补齐原生多行/必填/成员保留/缺少成员拒绝/批量 Undo/Redo。其余资源与发布门槛独立跟踪。详见[验证记录](../openspec/changes/openapi3-schema-required-mode/verification.md)。
+
+**[`doc-generation-performance`](../openspec/changes/doc-generation-performance/proposal.md)**
+
+已处理缓存 epoch、过期结果写回和递归取消。IU261 原生目录扫描取消后保留旧树、不发布部分结果已验；历史候选包补过整类 Spring/Dubbo 源预览和刷新的一次可见时间上界；取消后的可见终态、重复测量及 HTML 矩阵仍待补。详见[验证记录](../openspec/changes/doc-generation-performance/verification.md)。
+
+**[`mcp-java-feasibility`](../openspec/changes/archive/2026-11-09-mcp-java-feasibility/proposal.md)**
+
+IU 261 的历史协议取消失败保留；IU 263.7031.23 / SDK 0.15.0 隔离探针的取消、项目/服务/插件生命周期与有限资源检查通过。Codex 0.163.0-alpha.11.2 的 turn interrupt 未取消服务端任务；官方 0.165.0-alpha.1 候选随后在隔离 IU 263 上三轮真实取消互操作通过，PoC 2.4 已完成。当前开发配置已提高到 IU263/Java25，完整自动矩阵通过，原生回归仍在进行；尚未发布。详见[验证记录](../openspec/changes/archive/2026-11-09-mcp-java-feasibility/verification.md)和[取消验收说明](mcp-cancellation.md)。
+
+**[`doc-view-mcp-tools`](../openspec/changes/doc-view-mcp-tools/proposal.md)**
+
+正式 MCP 放在同一个 Doc View 插件内，可选注册到 IDEA MCP Server；与界面按钮共用文档服务。只读 status/search/get 与显式 generate 的共享文档库 contract 已定义，生产工具尚未实现。Codex 候选取消门槛已通过，精确263的构建和Verifier已通过，但 task 1.3 仍等待原生回归和文档库最终验收；详见 [tasks](../openspec/changes/doc-view-mcp-tools/tasks.md)。
+
+**Air 可选协作评估**
+
+已核对官方 ACP/MCP 边界并定义只读流程；原生账户/会话和文件读取未验。保持可选评估，不把 Air、ACP 或 MCP 视为已集成能力。见[评估记录](ai-context-assessment.md#可执行的只读验收流程)。
+
+**`doc-import-viewer`**
+
+[源码评估完成](ai-context-assessment.md#历史文档导入与查看路线图-17)：不重复建设 Markdown 查看器。先完成第 11/14 项原生阅读验证；只有历史目录/差异存在实测缺口时，才另立只读快照 change。
+
+**[`clear-cache-safety`](../openspec/changes/clear-cache-safety/proposal.md)**
+
+Clear Cache 已改为只清当前项目 schema 缓存，不再删除手写 Scratch；旧版自动回归及工具栏入口已验，目录菜单入口仍未完成；当前 HTTP/UI change 已将入口移至窗口 `…`，A/B 自动缓存隔离和文件保护已补验；原生新入口及 A/B 原生场景仍待验。详见[验证记录](../openspec/changes/clear-cache-safety/verification.md)。

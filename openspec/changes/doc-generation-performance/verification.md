@@ -81,7 +81,7 @@ round40 `ClassNodeCancellationTest` targeted 1/1 通过。修订后的真实 PSI
 
 主代理完整执行 `./gradlew test verifyPluginProjectConfiguration buildPlugin verifyPlugin --rerun-tasks`：40 个 suite、196 项测试，0 失败、0 错误、0 跳过；构建成功，IU261.22158.277 Plugin Verifier verdict 为 `Compatible`。包括本 change 的最新修改及 Round41 的取消/释放守卫和真实 Scratch 文件失败用例。日志与精确 XML：`/tmp/doc-view-reliability-20261018/round42-fullgate.log`、`round42-fullgate-TEST-*.xml`；包审计为 `round42-package-audit.json`。
 
-Round42 ZIP SHA-256：`e214cd4525968356c936f798191006391415019afe48ee4e5235c02f342372d7`。7 个离线章节与仓库正文逐字节一致，生产包未包含测试框架、夹具或 MCP PoC。测试运行使用 JBR25，生产目标仍为 Java21；构建配置中跳过的 searchable-options 任务不计为测试跳过。完整包与原生已安装版本的区别见 [路线图](../../../docs/roadmap.md#本轮验证与续作入口)。
+Round42 ZIP SHA-256：`e214cd4525968356c936f798191006391415019afe48ee4e5235c02f342372d7`。7 个离线章节与仓库正文逐字节一致，生产包未包含测试框架、夹具或 MCP PoC。测试运行使用 JBR25，生产目标仍为 Java21；构建配置中跳过的 searchable-options 任务不计为测试跳过。完整包与原生已安装版本的区别见 [路线图](../../../docs/release-1.4.0.md#路线图迁入的历史进度摘要)。
 
 macOS 锁屏阻挡后续原生操作。IU262 测试实例仍安装 Round34，尚未安装或操作 Round42；本节自动验证不能替代新包原生双击/Enter、项目关闭、多项目隔离、主题及窗口矩阵验收，相关任务保持未完成。
 

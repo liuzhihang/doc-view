@@ -80,7 +80,9 @@ public final class SettingsForm {
 
         JPanel links = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, JBUI.scale(8)));
         links.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JButton supportButton = new JButton("Star", com.intellij.icons.AllIcons.Vcs.Vendors.Github);
+        com.intellij.ui.components.ActionLink supportButton = new com.intellij.ui.components.ActionLink("Star on GitHub");
+        supportButton.setIcon(com.intellij.icons.AllIcons.Vcs.Vendors.Github);
+        supportButton.setIconTextGap(JBUI.scale(6));
         supportButton.setName("githubStarButton");
         supportButton.setToolTipText("GitHub · Doc View");
         supportButton.addActionListener(event -> com.intellij.ide.BrowserUtil.browse(DocViewBundle.message("github")));

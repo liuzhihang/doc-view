@@ -2,9 +2,9 @@
 
 调研日期：2026-10-18。代码基线：`develop` / `00f1f94`，插件 1.3.14，Java 21，目标 IU 2026.1（261）。
 
-**状态：基线设计研究；实施状态另见路线图。** 本文保留 `00f1f94` 的源码、用户截图和官方资料研究，不替代 [路线图](roadmap.md) 或 OpenSpec requirements。模板生命周期的独立修复及原生验收见[验证记录](../openspec/changes/fix-template-settings-lifecycle/verification.md)。后续预览、平台设置、凭据、目录、配置和首页已分别建立 change 并进入实现/验证；下文的“当前”是评估基线，不表示尚未修复。最新操作以[用户指南](user-guide/index.md)为准。
+**状态：基线设计研究；实施状态另见路线图。** 本文保留 `00f1f94` 的源码、用户截图和官方资料研究，不替代 [路线图](roadmap.md) 或 OpenSpec requirements。模板生命周期的独立修复及原生验收见[验证记录](../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/verification.md)。后续预览、平台设置、凭据、目录、配置和首页已分别建立 change 并进入实现/验证；下文的“当前”是评估基线，不表示尚未修复。最新操作以[用户指南](user-guide/index.md)为准。
 
-首项 [`fix-template-settings-lifecycle`](../openspec/changes/fix-template-settings-lifecycle/proposal.md) 已获授权并完成当前工作树实现；状态细节以[验证记录](../openspec/changes/fix-template-settings-lifecycle/verification.md)为准。该修复未发布，当前已发布的 1.3.14 仍有旧行为风险，见下方设置生命周期说明。后续工作顺序以[路线图](roadmap.md)为准。
+首项 [`fix-template-settings-lifecycle`](../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/proposal.md) 已获授权并完成当前工作树实现；状态细节以[验证记录](../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/verification.md)为准。该修复未发布，当前已发布的 1.3.14 仍有旧行为风险，见下方设置生命周期说明。后续工作顺序以[路线图](roadmap.md)为准。
 
 ## 1. 产品方向与推荐顺序
 
@@ -14,7 +14,7 @@
 
 | 阶段 | 候选 change | 用户可观察结果 | 前置条件 |
 | --- | --- | --- | --- |
-| A0：模板生命周期 | [`fix-template-settings-lifecycle`](../openspec/changes/fix-template-settings-lifecycle/proposal.md) | 当前工作树中，Reset 回读最近一次 Apply 的模板；Cancel 丢弃未应用草稿；Apply 后再 Cancel 保留已保存结果 | 自动回归、Verifier 和原生操作见[验证记录](../openspec/changes/fix-template-settings-lifecycle/verification.md)；最终包重启核验已完成，修复尚未发布 |
+| A0：模板生命周期 | [`fix-template-settings-lifecycle`](../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/proposal.md) | 当前工作树中，Reset 回读最近一次 Apply 的模板；Cancel 丢弃未应用草稿；Apply 后再 Cancel 保留已保存结果 | 自动回归、Verifier 和原生操作见[验证记录](../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/verification.md)；最终包重启核验已完成，修复尚未发布 |
 | A0 后续：配置可靠性 | `fix-integration-settings-state`、`integration-credential-storage`（候选） | 空配置/ID 校验/取消行为可解释，平台跳转正确，凭据不与普通设置混存 | 根据设置评估分别复现与提案；凭据新存储单独验收，用户按新版重新配置 |
 | A1：导航改进 | `api-tree-navigation` | 通过类名、方法名、业务名找到接口，区分同名方法，打开文档并返回源码 | UI contract、真实 IDE 验证 |
 | A2：紧随其后 | `doc-view-configuration` | 找得到设置，看得懂规则，修改模板后能预览和撤销 | 新版模板 contract、设置范围与 Apply/Cancel 语义 |
@@ -33,7 +33,7 @@
 | 用户图 2；[ClassNode](../src/main/java/com/liuzhihang/doc/view/ui/window/ClassNode.java)、[MethodNode](../src/main/java/com/liuzhihang/doc/view/ui/window/MethodNode.java) | 类节点使用文档标题，方法节点使用业务名称；图中有相同的“方法2”标签 | 业务标题不能替代代码身份，重载需要可区分的签名 |
 | [plugin.xml](../src/main/resources/META-INF/plugin.xml) | 工具窗口声明 `anchor="right"`；设置主节点未指定 `parentId`，子节点用官方已标为 deprecated 的 `groupId` | 新安装默认位置与设置归属应单独设计；设置采用当前推荐层级，不保留旧 Configurable ID 别名或旧 XML 迁移逻辑 |
 | 用户图 3 | 设置页混合名称来源、必填规则、文档显示和导出选项；存在禁用但勾选的控件 | 应按用户任务分组，解释来源优先级与不可修改状态 |
-| [TemplateSettingForm](../src/main/java/com/liuzhihang/doc/view/ui/TemplateSettingForm.java)、[TemplateConfigurable](../src/main/java/com/liuzhihang/doc/view/config/TemplateConfigurable.java) | 已有模板变量清单和 Markdown 编辑器，但无渲染预览；当前工作树已修复模板设置生命周期 | 保留变量帮助；模板 Apply/Reset/Cancel 的原生验收见[验证记录](../openspec/changes/fix-template-settings-lifecycle/verification.md)，预览仍是后续建议 |
+| [TemplateSettingForm](../src/main/java/com/liuzhihang/doc/view/ui/TemplateSettingForm.java)、[TemplateConfigurable](../src/main/java/com/liuzhihang/doc/view/config/TemplateConfigurable.java) | 已有模板变量清单和 Markdown 编辑器，但无渲染预览；当前工作树已修复模板设置生命周期 | 保留变量帮助；模板 Apply/Reset/Cancel 的原生验收见[验证记录](../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/verification.md)，预览仍是后续建议 |
 | [DocViewWindowPanel](../src/main/java/com/liuzhihang/doc/view/ui/window/DocViewWindowPanel.java) | 已有原生 Tree Speed Search 和后台刷新；树根可见，空状态文字被清空；刷新路径会在窗口隐藏时调用 `show()` | 改进搜索和状态反馈；刷新可能重新显示隐藏窗口，实际激活/焦点效果待 IDE 验证 |
 | [CustomFileUtils](../src/main/java/com/liuzhihang/doc/view/utils/CustomFileUtils.java) | 打开 Markdown 使用 `ExtensionsRootType`，写入 Scratch 扩展目录 | 编辑器里能打开，不代表已成为项目内可移植的文档资产 |
 | [MethodNode](../src/main/java/com/liuzhihang/doc/view/ui/window/MethodNode.java)、[ExportUtils](../src/main/java/com/liuzhihang/doc/view/utils/ExportUtils.java) | 文档路径包含展示名称；批量导出调用追加写入 | 引入索引前需验证重名、非法文件名、重复导出和覆盖语义 |
@@ -41,7 +41,7 @@
 | [Markdown golden sample](../src/test/testData/contracts/markdown/spring-basic.md) | 默认输出以加粗文字分段，已有精确输出回归契约 | 输出结构变化时可直接采用新版 contract，并更新现有 golden 与指南；不保留双轨输出或旧模板变量适配 |
 | 用户图 4、5 | Agent Sessions 和 Agents 列表展示另一套 agent 工作入口 | 只能作为交互参考，不能证明 Doc View 已可与之集成 |
 
-以上 UI 观察来自用户截图与静态代码。原设计调研没有启动 IDE，也未测量真实响应时间、键盘路径、屏幕阅读器或主题对比度；模板生命周期由后续独立 change 做了原生验收，见其[验证记录](../openspec/changes/fix-template-settings-lifecycle/verification.md)。批量导出的追加写入是需要补复现的风险，不能写成已完成运行时验证的缺陷。
+以上 UI 观察来自用户截图与静态代码。原设计调研没有启动 IDE，也未测量真实响应时间、键盘路径、屏幕阅读器或主题对比度；模板生命周期由后续独立 change 做了原生验收，见其[验证记录](../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/verification.md)。批量导出的追加写入是需要补复现的风险，不能写成已完成运行时验证的缺陷。
 
 ## 3. 工作台与导航
 
@@ -81,7 +81,7 @@ doc-demo
 
 插件的通用动作统一使用目标 IDEA 提供的 `AllIcons`，覆盖工具窗口、目录右键菜单、预览与参数编辑器及程序化 popup。节点图标继续使用 `AllIcons.Nodes`。Doc View 品牌图标作为例外保留为单色主题资源；通知复用 16×16 品牌资源，传统工具窗口使用 13×13，New UI 工具窗口使用 20×20 与 Compact Mode 16×16，gutter 使用 12×12 与 New UI 14×14。官方图标指南明确列出的尺寸分别适用于 tool window、New UI tool window 和 gutter；通知的 16×16 是本项目的资源选择。Plugin Manager 的 `META-INF/pluginIcon.svg` 单独维护为 40×40 plugin logo；其它动作不使用自绘或复制来的通用操作 SVG。工具窗口两个导出操作在一个 Export 下拉菜单中按名称区分。
 
-这一选择符合 JetBrains 图标指南中优先复用平台图标的建议；工具栏动作仍按原有操作组织，只有重复的导出入口收拢。参考 [Icons style](https://plugins.jetbrains.com/docs/intellij/icons-style.html)、[Working with Icons](https://plugins.jetbrains.com/docs/intellij/icons.html) 与 [Toolbars](https://plugins.jetbrains.com/docs/intellij/toolbar.html)。具体实现及验收范围见 [api-tree-navigation contract](../openspec/changes/api-tree-navigation/specs/api-directory-navigation/spec.md)。
+这一选择符合 JetBrains 图标指南中优先复用平台图标的建议；工具栏动作仍按原有操作组织，只有重复的导出入口收拢。参考 [Icons style](https://plugins.jetbrains.com/docs/intellij/icons-style.html)、[Working with Icons](https://plugins.jetbrains.com/docs/intellij/icons.html) 与 [Toolbars](https://plugins.jetbrains.com/docs/intellij/toolbar.html)。具体实现及验收范围见 [api-tree-navigation contract](../openspec/changes/archive/2026-11-09-api-tree-navigation/specs/api-directory-navigation/spec.md)。
 
 ### 3.4 原生 UI 取舍
 
@@ -129,11 +129,11 @@ doc-demo
 
 `build.gradle` 当前关闭 `buildSearchableOptions`。后续要验证实际的中文/英文设置关键字搜索，不把实现 `SearchableConfigurable` 等同于所有字段都可搜到。设置层级可使用当前推荐的 `parentId` 和新版 ID；不为旧 Configurable ID 增加别名，也不迁移旧 XML 字段。本 change 已验证模板生命周期的目标 IDE API、项目隔离和 Apply/Reset/Cancel 持久化；设置分类和当前60个中英文关键词的原生页面归属核对已完成；其他设置页的完整保存、隔离与重启矩阵仍按 tasks 保留。版本演进边界见[兼容性策略](intellij-compatibility.md#版本演进策略)。
 
-**模板设置生命周期状态。** 当前工作树已修复原先 `reset()` 覆盖已保存模板的问题。现在 Reset 将编辑器内容回读到最近一次 Apply/保存的值，不代表恢复出厂默认；Apply/OK 保存当前编辑内容，Cancel 丢弃未应用草稿；如果先 Apply、再继续编辑并 Cancel，已 Apply 的值仍保留。修复尚未发布，当前已发布的 1.3.14 仍有旧行为风险；本 change 的详细验证记录见[验证记录](../openspec/changes/fix-template-settings-lifecycle/verification.md)，最终包重启核验已完成。后续配置 change 才考虑单独的“恢复默认”动作；不新增 Cancel 快照回滚。
+**模板设置生命周期状态。** 当前工作树已修复原先 `reset()` 覆盖已保存模板的问题。现在 Reset 将编辑器内容回读到最近一次 Apply/保存的值，不代表恢复出厂默认；Apply/OK 保存当前编辑内容，Cancel 丢弃未应用草稿；如果先 Apply、再继续编辑并 Cancel，已 Apply 的值仍保留。修复尚未发布，当前已发布的 1.3.14 仍有旧行为风险；本 change 的详细验证记录见[验证记录](../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/verification.md)，最终包重启核验已完成。后续配置 change 才考虑单独的“恢复默认”动作；不新增 Cancel 快照回滚。
 
 ### 4.3 模板学习闭环
 
-2026-10-18 根据用户对设置密度的反馈，当前实施决定为：**模板编辑、预览结果、输出选项使用三个独立页签**，默认只展示编辑区；变量目录按需展开，变量属性名和中文名称分行，完整表达式与用途在独立可换行详情中显示。保持 IDE 原有字号，给长表达式和说明预留阅读空间，不用缩小字体容纳更多控件。预览只使用固定虚构样例，不读取当前接口。实现契约和验证分别见 [`doc-view-configuration` spec](../openspec/changes/doc-view-configuration/specs/configuration-experience/spec.md) 与 [verification](../openspec/changes/doc-view-configuration/verification.md)。
+2026-10-18 根据用户对设置密度的反馈，当前实施决定为：**模板编辑、预览结果、输出选项使用三个独立页签**，默认只展示编辑区；变量目录按需展开，变量属性名和中文名称分行，完整表达式与用途在独立可换行详情中显示。保持 IDE 原有字号，给长表达式和说明预留阅读空间，不用缩小字体容纳更多控件。预览只使用固定虚构样例，不读取当前接口。实现契约和验证分别见 [`doc-view-configuration` spec](../openspec/changes/archive/2026-11-09-doc-view-configuration/specs/configuration-experience/spec.md) 与 [verification](../openspec/changes/archive/2026-11-09-doc-view-configuration/verification.md)。
 
 下列为最初研究方向；其中“编辑与预览并排”和“选择当前接口作为输入”未被本轮采用，以前述实施决定为准。
 
@@ -163,7 +163,7 @@ doc-demo
 
 页面以品牌与安装版本、主操作、三步摘要、少量更新亮点和页尾链接组成。内容控制宽度、保留区块留白，三步说明纵向排列；不堆多年更新记录或完整教程。开发构建的未发布变更明确标注为预览，不能当作正式版本介绍。
 
-使用目标平台公开 `JBCefBrowser` API 作为单一 HTML 渲染路径，并由项目内 `FileEditor` 持有 browser；Java 控制主题、动作与生命周期，静态 HTML/CSS 不引入新生产语言或前端框架。JCEF 不可用时显示简短提示，不维护旧 Swing reader fallback。依据：[JetBrains JCEF](https://plugins.jetbrains.com/docs/intellij/embedded-browser-jcef.html)。详细 contract 和验证范围见 [design](../openspec/changes/doc-view-welcome/design.md)。
+使用目标平台公开 `JBCefBrowser` API 作为单一 HTML 渲染路径，并由项目内 `FileEditor` 持有 browser；Java 控制主题、动作与生命周期，静态 HTML/CSS 不引入新生产语言或前端框架。JCEF 不可用时显示简短提示，不维护旧 Swing reader fallback。依据：[JetBrains JCEF](https://plugins.jetbrains.com/docs/intellij/embedded-browser-jcef.html)。详细 contract 和验证范围见 [design](../openspec/changes/archive/2026-11-09-doc-view-welcome/design.md)。
 
 GitHub 指南已在本地补全，尚未推送前对应公开链接可能暂时返回 404；获准推送后需单独验证远端正文。欢迎 UI 原生验收、GitHub 文档发布和外链可达性分别记录，不相互替代。
 
@@ -246,7 +246,7 @@ Air 协作优先通过可读的项目文档与 MCP；不在 Doc View 内复制 A
 
 ## 7. 后续验收设计
 
-以下候选场景尚未全部执行；模板生命周期专项验收见其[change 验证记录](../openspec/changes/fix-template-settings-lifecycle/verification.md)：
+以下候选场景尚未全部执行；模板生命周期专项验收见其[change 验证记录](../openspec/changes/archive/2026-11-09-fix-template-settings-lifecycle/verification.md)：
 
 | 范围 | 可观察的完成信号 |
 | --- | --- |
@@ -263,4 +263,4 @@ Air 协作优先通过可读的项目文档与 MCP；不在 Doc View 内复制 A
 
 ## 本轮设置密度修订
 
-用户在实际模板页反馈编辑、变量、预览与输出选项同时常驻导致拥挤。第6项改为“模板编辑 / 预览结果 / 输出选项”三页签，默认聚焦编辑；变量目录按需展开，预览和输出拥有独立空间。表单使用清晰行距、左对齐标签与可换行说明，验收应覆盖常用设置窗口尺寸，不依靠最大化窗口隐藏布局问题。具体行为与验证以 [配置 change](../openspec/changes/doc-view-configuration/design.md) 为准。
+用户在实际模板页反馈编辑、变量、预览与输出选项同时常驻导致拥挤。第6项改为“模板编辑 / 预览结果 / 输出选项”三页签，默认聚焦编辑；变量目录按需展开，预览和输出拥有独立空间。表单使用清晰行距、左对齐标签与可换行说明，验收应覆盖常用设置窗口尺寸，不依靠最大化窗口隐藏布局问题。具体行为与验证以 [配置 change](../openspec/changes/archive/2026-11-09-doc-view-configuration/design.md) 为准。
