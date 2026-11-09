@@ -23,6 +23,6 @@
 ## 4. 授权的 GitHub 发布
 
 - [x] 4.1 核实远端最新1.6.1和发布工作流，准备1.6.2版本/changelog/欢迎页/发布记录，审计最终包和冻结构建输入。
-- [ ] 4.2 在实现验证及本次归档后，按develop→master流程同步、打v1.6.2 tag并创建GitHub Release；下载回读核对SHA与commit/CI，记录Marketplace未执行。
+- [x] 4.2 在实现验证及本次归档后，按develop→master流程同步、打v1.6.2 tag并创建GitHub Release；下载回读核对SHA与commit/CI，记录Marketplace未执行。
 
-发布任务4.2须在实际成功后更新归档内记录，不提前勾选。
+发布任务4.2在GitHub正式Release及下载回读成功后完成；Marketplace未执行。
