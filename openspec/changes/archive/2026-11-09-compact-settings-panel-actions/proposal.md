@@ -10,7 +10,7 @@
 - 保留同面板预览、变量插入、框架与光标、Apply/Reset/关闭语义，补齐图标 tooltip/可访问名称与键盘焦点。
 - 类与方法共用的标题上限紧跟类注释字段，并明确共用关系，方法注释旁提供简洁关联提示；仍只有一个输入和持久化值，默认80、范围1–200。
 - GitHub logo 入口改为简洁的 Star on GitHub，沿用平台尺寸，不做大 CTA。
-- 更新 Unreleased 与相关指南，保持1.6.1版本，不发布、不推送、不合并、不部署。提供深浅主题真实本机截图。
+- 根据用户后续明确授权发布 GitHub 小修订版本1.6.2，更新版本、changelog、欢迎页与发布记录；不上传 Marketplace。用户已取消截图交付，继续原生交互验证。
 
 ## Capabilities
 
@@ -26,4 +26,4 @@
 
 ## Impact
 
-仅 TemplateSettingForm、GenerationRulesForm、SettingsForm、消息资源、相关测试及文档/OpenSpec。不改 PSI/DTO/模板输出、持久化字段、生产语言、依赖或平台基线。以新交互 RED/GREEN、既有设置/生命周期回归、完整 test/build/config/Verifier 与隔离 IDEA 原生验收验证。
+仅 TemplateSettingForm、GenerationRulesForm、SettingsForm、消息资源、相关测试及文档/OpenSpec；发布元数据包括 gradle.properties、AGENTS.md、README、parts/description.html 和欢迎/更新页。不改 PSI/DTO/模板输出、持久化字段、生产语言、依赖或平台基线。以新交互 RED/GREEN、既有设置/生命周期回归、完整 test/build/config/Verifier 与隔离 IDEA 原生验收验证。

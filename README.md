@@ -41,13 +41,13 @@
 
 设置位于 **Settings → Tools → Doc View**，按项目保存。主要界面跟随 IDEA 的英语或简体中文；源码和生成文档不会自动翻译。**Help → Doc View Welcome** 提供离线入门与当前版本摘要。
 
-## 1.6.1 的小改进
+## 1.6.2 的小改进
 
-- 标题默认取 Javadoc 首个非空行，长度可调；其余正文保留为描述，类说明使用独立变量 `${DocView.classDesc}`。
-- 模板在同一面板切换编辑与渲染，支持 Velocity 和 JSON 高亮。
-- 更轻的预览边框、GitHub Star 入口和清理图标，补齐预览导出的读访问回归。
+- 模板预览与变量入口收进面板右上角的紧凑图标工具栏；恢复默认模板位于更多菜单中，确认后只替换草稿。
+- Javadoc 标题上限紧邻类注释选项，明确类和方法共用，默认80、范围1–200保持不变。
+- GitHub 入口采用 logo 与轻量的 `Star on GitHub` 链接，键盘操作保持可用。
 
-自定义模板需自行加入新变量，或备份后恢复默认模板。安装、更新和停用插件后需要重启。更多升级说明见[设置指南](docs/user-guide/settings.md)和[更新记录](CHANGELOG.md)。
+Apply / OK 保存，Revert changes 恢复已保存值，Cancel 放弃未应用草稿。安装、更新和停用插件后需要重启。更多说明见[模板教程](docs/user-guide/templates.md)和[更新记录](CHANGELOG.md)。
 
 <details>
 <summary>升级、文档库与故障排查</summary>
@@ -65,7 +65,7 @@
 
 构建使用 Java 25、仓库 Gradle Wrapper。协作规范见 [AGENTS.md](AGENTS.md)，模块边界见[架构](docs/architecture.md)，发布前遵循[检查清单](docs/release-checklist.md)。
 
-[1.6.1 发布记录](docs/release-1.6.1.md) · [历史演示与截图](https://github.com/liuzhihang/doc-view/discussions/17) · [旧版语雀文档](https://www.yuque.com/liuzhihangs/doc-view)
+[1.6.2 发布记录](docs/release-1.6.2.md) · [历史演示与截图](https://github.com/liuzhihang/doc-view/discussions/17) · [旧版语雀文档](https://www.yuque.com/liuzhihangs/doc-view)
 
 </details>
 
