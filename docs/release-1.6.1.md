@@ -16,9 +16,9 @@
 | --- | --- |
 | 全量自动门禁 | 84 suites / 447 tests，失败/错误/跳过均 0；test、verifyPluginProjectConfiguration、buildPlugin、verifyPlugin 全部实际执行 |
 | Plugin Verifier | IU 263.7031.23 与 263.7307.200 均 Compatible，各 16 项 experimental API；无 blocking finding |
-| 原生验收 | 官方 IU 263.7307.200 隔离 profile、同一最终 ZIP；深浅主题高亮、同面板反复切换及 Insert/Restore/Reset、设置保存取消与非法值、目录/说明/图标、列表选择、全部导出均通过 |
-| ZIP | `Doc View-1.6.1.zip`；SHA-256 `086b14b853da7bd3643ce4a5b80d3a43fe8eed75711b8a4872ea5bf29cf32f9c` |
-| JAR | `doc-view-1.6.1.jar`；SHA-256 `ad32191d3c641e38b76f1664e050dfd8731d3627c55e42eaf9988f20f9577571` |
+| 原生验收 | 官方 IU 263.7307.200 隔离 profile；前一 SHA 完成深浅主题、同面板及 Insert/Restore/Reset、保存取消、样式、选择/导出全矩阵；最终 SHA 补验启动、目录/描述、列表选择与浅色 JSON。两包只差 change-notes 图标称谓，348 class 及其余资源相同；详细绑定见验证记录 |
+| ZIP | `Doc View-1.6.1.zip`；SHA-256 `dfef1c63f72a4049d6f108ebdb23697a158e592a100c4b9ecf4168bfa433ddb3` |
+| JAR | `doc-view-1.6.1.jar`；SHA-256 `db8e09f5b2bd59af6354267549d8ca2c6010690edc61583a45f11233a03bc24d` |
 | 包审计 | 单 JAR，413 entries/348 class，major 69；1.6.1、sinceBuild 263.7031.23、无 until、require-restart=true；无新增依赖/测试类 |
 
 完整步骤、TDD、边界见 [OpenSpec 验证记录](../openspec/changes/archive/2026-11-09-polish-doc-view-1-6-1/verification.md)。未批量归档其他活动 changes。
