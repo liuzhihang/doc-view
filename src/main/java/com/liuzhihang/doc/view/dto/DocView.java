@@ -32,6 +32,9 @@ public class DocView {
      */
     private String docTitle;
 
+    /** Ordinary class Javadoc after its title, independent of the method description. */
+    private String classDesc;
+
     /**
      * 接口方法所属类的标签
      * <p>

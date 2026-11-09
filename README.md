@@ -4,126 +4,59 @@
 [![Downloads](https://img.shields.io/jetbrains/plugin/d/15305-doc-view.svg)](https://plugins.jetbrains.com/plugin/15305-doc-view)
 [![License](https://img.shields.io/badge/license-MIT-red.svg)](LICENSE)
 
-从 Java 源码生成 Markdown API 文档，在 IntelliJ IDEA 中查看、复制和导出，也可按需上传到 YApi、ShowDoc 或语雀。本地生成无需启动应用，也无需配置上传账号。
+在 IntelliJ IDEA 中，从 Java 源码生成 API 文档。支持 **Spring、Feign、Dubbo**，无需启动应用，也无需配置上传账号。
 
-[快速开始](docs/user-guide/index.md) · [模板教程](docs/user-guide/templates.md) · [平台集成](docs/user-guide/integrations.md) · [更新记录](CHANGELOG.md)
+[安装插件](https://plugins.jetbrains.com/plugin/15305-doc-view) · [快速开始](docs/user-guide/index.md) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/liuzhihang/doc-view/issues)
 
-> 本页描述当前仓库分支中的功能与文档，开发分支可能包含尚未发布的更改。可安装版本和正式发布状态以 [Marketplace](https://plugins.jetbrains.com/plugin/15305-doc-view/versions) 与 [GitHub Releases](https://github.com/liuzhihang/doc-view/releases) 为准。使用已发布版本时，请从 [GitHub Tags](https://github.com/liuzhihang/doc-view/tags) 选择与插件版本一致的 tag，再查看其中的 README、用户指南和更新记录。
+## 三步开始
 
-## 可以做什么
+1. 在 **Settings → Plugins → Marketplace** 搜索并安装 `Doc View`，按提示重启 IDEA。
+2. 打开 Java 项目，等待索引完成，在接口方法或类声明处右键选择 **Doc View**。
+3. 预览结果，使用 **Copy** 复制 Markdown，或 **Export** 保存文档。
 
-- **生成接口文档**：识别 Spring Controller、Feign 风格接口、Dubbo 和按设置启用的普通 Java 接口，读取 Javadoc、Validation、Swagger / OpenAPI 注解。
-- **保留文档元数据**：读取接口方法和实体字段的 `@since`、`@version`；依赖 JAR 已在 IDEA 关联对应源码时，可读取其字段注释，不自动下载源码。
-- **浏览与定位源码**：按模块、类和方法浏览接口；代码名配合灰色业务说明，支持搜索、源码跳转和 Markdown 编辑器打开。
-- **调整模板与输出**：分别编辑 Spring、Dubbo 模板，搜索并插入变量，用固定样例预览 Markdown，再应用到当前项目。
-- **管理文档文件**：复制、单项或批量导出 Markdown；一键生成或更新 `docs/doc-view/` 的 Markdown、JSON 索引与接口详情，支持搜索、分页和打开文档，检查手改冲突。
-- **生成 HTTP 请求**：为受支持的 Spring/Feign 方法生成新的 `.http` 草稿，区分 Path、Query、Header、Form 与 Body，由 IDEA HTTP Client 编辑并主动执行。
-- **编辑字段说明**：通过 Doc Editor 编辑实体字段说明和必填信息，确认后写回支持的源码注释或注解；也可复制实体 JSON，或将当前编辑值复制为普通/分表 Markdown，复制操作不写回源码。
-- **连接文档平台**：按项目配置 YApi、ShowDoc 或语雀，主动选择目标后上传。凭据使用 IDEA PasswordSafe 保存。
+**环境要求：** IDEA IU `263.7031.23` 起、Java 25。旧 IDEA 请选择兼容的旧插件版本。可安装版本以 [Marketplace](https://plugins.jetbrains.com/plugin/15305-doc-view/versions) 和 [Releases](https://github.com/liuzhihang/doc-view/releases) 为准；完整边界见[兼容性说明](docs/intellij-compatibility.md)。
 
-主要界面支持英语和简体中文，跟随 IDEA 界面语言；源码注释、模板和生成文档不会自动翻译。
+## 日常使用
 
-## 安装与首次使用
-
-**1.6.0 起需要 IntelliJ IDEA IU build `263.7031.23` 或更高版本及 Java 25 运行环境**，依赖 Java、Markdown 与 JCEF 支持。安装、更新或停用插件后需按 IDEA 提示重启；不承诺热更新/热卸载。已检查的精确 IDE build 为 `263.7031.23` 和正式 `263.7307.200`，未设置最高 build 不代表后续所有版本均已验证。旧 IDEA 请使用兼容的旧插件版本；完整验证范围与已知限制见[1.6.0 发布记录](docs/release-1.6.0.md)和[兼容性说明](docs/intellij-compatibility.md)。
-
-1. 在 **Settings → Plugins → Marketplace** 搜索 `Doc View` 安装兼容版本；也可从 [Releases](https://github.com/liuzhihang/doc-view/releases) 下载 ZIP，通过 **Install Plugin from Disk…** 安装。macOS 可从应用菜单进入 Settings。
-2. 打开 Java 项目，等待依赖解析和索引完成。在支持的接口方法内，或类声明处右键选择 **Doc View**。
-3. 查看生成结果，使用 **Copy** 取得 Markdown，或使用 **Export** 保存文件。只在需要上传时配置平台账号。
-
-可直接使用[快速开始中的示例](docs/user-guide/index.md#三步生成第一份文档)。普通实体类使用 **Doc Editor**，不会作为 HTTP / RPC 接口生成文档。
-
-## 设置与模板
-
-设置入口为 **Settings → Tools → Doc View**，工具窗口的 `…` 菜单也可打开。配置按当前项目保存。
-
-| 页面 | 主要用途 |
+| 想做什么 | 从这里开始 |
 | --- | --- |
-| Doc View | 行标记、普通接口识别 |
-| 生成规则 / Generation Rules | 标题、名称、描述、必填与字段名来源 |
-| 模板与输出 / Template and Output | 模板编辑、变量查阅、示例预览和导出选项 |
-| 平台集成 / Platform Integrations | YApi、ShowDoc、语雀的地址与凭据 |
+| 浏览接口、跳转源码、生成项目文档库 | [用户指南](docs/user-guide/index.md) |
+| 控制 Javadoc 标题长度与描述来源 | [生成规则](docs/user-guide/settings.md) |
+| 编辑模板、插入变量、原位预览 | [模板教程](docs/user-guide/templates.md) |
+| 编辑字段说明、复制 JSON / Markdown | [Doc Editor](docs/user-guide/index.md) |
+| 生成可编辑的 `.http` 请求草稿 | [HTTP 请求](docs/user-guide/http-requests.md) |
+| 上传到 YApi、ShowDoc 或语雀 | [平台集成](docs/user-guide/integrations.md) |
 
-模板编辑、预览结果和输出选项分别展示，变量目录按需展开。页内 `?` 提供规则说明或指南链接，完整操作见[模板教程](docs/user-guide/templates.md)。
+设置位于 **Settings → Tools → Doc View**，按项目保存。主要界面跟随 IDEA 的英语或简体中文；源码和生成文档不会自动翻译。**Help → Doc View Welcome** 提供离线入门与当前版本摘要。
 
-- **Apply / OK** 保存设置；**Revert changes / Reset** 恢复最近一次保存值；**Cancel** 丢弃尚未应用的草稿。
-- **恢复默认模板** 会替换 Spring、Dubbo 两份草稿，Apply 前不更改保存值。
-- 自定义模板影响 Markdown 预览、复制、导出及 ShowDoc / 语雀正文。YApi 使用独立的结构化上传逻辑，模板不会改变其上传布局。
+## 1.6.1 的小改进
 
-## 欢迎页与使用文档
+- 标题默认取 Javadoc 首个非空行，长度可调；其余正文保留为描述，类说明使用独立变量 `${DocView.classDesc}`。
+- 模板在同一面板切换编辑与渲染，支持 Velocity 和 JSON 高亮。
+- 更轻的预览边框、GitHub Star 入口和清理图标，补齐预览导出的读访问回归。
 
-**Help → Doc View Welcome**（也可用 Find Action 搜索）在编辑区打开随插件提供的 HTML 欢迎页和更新摘要。满足目标 IDE 的 JCEF 要求时，页面离线可用；首次加载展示一次，后续版本更新通过可关闭的通知提醒。
+自定义模板需自行加入新变量，或备份后恢复默认模板。安装、更新和停用插件后需要重启。更多升级说明见[设置指南](docs/user-guide/settings.md)和[更新记录](CHANGELOG.md)。
 
-完整手册在 GitHub 仓库维护，设置问号气泡里的指南链接由默认浏览器打开：
+<details>
+<summary>升级、文档库与故障排查</summary>
 
-- [用户指南](docs/user-guide/index.md)：安装、源码入口、目录导航和项目文档导出。
-- [设置说明](docs/user-guide/settings.md)：作用范围、来源优先级和保存行为。
-- [模板教程](docs/user-guide/templates.md)：变量、内置模板与修改示例。
-- [平台集成](docs/user-guide/integrations.md)：三平台配置、凭据与上传结果。
-- [故障排查](docs/user-guide/troubleshooting.md)：菜单、模板、生成和导出问题。
-- [MCP 使用说明](docs/user-guide/mcp.md)：项目文档库、JSON 格式，以及后续 MCP 工具和客户端 Skill。
-- [文档格式说明](docs/mcp-format.md)与[取消验收说明](docs/mcp-cancellation.md)：查看落盘格式和客户端取消互操作证据。
+- 从 1.4.0 之前升级，请重新录入平台凭据；新版使用 PasswordSafe，不读取旧 XML 密钥，见[凭据说明](docs/user-guide/integrations.md#token-与本地保存)。
+- OpenAPI 3 必填使用 `Schema.requiredMode`，详见[生成规则](docs/user-guide/settings.md#必填)。
+- 项目文档输出至 `docs/doc-view/`，包含 Markdown 与 JSON 快照。源码变化后需显式更新；手改冲突会中止导出，不自动合并。
+- 正式 Doc View MCP provider 和客户端 Skill 仍在规划中，见[MCP 说明](docs/user-guide/mcp.md)与[路线图](docs/roadmap.md)。
+- 遇到菜单、模板或导出问题，查看[故障排查](docs/user-guide/troubleshooting.md)。阅读旧版本文档请切换到对应 [Git tag](https://github.com/liuzhihang/doc-view/tags)。
 
-指南以仓库 `docs/user-guide/` 为维护源，完整手册不打包为离线副本。欢迎页和设置中的指南入口由默认浏览器打开 GitHub；查看已发布版本的使用说明时，请使用对应 Git tag 下的文档。语雀的[旧版文档](https://www.yuque.com/liuzhihangs/doc-view)仅作历史参考。
+</details>
 
-## 升级前注意
+<details>
+<summary>开发与历史演示</summary>
 
-- **从 1.4.0 之前升级时重新填写平台凭据**：新版不读取或迁移旧 XML 中的密钥；PasswordSafe 按项目和平台隔离，输入框留空表示保留。旧 XML 和备份不会自动清理，详见[凭据说明](docs/user-guide/integrations.md#token-与本地保存)。
-- **新增元数据和依赖注释**：默认模板会展示非空的接口 `@since`、`@version`；已有自定义模板需自行插入对应变量。读取依赖字段 Javadoc 前，请先在 IDEA 关联正确版本的源码包；纯字节码无法恢复注释。
-- **OpenAPI 3 必填使用 `Schema.requiredMode`**：不再读取已弃用的 `Schema.required`。通过 Doc Editor 写回时，项目依赖必须提供 `requiredMode`；缺少该成员时会拒绝本次字段写回，见[必填说明](docs/user-guide/settings.md#必填)。
-- **手写内容放在独立文档**：项目导出会检查生成页的所有权与内容校验标记。手改冲突会中止导出，不自动合并；源码变化后需重新导出，不会双向同步。
-- **需要旧行为时使用旧插件版本**：新版不提供旧模板写法或旧 IDE 的兼容模式。升级前保留需要的自定义模板与配置，降级后的配置兼容性不作保证。
+构建使用 Java 25、仓库 Gradle Wrapper。协作规范见 [AGENTS.md](AGENTS.md)，模块边界见[架构](docs/architecture.md)，发布前遵循[检查清单](docs/release-checklist.md)。
 
-项目文档同时维护 Markdown、JSON 摘要索引和结构化详情，可由 IDE 或 AI 按文件读取。IDE 的 **Find in Files → Project** 可搜索 Markdown；Doc View 的 **Search Project Docs** 查询落盘 JSON 快照，不会自动解析最新源码或重新生成。源码修改后需显式生成或更新，快照状态区分 current、stale 和 unknown。正式 Doc View MCP provider 和可安装客户端 Skill 尚未实现；Skill 计划调用同一插件注册到 IDEA 的 MCP 工具。当前没有 Doc View 专用 IDEA 索引或 Air 集成。后续顺序、生产门槛及各 change 状态见[路线图](docs/roadmap.md)和[MCP 使用说明](docs/user-guide/mcp.md)。
+[1.6.0 发布记录](docs/release-1.6.0.md) · [历史演示与截图](https://github.com/liuzhihang/doc-view/discussions/17) · [旧版语雀文档](https://www.yuque.com/liuzhihangs/doc-view)
 
-## 更新与开发
+</details>
 
-[CHANGELOG](CHANGELOG.md) 按 `Unreleased` 和已发布版本记录改动；[GitHub Releases](https://github.com/liuzhihang/doc-view/releases) 提供正式发布记录与安装包。本轮范围和交付状态见[1.6.0 发布记录](docs/release-1.6.0.md)，此前开发工作的验收范围见[验证记录](docs/validation-2026-10-20.md)；发布前按[检查清单](docs/release-checklist.md)完成收尾。
+感谢 [lvgo](https://github.com/lvgocc)、[知一](https://github.com/zh-d-d)、[大斌](https://github.com/dabinaa)、[ayang0422](https://github.com/ayang0422) 等贡献者。作者：[程序员小航](https://github.com/liuzhihang)。
 
-1.6.0 生产源码/API/classfile 使用 Java 25 / major 69，IntelliJ Platform Gradle Plugin 为 2.17.0。构建使用仓库 Gradle Wrapper。开发、验证与协作约定见 [AGENTS.md](AGENTS.md) 和[架构说明](docs/architecture.md)。
-
-## 历史演示
-
-以下为旧版本演示，设置布局、菜单与图标以当前版本和用户指南为准。
-
-![历史接口文档生成演示](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/122-zbZ9ps.gif)
-![历史字段编辑演示](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/0YyY3m-CQdmD6.gif)
-
-[更多历史截图](https://github.com/liuzhihang/doc-view/discussions/17)
-
-安全
-----
-
-请按照 [SECURITY.md](SECURITY.md) 私密报告疑似安全漏洞。不要在公开 Issue 中提交凭据、私有项目数据或未脱敏日志。
-
-关于我
-----
-
-欢迎关注公众号：『 程序员小航 』
-
-![wechat-vxgNsq](https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/wechat-vxgNsq.png)
-
-
-小伙伴们
-----
-
-感谢以下小伙伴的参与:
-
-[lvgo](https://github.com/lvgocc)
-[知一](https://github.com/zh-d-d)
-[大斌](https://github.com/dabinaa)
-[ayang0422](https://github.com/ayang0422)
-
-
-
-其他插件
-----
-
-&emsp;Toolkit: [https://github.com/liuzhihang/toolkit](https://github.com/liuzhihang/toolkit)
-
-
-&emsp;copy-as-json: [https://github.com/liuzhihang/copy-as-json](https://github.com/liuzhihang/copy-as-json)
-
-本工具使用 JetBrains IDEA 进行开发
-----
-<a href="https://www.jetbrains.com/?from=Toolkit"><img src="https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/jetbrains-logo-MrNwcp.png" width="20%" height="20%"></a><a href="https://www.jetbrains.com/?from=Toolkit"><img src="https://cdn.jsdelivr.net/gh/liuzhihang/oss/pic/article/idea-logo-XpnqgG.png" width="20%" height="20%"> </a>
+安全问题请按 [SECURITY.md](SECURITY.md) 私密报告，公开 Issue 请勿提交凭据或未脱敏数据。

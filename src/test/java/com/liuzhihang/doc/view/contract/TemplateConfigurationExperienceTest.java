@@ -90,10 +90,9 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             JButton toggleVariables = component(root, "toggleVariablesButton", JButton.class);
 
             assertNotNull(workspaces);
-            assertEquals(3, workspaces.getTabCount());
+            assertEquals(2, workspaces.getTabCount());
             assertEquals(DocViewBundle.message("template.tab.editor"), workspaces.getTitleAt(0));
-            assertEquals(DocViewBundle.message("template.tab.preview"), workspaces.getTitleAt(1));
-            assertEquals(DocViewBundle.message("template.tab.output"), workspaces.getTitleAt(2));
+            assertEquals(DocViewBundle.message("template.tab.output"), workspaces.getTitleAt(1));
             assertEquals("The editor workspace should be selected on first open", 0, workspaces.getSelectedIndex());
             assertEquals(2, component(root, "templateFrameworkTabs", JTabbedPane.class).getTabCount());
             assertNull("The variable sidebar should be collapsed on first open",
@@ -286,10 +285,8 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             JTabbedPane workspaces = component(root, "templateMainTabs", JTabbedPane.class);
             assertTrue("The restore action should be contained by the editor workspace",
                     isDescendant(workspaces.getComponentAt(0), restore));
-            assertFalse("The restore action should not be part of preview",
-                    isDescendant(workspaces.getComponentAt(1), restore));
             assertFalse("The restore action should not be part of output settings",
-                    isDescendant(workspaces.getComponentAt(2), restore));
+                    isDescendant(workspaces.getComponentAt(1), restore));
         });
     }
 
@@ -318,10 +315,10 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             });
 
             component(root, "previewSpringButton", JButton.class).doClick();
-            assertEquals("Requesting a preview should open its workspace immediately", 1,
+            assertEquals("Requesting a preview should stay in its editor workspace", 0,
                     workspaces.getSelectedIndex());
             assertEquals(DocViewBundle.message("template.preview.status.loading"), status.getText());
-            workspaces.setSelectedIndex(2);
+            workspaces.setSelectedIndex(1);
         });
 
         assertTrue("A successful fixed-sample preview should report completion",
@@ -329,9 +326,9 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
         EdtTestUtil.runInEdtAndWait(() -> {
             assertEquals(DocViewBundle.message("template.preview.status.success"), statusRef[0].getText());
             JTabbedPane workspaces = component(formRef[0].createCenterPanel(), "templateMainTabs", JTabbedPane.class);
-            assertEquals("An async result must not take over a workspace selected by the user", 2,
+            assertEquals("An async result must not take over a workspace selected by the user", 1,
                     workspaces.getSelectedIndex());
-            workspaces.setSelectedIndex(1);
+            workspaces.setSelectedIndex(0);
             WriteCommandAction.runWriteCommandAction(project, () ->
                     formRef[0].getSpringTemplateEditor().getDocument().insertString(0, "# draft\n"));
         });
@@ -343,7 +340,7 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             assertEquals("Reset should return to the unpreviewed state",
                     DocViewBundle.message("template.preview.status.initial"), statusRef[0].getText());
             assertFalse(formRef[0].isModified());
-            assertEquals("Reset should leave the selected workspace unchanged", 1,
+            assertEquals("Reset should leave the selected workspace unchanged", 0,
                     component(formRef[0].createCenterPanel(), "templateMainTabs", JTabbedPane.class).getSelectedIndex());
         });
     }
@@ -362,10 +359,7 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
         EdtTestUtil.runInEdtAndWait(() -> {
             TemplateSettingForm form = createForm();
             JComponent root = form.createCenterPanel();
-            JPanel previewPanel = component(root, "templatePreviewPage", JPanel.class);
-            Component previewComponent = ((BorderLayout) previewPanel.getLayout())
-                    .getLayoutComponent(BorderLayout.CENTER);
-            EditorEx previewEditor = editorForComponent((JComponent) previewComponent);
+            EditorEx previewEditor = previewEditor(form);
             JLabel status = component(root, "previewStatusLabel", JLabel.class);
             JTabbedPane workspaces = component(root, "templateMainTabs", JTabbedPane.class);
             formRef[0] = form;
@@ -385,7 +379,7 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             });
 
             component(root, "previewSpringButton", JButton.class).doClick();
-            assertEquals(1, workspaces.getSelectedIndex());
+            assertEquals(0, workspaces.getSelectedIndex());
             assertEquals(DocViewBundle.message("template.preview.status.loading"), status.getText());
         });
 
@@ -396,10 +390,11 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             assertTrue(previewEditorRef[0].getDocument().getImmutableCharSequence().toString()
                     .contains("/api/demo/users/{userId}"));
 
+            component(rootRef[0], "previewSpringButton", JButton.class).doClick();
             WriteCommandAction.runWriteCommandAction(project,
                     () -> formRef[0].getSpringTemplateEditor().getDocument().setText(""));
             component(rootRef[0], "previewSpringButton", JButton.class).doClick();
-            assertEquals(1, workspacesRef[0].getSelectedIndex());
+            assertEquals(0, workspacesRef[0].getSelectedIndex());
         });
 
         assertTrue("The real form should show its empty-result status",
@@ -409,11 +404,12 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             assertEquals("An empty result must clear the prior successful Markdown", "",
                     previewEditorRef[0].getDocument().getImmutableCharSequence().toString());
 
+            component(rootRef[0], "previewSpringButton", JButton.class).doClick();
             WriteCommandAction.runWriteCommandAction(project,
                     () -> formRef[0].getSpringTemplateEditor().getDocument()
                             .setText("#if($DocView.name)\nunfinished"));
             component(rootRef[0], "previewSpringButton", JButton.class).doClick();
-            assertEquals(1, workspacesRef[0].getSelectedIndex());
+            assertEquals(0, workspacesRef[0].getSelectedIndex());
         });
 
         assertTrue("The real form should expose a rendering failure in its status label",
@@ -426,6 +422,14 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
             assertEquals("A failed render must not leave old Markdown visible", "",
                     previewEditorRef[0].getDocument().getImmutableCharSequence().toString());
         });
+    }
+
+    private static EditorEx previewEditor(TemplateSettingForm form) {
+        try {
+            var field = TemplateSettingForm.class.getDeclaredField("previewEditor");
+            field.setAccessible(true);
+            return (EditorEx) field.get(form);
+        } catch (ReflectiveOperationException exception) { throw new AssertionError(exception); }
     }
 
     private static boolean awaitUiUpdate(CountDownLatch update) throws InterruptedException {
@@ -573,7 +577,7 @@ public final class TemplateConfigurationExperienceTest extends LightJavaCodeInsi
                 assertNotNull(prefix1);
                 assertNotNull(prefix2);
                 assertTrue(outputPanel.getLayout() instanceof GridBagLayout);
-                workspaces.setSelectedIndex(2);
+                workspaces.setSelectedIndex(1);
                 assertEquals(DocViewBundle.message("template.tab.output"), workspaces.getTitleAt(workspaces.getSelectedIndex()));
                 GridBagLayout outputLayout = (GridBagLayout) outputPanel.getLayout();
                 GridBagConstraints prefix1Label = outputLayout.getConstraints(

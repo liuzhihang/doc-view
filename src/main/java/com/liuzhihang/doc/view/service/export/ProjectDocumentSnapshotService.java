@@ -190,6 +190,9 @@ public final class ProjectDocumentSnapshotService {
     static String generatorFingerprint(Settings settings, TemplateSettings templates) {
         Map<String, List<String>> values = new TreeMap<>();
         addScalar(values, "projectionVersion", "1");
+        addScalar(values, "commentTitleMaxLength", settings.getCommentTitleMaxLength());
+        addScalar(values, "nameCommentFirstLine", settings.isNameCommentFirstLine());
+        addScalar(values, "descCommentBody", settings.isDescCommentBody());
         addScalar(values, "titleTag", settings.getTitleTag());
         addScalar(values, "titleUseCommentTag", settings.getTitleUseCommentTag());
         addScalar(values, "titleClassComment", settings.getTitleClassComment());

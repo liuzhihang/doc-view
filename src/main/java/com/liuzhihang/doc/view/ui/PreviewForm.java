@@ -49,6 +49,7 @@ import com.liuzhihang.doc.view.notification.DocViewNotification;
 import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.service.DocViewUploadService;
 import com.liuzhihang.doc.view.utils.EditorUtils;
+import com.liuzhihang.doc.view.utils.MarkdownPreviewHtml;
 import com.liuzhihang.doc.view.utils.ExportUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.intellij.plugins.markdown.settings.MarkdownSettings;
@@ -200,6 +201,7 @@ public class PreviewForm implements Disposable {
      * Class names captured with read access while loading the list.
      */
     private Map<DocView, String> docViewQualifiedNames = Map.of();
+    private Map<DocView, String> docViewClassNames = Map.of();
 
     private final Map<String, String> markdownCache = new HashMap<>();
     private final AtomicLong renderRequest = new AtomicLong();
@@ -331,6 +333,7 @@ public class PreviewForm implements Disposable {
         docViewList = null;
         docViewMap = null;
         docViewQualifiedNames = Map.of();
+        docViewClassNames = Map.of();
     }
 
     private static void cancelIndicators(@NotNull ConcurrentMap<Long, ProgressIndicator> indicators) {
@@ -402,7 +405,7 @@ public class PreviewForm implements Disposable {
         catalogPane.setPreferredSize(new Dimension(150, 0));
         // 目录面板
         JScrollPane scrollPane = ScrollPaneFactory.createScrollPane(catalogList);
-        scrollPane.setBorder(JBUI.Borders.customLine(JBColor.LIGHT_GRAY));
+        scrollPane.setBorder(JBUI.Borders.empty());
 
         catalogPane.add(scrollPane, BorderLayout.CENTER);
         catalogPane.add(catalogToolbarPane, BorderLayout.SOUTH);
@@ -776,12 +779,14 @@ public class PreviewForm implements Disposable {
                         List<DocView> docViews = DocViewService.getInstance(psiClass.getProject(), psiClass)
                                 .buildDoc(psiClass, psiMethod);
                         Map<DocView, String> qualifiedNames = new IdentityHashMap<>();
+                        Map<DocView, String> classNames = new IdentityHashMap<>();
                         for (DocView docView : docViews) {
                             indicator.checkCanceled();
                             PsiClass owner = docView.getPsiClass();
                             qualifiedNames.put(docView, owner == null ? null : owner.getQualifiedName());
+                            classNames.put(docView, owner == null ? "DocView" : owner.getName());
                         }
-                        return new PreviewListSnapshot(docViews, qualifiedNames);
+                        return new PreviewListSnapshot(docViews, qualifiedNames, classNames);
                     }));
                 } finally {
                     loadIndicators.remove(requestId, indicator);
@@ -793,6 +798,7 @@ public class PreviewForm implements Disposable {
                 if (isCurrentLoad(requestId)) {
                     try {
                         PreviewListSnapshot snapshot = result.get();
+                        docViewClassNames = snapshot.classNames();
                         applyDocViewList(snapshot.documents(), snapshot.qualifiedNames(), requestId);
                     } catch (RuntimeException exception) {
                         handleLoadFailure(requestId, exception);
@@ -886,8 +892,7 @@ public class PreviewForm implements Disposable {
                                 : DocViewData.markdownText(psiClass.getProject(), docView);
                         indicator.checkCanceled();
                         String htmlText = generateHtml
-                                ? MarkdownUtil.INSTANCE.generateMarkdownHtml(
-                                        psiClass.getContainingFile().getVirtualFile(), markdownText, psiClass.getProject())
+                                ? MarkdownPreviewHtml.render(psiClass.getProject(), markdownText)
                                 : null;
                         indicator.checkCanceled();
                         return new RenderResult(markdownText, htmlText);
@@ -1078,17 +1083,19 @@ public class PreviewForm implements Disposable {
         if (currentDocView == null || docViewList == null) {
             return null;
         }
-        return new AllExportSnapshot(currentDocView.getPsiClass().getName(), List.copyOf(docViewList));
+        return new AllExportSnapshot(Objects.requireNonNullElse(docViewClassNames.get(currentDocView), "DocView"), List.copyOf(docViewList));
     }
 
     private record RenderResult(@NotNull String markdownText, @Nullable String htmlText) {
     }
 
     private record PreviewListSnapshot(@NotNull List<DocView> documents,
-                                       @NotNull Map<DocView, String> qualifiedNames) {
+                                       @NotNull Map<DocView, String> qualifiedNames,
+                                       @NotNull Map<DocView, String> classNames) {
         private PreviewListSnapshot {
             documents = List.copyOf(documents);
             qualifiedNames = Collections.unmodifiableMap(new IdentityHashMap<>(qualifiedNames));
+            classNames = Collections.unmodifiableMap(new IdentityHashMap<>(classNames));
         }
     }
 

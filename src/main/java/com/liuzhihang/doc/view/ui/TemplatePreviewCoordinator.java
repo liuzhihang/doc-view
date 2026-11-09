@@ -14,13 +14,13 @@ public final class TemplatePreviewCoordinator {
         String render(String template, FrameworkEnum framework) throws Exception;
     }
 
-    public record Result(String markdown, String errorMessage) {
+    public record Result(String markdown, String html, String errorMessage) {
         public boolean isSuccess() {
             return errorMessage == null;
         }
 
         public static Result success(String markdown) {
-            return new Result(markdown, null);
+            return new Result(markdown, null, null);
         }
 
         public static Result failure(Throwable error) {
@@ -28,19 +28,26 @@ public final class TemplatePreviewCoordinator {
             if (message == null || message.isBlank()) {
                 message = error.getClass().getSimpleName();
             }
-            return new Result(null, message);
+            return new Result(null, null, message);
         }
     }
 
     private final Executor backgroundExecutor;
     private final Consumer<Runnable> uiExecutor;
     private final Renderer renderer;
+    private final java.util.function.Function<String, String> htmlRenderer;
     private long latestRequest;
     private boolean disposed;
 
     public TemplatePreviewCoordinator(Executor backgroundExecutor,
                                       Consumer<Runnable> uiExecutor,
                                       Renderer renderer) {
+        this(backgroundExecutor, uiExecutor, renderer, null);
+    }
+
+    public TemplatePreviewCoordinator(Executor backgroundExecutor, Consumer<Runnable> uiExecutor,
+                                      Renderer renderer, java.util.function.Function<String, String> htmlRenderer) {
+        this.htmlRenderer = htmlRenderer;
         this.backgroundExecutor = Objects.requireNonNull(backgroundExecutor);
         this.uiExecutor = Objects.requireNonNull(uiExecutor);
         this.renderer = Objects.requireNonNull(renderer);
@@ -57,7 +64,8 @@ public final class TemplatePreviewCoordinator {
             }
             Result result;
             try {
-                result = Result.success(renderer.render(template, framework));
+                String markdown = renderer.render(template, framework);
+                result = new Result(markdown, htmlRenderer == null ? null : htmlRenderer.apply(markdown), null);
             } catch (Exception error) {
                 result = Result.failure(error);
             }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class BasicController {
 
     /**
+     * 查询用户
      * 按编号查询用户。
      *
      * @param id 用户编号

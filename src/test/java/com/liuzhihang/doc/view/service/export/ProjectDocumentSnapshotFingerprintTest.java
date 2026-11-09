@@ -66,4 +66,18 @@ public final class ProjectDocumentSnapshotFingerprintTest extends LightJavaCodeI
 
         assertEquals(initial, ProjectDocumentSnapshotService.generatorFingerprint(settings, templates));
     }
+    public void testJavadocSettingsInvalidateGeneratorFingerprintAndSchemaCache() {
+        Settings settings = new Settings();
+        TemplateSettings templates = new TemplateSettings();
+        String initial = ProjectDocumentSnapshotService.generatorFingerprint(settings, templates);
+        settings.setCommentTitleMaxLength(40);
+        String shorter = ProjectDocumentSnapshotService.generatorFingerprint(settings, templates);
+        assertFalse(initial.equals(shorter));
+        settings.setNameCommentFirstLine(false);
+        String full = ProjectDocumentSnapshotService.generatorFingerprint(settings, templates);
+        assertFalse(shorter.equals(full));
+        settings.setDescCommentBody(false);
+        assertFalse(full.equals(ProjectDocumentSnapshotService.generatorFingerprint(settings, templates)));
+    }
+
 }
