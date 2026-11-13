@@ -1,6 +1,6 @@
 # Doc View 文档与 MCP 格式
 
-状态：**1.6.x 提供 JSON 文档库；1.7.0 待发布源码已加入 MCP adapter，生产取消与最低build原生核心调用已验证，官方Skill发行验收继续推进**。当前生产最低 IDEA 版本仍以 Gradle 配置为准。自动和原生结果分别记录在[文档库任务](../openspec/changes/project-document-store/tasks.md)。
+状态：**1.7.1 已发布到 GitHub，复用 1.6.x 落盘 JSON 文档库并提供 IDEA 内置 MCP 工具及 Codex Skill 发行包**。Marketplace 提交和审核状态见[1.7.1发布记录](release-1.7.1.md)；原生验证范围及 Skill 的受支持客户端/build 见[同一记录](release-1.7.1.md)。当前生产最低 IDEA 版本仍以 Gradle 配置为准。自动和原生结果分别记录在[文档库任务](../openspec/changes/project-document-store/tasks.md)。
 
 采用 Markdown + JSON，各自有明确用途：
 

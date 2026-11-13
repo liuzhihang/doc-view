@@ -2,9 +2,9 @@
 
 ## 当前状态
 
-截至 2026-11-13，1.6.2 与 1.6.0 的 Marketplace 公开上架已复核，证据见 [1.7.0 发布记录](release-1.7.0.md)。项目 Markdown/JSON 文档库、搜索 UI 和 `.http` 请求草稿已交付；**正式 Doc View MCP 工具和客户端 Skill 尚未交付**。
+截至 2026-11-13，1.7.1 已向 GitHub 正式发布，插件内置 MCP 工具与 Codex Skill 安装/更新设置已交付；Marketplace 上传、审核与公开上架状态以[1.7.1 发布记录](release-1.7.1.md)为准。项目 Markdown/JSON 文档库、搜索 UI 和 `.http` 请求草稿也已交付。
 
-发布不等于全部原生验收完成。1.6.0 的发布例外及热卸载失败保留在[发布记录](release-1.6.0.md)；1.6.1 没有重跑全部旧矩阵。插件要求重启生效，不承诺热更新/热卸载。不同候选包结果不能合并成最终包的全量验收。
+发布不等于全部原生验收完成。1.6.0 的发布例外及热卸载失败保留在[发布记录](release-1.6.0.md)；1.6.1 没有重跑全部旧矩阵。插件要求重启生效，不承诺热更新/热卸载。1.7.1 正式包完成553项测试与两个目标 build 的 Verifier；原生验收通过范围和未覆盖项单独见[发布记录](release-1.7.1.md)，不同候选包结果不合并计算。
 
 ## 推进顺序与阻塞项
 
@@ -29,15 +29,15 @@
 
 由 [doc-view-mcp-tools](../openspec/changes/doc-view-mcp-tools/proposal.md) 跟踪。按本轮授权，task 1.3 已以明确保留旧原生缺口的方式准入开发；客户端候选的取消准入已经取得证据，但不代表所有客户端版本均可用，详见[取消验收说明](mcp-cancellation.md)。
 
-1.7.0 待发布源码已在同一 Doc View 插件内可选注册到 IDEA MCP Server，与 UI 共用文档服务：先实现只读 `status/search/get`，再实现显式写盘的 `generate`。不另建服务或第二套解析链路。工具契约、项目边界和取消发布要求以 [tasks](../openspec/changes/doc-view-mcp-tools/tasks.md) 为准；落盘格式见[文档库格式](mcp-format.md)。
+1.7.1 已在同一 Doc View 插件内通过可选扩展注册到 IDEA MCP Server，与 UI 共用文档服务，提供只读 `status/search/get` 及须由用户明确请求的 `generate`。不另建服务或第二套解析链路。工具契约、项目边界和未完成的取消/生命周期验收以 [tasks](../openspec/changes/doc-view-mcp-tools/tasks.md) 为准；落盘格式见[文档库格式](mcp-format.md)。
 
-最终开发包已通过511项测试、两个精确build的Verifier，以及263.7307.200上的真实Codex生成取消/同会话查询恢复；继续补可选加载、发布边界取消和项目生命周期原生矩阵，不将单个通过路径写成全部验收完成。
+最终1.7.1包553项测试通过（0失败/错误/跳过）；两个精确 IDEA build 的 Verifier 均 Compatible，各保留16项 Experimental 提示。本系列对应候选在263.7307.200原生验证真实 Codex 生成取消与查询恢复；最终1.7.1包另通过两范围注入 journal、重启后的恢复。取消必须在精确时机到达的边界、在途退出和其他未覆盖生命周期组合仍未完成；结果及对客户端、build 的限制见[发布记录](release-1.7.1.md)与[取消说明](mcp-cancellation.md)。
 
 ### 3. 客户端 Skill
 
-由 [doc-view-client-skill](../openspec/changes/doc-view-client-skill/proposal.md) 跟踪，依赖正式工具契约稳定。计划从 GitHub 提供显式安装、检查更新和更新入口，先验收 Codex；Skill 调用正式 MCP，不另起服务、不搬移解析，不自动注册 MCP、改写客户端配置或升级插件。源码、受限安装器和设置页正在实现与验收，正式发行包尚未发布，任务见 [tasks](../openspec/changes/doc-view-client-skill/tasks.md)。
+由 [doc-view-client-skill](../openspec/changes/doc-view-client-skill/proposal.md) 跟踪。GitHub v1.7.1 已含正式 Skill ZIP 和 manifest，IDEA 设置提供当前项目/全局范围的安装、检查更新与更新；Skill 调用正式 MCP，不另起服务、不搬移解析，不自动注册 MCP、改写客户端配置或升级插件。准确安装、取消、恢复证据与客户端限制见[发布记录](release-1.7.1.md)，实现任务仍按 [tasks](../openspec/changes/doc-view-client-skill/tasks.md) 追踪。
 
-设置页已采用“当前项目 / 全局”两种固定目录、后台自动检测Codex；原生确认窗口缩放后无整页横向偏移，检查按钮不跳位。自然语言 Skill 工作流已验证 current/stale/unknown、缺少文档不隐式生成、明确生成与注释伪指令隔离；正式来源安装/更新/恢复仍待验收。
+设置页采用“当前项目 / 全局”两种固定目录并后台自动检测 Codex；两范围官方首次安装在 1.7.0 完成，最终 1.7.1 包通过两范围 1.7.0→1.7.1 官方更新、Codex 发现和 journal 注入重启恢复。设置页 Working 时关闭窗口取消，两范围均保留旧文件树及 metadata，重试更新成功；两范围修改保护、相互隔离通过，操作后没有 journal/stage/backup 残留。精确下载/暂存时点取消及全部生命周期矩阵未全部覆盖；写入目前仅在 macOS Apple Silicon 与 Codex 0.167.0-alpha.4.1 准入，其他 OS/client build fail closed。自然语言工作流的验证范围和失败记录也见[发布记录](release-1.7.1.md)。
 
 ## 文档与持续门禁
 
@@ -55,4 +55,4 @@
 
 ## 历史证据入口
 
-历史候选的日期、build、测试数、hash、失败和未验证边界已迁至 [1.4.0 发布记录](release-1.4.0.md#路线图迁入的历史进度摘要)与 [1.6.0 发布记录](release-1.6.0.md#路线图迁入的历史进度摘要)，不再作为当前队列重复排列。最新仓库发布记录见 [1.6.2](release-1.6.2.md)，长期功能证据见各 change verification，已完成 change 见 [OpenSpec 归档](../openspec/changes/archive/)。归档只表示 lifecycle 状态，不是本轮重新运行验证。
+历史候选的日期、build、测试数、hash、失败和未验证边界已迁至 [1.4.0 发布记录](release-1.4.0.md#路线图迁入的历史进度摘要)与 [1.6.0 发布记录](release-1.6.0.md#路线图迁入的历史进度摘要)，不再作为当前队列重复排列。最新仓库发布记录见 [1.7.1](release-1.7.1.md)，Marketplace 状态以该记录的官方回读为准；长期功能证据见各 change verification，已完成 change 见 [OpenSpec 归档](../openspec/changes/archive/)。归档只表示 lifecycle 状态，不是本轮重新运行验证。

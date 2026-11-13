@@ -9,7 +9,7 @@ Service，并提供 Markdown 预览、复制、导出，以及上传到 YApi、S
 - 构建系统：Gradle 9.5.0
 - IntelliJ Platform Gradle Plugin：`org.jetbrains.intellij.platform` 2.17.0
 - 当前开发目标平台：IntelliJ IDEA IU `263.7031.23`，最低 build 同值；完整自动与原生验收见对应 change，未来 build 尚未验证
-- 插件版本：1.7.0（待发布，状态见 docs/release-1.7.0.md）
+- 插件版本：1.7.1（GitHub 已发布，Marketplace 状态见 docs/release-1.7.1.md）
 - Bundled plugin：Java、XML、Markdown（欢迎页另依赖 JCEF module）
 - 主包名：`com.liuzhihang.doc.view`
 

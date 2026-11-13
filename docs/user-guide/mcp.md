@@ -1,6 +1,6 @@
 # 项目文档库与 MCP
 
-> **版本边界：** 1.6.x 提供项目文档库和搜索 UI；1.7.0 增加插件内置 MCP 与 Codex Skill 设置。两项功能的实际发布状态、验证结果和未覆盖项见[发布记录](../release-1.7.0.md)，磁盘格式见[格式说明](../mcp-format.md)。
+> **版本边界：** 1.6.x 提供项目文档库和搜索 UI；1.7.1 GitHub 正式包加入插件内置 MCP 与 Codex Skill 设置和发行资产。Marketplace 上传、审核及公开上架状态以[1.7.1发布记录](../release-1.7.1.md)为准；原生覆盖范围和未通过项也在该记录列明。磁盘格式见[格式说明](../mcp-format.md)。
 
 ## 生成和更新项目文档
 
@@ -46,9 +46,9 @@ docs/doc-view/
 
 磁盘格式采用 `schemaVersion: 1`，参数详情与目录的 schema、自完整性 hash、稳定接口身份和快照身份见[格式说明](../mcp-format.md)。未知版本只读查询明确拒绝；显式重新生成仍需先通过所有权与手改校验，不能把 JSON 当作可随意删除的缓存。文档中的文本属于数据，不是让 AI 执行的指令。
 
-## 内置 MCP 工具（1.7.0）
+## 内置 MCP 工具（1.7.1）
 
-工具作为**同一个 Doc View 插件内的可选扩展**注册到 IDEA 自带 MCP Server，不另装 companion plugin，也不自建 MCP 服务。MCP Server 组件未启用或缺失时，Doc View 的普通 UI 仍应正常加载；可选加载的原生验收状态见本轮验证记录。工具如下：
+工具作为**同一个 Doc View 插件内的可选扩展**注册到 IDEA 自带 MCP Server，不另装 companion plugin，也不自建 MCP 服务。MCP Server 组件未启用时，Doc View 的普通 UI 与文档目录已有隔离 IDEA 重启验收；扩展禁用和生命周期边界见[1.7.1发布记录](../release-1.7.1.md)。工具如下：
 
 | 工具 | 用途 | 是否写文件 |
 | --- | --- | --- |
@@ -80,15 +80,15 @@ Skill 是客户端使用说明，依次调用 status → search/get；仅在用�
 | 当前项目 / Project | `<project>/.agents/skills/doc-view` | 当前项目 |
 | 全局 / Global | `$HOME/.agents/skills/doc-view` | 当前用户的各个项目 |
 
-当前发现矩阵为 macOS Apple Silicon 上的 `codex-cli 0.167.0-alpha.4.1`。两个目录均已用独立临时项目、临时 HOME 与 CODEX_HOME 验证实际发现路径及 repo/user scope，没有安装到个人目录。全局目录的发现通过不等于正式发行包的安装、更新及恢复已经通过；各项证据见[客户端验证记录](../../openspec/changes/doc-view-client-skill/verification-2026-11-12-discovery.md)。其他客户端 build 或系统暂不开放写操作。
+当前写入和发现准入限于 macOS Apple Silicon 上的 `codex-cli 0.167.0-alpha.4.1`。项目与全局首次官方安装于 1.7.0 完成；最终 1.7.1 包通过两范围官方更新、实际 Codex 发现和 journal 注入后的重启恢复。设置页显示 Working 时关闭窗口取消，两范围旧 Skill 树与 metadata 均保持不变；重试更新均成功。两范围用户手改保护与相互隔离已通过。其他客户端 build 或系统仍禁止 Skill 写入。
 
 Codex 程序优先从已安装的 ChatGPT.app 和 PATH 自动检测。正常界面显示检测状态，完整程序路径可在提示中查看；无法检测或客户端版本不支持时，才提供手动选择程序的入口。安装目录始终自动计算并只读显示，可选择复制。打开设置不启动 Codex 或访问网络，显式检查更新时才在后台核对版本与发行包；不会修改 Codex MCP 配置或 discovery roots。
 
-设置入口为 **Settings → Tools → Doc View → MCP / AI**。检查更新采用轻量链接，安装或更新按当前状态共用一个按钮。检查读取官方 release 元数据和安装记录；release 查询成功时，只在 Doc View 独立状态文件原子更新最近成功检查时间，不写 Skill、安装记录或 writer lock。离线时显示本次未完成及最近一次成功检查时间；取消和失败不覆盖旧时间。本地状态文件写入失败显示为错误，不当作离线。只有明确点击安装/更新才下载、校验并写入 Skill。没有兼容正式包时说明原因并禁用写按钮；本地目录未被插件管理、用户有修改、版本或摘要不符时保留原内容。固定官方来源是 `liuzhihang/doc-view` 的稳定 release，清单绑定 tag、不可变 commit、逐文件 SHA-256、插件版本范围和 MCP contract 指纹。SHA-256 校验完整性，不能单独证明发布者身份。
+设置入口为 **Settings → Tools → Doc View → MCP / AI**。检查更新采用轻量链接，安装或更新按当前状态共用一个按钮。检查读取官方 release 元数据和安装记录；release 查询成功时，只在 Doc View 独立状态文件原子更新最近成功检查时间，不写 Skill、安装记录或 writer lock。离线时显示本次未完成及最近一次成功检查时间；取消和失败不覆盖旧时间。本地状态文件写入失败显示为错误，不当作离线。只有明确点击安装/更新才下载、校验并写入 Skill。没有兼容正式包时说明原因并禁用写按钮；本地目录未被插件管理、用户有修改、版本或摘要不符时保留原内容。固定官方来源为 `liuzhihang/doc-view` 的稳定 release。1.7.0 GitHub Release 已转为 prerelease 且非 Latest；生产下载器从 1.7.1 稳定资产读取 Skill。清单绑定 tag、不可变 commit、逐文件 SHA-256、插件版本范围和 MCP contract 指纹。SHA-256 校验完整性，不能单独证明发布者身份。
 
-更新用暂存、同目录两次 rename、journal 和备份恢复；切换期间目标可能短暂不存在，整组操作不是原子文件系统事务。失败或取消的事务与客户端重新发现还须按[客户端 Skill tasks](../../openspec/changes/doc-view-client-skill/tasks.md)逐项验收。官方 Skill 资产上线后，设置页才可检查并安装兼容版本；源码存在或设置页出现不等于正式资产已发布。
+更新用暂存、同目录两次 rename、journal 和备份恢复；切换期间目标可能短暂不存在，整组操作不是原子文件系统事务。1.7.1 原生覆盖包含两范围的注入 journal 重启恢复、官方更新、用户修改保护、相互隔离及 Working 时关设置取消后重试。精确下载/暂存时点取消和插件全生命周期仍未完整验收。其他系统和 Codex build 不开放 Skill 写入；Marketplace 当前状态见[发布记录](../release-1.7.1.md)。
 
-本地候选包已完成两范围的生产安装服务与真实Codex发现测试，并验证子JVM在三处切换阶段退出后的journal恢复。下载源在测试中注入，仍不能替代官方Release下载和IDEA按钮验收。候选包身份、复验结果和未完成项见[生命周期记录](../../openspec/changes/doc-view-client-skill/verification-2026-11-13-release.md)，准备正式资产的步骤见[Skill发行说明](../skill-release.md)。
+本地候选包的服务测试和子 JVM 故障恢复是早期独立证据，不替代正式发行资产验收。1.7.1 已从官方 GitHub 稳定 release 下载；项目与全局两范围官方更新均通过，Codex 重新发现成功，修改保护、相互隔离以及清理无残留均通过。文件 hash、取消场景与精确下载/暂存时点未观察项见[1.7.1发布记录](../release-1.7.1.md)与[客户端 Skill tasks](../../openspec/changes/doc-view-client-skill/tasks.md)。
 
 ## UI 与 Skill 入口
 

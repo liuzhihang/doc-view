@@ -19,10 +19,10 @@
 python3 tools/doc-view-skill/package_skill.py \
   --repo . \
   --commit <40-character-commit-sha> \
-  --tag v1.7.0 \
+  --tag v1.7.1 \
   --tool-contract-version 1 \
   --expected-tool-contract-fingerprint <64-character-sha256> \
-  --minimum-plugin-version 1.7.0 \
+  --minimum-plugin-version 1.7.1 \
   --maximum-plugin-version-exclusive 2.0.0 \
   --output build/skill-release
 ```
@@ -78,3 +78,11 @@ Skill正式发布还依赖`doc-view-mcp-tools`的发布范围取消与项目生�
 ## 1.7.0 GitHub 预发布资产
 
 [GitHub v1.7.0](https://github.com/liuzhihang/doc-view/releases/tag/v1.7.0) 保留插件 ZIP、Skill ZIP 和 manifest，绑定源码 commit `1612cdc3ac62323c04fca0301843a0a0be5e8f0c`。ZIP 正文与前述本地候选相同；GitHub 资产字节已回读。Release 目前标记为 prerelease 且非 Latest，生产下载器只读取稳定版，因此不会将它作为可安装的最新 Skill。manifest 指纹为 `sha256:400aacb3bc373117e01288d995be7969d3e962c2ace58880a4a1775752ec2a17`，SHA-256 为 `d1d1865697720f25c0069adb080fa6b889ed986dedbe0d4133ae0a63a070d17b`。IDEA 原生安装、更新及恢复状态见[1.7.0验收记录](release-1.7.0.md)和[1.7.1补丁记录](release-1.7.1.md)。
+
+## 当前稳定版 1.7.1
+
+[GitHub v1.7.1](https://github.com/liuzhihang/doc-view/releases/tag/v1.7.1) 已正式发布，tag commit 为 `0894d9e427827a49eb3e2142bc674c8a5941fc83`。Skill ZIP SHA-256 为 `f0f50211f7492167f99f391d0e740c4880bf69146d2989d6342b6267333955f9`，manifest SHA-256 为 `6292b59596c11394c00374da20c12e7c3db76e6e62511ce6deb22b21d7da9828`；manifest 绑定 contract version 1、指纹 `sha256:400aacb3bc373117e01288d995be7969d3e962c2ace58880a4a1775752ec2a17` 和插件范围 `[1.7.1, 2.0.0)`。官方附件均已下载回读；正文 ZIP 与旧版相同不代表 manifest 或发布身份相同。
+
+1.7.0 两范围官方首次安装通过后，原生重启恢复发现按钮禁用问题；1.7.1 已修复并在最终插件 ZIP 中完成两范围恢复和官方 1.7.0→1.7.1 更新。当前项目、隔离全局 HOME 的实际 Codex 发现、进行中取消保留旧文件、再次更新成功、用户修改保护及范围隔离均通过。取消时确认操作处于 Working，未定位具体下载/暂存阶段；journal 为受控注入，子 JVM 强制退出恢复另有自动证据。未将首次安装、升级及不同包的证据混为同一检查。
+
+Marketplace 已接收插件 1.7.1，仍待审核；Skill 发行资产已经可由生产安装器通过 GitHub 稳定 Release 获取。自动安装仍限 macOS Apple Silicon 与 `codex-cli 0.167.0-alpha.4.1`，其他 build/系统不承诺支持。详情及未覆盖项见[1.7.1 发布记录](release-1.7.1.md)。

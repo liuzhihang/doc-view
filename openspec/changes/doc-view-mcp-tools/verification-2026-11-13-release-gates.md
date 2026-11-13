@@ -158,3 +158,9 @@ MCP 禁用重启路径也已完成：在独立 profile 禁用 MCP Server 并重�
 契约仅删除标题中的“planned”，字段/规则及contractVersion仍为1；正式指纹为 `sha256:400aacb3bc373117e01288d995be7969d3e962c2ace58880a4a1775752ec2a17`。正式检查使用与该指纹一致的本地Skill测试包，其临时commit不是官方GitHub发布身份；发行manifest仍须从最终tag commit生成。
 
 GitHub与Marketplace发布尚未执行。按既有发布授权先完成正式提交/tag和GitHub资产，再由未修改的生产下载器完成固定官方来源验收，最后提交Marketplace。未覆盖原生矩阵保留，不能因版本号已改而视为通过。
+
+## 后续正式发布与 Skill 补丁（2026-11-13）
+
+上述“尚未完成”和“待发布”描述是各候选阶段的历史状态。正式1.7.0官方首次Project/Global Skill安装通过后，发现原生journal恢复按钮被禁用；该版本已保留为GitHub prerelease且未提交Marketplace。1.7.1修复Skill恢复路径，最终553项测试/构建/配置、两精确build Verifier，以及两范围官方更新、取消后重试、修改保护和重启恢复均通过。精确下载/暂存取消时点及全部生命周期矩阵仍保留未覆盖，不更改本文历史MCP候选的验收身份。
+
+[GitHub v1.7.1](https://github.com/liuzhihang/doc-view/releases/tag/v1.7.1)已正式发布；Marketplace接收update1219746，approve=false/listed=false。最终包、tag、资产、原生结果与剩余边界统一见[1.7.1发布记录](../../../docs/release-1.7.1.md)，不批量归档未完成change。
