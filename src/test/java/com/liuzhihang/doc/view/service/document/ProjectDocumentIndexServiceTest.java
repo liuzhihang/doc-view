@@ -15,6 +15,14 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent;
 import com.intellij.project.TestProjectManager;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.PlatformTestUtil;
@@ -31,6 +39,7 @@ import com.liuzhihang.doc.view.service.document.ProjectDocumentData.IndexData;
 import com.liuzhihang.doc.view.service.document.ProjectDocumentData.SourceData;
 import com.liuzhihang.doc.view.service.export.ProjectDocumentIdentity;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -661,6 +670,595 @@ public final class ProjectDocumentIndexServiceTest extends LightJavaCodeInsightF
                 });
             } finally {
                 deleteTree(externalContentRoot);
+            }
+        }
+    }
+
+    public void testExternalJavaAndXmlVfsRefreshMakesCommittedSnapshotStale() throws Exception {
+        Path externalRoot = Files.createTempDirectory("doc-view-external-vfs-input-");
+        Path javaPath = externalRoot.resolve("ExternalFreshnessProbe.java");
+        Path xmlPath = externalRoot.resolve("external-dubbo.xml");
+        String javaBefore = "class ExternalFreshnessProbe { String value() { return \"before\"; } }\n";
+        String xmlBefore = "<beans xmlns=\"http://www.springframework.org/schema/beans\"/>\n";
+        Files.writeString(javaPath, javaBefore, StandardCharsets.UTF_8);
+        Files.writeString(xmlPath, xmlBefore, StandardCharsets.UTF_8);
+        VirtualFile externalRootFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(externalRoot);
+        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(javaPath);
+        VirtualFile xmlFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(xmlPath);
+        String contentRootUrl = externalRootFile == null ? null : externalRootFile.getUrl();
+        boolean contentRootAdded = false;
+        try {
+            assertNotNull("The external input directory must be visible through the local VFS", externalRootFile);
+            assertNotNull("The Java file must be visible through the local VFS", javaFile);
+            assertNotNull("The XML file must be visible through the local VFS", xmlFile);
+            WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                try {
+                    model.addContentEntry(externalRootFile);
+                    model.commit();
+                } catch (RuntimeException | Error failure) {
+                    model.dispose();
+                    throw failure;
+                }
+            });
+            contentRootAdded = true;
+            assertTrue("The Java fixture must be within a project content root",
+                    ReadAction.compute(() -> ProjectFileIndex.getInstance(getProject()).isInContent(javaFile)));
+            assertTrue("The XML fixture must be within a project content root",
+                    ReadAction.compute(() -> ProjectFileIndex.getInstance(getProject()).isInContent(xmlFile)));
+
+            IndexData index = writeStore(List.of(api("core", "src/main/java/example/ExternalFreshnessProbe.java",
+                    "example.ExternalFreshnessProbe", "lookup", "VFS freshness", "Description", "/vfs-freshness")));
+            service.installCommittedIndex(index, service.captureInputEpoch());
+            assertEquals(ProjectDocumentIndexStatus.Freshness.CURRENT,
+                    background(() -> service.status(indicator())).freshness());
+
+            MessageBusConnection vfsConnection = ApplicationManager.getApplication().getMessageBus().connect();
+            AtomicBoolean javaRefreshObserved = new AtomicBoolean();
+            AtomicBoolean xmlRefreshObserved = new AtomicBoolean();
+            vfsConnection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
+                @Override
+                public void before(@org.jetbrains.annotations.NotNull List<? extends VFileEvent> events) {
+                    for (VFileEvent event : events) {
+                        if (javaPath.toString().equals(event.getPath())) {
+                            javaRefreshObserved.set(true);
+                        }
+                        if (xmlPath.toString().equals(event.getPath())) {
+                            xmlRefreshObserved.set(true);
+                        }
+                    }
+                }
+            });
+            try {
+                String javaAfter = "class ExternalFreshnessProbe { String value() { return \"after\"; } }\n";
+                Files.writeString(javaPath, javaAfter, StandardCharsets.UTF_8);
+                javaFile.refresh(false, false, null);
+                assertTrue("The external Java write must produce a real local VFS change event",
+                        javaRefreshObserved.get());
+                assertEquals(javaAfter, new String(javaFile.contentsToByteArray(), StandardCharsets.UTF_8));
+                assertEquals("An external Java write observed by VFS must stale the current snapshot",
+                        ProjectDocumentIndexStatus.Freshness.STALE,
+                        background(() -> service.status(indicator())).freshness());
+
+                service.installCommittedIndex(index, service.captureInputEpoch());
+                assertEquals(ProjectDocumentIndexStatus.Freshness.CURRENT,
+                        background(() -> service.status(indicator())).freshness());
+
+                String xmlAfter = "<beans xmlns=\"http://www.springframework.org/schema/beans\" "
+                        + "xmlns:dubbo=\"http://dubbo.apache.org/schema/dubbo\">"
+                        + "<dubbo:service interface=\"example.ExternalFreshnessProbe\" ref=\"provider\"/>"
+                        + "</beans>\n";
+                Files.writeString(xmlPath, xmlAfter, StandardCharsets.UTF_8);
+                xmlFile.refresh(false, false, null);
+                assertTrue("The external XML write must produce a real local VFS change event",
+                        xmlRefreshObserved.get());
+                assertEquals(xmlAfter, new String(xmlFile.contentsToByteArray(), StandardCharsets.UTF_8));
+                assertEquals("An external XML write observed by VFS must stale the current snapshot",
+                        ProjectDocumentIndexStatus.Freshness.STALE,
+                        background(() -> service.status(indicator())).freshness());
+            } finally {
+                vfsConnection.disconnect();
+            }
+        } finally {
+            try {
+                if (contentRootAdded && contentRootUrl != null && !getModule().isDisposed()) {
+                    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                        ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                        try {
+                            for (ContentEntry entry : model.getContentEntries()) {
+                                if (contentRootUrl.equals(entry.getUrl())) {
+                                    model.removeContentEntry(entry);
+                                }
+                            }
+                            model.commit();
+                        } catch (RuntimeException | Error failure) {
+                            model.dispose();
+                            throw failure;
+                        }
+                    });
+                }
+            } finally {
+                deleteTree(externalRoot);
+            }
+        }
+    }
+
+    public void testExternalVfsCreateDeleteMoveAndDirectoryChangeMakeSnapshotStale() throws Exception {
+        Path externalRoot = Files.createTempDirectory("doc-view-external-vfs-structure-");
+        Path javaPath = externalRoot.resolve("ExistingSource.java");
+        Path propertiesPath = externalRoot.resolve("unrelated.properties");
+        Path addedJavaPath = externalRoot.resolve("AddedSource.java");
+        Files.writeString(javaPath, "class ExistingSource { }\n", StandardCharsets.UTF_8);
+        Files.writeString(propertiesPath, "name=before\n", StandardCharsets.UTF_8);
+        VirtualFile externalRootFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(externalRoot);
+        VirtualFile javaFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(javaPath);
+        VirtualFile propertiesFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(propertiesPath);
+        String contentRootUrl = externalRootFile == null ? null : externalRootFile.getUrl();
+        boolean contentRootAdded = false;
+        try {
+            assertNotNull("The external input directory must be visible through the local VFS", externalRootFile);
+            assertNotNull("The existing Java source must be visible through the local VFS", javaFile);
+            assertNotNull("The non-source file must be visible through the local VFS", propertiesFile);
+            WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                try {
+                    model.addContentEntry(externalRootFile);
+                    model.commit();
+                } catch (RuntimeException | Error failure) {
+                    model.dispose();
+                    throw failure;
+                }
+            });
+            contentRootAdded = true;
+            assertTrue("The external source must be inside a project content root",
+                    ReadAction.compute(() -> ProjectFileIndex.getInstance(getProject()).isInContent(javaFile)));
+            assertTrue("The non-source control file must also be inside the content root",
+                    ReadAction.compute(() -> ProjectFileIndex.getInstance(getProject()).isInContent(propertiesFile)));
+
+            assertFalse("The new Java file must not exist before the fixture captures its directory baseline",
+                    Files.exists(addedJavaPath));
+            boolean existingJavaInChildren = false;
+            boolean existingPropertiesInChildren = false;
+            boolean addedJavaInChildren = false;
+            for (VirtualFile child : externalRootFile.getChildren()) {
+                existingJavaInChildren |= javaFile.equals(child);
+                existingPropertiesInChildren |= propertiesFile.equals(child);
+                addedJavaInChildren |= "AddedSource.java".equals(child.getName());
+            }
+            assertTrue("Loading the parent directory must expose its existing Java child", existingJavaInChildren);
+            assertTrue("Loading the parent directory must expose its existing non-source child",
+                    existingPropertiesInChildren);
+            assertFalse("The new Java file must be absent from the loaded VFS children baseline",
+                    addedJavaInChildren);
+
+            IndexData index = writeStore(List.of(api("core", "src/main/java/example/ExternalStructureProbe.java",
+                    "example.ExternalStructureProbe", "lookup", "VFS structure", "Description", "/vfs-structure")));
+            service.installCommittedIndex(index, service.captureInputEpoch());
+
+            MessageBusConnection vfsConnection = ApplicationManager.getApplication().getMessageBus().connect();
+            Path renamedJavaPath = externalRoot.resolve("RenamedSource.java");
+            Path addedDirectory = externalRoot.resolve("new-package");
+            AtomicBoolean addedJavaCreateObserved = new AtomicBoolean();
+            AtomicBoolean addedJavaDeleteObserved = new AtomicBoolean();
+            AtomicBoolean sourceRenameObserved = new AtomicBoolean();
+            AtomicBoolean directoryCreateObserved = new AtomicBoolean();
+            AtomicBoolean nonSourceChangeObserved = new AtomicBoolean();
+            vfsConnection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
+                @Override
+                public void before(@org.jetbrains.annotations.NotNull List<? extends VFileEvent> events) {
+                    for (VFileEvent event : events) {
+                        if (javaPath.toString().equals(event.getPath())
+                                || renamedJavaPath.toString().equals(event.getPath())) {
+                            // A local file-system refresh may report an external rename as delete/create.
+                            sourceRenameObserved.set(true);
+                        }
+                        if (event instanceof VFileCreateEvent createEvent) {
+                            if (addedJavaPath.toString().equals(createEvent.getPath()) && !createEvent.isDirectory()) {
+                                addedJavaCreateObserved.set(true);
+                            }
+                            if (addedDirectory.toString().equals(createEvent.getPath()) && createEvent.isDirectory()) {
+                                directoryCreateObserved.set(true);
+                            }
+                        } else if (event instanceof VFileDeleteEvent deleteEvent) {
+                            if (addedJavaPath.toString().equals(deleteEvent.getPath())) {
+                                addedJavaDeleteObserved.set(true);
+                            }
+                            if (javaPath.toString().equals(deleteEvent.getPath())) {
+                                sourceRenameObserved.set(true);
+                            }
+                        } else if (event instanceof VFileMoveEvent moveEvent) {
+                            if (javaPath.toString().equals(moveEvent.getOldPath())
+                                    && renamedJavaPath.toString().equals(moveEvent.getNewPath())) {
+                                sourceRenameObserved.set(true);
+                            }
+                        } else if (propertiesPath.toString().equals(event.getPath())) {
+                            nonSourceChangeObserved.set(true);
+                        }
+                    }
+                }
+            });
+            try {
+                Files.writeString(propertiesPath, "name=after-external-change\n", StandardCharsets.UTF_8);
+                propertiesFile.refresh(false, false, null);
+                assertTrue("A non-source external write must still be visible as a real VFS event",
+                        nonSourceChangeObserved.get());
+                assertEquals("Unrelated file types inside a content root do not affect source freshness",
+                        ProjectDocumentIndexStatus.Freshness.CURRENT,
+                        background(() -> service.status(indicator())).freshness());
+
+                Files.writeString(addedJavaPath, "class AddedSource { }\n", StandardCharsets.UTF_8);
+                VfsUtil.markDirtyAndRefresh(false, true, true, externalRootFile);
+                VirtualFile addedJavaFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(addedJavaPath);
+                assertNotNull("The newly written Java source must be discoverable in the local VFS", addedJavaFile);
+                assertTrue("Creating a source file must produce a VFS create event", addedJavaCreateObserved.get());
+                assertEquals("Adding a Java source changes the snapshot input set",
+                        ProjectDocumentIndexStatus.Freshness.STALE,
+                        background(() -> service.status(indicator())).freshness());
+
+                service.installCommittedIndex(index, service.captureInputEpoch());
+                Files.delete(addedJavaPath);
+                VfsUtil.markDirtyAndRefresh(false, true, true, externalRootFile);
+                assertTrue("Deleting a source file must produce a VFS delete event", addedJavaDeleteObserved.get());
+                assertEquals("Deleting a Java source changes the snapshot input set",
+                        ProjectDocumentIndexStatus.Freshness.STALE,
+                        background(() -> service.status(indicator())).freshness());
+
+                service.installCommittedIndex(index, service.captureInputEpoch());
+                Files.move(javaPath, renamedJavaPath);
+                VfsUtil.markDirtyAndRefresh(false, true, true, externalRootFile);
+                assertTrue("Moving or renaming a source must produce a VFS event for its old or new path",
+                        sourceRenameObserved.get());
+                assertEquals("Moving or renaming a Java source changes the snapshot input set",
+                        ProjectDocumentIndexStatus.Freshness.STALE,
+                        background(() -> service.status(indicator())).freshness());
+
+                service.installCommittedIndex(index, service.captureInputEpoch());
+                Files.createDirectory(addedDirectory);
+                VfsUtil.markDirtyAndRefresh(false, true, true, externalRootFile);
+                assertTrue("Creating a content-root directory must produce a directory VFS create event",
+                        directoryCreateObserved.get());
+                assertEquals("Directory changes conservatively invalidate the content-root generation",
+                        ProjectDocumentIndexStatus.Freshness.STALE,
+                        background(() -> service.status(indicator())).freshness());
+            } finally {
+                vfsConnection.disconnect();
+            }
+        } finally {
+            try {
+                if (contentRootAdded && contentRootUrl != null && !getModule().isDisposed()) {
+                    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                        ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                        try {
+                            for (ContentEntry entry : model.getContentEntries()) {
+                                if (contentRootUrl.equals(entry.getUrl())) {
+                                    model.removeContentEntry(entry);
+                                }
+                            }
+                            model.commit();
+                        } catch (RuntimeException | Error failure) {
+                            model.dispose();
+                            throw failure;
+                        }
+                    });
+                }
+            } finally {
+                deleteTree(externalRoot);
+            }
+        }
+    }
+
+    public void testVfsCopyIntoContentStalesAndMoveOutOfGeneratedRootDoesNot() throws Exception {
+        IndexData index = writeStore(List.of(api("core", "src/main/java/example/VfsCopyMoveProbe.java",
+                "example.VfsCopyMoveProbe", "lookup", "VFS copy and move", "Description", "/vfs-copy-move")));
+        Path projectContentRootPath = Files.createTempDirectory("doc-view-vfs-copy-target-");
+        Path externalRootPath = Files.createTempDirectory("doc-view-vfs-copy-source-");
+        Path sourcePath = externalRootPath.resolve("CopiedSource.java");
+        Files.writeString(sourcePath, "class CopiedSource { }\n", StandardCharsets.UTF_8);
+        Files.createDirectories(documentRoot);
+        Path generatedXmlPath = documentRoot.resolve("move-out.xml");
+        Files.writeString(generatedXmlPath, "<beans><!-- generated --></beans>\n", StandardCharsets.UTF_8);
+
+        VirtualFile projectContentRoot = LocalFileSystem.getInstance()
+                .refreshAndFindFileByNioFile(projectContentRootPath);
+        VirtualFile externalRoot = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(externalRootPath);
+        VirtualFile sourceFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(sourcePath);
+        VirtualFile generatedRoot = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(documentRoot);
+        VirtualFile generatedXml = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(generatedXmlPath);
+        String projectContentUrl = projectContentRoot == null ? null : projectContentRoot.getUrl();
+        String generatedRootUrl = generatedRoot == null ? null : generatedRoot.getUrl();
+        boolean contentRootsAdded = false;
+        try {
+            assertNotNull(projectContentRoot);
+            assertNotNull(externalRoot);
+            assertNotNull(sourceFile);
+            assertNotNull(generatedRoot);
+            assertNotNull(generatedXml);
+            WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                try {
+                    model.addContentEntry(projectContentRoot);
+                    model.addContentEntry(generatedRoot);
+                    model.commit();
+                } catch (RuntimeException | Error failure) {
+                    model.dispose();
+                    throw failure;
+                }
+            });
+            contentRootsAdded = true;
+            assertFalse("The copy source must be outside project content",
+                    ReadAction.compute(() -> ProjectFileIndex.getInstance(getProject()).isInContent(sourceFile)));
+            assertTrue("The copy destination must be project content",
+                    ReadAction.compute(() -> ProjectFileIndex.getInstance(getProject()).isInContent(projectContentRoot)));
+            assertTrue("The generated output root is included only to exercise its exclusion rule",
+                    ReadAction.compute(() -> ProjectFileIndex.getInstance(getProject()).isInContent(generatedXml)));
+            service.installCommittedIndex(index, service.captureInputEpoch());
+
+            MessageBusConnection vfsConnection = ApplicationManager.getApplication().getMessageBus().connect();
+            AtomicBoolean copyEventObserved = new AtomicBoolean();
+            AtomicBoolean moveEventObserved = new AtomicBoolean();
+            vfsConnection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
+                @Override
+                public void before(@org.jetbrains.annotations.NotNull List<? extends VFileEvent> events) {
+                    for (VFileEvent event : events) {
+                        if (event instanceof VFileCopyEvent copyEvent
+                                && sourcePath.toString().equals(copyEvent.getFile().getPath())
+                                && projectContentRoot.equals(copyEvent.getNewParent())) {
+                            copyEventObserved.set(true);
+                        }
+                        if (event instanceof VFileMoveEvent moveEvent
+                                && generatedXmlPath.toString().equals(moveEvent.getOldPath())
+                                && moveEvent.getNewPath().startsWith(externalRootPath.toString())) {
+                            moveEventObserved.set(true);
+                        }
+                    }
+                }
+            });
+            try {
+                WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                    try {
+                        sourceFile.copy(this, projectContentRoot, "CopiedIntoProject.java");
+                    } catch (IOException failure) {
+                        throw new RuntimeException(failure);
+                    }
+                });
+                assertTrue("Copying an external source into the project must publish a VFS copy event",
+                        copyEventObserved.get());
+                assertEquals("A copied Java source expands the project input set",
+                        ProjectDocumentIndexStatus.Freshness.STALE,
+                        background(() -> service.status(indicator())).freshness());
+
+                service.installCommittedIndex(index, service.captureInputEpoch());
+                assertEquals(ProjectDocumentIndexStatus.Freshness.CURRENT,
+                        background(() -> service.status(indicator())).freshness());
+                WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                    try {
+                        generatedXml.move(this, externalRoot);
+                    } catch (IOException failure) {
+                        throw new RuntimeException(failure);
+                    }
+                });
+                assertTrue("Moving a generated file out must publish a VFS move event", moveEventObserved.get());
+                assertEquals("Moving an output file outside the project does not change source inputs",
+                        ProjectDocumentIndexStatus.Freshness.CURRENT,
+                        background(() -> service.status(indicator())).freshness());
+            } finally {
+                vfsConnection.disconnect();
+            }
+        } finally {
+            try {
+                if (contentRootsAdded && !getModule().isDisposed()) {
+                    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                        ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                        try {
+                            for (ContentEntry entry : model.getContentEntries()) {
+                                if (projectContentUrl != null && projectContentUrl.equals(entry.getUrl())
+                                        || generatedRootUrl != null && generatedRootUrl.equals(entry.getUrl())) {
+                                    model.removeContentEntry(entry);
+                                }
+                            }
+                            model.commit();
+                        } catch (RuntimeException | Error failure) {
+                            model.dispose();
+                            throw failure;
+                        }
+                    });
+                }
+            } finally {
+                deleteTree(projectContentRootPath);
+                deleteTree(externalRootPath);
+            }
+        }
+    }
+
+    public void testExternalVfsChangesOutsideProjectAndInsideGeneratedRootDoNotStaleSnapshot() throws Exception {
+        IndexData index = writeStore(List.of(api("core", "src/main/java/example/ExternalScopeProbe.java",
+                "example.ExternalScopeProbe", "lookup", "VFS scope", "Description", "/vfs-scope")));
+        Files.createDirectories(documentRoot);
+        Path generatedXmlPath = documentRoot.resolve("generated-fixture.xml");
+        Files.writeString(generatedXmlPath, "<beans><!-- before --></beans>\n", StandardCharsets.UTF_8);
+        Path externalRoot = Files.createTempDirectory("doc-view-unrelated-vfs-");
+        Path outsideJavaPath = externalRoot.resolve("Unrelated.java");
+        Files.writeString(outsideJavaPath, "class Unrelated { String value = \"before\"; }\n",
+                StandardCharsets.UTF_8);
+        VirtualFile generatedXml = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(generatedXmlPath);
+        VirtualFile generatedRoot = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(documentRoot);
+        VirtualFile outsideJava = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(outsideJavaPath);
+        String generatedRootUrl = generatedRoot == null ? null : generatedRoot.getUrl();
+        boolean generatedRootAdded = false;
+        try {
+            assertNotNull("The generated XML fixture must be visible through the local VFS", generatedXml);
+            assertNotNull("The generated document root must be visible through the local VFS", generatedRoot);
+            assertNotNull("The unrelated Java fixture must be visible through the local VFS", outsideJava);
+            WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                try {
+                    model.addContentEntry(generatedRoot);
+                    model.commit();
+                } catch (RuntimeException | Error failure) {
+                    model.dispose();
+                    throw failure;
+                }
+            });
+            generatedRootAdded = true;
+            assertTrue("The generated-root fixture must otherwise be in a project content root",
+                    ReadAction.compute(() -> ProjectFileIndex.getInstance(getProject()).isInContent(generatedXml)));
+            assertFalse("The unrelated Java fixture must be outside project content roots",
+                    ReadAction.compute(() -> ProjectFileIndex.getInstance(getProject()).isInContent(outsideJava)));
+
+            service.installCommittedIndex(index, service.captureInputEpoch());
+            assertEquals(ProjectDocumentIndexStatus.Freshness.CURRENT,
+                    background(() -> service.status(indicator())).freshness());
+
+            MessageBusConnection vfsConnection = ApplicationManager.getApplication().getMessageBus().connect();
+            AtomicBoolean generatedRefreshObserved = new AtomicBoolean();
+            AtomicBoolean outsideRefreshObserved = new AtomicBoolean();
+            vfsConnection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
+                @Override
+                public void before(@org.jetbrains.annotations.NotNull List<? extends VFileEvent> events) {
+                    for (VFileEvent event : events) {
+                        if (generatedXmlPath.toString().equals(event.getPath())) {
+                            generatedRefreshObserved.set(true);
+                        }
+                        if (outsideJavaPath.toString().equals(event.getPath())) {
+                            outsideRefreshObserved.set(true);
+                        }
+                    }
+                }
+            });
+            try {
+                Files.writeString(generatedXmlPath, "<beans><!-- after --></beans>\n", StandardCharsets.UTF_8);
+                generatedXml.refresh(false, false, null);
+                assertTrue("The output file write must produce a real local VFS change event",
+                        generatedRefreshObserved.get());
+                assertEquals("Generated docs/doc-view files are not source freshness inputs",
+                        ProjectDocumentIndexStatus.Freshness.CURRENT,
+                        background(() -> service.status(indicator())).freshness());
+
+                Files.writeString(outsideJavaPath, "class Unrelated { String value = \"after\"; }\n",
+                        StandardCharsets.UTF_8);
+                outsideJava.refresh(false, false, null);
+                assertTrue("The unrelated file write must produce a real local VFS change event",
+                        outsideRefreshObserved.get());
+                assertEquals("Files outside project content roots are not source freshness inputs",
+                        ProjectDocumentIndexStatus.Freshness.CURRENT,
+                        background(() -> service.status(indicator())).freshness());
+            } finally {
+                vfsConnection.disconnect();
+            }
+        } finally {
+            try {
+                if (generatedRootAdded && generatedRootUrl != null && !getModule().isDisposed()) {
+                    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                        ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                        try {
+                            for (ContentEntry entry : model.getContentEntries()) {
+                                if (generatedRootUrl.equals(entry.getUrl())) {
+                                    model.removeContentEntry(entry);
+                                }
+                            }
+                            model.commit();
+                        } catch (RuntimeException | Error failure) {
+                            model.dispose();
+                            throw failure;
+                        }
+                    });
+                }
+            } finally {
+                deleteTree(externalRoot);
+            }
+        }
+    }
+
+    public void testWorkspaceXmlRefreshFreshnessMatchesProjectContentMembership() throws Exception {
+        Path projectRoot = Files.createTempDirectory("doc-view-workspace-xml-content-");
+        Path workspaceDirectory = projectRoot.resolve(".idea");
+        Path workspaceXmlPath = workspaceDirectory.resolve("workspace.xml");
+        Files.createDirectories(workspaceDirectory);
+        Files.writeString(workspaceXmlPath, "<project version=\"4\"><component name=\"probe\">before</component></project>\n",
+                StandardCharsets.UTF_8);
+        VirtualFile projectRootVf = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(projectRoot);
+        VirtualFile workspaceXml = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(workspaceXmlPath);
+        String projectRootUrl = projectRootVf == null ? null : projectRootVf.getUrl();
+        boolean contentRootAdded = false;
+        try {
+            assertNotNull("The local VFS must expose the real temporary project root", projectRootVf);
+            assertNotNull("The local VFS must expose the real .idea/workspace.xml fixture", workspaceXml);
+            WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                try {
+                    model.addContentEntry(projectRootVf);
+                    model.commit();
+                } catch (RuntimeException | Error failure) {
+                    model.dispose();
+                    throw failure;
+                }
+            });
+            contentRootAdded = true;
+
+            boolean projectRootInContent = ReadAction.compute(() ->
+                    ProjectFileIndex.getInstance(getProject()).isInContent(projectRootVf));
+            boolean workspaceXmlInContent = ReadAction.compute(() ->
+                    ProjectFileIndex.getInstance(getProject()).isInContent(workspaceXml));
+            assertTrue("The real temporary root must be present in the project file index", projectRootInContent);
+            IndexData index = writeStore(List.of(api("core", "src/main/java/example/WorkspaceXmlProbe.java",
+                    "example.WorkspaceXmlProbe", "lookup", "Workspace XML scope", "Description", "/workspace-xml")));
+            service.installCommittedIndex(index, service.captureInputEpoch());
+            assertEquals("The committed baseline must start current", ProjectDocumentIndexStatus.Freshness.CURRENT,
+                    background(() -> service.status(indicator())).freshness());
+
+            MessageBusConnection vfsConnection = ApplicationManager.getApplication().getMessageBus().connect();
+            AtomicBoolean workspaceXmlVfsEventObserved = new AtomicBoolean();
+            vfsConnection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
+                @Override
+                public void before(@org.jetbrains.annotations.NotNull List<? extends VFileEvent> events) {
+                    for (VFileEvent event : events) {
+                        if (workspaceXmlPath.toString().equals(event.getPath())) {
+                            workspaceXmlVfsEventObserved.set(true);
+                        }
+                    }
+                }
+            });
+            try {
+                Files.writeString(workspaceXmlPath,
+                        "<project version=\"4\"><component name=\"probe\">after-external-write</component></project>\n",
+                        StandardCharsets.UTF_8);
+                workspaceXml.refresh(false, false, null);
+                assertTrue("External workspace.xml edits must be observed as real local VFS events",
+                        workspaceXmlVfsEventObserved.get());
+
+                ProjectDocumentIndexStatus.Freshness afterRefresh =
+                        background(() -> service.status(indicator())).freshness();
+                System.out.printf("DOC_VIEW_WORKSPACE_XML_OBSERVATION rootIsInContent=%s workspaceXmlIsInContent=%s "
+                                + "freshnessAfterRefresh=%s%n",
+                        projectRootInContent, workspaceXmlInContent, afterRefresh);
+                assertEquals("The existing conservative XML rule tracks every XML file in project content; "
+                                + "workspace.xml isInContent=" + workspaceXmlInContent,
+                        workspaceXmlInContent ? ProjectDocumentIndexStatus.Freshness.STALE
+                                : ProjectDocumentIndexStatus.Freshness.CURRENT,
+                        afterRefresh);
+            } finally {
+                vfsConnection.disconnect();
+            }
+        } finally {
+            try {
+                if (contentRootAdded && projectRootUrl != null && !getModule().isDisposed()) {
+                    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                        ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                        try {
+                            for (ContentEntry entry : model.getContentEntries()) {
+                                if (projectRootUrl.equals(entry.getUrl())) {
+                                    model.removeContentEntry(entry);
+                                }
+                            }
+                            model.commit();
+                        } catch (RuntimeException | Error failure) {
+                            model.dispose();
+                            throw failure;
+                        }
+                    });
+                }
+            } finally {
+                deleteTree(projectRoot);
             }
         }
     }

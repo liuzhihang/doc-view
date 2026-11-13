@@ -51,7 +51,7 @@
 | 原生 IDEA 验收 | **部分通过，矩阵未完成** | 已通过的 Copy、项目文档生成/搜索和停用后重启场景见下文；其余未运行场景单列保留 |
 | Git 提交与 tag | **完成** | #113 合入 develop，#114 合入 master；`v1.6.0` 指向 `67d54b700d56d2a662107e81b8ee039bbafdd25c`，与冻结源码 tree 一致 |
 | GitHub Release | **已公开且下载校验通过** | Release ID `438524712`，正式非预发布；公开 ZIP 与最终制品 SHA 完全相同 |
-| Marketplace | **已接收，待审核/上架** | update ID `1215457`；owner API 回读 `approve=false`、`listed=false`，公开更新列表未出现 1.6.0；下载内部文件与最终包一致 |
+| Marketplace | **已公开上架（2026-11-12 复核）** | update ID `1215457`；公开更新 API 返回 `approve=true`、`listed=true`，default channel；最低 build `263.7031.23` |
 
 自动门禁和制品读回已完成；具体任务状态见[1.6.0 发布 change](../openspec/changes/archive/2026-11-09-release-doc-view-1-6-0/tasks.md)。原生结果与实际发布回读见下文，不把自动门禁替代原生验收。
 
@@ -93,7 +93,7 @@ OS 凭据授权拒绝、异步写入失败后的重试也未在最终包原生�
 
 ## 发布与回滚
 
-本次已在最终自动门禁通过、制品读回且未验证原生场景列明后，完成合并、tag、GitHub Release 和 Marketplace 上传。Marketplace 的人工审核与上架仍待平台完成；不得将上传成功描述为已上架。
+本次已在最终自动门禁通过、制品读回且未验证原生场景列明后，完成合并、tag、GitHub Release 和 Marketplace 上传。2026-11-12 已通过公开更新 API 确认 Marketplace 审核及上架完成；以下发布当日记录保留当时状态。
 
 如发布后发现阻断问题，先停止继续发布，保留制品、日志和远端状态，按发布清单回滚或准备新的 patch 版本；不重写已公开 tag 或替换已发布 ZIP。
 
@@ -186,3 +186,7 @@ IU 261 的历史协议取消失败保留；IU 263.7031.23 / SDK 0.15.0 隔离探
 **[`clear-cache-safety`](../openspec/changes/clear-cache-safety/proposal.md)**
 
 Clear Cache 已改为只清当前项目 schema 缓存，不再删除手写 Scratch；旧版自动回归及工具栏入口已验，目录菜单入口仍未完成；当前 HTTP/UI change 已将入口移至窗口 `…`，A/B 自动缓存隔离和文件保护已补验；原生新入口及 A/B 原生场景仍待验。详见[验证记录](../openspec/changes/clear-cache-safety/verification.md)。
+
+## 2026-11-12 上架复核
+
+公开 [Marketplace 更新 API](https://plugins.jetbrains.com/api/plugins/15305/updates?size=100) 已列出 1.6.0，update `1215457`、`approve=true`、`listed=true`、default channel、最低 build `263.7031.23`。本次只读核对没有重新上传或替换发布包。证据保存在隔离 checkout 的 `build/mcp-skill-2026-11-12/marketplace-1.6.0-status.json`。当前 develop 已有后续 1.6.2 改动；MCP / Skill 在独立分支以 1.7.0-SNAPSHOT 继续开发，不回写原工作区。

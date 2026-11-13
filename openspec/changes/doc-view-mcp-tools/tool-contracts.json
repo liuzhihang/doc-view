@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Doc View MCP tool contracts v1 (planned)",
+  "title": "Doc View MCP tool contracts v1",
   "contractVersion": 1,
   "transport": "One MCP TextContent block containing the JSON described by resultContentSchema; not protocol structuredContent/outputSchema.",
   "diskSchemaSource": "../project-document-store/schemas/document-store.schema.json",
@@ -700,7 +700,10 @@
           "const": "error"
         },
         "projectPath": {
-          "type": "string",
+          "type": [
+            "string",
+            "null"
+          ],
           "minLength": 1,
           "maxLength": 4096
         },

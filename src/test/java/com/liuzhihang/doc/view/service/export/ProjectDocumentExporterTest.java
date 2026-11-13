@@ -53,6 +53,13 @@ public final class ProjectDocumentExporterTest extends TestCase {
         ProjectDocumentExportResult repeated = export(exporter, List.of(first, second));
 
         assertEquals(6, initial.changedPaths().size());
+        assertEquals(2, initial.createdPageCount());
+        assertEquals(0, initial.updatedPageCount());
+        assertFalse(initial.previousIndexExisted());
+        assertTrue(repeated.previousIndexExisted());
+        assertEquals(initial.snapshotId(), repeated.snapshotId());
+        assertEquals(2, repeated.unchangedPageCount());
+        assertEquals(0, repeated.createdPageCount());
         assertTrue(repeated.changedPaths().isEmpty());
         assertEquals(6, repeated.unchangedPaths().size());
         assertTrue(java.util.Arrays.equals(jsonIndexBefore, Files.readAllBytes(indexFile.resolveSibling("index.json"))));
@@ -67,7 +74,10 @@ public final class ProjectDocumentExporterTest extends TestCase {
 
         ProjectDocumentPage updatedSecond = page("web", "web/src/main/java/example/OrderApi.java", "query", List.of("long"),
                 "# Query order\n\nUpdated order body.\n");
-        export(exporter, List.of(updatedSecond));
+        ProjectDocumentExportResult updated = export(exporter, List.of(updatedSecond));
+        assertEquals(1, updated.updatedPageCount());
+        assertEquals(0, updated.createdPageCount());
+        assertFalse(initial.snapshotId().equals(updated.snapshotId()));
 
         assertTrue("stale managed pages are retained", Files.exists(firstFile));
         assertTrue("unrelated project files are retained", Files.exists(unrelated));

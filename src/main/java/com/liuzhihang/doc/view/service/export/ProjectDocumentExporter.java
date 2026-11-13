@@ -208,6 +208,19 @@ public final class ProjectDocumentExporter {
             }
         }
         List<StagedFile> staged = new ArrayList<>();
+        // Capture page-level statistics under both writer locks, before target states change during publication.
+        int createdPages = 0;
+        int updatedPages = 0;
+        int unchangedPages = 0;
+        boolean previousIndexExisted = expectedTargets.get(previousIndex).exists();
+        for (ProjectDocumentPage page : sortedPages) {
+            String markdownPath = OUTPUT_ROOT + "/apis/" + page.identity().pageFileName();
+            Path markdownTarget = canonicalRoot.resolve(markdownPath);
+            Path detailTarget = canonicalRoot.resolve(markdownPath.substring(0, markdownPath.length() - 3) + ".json");
+            if (!expectedTargets.get(markdownTarget).exists() && !expectedTargets.get(detailTarget).exists()) createdPages++;
+            else if (changed.containsKey(markdownTarget) || changed.containsKey(detailTarget)) updatedPages++;
+            else unchangedPages++;
+        }
         try {
             for (Map.Entry<Path, byte[]> entry : changed.entrySet()) {
                 checkPublication(indicator, publicationAllowed, checkInputs);
@@ -279,7 +292,8 @@ public final class ProjectDocumentExporter {
             com.intellij.openapi.diagnostic.Logger.getInstance(ProjectDocumentExporter.class)
                     .warn("Project documents were committed but their derived cache could not be installed", cacheFailure);
         }
-        return new ProjectDocumentExportResult(sortedPages.size(), published, unchanged);
+        return new ProjectDocumentExportResult(sortedPages.size(), published, unchanged, index.snapshotId(),
+                previousIndexExisted, createdPages, updatedPages, unchangedPages);
     }
 
     private static List<ProjectDocumentPage> normalizePages(List<ProjectDocumentPage> pages) {

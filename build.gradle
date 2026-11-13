@@ -40,6 +40,7 @@ dependencies {
         }
         bundledPlugin 'com.intellij.java'
         bundledPlugin 'com.intellij.xml'
+        bundledPlugin 'com.intellij.mcpServer'
         bundledPlugin 'org.intellij.plugins.markdown'
         bundledPlugin 'com.intellij.modules.jcef'
         testFramework TestFrameworkType.Platform.INSTANCE

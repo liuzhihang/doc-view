@@ -11,6 +11,7 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
     <depends>com.intellij.xml</depends>
+    <depends optional="true" config-file="com.liuzhihang.doc-view-mcp.xml">com.intellij.mcpServer</depends>
     <!-- 暂时不打开预览 -->
     <depends>org.intellij.plugins.markdown</depends>
     <depends>com.intellij.modules.jcef</depends>
@@ -71,6 +72,12 @@
                              id="liuzhihang.api.doc.IntegrationSettingsConfigurable"
                              parentId="liuzhihang.api.doc.SettingsConfigurable"
                              bundle="messages.DocViewBundle" key="settings.page.integrations"
+                             nonDefaultProject="true"/>
+
+        <projectConfigurable instance="com.liuzhihang.doc.view.config.McpAiConfigurable"
+                             id="doc.view.mcp.ai"
+                             parentId="liuzhihang.api.doc.SettingsConfigurable"
+                             bundle="messages.DocViewBundle" key="settings.page.mcp.ai"
                              nonDefaultProject="true"/>
 
         <projectConfigurable instance="com.liuzhihang.doc.view.config.YApiSettingsConfigurable"

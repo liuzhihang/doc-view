@@ -1,0 +1,10 @@
+// Opt-in integration suite; no production dependency or ordinary test configuration change.
+gradle.projectsEvaluated {
+    def root = gradle.rootProject
+    root.sourceSets.test.java.srcDir(root.file('src/acceptanceTest/java'))
+    root.tasks.named('test') {
+        doFirst {
+            systemProperty 'docview.acceptance.classpath', classpath.asPath
+        }
+    }
+}

@@ -1,0 +1,1368 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Doc View MCP tool contracts v1",
+  "contractVersion": 1,
+  "transport": "One MCP TextContent block containing the JSON described by resultContentSchema; not protocol structuredContent/outputSchema.",
+  "diskSchemaSource": "../project-document-store/schemas/document-store.schema.json",
+  "maintenance": "Copied store definitions must remain identical; validation checks equality.",
+  "constraints": {
+    "resultBytesMax": 4194304,
+    "queryTermsMax": 16,
+    "queryDeadlineSeconds": 5,
+    "generateDeadlineSeconds": 120,
+    "maxConcurrentReadsPerProject": 4,
+    "maxConcurrentWritesPerProject": 1
+  },
+  "$defs": {
+    "identity": {
+      "type": "object",
+      "properties": {
+        "module": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "qualifiedClass": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "methodName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "parameterTypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "maxItems": 255
+        },
+        "fullSignature": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "canonicalForm": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]+$",
+          "maxLength": 65536
+        }
+      },
+      "required": [
+        "module",
+        "qualifiedClass",
+        "methodName",
+        "parameterTypes",
+        "fullSignature",
+        "canonicalForm"
+      ],
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\u0000)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)(?!.*?/$).+$"
+        },
+        "line": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 2147483647
+        },
+        "capturedContentSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "basis": {
+          "const": "ide-document-text"
+        }
+      },
+      "required": [
+        "path",
+        "line",
+        "capturedContentSha256",
+        "basis"
+      ],
+      "additionalProperties": false
+    },
+    "file": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096,
+          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\u0000)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)(?!.*?/$).+$"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "additionalProperties": false
+    },
+    "field": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1048576
+        },
+        "required": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "example": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1048576
+        },
+        "since": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1048576
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1048576
+        },
+        "isCollection": {
+          "type": "boolean"
+        },
+        "isMap": {
+          "type": "boolean"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/field"
+          },
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "description",
+        "required",
+        "example",
+        "since",
+        "version",
+        "isCollection",
+        "isMap",
+        "children"
+      ],
+      "additionalProperties": false
+    },
+    "header": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1048576
+        },
+        "required": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "example": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1048576
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "required",
+        "example"
+      ],
+      "additionalProperties": false
+    },
+    "body": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/field"
+          },
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "type",
+        "fields"
+      ],
+      "additionalProperties": false
+    },
+    "integrity": {
+      "type": "object",
+      "properties": {
+        "algorithm": {
+          "const": "sha256-jcs"
+        },
+        "value": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "required": [
+        "algorithm",
+        "value"
+      ],
+      "additionalProperties": false
+    },
+    "entry": {
+      "type": "object",
+      "properties": {
+        "apiId": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 1048576
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1048576
+        },
+        "framework": {
+          "enum": [
+            "spring",
+            "feign",
+            "dubbo",
+            "interface"
+          ]
+        },
+        "httpMethod": {
+          "enum": [
+            null,
+            "GET",
+            "HEAD",
+            "POST",
+            "PUT",
+            "DELETE",
+            "CONNECT",
+            "OPTIONS",
+            "TRACE",
+            "PATCH"
+          ]
+        },
+        "httpPath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1048576
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "maxItems": 1000
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "markdown": {
+          "$ref": "#/$defs/file"
+        },
+        "detail": {
+          "$ref": "#/$defs/file"
+        }
+      },
+      "required": [
+        "apiId",
+        "identity",
+        "name",
+        "description",
+        "framework",
+        "httpMethod",
+        "httpPath",
+        "tags",
+        "source",
+        "markdown",
+        "detail"
+      ],
+      "additionalProperties": false
+    },
+    "apiPayload": {
+      "type": "object",
+      "properties": {
+        "apiId": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "identity": {
+          "$ref": "#/$defs/identity"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 1048576
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1048576
+        },
+        "framework": {
+          "enum": [
+            "spring",
+            "feign",
+            "dubbo",
+            "interface"
+          ]
+        },
+        "httpMethod": {
+          "enum": [
+            null,
+            "GET",
+            "HEAD",
+            "POST",
+            "PUT",
+            "DELETE",
+            "CONNECT",
+            "OPTIONS",
+            "TRACE",
+            "PATCH"
+          ]
+        },
+        "httpPath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 1048576
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "maxItems": 1000
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "headers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/header"
+          },
+          "maxItems": 10000
+        },
+        "requestParameters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/field"
+          },
+          "maxItems": 10000
+        },
+        "requestBody": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/body"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "responseBody": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/body"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "examples": {
+          "type": "object",
+          "properties": {
+            "request": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 1048576
+            },
+            "response": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "maxLength": 1048576
+            }
+          },
+          "required": [
+            "request",
+            "response"
+          ],
+          "additionalProperties": false
+        },
+        "remark": {
+          "type": "string",
+          "maxLength": 1048576
+        }
+      },
+      "required": [
+        "apiId",
+        "identity",
+        "name",
+        "description",
+        "framework",
+        "httpMethod",
+        "httpPath",
+        "tags",
+        "source",
+        "headers",
+        "requestParameters",
+        "requestBody",
+        "responseBody",
+        "examples",
+        "remark"
+      ],
+      "additionalProperties": false
+    },
+    "indexPayload": {
+      "type": "object",
+      "properties": {
+        "snapshotId": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "generatedAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "producerVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "generatorFingerprint": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "hasUnsavedDocuments": {
+          "type": "boolean"
+        },
+        "markdownIndex": {
+          "$ref": "#/$defs/file"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entry"
+          },
+          "maxItems": 10000
+        }
+      },
+      "required": [
+        "snapshotId",
+        "generatedAt",
+        "producerVersion",
+        "generatorFingerprint",
+        "hasUnsavedDocuments",
+        "markdownIndex",
+        "entries"
+      ],
+      "additionalProperties": false
+    },
+    "index": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "owner": {
+          "const": "com.liuzhihang.doc.view"
+        },
+        "kind": {
+          "const": "index"
+        },
+        "payload": {
+          "$ref": "#/$defs/indexPayload"
+        },
+        "integrity": {
+          "$ref": "#/$defs/integrity"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "owner",
+        "kind",
+        "payload",
+        "integrity"
+      ],
+      "additionalProperties": false
+    },
+    "api": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "owner": {
+          "const": "com.liuzhihang.doc.view"
+        },
+        "kind": {
+          "const": "api"
+        },
+        "payload": {
+          "$ref": "#/$defs/apiPayload"
+        },
+        "integrity": {
+          "$ref": "#/$defs/integrity"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "owner",
+        "kind",
+        "payload",
+        "integrity"
+      ],
+      "additionalProperties": false
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "enum": [
+            "INVALID_ARGUMENT",
+            "PROJECT_NOT_OPEN",
+            "INDEX_NOT_FOUND",
+            "UNSUPPORTED_SCHEMA",
+            "INDEX_INVALID",
+            "INDEX_INCONSISTENT",
+            "API_NOT_FOUND",
+            "CURSOR_STALE",
+            "SNAPSHOT_CHANGED",
+            "INDEXING",
+            "BUSY",
+            "CONFLICT",
+            "SOURCE_CHANGED",
+            "LIMIT_EXCEEDED",
+            "RESULT_TOO_LARGE",
+            "CANCELLED",
+            "TIMEOUT",
+            "PARTIAL_PUBLICATION",
+            "IO_ERROR"
+          ]
+        },
+        "message": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "relativePaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\u0000)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)(?!.*?/$).+$"
+          },
+          "maxItems": 100
+        },
+        "relativePathsTotal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "retryable": {
+          "type": "boolean"
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "publishedPaths": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512,
+                "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\u0000)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)(?!.*?/$).+$"
+              },
+              "maxItems": 100
+            },
+            "publishedPathsTotal": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "indexCommitted": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "cleanupFailures": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512,
+                "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\u0000)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)(?!.*?/$).+$"
+              },
+              "maxItems": 100
+            },
+            "cleanupFailuresTotal": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            }
+          },
+          "required": [
+            "publishedPaths",
+            "publishedPathsTotal",
+            "indexCommitted",
+            "cleanupFailures",
+            "cleanupFailuresTotal"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "code",
+        "message",
+        "relativePaths",
+        "relativePathsTotal",
+        "retryable",
+        "details"
+      ],
+      "additionalProperties": false
+    },
+    "errorResult": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "status": {
+          "const": "error"
+        },
+        "projectPath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "snapshotId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "freshness": {
+          "enum": [
+            "current",
+            "stale",
+            "unknown"
+          ]
+        },
+        "hasUnsavedDocuments": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "data": {
+          "type": "null"
+        },
+        "error": {
+          "$ref": "#/$defs/error"
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "status",
+        "projectPath",
+        "snapshotId",
+        "freshness",
+        "hasUnsavedDocuments",
+        "data",
+        "error"
+      ],
+      "additionalProperties": false
+    },
+    "statusData": {
+      "type": "object",
+      "properties": {
+        "root": {
+          "const": "docs/doc-view"
+        },
+        "indexState": {
+          "enum": [
+            "not_generated",
+            "ready",
+            "invalid",
+            "unsupported_version",
+            "inconsistent"
+          ]
+        },
+        "entryCount": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 10000
+        },
+        "generatedAt": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "generating": {
+          "type": "boolean"
+        },
+        "toolContractVersion": {
+          "const": 1
+        },
+        "pluginVersion": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        }
+      },
+      "required": [
+        "root",
+        "indexState",
+        "entryCount",
+        "generatedAt",
+        "generating",
+        "toolContractVersion",
+        "pluginVersion"
+      ],
+      "additionalProperties": false
+    },
+    "searchData": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entry"
+          },
+          "maxItems": 100
+        },
+        "nextCursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 65536
+        },
+        "totalMatched": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000
+        }
+      },
+      "required": [
+        "items",
+        "nextCursor",
+        "totalMatched"
+      ],
+      "additionalProperties": false
+    },
+    "getData": {
+      "type": "object",
+      "properties": {
+        "api": {
+          "$ref": "#/$defs/apiPayload"
+        },
+        "markdown": {
+          "type": "string",
+          "maxLength": 1048576
+        }
+      },
+      "required": [
+        "api"
+      ],
+      "additionalProperties": false
+    },
+    "generateData": {
+      "type": "object",
+      "properties": {
+        "outcome": {
+          "enum": [
+            "generated",
+            "updated",
+            "unchanged"
+          ]
+        },
+        "scanned": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "created": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "updated": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "unchanged": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "skipped": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "publishedPaths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\u0000)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)(?!.*?/$).+$"
+          },
+          "maxItems": 100
+        },
+        "publishedPathsTotal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\u0000)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)(?!.*?/$).+$"
+          },
+          "maxItems": 100
+        },
+        "conflictsTotal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "cleanupFailures": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512,
+            "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*\\u0000)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)(?!.*?/$).+$"
+          },
+          "maxItems": 100
+        },
+        "cleanupFailuresTotal": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        }
+      },
+      "required": [
+        "outcome",
+        "scanned",
+        "created",
+        "updated",
+        "unchanged",
+        "skipped",
+        "publishedPaths",
+        "publishedPathsTotal",
+        "conflicts",
+        "conflictsTotal",
+        "cleanupFailures",
+        "cleanupFailuresTotal"
+      ],
+      "additionalProperties": false
+    },
+    "statusResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "status": {
+              "const": "ok"
+            },
+            "projectPath": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "snapshotId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "freshness": {
+              "enum": [
+                "current",
+                "stale",
+                "unknown"
+              ]
+            },
+            "hasUnsavedDocuments": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "data": {
+              "$ref": "#/$defs/statusData"
+            },
+            "error": {
+              "type": "null"
+            }
+          },
+          "required": [
+            "schemaVersion",
+            "status",
+            "projectPath",
+            "snapshotId",
+            "freshness",
+            "hasUnsavedDocuments",
+            "data",
+            "error"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "$ref": "#/$defs/errorResult"
+        }
+      ]
+    },
+    "searchResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "status": {
+              "const": "ok"
+            },
+            "projectPath": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "snapshotId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "freshness": {
+              "enum": [
+                "current",
+                "stale",
+                "unknown"
+              ]
+            },
+            "hasUnsavedDocuments": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "data": {
+              "$ref": "#/$defs/searchData"
+            },
+            "error": {
+              "type": "null"
+            }
+          },
+          "required": [
+            "schemaVersion",
+            "status",
+            "projectPath",
+            "snapshotId",
+            "freshness",
+            "hasUnsavedDocuments",
+            "data",
+            "error"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "$ref": "#/$defs/errorResult"
+        }
+      ]
+    },
+    "getResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "status": {
+              "const": "ok"
+            },
+            "projectPath": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "snapshotId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "freshness": {
+              "enum": [
+                "current",
+                "stale",
+                "unknown"
+              ]
+            },
+            "hasUnsavedDocuments": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "data": {
+              "$ref": "#/$defs/getData"
+            },
+            "error": {
+              "type": "null"
+            }
+          },
+          "required": [
+            "schemaVersion",
+            "status",
+            "projectPath",
+            "snapshotId",
+            "freshness",
+            "hasUnsavedDocuments",
+            "data",
+            "error"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "$ref": "#/$defs/errorResult"
+        }
+      ]
+    },
+    "generateResult": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "schemaVersion": {
+              "const": 1
+            },
+            "status": {
+              "const": "ok"
+            },
+            "projectPath": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096
+            },
+            "snapshotId": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "freshness": {
+              "enum": [
+                "current",
+                "stale",
+                "unknown"
+              ]
+            },
+            "hasUnsavedDocuments": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            },
+            "data": {
+              "$ref": "#/$defs/generateData"
+            },
+            "error": {
+              "type": "null"
+            }
+          },
+          "required": [
+            "schemaVersion",
+            "status",
+            "projectPath",
+            "snapshotId",
+            "freshness",
+            "hasUnsavedDocuments",
+            "data",
+            "error"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "$ref": "#/$defs/errorResult"
+        }
+      ]
+    }
+  },
+  "tools": [
+    {
+      "name": "doc_view_status",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "projectPath": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        },
+        "required": [
+          "projectPath"
+        ],
+        "additionalProperties": false
+      },
+      "resultContentSchema": {
+        "$ref": "#/$defs/statusResult"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "doc_view_search",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "projectPath": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "query": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "module": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "framework": {
+            "enum": [
+              "spring",
+              "feign",
+              "dubbo",
+              "interface"
+            ]
+          },
+          "httpMethod": {
+            "enum": [
+              "GET",
+              "HEAD",
+              "POST",
+              "PUT",
+              "DELETE",
+              "CONNECT",
+              "OPTIONS",
+              "TRACE",
+              "PATCH"
+            ]
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          },
+          "cursor": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 65536
+          }
+        },
+        "required": [
+          "projectPath",
+          "query"
+        ],
+        "additionalProperties": false
+      },
+      "resultContentSchema": {
+        "$ref": "#/$defs/searchResult"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "doc_view_get",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "projectPath": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          },
+          "apiId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "snapshotId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "includeMarkdown": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "projectPath",
+          "apiId",
+          "snapshotId"
+        ],
+        "additionalProperties": false
+      },
+      "resultContentSchema": {
+        "$ref": "#/$defs/getResult"
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "doc_view_generate",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "projectPath": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096
+          }
+        },
+        "required": [
+          "projectPath"
+        ],
+        "additionalProperties": false
+      },
+      "resultContentSchema": {
+        "$ref": "#/$defs/generateResult"
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ]
+}

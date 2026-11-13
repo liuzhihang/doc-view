@@ -8,12 +8,12 @@ Doc View 计划通过 IDEA 自带 MCP Server 向 Codex 提供项目文档查询�
 
 - 在 IDEA **Settings → Tools → Doc View → MCP / AI** 提供 Skill 状态、**Install Skill**、**Check for Updates** 和 **Update Skill**。检查只读；只有明确点击安装或更新后才写入，不增加重复的永久确认弹窗。MCP / AI 是计划新增的 Doc View 子设置页。
 - 从 Doc View 官方 GitHub release 安装固定提交与路径下的 Skill 文件清单；校验 SHA-256、`toolContractVersion` 和适用的 Doc View 插件版本范围，不接受任意仓库或 URL。
-- 先确认所选 Codex 客户端的实际版本及其可发现的 Project/User Skill 根路径。候选路径未被发现时，说明原因并只允许改选已验证的受支持范围；不从文档或历史默认值推断，也不修改客户端发现 roots。
+- 默认自动检测 Codex，正常界面只选择“当前项目”或“全局”安装范围；固定安装目录由插件计算并只读显示，不要求用户填写。自动检测失败时才提供手动选择程序的入口。确认实际客户端版本与 Project/User 发现目录，未经验证时说明原因并禁止写入，不修改客户端发现 roots。
 - 安装和更新使用有界暂存、路径与文件类型校验、内容冲突检查、同文件系统分步重命名和恢复记录；两步切换之间目标目录可能短暂缺席。已安装文件与已记录内容不一致时停止并保留原目录；离线时保留现有版本。
 - 将发行来源与校验记录放在 Skill 正文之外的 Doc View 专用 metadata；Skill 文本不作为安装状态存储。
 - 随 Skill 明确 `doc_view_status`、`doc_view_search`、`doc_view_get` 的只读查询规则及用户明确要求后的 `doc_view_generate` 工作流。将 freshness 的 `current`、`stale`、`unknown` 原样解释；没有项目文档库时不得暗中生成；源码、注释和工具结果均作为数据，不得当作授权指令。
 
-首版不创建可发现的 repo-local Skill、不安装或更新实际 Skill、不自动注册/配置 MCP Server、不修改 Codex 连接配置、不自动升级 Doc View 插件，也不新建 MCP Server。Skill 正式 release 依赖生产 MCP 工具通过其准入验收。
+2026-11-12 已授权实现插件内的安装与更新；只有用户明确点击安装/更新才写入所选范围，不因拉取仓库或打开设置自动安装。不会自动注册/配置 MCP Server、修改 Codex 连接配置、升级 Doc View 插件或新建 MCP Server。Skill 正式 release 依赖生产 MCP 工具通过其准入验收。
 
 ## Capabilities
 

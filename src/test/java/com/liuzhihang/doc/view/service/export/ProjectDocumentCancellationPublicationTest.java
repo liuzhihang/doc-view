@@ -6,6 +6,7 @@ import junit.framework.TestCase;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import static org.junit.Assert.assertArrayEquals;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,6 +34,10 @@ public final class ProjectDocumentCancellationPublicationTest extends TestCase {
     public void testCancelBeforeEachMovePreservesCommitAndReportsPublishedPrefix() throws Exception {
         for (int stopBefore = 1; stopBefore <= 4; stopBefore++) {
             Path run = Files.createDirectory(root.resolve("run-" + stopBefore));
+            ProjectDocumentSnapshot updated = snapshotWithAdditionalPage();
+            new ProjectDocumentExporter().export(run, snapshot,
+                    new ProjectDocumentExporterTest.TestProgressIndicator());
+            byte[] previousIndex = Files.readAllBytes(run.resolve("docs/doc-view/index.json"));
             var indicator = new ProjectDocumentExporterTest.TestProgressIndicator();
             AtomicInteger moves = new AtomicInteger();
             int boundary = stopBefore;
@@ -42,7 +47,7 @@ public final class ProjectDocumentCancellationPublicationTest extends TestCase {
                 }
             });
             try {
-                exporter.export(run, snapshot, indicator);
+                exporter.export(run, updated, indicator);
                 fail("must cancel at boundary " + boundary);
             } catch (ProcessCanceledException cancelled) {
                 assertEquals(1, boundary);
@@ -53,10 +58,11 @@ public final class ProjectDocumentCancellationPublicationTest extends TestCase {
                 assertTrue(partial.getCause() instanceof ProcessCanceledException);
                 assertTrue(partial.temporaryPaths().isEmpty());
             }
-            assertFalse(Files.exists(run.resolve("docs/doc-view/index.json")));
+            assertArrayEquals("The old index stays the commit pointer until the final JSON replacement",
+                    previousIndex, Files.readAllBytes(run.resolve("docs/doc-view/index.json")));
             assertNoTemps(run);
-            new ProjectDocumentExporter().export(run, snapshot, new ProjectDocumentExporterTest.TestProgressIndicator());
-            assertEquals(1, ProjectDocumentFormat.readIndex(Files.readAllBytes(
+            new ProjectDocumentExporter().export(run, updated, new ProjectDocumentExporterTest.TestProgressIndicator());
+            assertEquals(2, ProjectDocumentFormat.readIndex(Files.readAllBytes(
                     run.resolve("docs/doc-view/index.json"))).entries().size());
         }
     }
@@ -64,6 +70,10 @@ public final class ProjectDocumentCancellationPublicationTest extends TestCase {
     public void testCancelImmediatelyAfterEachNonFinalMoveReportsPartial() throws Exception {
         for (int stopAfter = 1; stopAfter <= 3; stopAfter++) {
             Path run = Files.createDirectory(root.resolve("after-" + stopAfter));
+            ProjectDocumentSnapshot updated = snapshotWithAdditionalPage();
+            new ProjectDocumentExporter().export(run, snapshot,
+                    new ProjectDocumentExporterTest.TestProgressIndicator());
+            byte[] previousIndex = Files.readAllBytes(run.resolve("docs/doc-view/index.json"));
             var indicator = new ProjectDocumentExporterTest.TestProgressIndicator();
             AtomicInteger moves = new AtomicInteger();
             int boundary = stopAfter;
@@ -73,7 +83,7 @@ public final class ProjectDocumentCancellationPublicationTest extends TestCase {
                 }
             });
             try {
-                exporter.export(run, snapshot, indicator);
+                exporter.export(run, updated, indicator);
                 fail("must report cancellation after move");
             } catch (ProjectDocumentPublishException partial) {
                 assertEquals(boundary, partial.publishedPaths().size());
@@ -81,22 +91,38 @@ public final class ProjectDocumentCancellationPublicationTest extends TestCase {
                 assertTrue(partial.getCause() instanceof ProcessCanceledException);
                 assertTrue(partial.temporaryPaths().isEmpty());
             }
-            assertFalse(Files.exists(run.resolve("docs/doc-view/index.json")));
+            assertArrayEquals("The previous snapshot stays visible after page or index.md moves",
+                    previousIndex, Files.readAllBytes(run.resolve("docs/doc-view/index.json")));
             assertNoTemps(run);
         }
     }
 
     public void testFinalIndexCommitWinsLateCancellation() throws Exception {
+        new ProjectDocumentExporter().export(root, snapshot,
+                new ProjectDocumentExporterTest.TestProgressIndicator());
+        byte[] previousIndex = Files.readAllBytes(root.resolve("docs/doc-view/index.json"));
+        ProjectDocumentSnapshot updated = snapshotWithAdditionalPage();
         var indicator = new ProjectDocumentExporterTest.TestProgressIndicator();
-        AtomicBoolean installed = new AtomicBoolean();
-        var result = new ProjectDocumentExporter().export(root, snapshot, indicator, () -> true, () -> {}, index -> {
+        AtomicInteger commitCallbacks = new AtomicInteger();
+        var result = new ProjectDocumentExporter().export(root, updated, indicator, () -> true, () -> {}, index -> {
             assertTrue(Files.isRegularFile(root.resolve("docs/doc-view/index.json")));
-            installed.set(true);
+            try {
+                assertEquals(index.snapshotId(), ProjectDocumentFormat.readIndex(Files.readAllBytes(
+                        root.resolve("docs/doc-view/index.json"))).snapshotId());
+            } catch (java.io.IOException failure) {
+                throw new AssertionError("The committed index must be readable in the commit callback", failure);
+            }
+            commitCallbacks.incrementAndGet();
             indicator.cancel();
         });
         assertEquals(4, result.changedPaths().size());
         assertEquals("docs/doc-view/index.json", result.changedPaths().getLast());
-        assertTrue(installed.get());
+        assertEquals("The committed callback runs once after the final index replacement", 1,
+                commitCallbacks.get());
+        assertFalse("A late cancellation must not restore the prior snapshot", java.util.Arrays.equals(
+                previousIndex, Files.readAllBytes(root.resolve("docs/doc-view/index.json"))));
+        assertEquals(2, ProjectDocumentFormat.readIndex(Files.readAllBytes(
+                root.resolve("docs/doc-view/index.json"))).entries().size());
         assertTrue(indicator.isCanceled());
         assertNoTemps(root);
     }
@@ -145,5 +171,11 @@ public final class ProjectDocumentCancellationPublicationTest extends TestCase {
         try (var paths = Files.walk(root)) {
             assertFalse(paths.anyMatch(path -> path.toString().endsWith(".tmp")));
         }
+    }
+
+    private ProjectDocumentSnapshot snapshotWithAdditionalPage() {
+        ProjectDocumentPage added = page(ProjectDocumentIdentity.of("fixture", "src/AddedApi.java",
+                "example.AddedApi", "add", List.of()), "SPRING", "# Added\n");
+        return ProjectDocumentFixtures.snapshot(List.of(snapshot.pages().getFirst(), added));
     }
 }
