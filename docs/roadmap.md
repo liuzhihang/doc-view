@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-截至 2026-11-09，最新发布记录为 [1.6.1](release-1.6.1.md)：GitHub Release 已公开，Marketplace 已接收、待审核/上架（以该记录的回读时间为准）。项目 Markdown/JSON 文档库、搜索 UI 和 `.http` 请求草稿已交付；**正式 Doc View MCP 工具和客户端 Skill 尚未交付**。
+截至 2026-11-13，1.6.2 与 1.6.0 的 Marketplace 公开上架已复核，证据见 [1.7.0 发布记录](release-1.7.0.md)。项目 Markdown/JSON 文档库、搜索 UI 和 `.http` 请求草稿已交付；**正式 Doc View MCP 工具和客户端 Skill 尚未交付**。
 
 发布不等于全部原生验收完成。1.6.0 的发布例外及热卸载失败保留在[发布记录](release-1.6.0.md)；1.6.1 没有重跑全部旧矩阵。插件要求重启生效，不承诺热更新/热卸载。不同候选包结果不能合并成最终包的全量验收。
 
@@ -27,13 +27,17 @@
 
 ### 2. 正式 MCP 工具
 
-由 [doc-view-mcp-tools](../openspec/changes/doc-view-mcp-tools/proposal.md) 跟踪。**当前阻塞是 task 1.3 的基线原生回归和文档库最终验收**；客户端候选的取消准入已经取得证据，但不代表所有客户端版本均可用，详见[取消验收说明](mcp-cancellation.md)。
+由 [doc-view-mcp-tools](../openspec/changes/doc-view-mcp-tools/proposal.md) 跟踪。按本轮授权，task 1.3 已以明确保留旧原生缺口的方式准入开发；客户端候选的取消准入已经取得证据，但不代表所有客户端版本均可用，详见[取消验收说明](mcp-cancellation.md)。
 
-准入完成后，在同一 Doc View 插件内可选注册到 IDEA MCP Server，与 UI 共用文档服务：先实现只读 `status/search/get`，再实现显式写盘的 `generate`。不另建服务或第二套解析链路。工具契约、项目边界和取消发布要求以 [tasks](../openspec/changes/doc-view-mcp-tools/tasks.md) 为准；落盘格式见[文档库格式](mcp-format.md)。
+1.7.0 待发布源码已在同一 Doc View 插件内可选注册到 IDEA MCP Server，与 UI 共用文档服务：先实现只读 `status/search/get`，再实现显式写盘的 `generate`。不另建服务或第二套解析链路。工具契约、项目边界和取消发布要求以 [tasks](../openspec/changes/doc-view-mcp-tools/tasks.md) 为准；落盘格式见[文档库格式](mcp-format.md)。
+
+最终开发包已通过511项测试、两个精确build的Verifier，以及263.7307.200上的真实Codex生成取消/同会话查询恢复；继续补可选加载、发布边界取消和项目生命周期原生矩阵，不将单个通过路径写成全部验收完成。
 
 ### 3. 客户端 Skill
 
-由 [doc-view-client-skill](../openspec/changes/doc-view-client-skill/proposal.md) 跟踪，依赖正式工具契约稳定。计划从 GitHub 提供显式安装、检查更新和更新入口，先验收 Codex；Skill 调用正式 MCP，不另起服务、不搬移解析，不自动注册 MCP、改写客户端配置或升级插件。分发与安装尚未实现，任务见 [tasks](../openspec/changes/doc-view-client-skill/tasks.md)。
+由 [doc-view-client-skill](../openspec/changes/doc-view-client-skill/proposal.md) 跟踪，依赖正式工具契约稳定。计划从 GitHub 提供显式安装、检查更新和更新入口，先验收 Codex；Skill 调用正式 MCP，不另起服务、不搬移解析，不自动注册 MCP、改写客户端配置或升级插件。源码、受限安装器和设置页正在实现与验收，正式发行包尚未发布，任务见 [tasks](../openspec/changes/doc-view-client-skill/tasks.md)。
+
+设置页已采用“当前项目 / 全局”两种固定目录、后台自动检测Codex；原生确认窗口缩放后无整页横向偏移，检查按钮不跳位。自然语言 Skill 工作流已验证 current/stale/unknown、缺少文档不隐式生成、明确生成与注释伪指令隔离；正式来源安装/更新/恢复仍待验收。
 
 ## 文档与持续门禁
 
@@ -51,4 +55,4 @@
 
 ## 历史证据入口
 
-历史候选的日期、build、测试数、hash、失败和未验证边界已迁至 [1.4.0 发布记录](release-1.4.0.md#路线图迁入的历史进度摘要)与 [1.6.0 发布记录](release-1.6.0.md#路线图迁入的历史进度摘要)，不再作为当前队列重复排列。最新发布细节见 [1.6.1](release-1.6.1.md)，长期功能证据见各 change verification，已完成 change 见 [OpenSpec 归档](../openspec/changes/archive/)。归档只表示 lifecycle 状态，不是本轮重新运行验证。
+历史候选的日期、build、测试数、hash、失败和未验证边界已迁至 [1.4.0 发布记录](release-1.4.0.md#路线图迁入的历史进度摘要)与 [1.6.0 发布记录](release-1.6.0.md#路线图迁入的历史进度摘要)，不再作为当前队列重复排列。最新仓库发布记录见 [1.6.2](release-1.6.2.md)，长期功能证据见各 change verification，已完成 change 见 [OpenSpec 归档](../openspec/changes/archive/)。归档只表示 lifecycle 状态，不是本轮重新运行验证。

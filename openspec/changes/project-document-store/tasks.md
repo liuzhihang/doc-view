@@ -18,6 +18,7 @@
 - [x] 2.4 实现按索引 entry 读取详情和 Markdown 的同 stem 路径、identity、schema、payload 与 raw-byte hash 校验；Markdown/detail 路径相对 `docs/doc-view/`，source path 相对项目根；覆盖缺页、改写、越界、符号链接和 PSI-free 返回；恢复后仅清除同一资源路径的完整性错误，并防止较早成功读取清除较新失败：`./gradlew test --tests '*ProjectDocumentIndexServiceTest'`。
 - [x] 2.5 实现已观察 source/module-root/settings/template epoch 变化后的 stale 与重开 unknown；查询仅使用索引和运行态 epoch，不调用 PSI 或项目文件扫描：`./gradlew test --tests '*ProjectDocumentIndexServiceTest'`。
 - [x] 2.6 将项目内容根内 Java 与 XML Document 变化纳入当前会话 freshness 跟踪；`hasUnsavedDocuments` 保守覆盖这两类生成输入且排除 `docs/doc-view/`，无需改变 schema v1；覆盖项目根内和外部 content root XML 编辑、未保存 Dubbo XML 生成标记及不自动保存，并在一个已提交但未保存输入之后仍拒绝后续未提交输入：`./gradlew test --tests '*ProjectDocumentIndexServiceTest' --tests '*ProjectDocumentSnapshotTest'`。
+- [x] 2.7 补齐真实外部磁盘修改经 VFS 刷新后的输入代际跟踪：Java/XML 内容、创建/删除、移动/改名使所属项目旧快照 stale，项目外与生成目录保持不变；监听器随服务释放且不扫描 PSI。使用真实 LocalFileSystem 事件建立 RED/GREEN，并在新整包通过 MCP 与真实 Codex 复验 unknown/current/stale，保留失败轮次。实现与549项测试及真实Codex复验见[续验记录](../doc-view-mcp-tools/verification-2026-11-13-release-gates.md)。
 
 ## 3. 受保护的可取消发布
 

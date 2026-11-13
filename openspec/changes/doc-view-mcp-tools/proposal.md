@@ -21,10 +21,12 @@ Doc View 已有界面生成/导出，但尚无生产 MCP 工具。需要让 Code
 
 ### Modified Capabilities
 
-无。PoC 准入规范、平台升级分别由 [mcp-java-feasibility](../archive/2026-11-09-mcp-java-feasibility/proposal.md) 与 [intellij-263-baseline-upgrade](../intellij-263-baseline-upgrade/proposal.md) 管理，不在本 change 放宽门槛。
+无。PoC 准入规范、平台升级分别由 [mcp-java-feasibility](../archive/2026-11-09-mcp-java-feasibility/proposal.md) 与 [intellij-263-baseline-upgrade](../intellij-263-baseline-upgrade/proposal.md) 管理，本轮准入修订见下方，原功能验证结果不改变。
 
 ## Impact
 
 实现将新增同一插件内的 MCP adapter/可选 descriptor 与 bundled MCP 编译依赖，并调用共享文档服务；保持 Java-only，不序列化含 PSI 的 `DocView`，不引入 Kotlin、跨插件 API、第二个安装包或自建传输层。需要真实 `tools/list`/`tools/call`、输入负例、跨项目、在途取消/卸载及最终包 Plugin Verifier/原生回归。
 
-当前正式 MCP adapter 尚未实现。用户已批准开发基线升级至 IU `263.7031.23` 与 Java 25；`263-full-10` 的 67 suites / 352 项自动测试、构建和 Plugin Verifier 已通过。生产 Verifier 问题为 0，另有 16 处 Experimental API；测试源码编译仍有 15 条 test-only deprecated/removal warnings。full-9 的 350 项、full-8 的 349 项与 full-7 的 344 项结果保留为历史。full-10 新包的 Markdown tamper/恢复、Spring/Feign/Dubbo 预览、Welcome 重开及 GET/form 草稿生成和 HTTP Client 打开已通过；HTTP Client Run 未执行。Copy/Export、菜单、完整参数编辑、生成取消/partial/retry 和资源基线等原生验收仍不完整。另一次 freshness 复测中重开项目先看到 `unknown`；随后 FindAction 的 Generate 返回 `30 API(s) / No content changes`，不点 Refresh 即自动变为 `CURRENT`，约 +4.7 秒和 +20.45 秒读回仍为 current，未复现持续刷新问题。项目文档库最终验收仍待完成，因此准入 task 1.3 保持未勾选，不能开始生产 adapter。已发布插件支持范围仍以原发布版 261 为准。Codex `0.163.0-alpha.11.2` 的取消失败保留为历史；`0.165.0-alpha.1` 候选三轮取消通过只关闭客户端准入，不代表生产工具上线。生产写工具、外部配置写入、发布均不能借本 proposal 自动执行。
+2026-11-12 实施准入更新：维护者明确要求在核对 1.6.0 上架后继续内置 MCP/Skill。1.6.0 已公开上架（update 1215457），当前 develop 已包含 1.6.2；Java 25 / IU 263.7031.23 基线和项目文档库已交付，原完整 UI/HTTP/资源矩阵的缺口仍在原 change 中保留，不重新作为本轮开发的总前置。Java PoC 与目标 Codex 取消证据已随 `2026-11-09-mcp-java-feasibility` 归档。
+
+本轮允许开始同包可选 adapter，使用新的 1.7.0-SNAPSHOT 开发候选；必须独立完成生产工具的真实 tools/list、只读调用/项目隔离，再接入显式生成和真实取消/恢复。沿用已批准 require-restart 生命周期，验证项目关闭与 IDE 重启后的清理，不承诺动态热卸载。未验证的旧功能矩阵不勾选，新 MCP 验证也不借用 PoC 结论。正式 Skill 发行和新版本发布不随本轮自动执行。

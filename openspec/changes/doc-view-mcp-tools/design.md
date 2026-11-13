@@ -24,7 +24,7 @@ MCP 相关类仅在可选 descriptor 生效时加载；普通 UI/service 不引�
 
 | 工具 | 输入 | 输出 data | 写盘 |
 | --- | --- | --- | --- |
-| `doc_view_status` | `projectPath` | root、indexState、entryCount、generatedAt、正在生成与否；无需扫描源码 | 否 |
+| `doc_view_status` | `projectPath` | root、indexState、entryCount、generatedAt、正在生成与否（包含同项目 UI 与 MCP 的共享生成任务）；无需扫描源码 | 否 |
 | `doc_view_search` | `projectPath`, `query`（可空）；可选 `module`, `framework`, `httpMethod`, `limit=20`, `cursor` | items（摘要）、nextCursor、totalMatched；按文档库固定规则过滤/排序 | 否 |
 | `doc_view_get` | `projectPath`, `apiId`, `snapshotId`；可选 `includeMarkdown=false` | api（结构化详情 payload）、可选 markdown | 否 |
 | `doc_view_generate` | `projectPath` | outcome、scanned/created/updated/unchanged/skipped、publishedPaths、conflicts、cleanupFailures | 是，唯一生成/更新入口 |
@@ -32,6 +32,8 @@ MCP 相关类仅在可选 descriptor 生效时加载；普通 UI/service 不引�
 search limit 1–100，query ≤256 Unicode code points / 16 词；只搜索清单字段（含已解析的 httpPath），httpMethod 使用精确 filter；不对全部 Markdown 做全文扫描，不宣称语义检索。读已有库允许 Dumb Mode；生成必须处于可读 PSI 的项目状态，否则返回 INDEXING，不排队无限等待。无库查询不隐式生成；客户端需要根据用户意图单独调用 generate。查询跟随新的 index 提交失效，cursor 绑定输入与 snapshotId；get 必须使用搜索返回的 snapshotId，避免更新期间读另一代。
 
 ### 3. 结果、错误与注解
+
+以下 envelope 适用于 Doc View handler 实际返回的结果。IDEA 可能在工具调度前拒绝已关闭/无效项目，协议错误与客户端取消也可能由宿主直接处理；这类响应不保证是 Doc View JSON。客户端先处理 MCP 的协议/工具错误，再解析已确认的 Doc View envelope，不能用 JSON 解析失败掩盖宿主给出的错误。
 
 Text(JSON) 顶层格式：`{schemaVersion:1,status,projectPath,snapshotId,freshness,hasUnsavedDocuments,data,error}`。snapshotId 在无库时为 null；freshness 为 `current|stale|unknown`，不等于网络连接状态。hasUnsavedDocuments 来自所读索引，未知或无有效快照时为 null；status data 另含当前 pluginVersion 与 toolContractVersion，便于客户端连接后核对。status 为 `ok|error`；成功 error=null，失败 data=null 且 error 含 code/message/relativePaths/relativePathsTotal/retryable/details，不能把异常堆栈或私密请求正文放进 message。用于 status 的 `indexState` 为 `not_generated|ready|invalid|unsupported_version|inconsistent`；刷新/生成执行状态独立表达，不滥用 freshness。ready 时 entryCount 为实际数量；not_generated 为0，invalid/unsupported/inconsistent 无法可靠计数时为 null，不能填0冒充空库。
 
@@ -67,3 +69,18 @@ Codex 原因与候选修复见[取消调查](../../../docs/mcp-cancellation.md)�
 ## Migration Plan
 
 当前无生产 MCP 工具可迁移。首版在准入与目标 build 回归通过后加入同包可选扩展；普通 Markdown 通过显式生成补齐 JSON，冲突仍由用户处理。回退插件不自动删除/转换文档库；旧插件读取新格式不承诺兼容。发布与客户端持久注册另按用户授权执行。
+
+## 2026-11-12 实施准入修订
+
+用户明确要求在核对 1.6.0 上架后继续生产 MCP 与 Skill。采用已发布并延续到 1.6.2 的 Java 25/IU 263 基线与共享文档库；历史完整原生矩阵保留待人工验收，开发不再被这些旧矩阵整体阻塞。工具自身只读先行、真实客户端取消、跨项目隔离和发布完整性仍须新增证据。插件已声明 require-restart，因此“卸载释放”以项目关闭或 IDEA 正常退出/重启终止后台任务为验收路径，不把热卸载再次设为发布或开发门槛。上述修订取代本文历史“等待全部基线/文档库原生回归才能开始”的表述，不改变工具协议字段和错误语义。
+
+## 263 宿主协议的实际映射
+
+已核对目标SDK与官方同build源码：McpSessionHandler 会在会话项目已解析时，从 tools/list 移除 `projectPath`，而公开 `McpCallInfoKt.getProjectOrNull` 提供对应调用项目。adapter 因此接受显式 `projectPath` 或宿主已解析的项目上下文，转成唯一规范路径后再执行严格内部 input contract；两者不一致必须拒绝，二者皆无拒绝，不自行使用焦点或首个项目。返回始终含规范项目路径。
+
+McpToolSchema 的公开构造参数没有 additionalProperties；宿主 ToolSchema 也不输出它。规范JSON保留 additionalProperties=false，adapter在运行时严格拒绝额外字段，真实 tools/list 的平台包装差异单独记录。非法工具参数使用 `isError=true` / `INVALID_ARGUMENT` JSON envelope；更外层JSON-RPC格式错误交宿主处理。错误无法解析项目时 `projectPath=null`，不伪造空路径、不回显超长输入；成功结果仍为非空规范路径。
+
+
+### 生成计数与提交结果的并发一致性
+
+created/updated/unchanged 必须由共享 exporter 在持有文档根写锁和跨进程锁时计算，不能先独立搜索旧索引再生成。以每个接口的 Markdown/JSON 对为单位：两个目标文件原先均不存在为 created；原先至少一个存在且本轮任一内容变化为 updated；两者均未变化为 unchanged。exporter 返回本次实际提交的 snapshotId、首次索引标记和接口计数，UI 原有文件计数行为保持不变。MCP 不在提交完成后读取可能已被另一 writer 替换的新 snapshotId 冒充本次结果；新鲜度无法确认或已经被其他提交替换时报告unknown，提交后缓存读回失败也不能把已提交写入伪报为失败。

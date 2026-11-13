@@ -15,6 +15,14 @@ import com.intellij.openapi.progress.ProcessCanceledException;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.roots.ProjectFileIndex;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileManager;
+import com.intellij.openapi.vfs.newvfs.BulkFileListener;
+import com.intellij.openapi.vfs.newvfs.events.VFileCopyEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent;
+import com.intellij.openapi.vfs.newvfs.events.VFilePropertyChangeEvent;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiTreeChangeAdapter;
@@ -148,6 +156,14 @@ public final class ProjectDocumentIndexService implements Disposable {
                 markObservedInputsChanged();
             }
         });
+
+        ApplicationManager.getApplication().getMessageBus().connect(this)
+                .subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
+                    @Override
+                    public void before(@NotNull List<? extends VFileEvent> events) {
+                        markChangedVfsInputs(events);
+                    }
+                });
     }
 
     public static @NotNull ProjectDocumentIndexService getInstance(@NotNull Project project) {
@@ -1152,6 +1168,98 @@ public final class ProjectDocumentIndexService implements Disposable {
             }
         }
         markObservedInputsChanged();
+    }
+
+    private void markChangedVfsInputs(@NotNull List<? extends VFileEvent> events) {
+        if (project.isDisposed()) {
+            return;
+        }
+        ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(project);
+        for (VFileEvent event : events) {
+            if (affectsProjectInputs(event, fileIndex)) {
+                markObservedInputsChanged();
+                return;
+            }
+        }
+    }
+
+    private boolean affectsProjectInputs(@NotNull VFileEvent event, @NotNull ProjectFileIndex fileIndex) {
+        if (event instanceof VFileMoveEvent moveEvent) {
+            VirtualFile file = moveEvent.getFile();
+            boolean directory = file != null && file.isDirectory();
+            return isRelevantInputPath(moveEvent.getOldPath(), moveEvent.getOldParent(), directory, fileIndex)
+                    || isRelevantInputPath(moveEvent.getOldPath(), file, directory, fileIndex)
+                    || isRelevantInputPath(moveEvent.getNewPath(), moveEvent.getNewParent(), directory, fileIndex);
+        }
+        if (event instanceof VFileCopyEvent copyEvent) {
+            VirtualFile file = copyEvent.getFile();
+            boolean directory = file != null && file.isDirectory();
+            return isRelevantInputPath(copyEvent.getPath(), copyEvent.getNewParent(), directory, fileIndex);
+        }
+        if (event instanceof VFilePropertyChangeEvent propertyEvent) {
+            if (!propertyEvent.isRename()) {
+                return false;
+            }
+            VirtualFile file = propertyEvent.getFile();
+            boolean directory = file.isDirectory();
+            return isRelevantInputPath(propertyEvent.getOldPath(), file.getParent(), directory, fileIndex)
+                    || isRelevantInputPath(propertyEvent.getOldPath(), file, directory, fileIndex)
+                    || isRelevantInputPath(propertyEvent.getNewPath(), file.getParent(), directory, fileIndex);
+        }
+        if (event instanceof VFileCreateEvent createEvent) {
+            return isRelevantInputPath(createEvent.getPath(), createEvent.getParent(), createEvent.isDirectory(),
+                    fileIndex);
+        }
+        if (event instanceof VFileDeleteEvent deleteEvent) {
+            VirtualFile file = deleteEvent.getFile();
+            return isRelevantInputPath(deleteEvent.getPath(), file.getParent(), file.isDirectory(), fileIndex)
+                    || isRelevantInputPath(deleteEvent.getPath(), file, file.isDirectory(), fileIndex);
+        }
+
+        VirtualFile file = event.getFile();
+        return file != null && (isRelevantInputPath(event.getPath(), file, file.isDirectory(), fileIndex)
+                || isRelevantInputPath(event.getPath(), file.getParent(), file.isDirectory(), fileIndex));
+    }
+
+    private boolean isRelevantInputPath(@NotNull String path,
+                                        @Nullable VirtualFile scope,
+                                        boolean directory,
+                                        @NotNull ProjectFileIndex fileIndex) {
+        if (isGeneratedDocumentPath(path)) {
+            return false;
+        }
+        if (!directory && !isSourceInputExtension(path)) {
+            return false;
+        }
+        return isProjectContent(fileIndex, scope);
+    }
+
+    private boolean isGeneratedDocumentPath(@NotNull String path) {
+        String basePath = project.getBasePath();
+        if (basePath == null) {
+            return false;
+        }
+        try {
+            Path generatedRoot = Path.of(basePath).toAbsolutePath().normalize().resolve(DOCUMENT_ROOT);
+            return Path.of(path).toAbsolutePath().normalize().startsWith(generatedRoot);
+        } catch (RuntimeException nonLocalPath) {
+            return false;
+        }
+    }
+
+    private static boolean isSourceInputExtension(@NotNull String path) {
+        int separator = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+        String name = path.substring(separator + 1);
+        int dot = name.lastIndexOf('.');
+        if (dot < 0) {
+            return false;
+        }
+        String extension = name.substring(dot + 1);
+        return "java".equalsIgnoreCase(extension) || "xml".equalsIgnoreCase(extension);
+    }
+
+    private static boolean isProjectContent(@NotNull ProjectFileIndex fileIndex, @Nullable VirtualFile file) {
+        return file != null && file.isValid() && fileIndex.isInContent(file);
     }
 
     private void markChangedSourceFile(@Nullable PsiFile file) {

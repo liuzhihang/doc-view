@@ -253,6 +253,12 @@
 - **THEN** 查询将可完整读取的旧快照标记为 `stale`
 - **AND** 不因查询触发自动重生成
 
+#### Scenario: 外部编辑通过 VFS 刷新进入当前会话
+- **WHEN** 外部程序修改项目内容根内的 Java/XML 输入，IDEA 的 VFS 刷新已观察到变更，即使该文件没有已加载的 PSI 或 Document
+- **THEN** 旧快照标记为 `stale`，只读 status/search/get 不重新生成文件
+- **AND** 事件仅影响所属项目；其他项目、非 Java/XML 文件与 `docs/doc-view/` 下的输出不推进该项目输入代际
+- **AND** 不将尚未被 IDEA 观察到的磁盘变更宣称为已检测；监听器随项目服务释放
+
 #### Scenario: Dubbo XML 注册变更
 - **WHEN** 当前会话已提交项目快照后，项目任一内容根内的 XML Document 发生变化
 - **THEN** 旧快照标记为 `stale`，因为该 XML 可能参与 Dubbo 服务声明发现
