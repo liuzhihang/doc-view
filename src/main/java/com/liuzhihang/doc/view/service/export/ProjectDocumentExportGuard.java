@@ -37,6 +37,10 @@ public final class ProjectDocumentExportGuard implements Disposable {
         exporting.set(false);
     }
 
+    public boolean isGenerating() {
+        return exporting.get();
+    }
+
     @Override
     public synchronized void dispose() {
         disposed = true;

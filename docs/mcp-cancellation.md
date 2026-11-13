@@ -1,10 +1,12 @@
 # MCP 取消传播与验收
 
-核对日期：2026-10-24。本文记录 Codex 客户端取消、IDEA MCP 服务端处理与 Doc View 后续设计的边界。结论依据官方源码/发行元数据、MCP 规范及隔离运行记录；候选客户端结果不代表生产 Doc View MCP 已交付。
+更新日期：2026-11-13。本文保留2026-10-24客户端候选证据，并补充当前开发包的生产工具取消复验；开发验收不等于正式发布。
 
 ## 当前结论
 
-官方 Codex `0.165.0-alpha.1` Apple Silicon app-server 候选经真实模型工具调用和 `turn/interrupt` 完成三轮取消互操作：三次均协商 MCP `2025-06-18`、发送与原工具请求 ID 相符的 `notifications/cancelled`，IDEA 取消并清理对应任务一次，没有迟到的 `completed`，同一 session 的后续 echo 三次均成功。候选准入为 **3/3 passed**，生产基线升级可继续。
+1.7.0-SNAPSHOT 开发包与实际 `codex-cli 0.167.0-alpha.4.1` 在隔离 IDEA `263.7307.200` 上通过生产 `doc_view_generate` 取消复验。此前在文件发布前取消，127个文档文件未变，记录见[首轮验收](../openspec/changes/doc-view-mcp-tools/verification-2026-11-12.md)。最新包进一步在9000方法fixture的52个页面已经落盘、最终索引尚未提交时执行真实 `turn/interrupt`：`notifications/cancelled` 的request ID匹配，旧索引原字节保留，同一app-server/thread/session在2451.126ms内恢复 `generating=false`，随后查询成功；1秒观察期无迟到完成。实际协商协议为 `2025-06-18`。取消用例由本地合成Responses响应驱动真实Codex工具客户端；自然模型遵循Skill由独立用例验证，不混淆这两类证据。包身份、失败轮次和原始记录见[续验记录](../openspec/changes/doc-view-mcp-tools/verification-2026-11-13-release-gates.md)。
+
+2026-10-24 的官方 Codex `0.165.0-alpha.1` Apple Silicon app-server 候选经真实模型工具调用和 `turn/interrupt` 完成三轮取消互操作：三次均协商 MCP `2025-06-18`、发送与原工具请求 ID 相符的 `notifications/cancelled`，IDEA 取消并清理对应探针任务一次，没有迟到的 `completed`，同一 session 的后续 echo 三次均成功。该历史候选准入为 **3/3 passed**。
 
 这项结果只证明隔离环境中的官方候选客户端与 IU `263.7031.23` MCP 服务端探针闭环。常用桌面 Codex `0.163.0-alpha.11.2` 的既有失败记录保留；候选没有替换日常客户端。该轮记录时生产插件仍声明261。1.6.0已采用IU263/Java25基线，当前构建、Verifier及原生证据另见[发布记录](release-1.6.0.md)；正式MCP工具仍未交付。
 
@@ -45,10 +47,10 @@ Codex [PR #56132](https://github.com/openai/codex/pull/56132) 于 2026-10-22 合
 
 ## IDEA 服务端和 Doc View 边界
 
-IU `263.7031.23` 隔离 Java 探针在收到显式 MCP 取消后记录了任务取消和 cleanup；候选客户端运行进一步验证同 session 可继续调用。这只覆盖测试用探针和该隔离 build，不代表生产 Doc View 工具已实现。正式工具仍计划注册在 Doc View 插件内、由 IDEA 自带 MCP Server 托管，不另建 server；取消上下文要传到实际 PSI、搜索、文件读取或生成工作，并在长循环中检查，cleanup 要幂等。插件卸载和项目关闭的生命周期验收仍需覆盖。相关平台依据见 JetBrains [扩展点列表](https://plugins.jetbrains.com/docs/intellij/intellij-community-plugins-extension-point-list.html#comintellijmcpserver)和[Disposer 指南](https://plugins.jetbrains.com/docs/intellij/disposers.html)。
+IU `263.7031.23` 隔离 Java 探针的历史结果只覆盖探针。当前开发包已在同一 Doc View 插件内通过可选 `McpToolsProvider` 注册工具，由 IDEA 自带 MCP Server 托管；Java adapter使用公开协程取消回调传递到平台进度指示器，长循环协作检查，清理有一次性保护。原生生产证据目前来自263.7307.200：包含页面发布中客户端取消、在途关闭项目返回PARTIAL_PUBLICATION及后续项目查询。每个move精确边界、最终commit之后的迟到取消、在途退出/重启与完整压力矩阵尚未全部原生复现。插件采用已批准的require-restart策略，不继续要求动态热卸载。相关平台依据见 JetBrains [扩展点列表](https://plugins.jetbrains.com/docs/intellij/intellij-community-plugins-extension-point-list.html#comintellijmcpserver)和[Disposer 指南](https://plugins.jetbrains.com/docs/intellij/disposers.html)。
 
-读接口可设置 5 秒服务端上限，文档生成可设 120 秒上限。超时是 Doc View 的资源保护，不能替代 MCP 客户端取消通知或保证 Codex turn 已中断。
+当前adapter设置读接口5秒、文档生成120秒服务端上限。超时是Doc View的资源保护，不能替代MCP客户端取消通知或保证Codex turn已中断。
 
 文档库按文件发布；失败时报告已发布和未发布部分，不声称整批事务回滚。文件所有权与部分发布规则见[项目文档库设计](../openspec/changes/project-document-store/design.md)。
 
-当前发布最低 IDEA build 仍为 261。用户已明确批准生产目标升级到 IU `263.7031.23` 与 Java 25 源码/API/classfile（major 69）；取消互操作 3/3 已通过。构建期 IntelliJ Platform Gradle Plugin 已按正式版 2.17.0 选定，其官方映射更新了 build 262 起的 Java 25 要求；本项目仍须运行配置检查、构建、测试、Plugin Verifier、最终 ZIP 读回和 IU 263 原生回归后才能更新支持范围。本文结果不代表正式 MCP 查询工具交付。
+1.6.0起最低build为IU `263.7031.23`，生产代码为Java25/classfile major69；旧261描述是历史准入状态，不是当前支持范围。1.7最终开发包实跑511项测试、构建、配置检查和263.7031.23/263.7307.200两个Verifier均通过；原生仅在后者执行。完整原生矩阵与Skill发行仍未完成，不能据此标记change归档或正式发布。

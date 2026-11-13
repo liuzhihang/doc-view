@@ -20,7 +20,7 @@
 - **AND** 不加载依赖 MCP 类型的工具实现，且不创建备用服务
 
 ### Requirement: 明确项目与文档根
-每个工具 SHALL 要求明确的 `projectPath`，只绑定该已打开 IDEA 项目的固定 `docs/doc-view/`；MUST 拒绝模糊项目、已关闭项目及任意输出目录参数。API 身份 SHALL 在所选项目内解释，不能跨项目搜索或回退。
+每个工具 SHALL 要求明确的项目绑定（显式 `projectPath`，或 IDEA 已解析的调用项目上下文），只绑定该已打开 IDEA 项目的固定 `docs/doc-view/`；MUST 拒绝模糊项目、已关闭项目及任意输出目录参数。API 身份 SHALL 在所选项目内解释，不能跨项目搜索或回退。
 
 #### Scenario: 两项目具有相同接口身份
 - **WHEN** A、B 项目存在相同模块、源码路径、类和方法签名
@@ -29,7 +29,7 @@
 
 #### Scenario: 项目关闭或路径无效
 - **WHEN** 指定项目不再打开或路径无法唯一匹配
-- **THEN** 返回明确的 `PROJECT_NOT_OPEN` 或 `INVALID_ARGUMENT`
+- **THEN** Doc View 已接收到的调用返回 `PROJECT_NOT_OPEN` 或 `INVALID_ARGUMENT`；若 IDEA 在路由到工具前拒绝，则保留宿主的 MCP 错误
 - **AND** 不以当前焦点窗口或同名项目代替
 
 ### Requirement: 只读查询使用磁盘快照
@@ -44,6 +44,11 @@
 - **WHEN** IDEA 处于 Dumb Mode 而磁盘文档库有效
 - **THEN** 搜索与详情继续读取已有快照并标注新鲜度
 - **AND** 生成请求返回 `INDEXING`，不等待无期限 PSI 扫描
+
+#### Scenario: 外部源码修改已经被 IDEA 刷新
+- **WHEN** 当前会话生成后，IDEA VFS 已观察到所属项目 Java/XML 输入的外部修改
+- **THEN** status/search/get 保持读取同一旧快照并报告 `stale`
+- **AND** 不因 Skill 查询自动调用 generate；用户明确更新后，成功提交的新快照可恢复为 `current`
 
 ### Requirement: 搜索与详情契约
 搜索 SHALL 遵循文档库的确定性关键字、过滤、分页和大小约束；结果包含模块、框架、完整签名、源码位置和文档路径。详情 SHALL 接收 API ID 与搜索返回的 snapshotId，返回同快照结构化字段及可选 Markdown，MUST 校验文件 hash 并拒绝混合版本。
@@ -72,12 +77,13 @@
 - **AND** 不绕过冲突保护或并行覆盖同一目录
 
 ### Requirement: 版本化 MCP 输出
-工具 SHALL 按 design 中的 JSON 契约返回版本化对象，而非直接序列化包含 PSI 或父引用的生产 DTO。输入参数错误 SHALL 与业务错误区分；业务失败 MUST NOT 返回成功正文。协议包装与磁盘索引 schema MUST 分开维护。
+工具 SHALL 按 design 中的 JSON 契约返回版本化对象，而非直接序列化包含 PSI 或父引用的生产 DTO。工具参数错误 SHALL 使用 `INVALID_ARGUMENT` 与其他业务错误区分；外层 JSON-RPC 格式错误由宿主处理；业务失败 MUST NOT 返回成功正文。协议包装与磁盘索引 schema MUST 分开维护。
 
 #### Scenario: 工具结果可解析
-- **WHEN** 客户端获得正常工具结果
+- **WHEN** 客户端获得由 Doc View handler 返回的工具结果
 - **THEN** MCP `content` 中的单个 Text 块为可按约定解析的 JSON，包含 schemaVersion、status、projectPath、snapshotId、freshness、hasUnsavedDocuments 和 data
 - **AND** 字段与手册、schema 和工具测试一致，不依赖任意 Java record 自动序列化
+- **AND** 调度前的宿主拒绝、协议错误或客户端取消可能不经过 handler，客户端不得把其文本错误强行当成 Doc View JSON envelope
 
 #### Scenario: 诊断路径数量超过展示上限
 - **WHEN** 生成或 partial 结果包含超过100个路径
@@ -90,7 +96,7 @@
 - **THEN** 返回 `RESULT_TOO_LARGE`，不静默截断字段或返回不完整 JSON
 
 ### Requirement: 取消与生命周期必须可观测
-系统 SHALL 将平台取消传播至查询、PSI 遍历与发布边界，限制每个项目最多一个生成任务与四个查询任务，并分别设置 5 秒与 120 秒服务端期限。项目关闭或扩展卸载 MUST 终止所属任务并释放资源；超时、退出和 turn 中断 MUST NOT 相互冒充。
+系统 SHALL 将平台取消传播至查询、PSI 遍历与发布边界，限制每个项目最多一个生成任务与四个查询任务，并分别设置 5 秒与 120 秒服务端期限。项目关闭或插件所属 IDE 正常退出/重启 MUST 终止所属任务并释放资源；本版 require-restart，不承诺原位扩展热卸载；超时、退出和 turn 中断 MUST NOT 相互冒充。
 
 #### Scenario: 提交前收到真正取消
 - **WHEN** 客户端取消信号到达仍在执行、尚未提交最终 index.json 的调用
@@ -108,9 +114,17 @@
 - **AND** 服务端仍以期限和生命周期限制资源，验收保持失败直到客户端复验通过
 
 ### Requirement: 生产准入与发布证据
-正式工具实现 SHALL 等待实际目标 Codex 客户端取消准入、精确 IDEA build 的生产升级回归及文档库 contract 通过。只读工具通过真实调用后才能开放生成工具；MUST NOT 以 schema 反射、源码补丁存在、官方 SDK 对照或文档校验替代目标客户端验收。
+正式工具实现 SHALL 基于已通过的目标 Codex 客户端取消准入、已发布精确 IDEA/Java 基线及文档库 contract。历史非 MCP 完整原生矩阵按维护者批准保留待验，不再阻止本轮 adapter 开发；MCP 自身的实际调用、取消/恢复和项目隔离必须单独验证。只读工具通过真实调用后才能开放生成工具；MUST NOT 以 schema 反射、源码补丁存在、官方 SDK 对照或文档校验替代目标客户端验收。
 
 #### Scenario: 当前取消仍失败
 - **WHEN** 当前 Codex/IDEA 组合仍未证明在途取消和同会话恢复
 - **THEN** 正式工具运行时实现保持 blocked，计划与不依赖 MCP 的文档库可继续
 - **AND** 保留生产最低版本、旧失败记录与 HTTP/UI 未验项
+
+### Requirement: 宿主绑定与参数边界
+系统 SHALL 在宿主会话已移除 `projectPath` 时，仅使用公开的已解析调用项目上下文补齐规范路径；显式参数与宿主项目不同 MUST 拒绝。公开 SDK 无法表达的额外字段约束 SHALL 在 adapter 内严格执行，不依赖客户端自律。
+
+#### Scenario: 无法解析错误请求的项目
+- **WHEN** projectPath 缺失、类型错误或超过输入上限，且没有有效的宿主绑定
+- **THEN** 返回 INVALID_ARGUMENT 错误，projectPath 为 null
+- **AND** 不猜测项目，不返回空路径或回显超长参数

@@ -1,0 +1,5 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <mcpServer.mcpToolsProvider implementation="com.liuzhihang.doc.view.integration.mcp.DocViewMcpToolsProvider"/>
+    </extensions>
+</idea-plugin>

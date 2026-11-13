@@ -23,6 +23,8 @@
 | `service` | Spring/Dubbo 文档构建、写入和上传服务 |
 | `service/export` | 项目接口快照、稳定身份、共享生成服务及受管理 Markdown/JSON 文件发布 |
 | `service/document` | PSI-free 结构化详情、格式 v1、项目索引查询、缓存与读写协调 |
+| `service/mcp`、`integration/mcp` | 开发候选的共享文档工具契约、可选IDEA MCP provider与取消/项目边界 |
+| `service/skill` | 开发候选的固定发行源、范围解析、校验、安装metadata、可恢复文件事务与Codex发现 |
 | `ui` | Swing form、预览、参数编辑和 tool window |
 | `utils` | PSI、Velocity、HTTP、导出、文件和对话框工具 |
 
@@ -74,9 +76,9 @@
 
 项目导出身份包含模块名、项目相对源码路径、FQN 和完整方法签名，不包含行号或业务标题。它使用固定的 `docs/doc-view/`，不新增自定义 IDE 索引。Markdown 所有权 marker、JSON envelope 和内容 hash 防止接管未标记或手改文件；同进程读写锁与 `.doc-view.lock` 跨进程 writer 锁协调访问。所有输出暂存后逐文件原子替换；最终索引提交前的取消或失败可能留下部分已发布页面，按报告核对后重试，不能描述为跨文件事务。跨进程读者使用单次捕获的不可变索引字节，并校验所读取页面与该索引的 hash；旧摘要仍可查询，已被替换且 hash 不符的详情拒绝读取，不保证旧快照的页面始终可用。
 
-开发中的项目文档服务同时落盘人读 Markdown、JSON 摘要索引及接口详情，并提供文档搜索和打开 UI；实现与验收由 [`project-document-store`](../openspec/changes/project-document-store/tasks.md) 跟踪，尚未发布。三种输出共用一次 PSI-free 快照。缓存仅保留不可变索引；首次加载/重开为 unknown，本会话生成后未观察到输入变化时为 current，观察到变化后为 stale。清缓存不删除文档，也不清除本会话新鲜度依据。这不等同于 `FileBasedIndex` 或语义索引。
+1.6.x项目文档服务同时落盘人读 Markdown、JSON 摘要索引及接口详情，并提供文档搜索和打开 UI；实现与验收由 [`project-document-store`](../openspec/changes/project-document-store/tasks.md) 跟踪，仍保留未完成的原生验收。三种输出共用一次 PSI-free 快照。缓存仅保留不可变索引；首次加载/重开为 unknown，本会话生成后未观察到输入变化时为 current，观察到变化后为 stale。清缓存不删除文档，也不清除本会话新鲜度依据。这不等同于 `FileBasedIndex` 或语义索引。
 
-正式 MCP 也尚未注册在生产插件。计划由 [`doc-view-mcp-tools`](../openspec/changes/doc-view-mcp-tools/proposal.md) 在同一个 Doc View 插件中声明可选 provider，注册到 IDEA 自带 MCP Server，并复用文档库服务：`doc_view_status`、`doc_view_search`、`doc_view_get` 只读，`doc_view_generate` 仅在显式请求时生成或更新文件。MCP 取消和 263 生产基线仍有前置验收门槛，见[取消说明](mcp-cancellation.md)与[路线图](roadmap.md)。客户端 Skill 由 [`doc-view-client-skill`](../openspec/changes/doc-view-client-skill/proposal.md) 规划为另一种分发物，调用这些 MCP 工具，不另建服务或搬移 Java/PSI 解析；当前尚无正式可安装包，操作状态见[MCP 使用说明](user-guide/mcp.md)。
+1.7.0待发布源码已加入内置MCP adapter，由 [`doc-view-mcp-tools`](../openspec/changes/doc-view-mcp-tools/proposal.md) 在同一个 Doc View 插件中声明可选 provider，注册到 IDEA 自带 MCP Server，并复用文档库服务：`doc_view_status`、`doc_view_search`、`doc_view_get` 只读，`doc_view_generate` 仅在显式请求时生成或更新文件。两个精确263 build的构建/Verifier、最低build可选加载与真实Codex取消已验证，完整生命周期矩阵仍有未覆盖项，见[取消说明](mcp-cancellation.md)与[路线图](roadmap.md)。客户端 Skill 由 [`doc-view-client-skill`](../openspec/changes/doc-view-client-skill/proposal.md) 维护为另一种分发物，调用这些 MCP 工具，不另建服务或搬移 Java/PSI 解析；当前尚无正式可安装包，操作状态见[MCP 使用说明](user-guide/mcp.md)。
 
 平台 HTTP 仍使用现有 Apache 客户端，每次请求和响应使用 closeable 资源，连接/连接池等待10秒、socket读取30秒，不自动重试或跳转。facade负责有效响应判断；语雀只有HTTP404表示未找到。service保留平台级脱敏通知，透传取消；项目凭据与运行数据不进入异常正文。
 
