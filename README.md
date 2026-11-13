@@ -55,7 +55,7 @@ Apply / OK 保存，Revert changes 恢复已保存值，Cancel 放弃未应用�
 - 从 1.4.0 之前升级，请重新录入平台凭据；新版使用 PasswordSafe，不读取旧 XML 密钥，见[凭据说明](docs/user-guide/integrations.md#token-与本地保存)。
 - OpenAPI 3 必填使用 `Schema.requiredMode`，详见[生成规则](docs/user-guide/settings.md#必填)。
 - 项目文档输出至 `docs/doc-view/`，包含 Markdown 与 JSON 快照。源码变化后需显式更新；手改冲突会中止导出，不自动合并。
-- 1.7 系列加入内置 MCP 工具和 Codex Skill 安装设置；Skill 自动安装目前支持 macOS Apple Silicon 与 Codex 0.167.0-alpha.4.1。1.6.x 不包含这些功能。1.7.0 原生验收发现恢复入口缺陷，已标为预发布，修复进度见[1.7.1 发布记录](docs/release-1.7.1.md)；使用方式见[MCP 说明](docs/user-guide/mcp.md)。
+- 1.7.1 已在 GitHub 正式发布，包含插件内置 MCP 工具与 Codex Skill 当前项目/全局安装、更新。两范围官方 1.7.0→1.7.1 更新与 Codex 发现已通过。写入与发现目前仅验证 macOS Apple Silicon、Codex 0.167.0-alpha.4.1；设置页 Working 时关闭窗口取消已通过，精确下载/暂存时点取消和完整生命周期仍未覆盖。Marketplace 状态见[1.7.1 发布记录](docs/release-1.7.1.md)，功能说明见[MCP 指南](docs/user-guide/mcp.md)。
 - 遇到菜单、模板或导出问题，查看[故障排查](docs/user-guide/troubleshooting.md)。阅读旧版本文档请切换到对应 [Git tag](https://github.com/liuzhihang/doc-view/tags)。
 
 </details>
