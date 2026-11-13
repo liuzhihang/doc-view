@@ -26,7 +26,7 @@ public final class CodexSkillInstallService {
     private static final Path VERIFIED_CHATGPT_CLI = Path.of(
             "/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex");
     private static final String NO_RELEASE_MESSAGE =
-            "No compatible stable Doc View Skill release is available. No Skill files were changed.";
+            "No compatible stable Doc View Skill release is available. The existing version was preserved.";
 
     private final Project project;
     private final CodexClientProbe clientProbe = new CodexClientProbe();
@@ -149,12 +149,6 @@ public final class CodexSkillInstallService {
             Instant previousSuccessfulCheck = new SkillLastCheckStore(store.lastCheckFile()).read().orElse(null);
             setLastSuccessfulCheckAt(scope, previousSuccessfulCheck);
             SkillInstallMetadataStore.rejectPathLinks(store.journalFile());
-            if (Files.exists(store.journalFile(), LinkOption.NOFOLLOW_LINKS)) {
-                SkillInstallMetadataStore.rejectSymlink(store.journalFile());
-                return publish(new CodexSkillStatus(CodexSkillStatus.State.RECOVERY_PENDING,
-                        "A previous Skill file transaction needs recovery. Run Install or Update to restore its last complete state.",
-                        "", target, "", "", true, true, scope));
-            }
             clientVersion = clientProbe.version(codexExecutable, projectRoot, indicator);
             if (!VERIFIED_CLIENT_VERSION.equals(clientVersion)) {
                 return publish(new CodexSkillStatus(CodexSkillStatus.State.CLIENT_UNSUPPORTED,
@@ -162,6 +156,12 @@ public final class CodexSkillInstallService {
                         clientVersion, target, "", "", false, false, scope));
             }
             indicator.checkCanceled();
+            if (Files.exists(store.journalFile(), LinkOption.NOFOLLOW_LINKS)) {
+                SkillInstallMetadataStore.rejectSymlink(store.journalFile());
+                return publish(new CodexSkillStatus(CodexSkillStatus.State.RECOVERY_PENDING,
+                        "A previous Skill file transaction needs recovery. Run Install or Update to restore its last complete state.",
+                        clientVersion, target, "", "", true, true, scope));
+            }
             SkillInstallMetadata metadata = null;
             try {
                 metadata = store.read().orElse(null);
@@ -209,7 +209,7 @@ public final class CodexSkillInstallService {
             } catch (GitHubSkillReleaseSource.OfflineException unavailable) {
                 setCandidate(scope, null);
                 return publish(new CodexSkillStatus(CodexSkillStatus.State.OFFLINE,
-                        "Could not check the official Doc View release. Existing Skill files were not changed.",
+                        "Could not check the official Doc View release. The existing Skill version was preserved.",
                         clientVersion, target, metadata == null ? "" : metadata.skillVersion(),
                         status(scope).availableVersion(), false, false, scope));
             } catch (IOException rejectedRelease) {
@@ -290,27 +290,39 @@ public final class CodexSkillInstallService {
                     "", displayTarget, "", "", false, false, scope));
             return new CodexSkillOperationResult(unsupported, false);
         }
+        boolean recovered = false;
         try {
             Path projectRoot = validatedProjectRoot();
             CodexSkillTarget resolved = resolveTarget(scope);
             Path ownerRoot = resolved.ownerRoot();
             Path target = resolved.targetPath();
             SkillInstallMetadataStore store = metadataStore(ownerRoot, scope);
-            if (!SkillInstallTransaction.recoverPending(ownerRoot, target, store)) {
-                return new CodexSkillOperationResult(publish(new CodexSkillStatus(
-                        CodexSkillStatus.State.RECOVERY_PENDING,
-                        "A previous Skill transaction could not be safely recovered; no further changes were made.",
-                        "", target, "", "", false, false, scope)), true);
-            }
             CodexSkillStatus status = checkForUpdates(scope, codexExecutable, indicator);
+            if (status.state() == CodexSkillStatus.State.RECOVERY_PENDING && status.canUpdate()) {
+                indicator.checkCanceled();
+                if (!SkillInstallTransaction.recoverPending(ownerRoot, target, store)) {
+                    return new CodexSkillOperationResult(publish(new CodexSkillStatus(
+                            CodexSkillStatus.State.RECOVERY_PENDING,
+                            "A previous Skill transaction could not be safely recovered; no further changes were made.",
+                            status.clientVersion(), target, "", "", false, false, scope)), true);
+                }
+                recovered = true;
+                status = checkForUpdates(scope, codexExecutable, indicator);
+            }
             if (update ? !status.canUpdate() : !status.canInstall()) {
-                return new CodexSkillOperationResult(status, false);
+                if (recovered) {
+                    status = publish(new CodexSkillStatus(status.state(),
+                            "Previous Skill installation restored. " + status.message(), status.clientVersion(),
+                            status.targetPath(), status.installedVersion(), status.availableVersion(),
+                            status.canInstall(), status.canUpdate(), status.scope(), status.lastSuccessfulCheckAt()));
+                }
+                return new CodexSkillOperationResult(status, recovered);
             }
             SkillReleaseSource.Candidate candidate = candidate(scope);
             if (candidate == null || !candidate.manifest().skillVersion().equals(status.availableVersion())) {
                 return new CodexSkillOperationResult(publish(new CodexSkillStatus(CodexSkillStatus.State.ERROR,
                         "The checked Skill release is no longer available. Check for updates again.",
-                        status.clientVersion(), target, status.installedVersion(), status.availableVersion(), false, false, scope)), false);
+                        status.clientVersion(), target, status.installedVersion(), status.availableVersion(), false, false, scope)), recovered);
             }
             byte[] archive = releaseSource.downloadArchive(candidate, indicator);
             Map<String, byte[]> files = SkillPackageArchive.validate(archive, candidate.manifest());
@@ -324,22 +336,23 @@ public final class CodexSkillInstallService {
                 CodexSkillStatus pending = publish(new CodexSkillStatus(CodexSkillStatus.State.RECOVERY_PENDING,
                         "The install reached a recoverable file state that needs another recovery attempt.",
                         status.clientVersion(), target, status.installedVersion(), status.availableVersion(), false, false, scope));
-                return new CodexSkillOperationResult(pending, outcome.filesChanged());
+                return new CodexSkillOperationResult(pending, recovered || outcome.filesChanged());
             }
             CodexSkillStatus complete = publish(new CodexSkillStatus(CodexSkillStatus.State.CURRENT,
                     "Doc View Skill " + candidate.manifest().skillVersion() + " is installed and discovered by Codex.",
                     status.clientVersion(), target, candidate.manifest().skillVersion(), candidate.manifest().skillVersion(),
                     false, false, scope));
-            return new CodexSkillOperationResult(complete, outcome.filesChanged(), outcome.committed());
+            return new CodexSkillOperationResult(complete, recovered || outcome.filesChanged(), outcome.committed());
         } catch (ProcessCanceledException cancelled) {
             throw cancelled;
         } catch (GitHubSkillReleaseSource.OfflineException unavailable) {
             CodexSkillStatus previous = status(scope);
             CodexSkillStatus status = publish(new CodexSkillStatus(CodexSkillStatus.State.OFFLINE,
-                    "Could not download the official Skill archive. The installed files were not changed.",
+                    (recovered ? "Previous Skill installation restored. " : "")
+                            + "Could not download the official Skill archive. The existing version was preserved.",
                     previous.clientVersion(), previous.targetPath(), previous.installedVersion(),
                     previous.availableVersion(), false, false, scope));
-            return new CodexSkillOperationResult(status, false);
+            return new CodexSkillOperationResult(status, recovered);
         } catch (SkillInstallTransaction.RecoveryPendingException pending) {
             CodexSkillStatus status = publish(new CodexSkillStatus(CodexSkillStatus.State.RECOVERY_PENDING,
                     safeMessage(pending), "", displayTarget, "", "", true, true, scope));
@@ -348,7 +361,7 @@ public final class CodexSkillInstallService {
             if (failure instanceof ProcessCanceledException cancelled) throw cancelled;
             CodexSkillStatus status = publish(new CodexSkillStatus(CodexSkillStatus.State.ERROR,
                     safeMessage(failure), "", displayTarget, "", "", false, false, scope));
-            return new CodexSkillOperationResult(status, false);
+            return new CodexSkillOperationResult(status, recovered);
         }
     }
 
@@ -437,7 +450,7 @@ public final class CodexSkillInstallService {
 
     private static String safeMessage(Throwable failure) {
         String message = failure.getMessage();
-        return message == null || message.isBlank() ? "Codex Skill check failed. No Skill files were changed." : message;
+        return message == null || message.isBlank() ? "Codex Skill operation failed." : message;
     }
 
     private static final class UnsupportedProjectException extends IOException {

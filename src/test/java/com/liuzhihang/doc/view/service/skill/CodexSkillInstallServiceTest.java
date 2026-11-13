@@ -72,6 +72,106 @@ public final class CodexSkillInstallServiceTest extends LightJavaCodeInsightFixt
         assertNotEquals("Project and User scopes must not collapse to the same target", target, userTarget);
     }
 
+    public void testPendingRecoveryRetainsVerifiedClientIdentityWithoutNetworkOrWrites() throws Exception {
+        assertPendingRecoveryClientGate(false);
+    }
+
+    public void testPendingRecoveryDoesNotEnableAnUnsupportedClient() throws Exception {
+        assertPendingRecoveryClientGate(true);
+    }
+
+    public void testUpdateDoesNotRecoverWithAnUnsupportedClient() throws Exception {
+        assertRecoveryUpdateClientGate(true);
+    }
+
+    public void testUpdateReportsLocalRecoveryEvenWhenReleaseCheckIsOffline() throws Exception {
+        assertRecoveryUpdateClientGate(false);
+    }
+
+    private void assertRecoveryUpdateClientGate(boolean unsupported) throws Exception {
+        Assume.assumeTrue(CodexClientProbe.isVerifiedHost());
+        Path root = tempDir("project-recovery-update").toRealPath();
+        Path target = root.resolve(".agents/skills/doc-view");
+        Path metadataRoot = tempDir("metadata-recovery-update").toRealPath();
+        SkillInstallMetadataStore store = new SkillInstallMetadataStore(root, CodexSkillScope.PROJECT, metadataRoot);
+        byte[] oldBytes = "---\nname: doc-view\n---\nprevious complete version\n".getBytes(StandardCharsets.UTF_8);
+        SkillFixtureFactory.Fixture old = SkillFixtureFactory.fixture("1.7.0", Map.of("SKILL.md", oldBytes));
+        Files.createDirectories(target);
+        Files.write(target.resolve("SKILL.md"), oldBytes);
+        store.write(SkillInstallMetadata.from(CodexSkillScope.PROJECT, old.manifest(),
+                CodexSkillInstallService.VERIFIED_CLIENT_VERSION, target.toString(), Instant.EPOCH));
+        byte[] oldMetadata = Files.readAllBytes(store.metadataFile());
+        SkillFixtureFactory.Fixture newer = SkillFixtureFactory.fixture("1.7.1", Map.of("SKILL.md", "new fixture".getBytes(StandardCharsets.UTF_8)));
+        try {
+            new SkillInstallTransaction(CodexSkillScope.PROJECT, root, target, store, newer.manifest(), newer.files(),
+                    CodexSkillInstallService.VERIFIED_CLIENT_VERSION, "1.7.1", new EmptyProgressIndicator(),
+                    (path, progress) -> true, phase -> {
+                        if (phase == SkillInstallTransaction.Phase.OLD_BACKED_UP) throw new AssertionError("simulated termination");
+                    }).execute();
+            fail("The fixture must stop after backing up the old directory");
+        } catch (AssertionError expected) {
+            assertEquals("simulated termination", expected.getMessage());
+        }
+        assertFalse(Files.exists(target));
+        byte[] journal = Files.readAllBytes(store.journalFile());
+        Path cli = fakeCodexExecutable();
+        if (unsupported) Files.writeString(cli, "#!/bin/sh\nprintf '%s\\n' 'codex-cli 0.0.0'\n");
+        CodexSkillInstallService service = new CodexSkillInstallService(projectAt(root),
+                source(Optional.empty(), new GitHubSkillReleaseSource.OfflineException("fixture offline")), metadataRoot);
+        CodexSkillOperationResult result = inBackground(() -> service.update(
+                CodexSkillScope.PROJECT, cli, new EmptyProgressIndicator()));
+        assertFalse(result.committed());
+        if (unsupported) {
+            assertEquals(CodexSkillStatus.State.CLIENT_UNSUPPORTED, result.status().state());
+            assertFalse(result.changedFiles());
+            assertFalse("Unsupported clients must leave the interrupted tree untouched", Files.exists(target));
+            assertArrayEquals(journal, Files.readAllBytes(store.journalFile()));
+        } else {
+            assertEquals(CodexSkillStatus.State.OFFLINE, result.status().state());
+            assertTrue("Recovery is an actual local file change even when the later network check fails", result.changedFiles());
+            assertTrue(result.status().message().contains("restored"));
+            assertArrayEquals(oldBytes, Files.readAllBytes(target.resolve("SKILL.md")));
+            assertFalse(Files.exists(store.journalFile()));
+        }
+        assertArrayEquals(oldMetadata, Files.readAllBytes(store.metadataFile()));
+    }
+
+    private void assertPendingRecoveryClientGate(boolean unsupported) throws Exception {
+        Assume.assumeTrue(CodexClientProbe.isVerifiedHost());
+        Path root = tempDir("project-pending-recovery").toRealPath();
+        Path metadataRoot = tempDir("metadata-pending-recovery").toRealPath();
+        SkillInstallMetadataStore store = new SkillInstallMetadataStore(root, CodexSkillScope.PROJECT, metadataRoot);
+        Files.createDirectories(store.directory());
+        byte[] journal = "pending fixture; inspection must not recover or parse it".getBytes(StandardCharsets.UTF_8);
+        Files.write(store.journalFile(), journal);
+        Path cli = fakeCodexExecutable();
+        if (unsupported) {
+            Files.writeString(cli, "#!/bin/sh\nprintf '%s\\n' 'codex-cli 0.0.0'\n");
+        }
+        SkillReleaseSource noNetwork = new SkillReleaseSource() {
+            @Override public Optional<Candidate> latest(com.intellij.openapi.progress.ProgressIndicator indicator) {
+                throw new AssertionError("Pending recovery must not query the network");
+            }
+            @Override public byte[] downloadArchive(Candidate candidate, com.intellij.openapi.progress.ProgressIndicator indicator) {
+                throw new AssertionError("Pending recovery must not download an archive");
+            }
+        };
+        CodexSkillInstallService service = new CodexSkillInstallService(projectAt(root), noNetwork, metadataRoot);
+        CodexSkillStatus status = inBackground(() -> service.checkForUpdates(
+                CodexSkillScope.PROJECT, cli, new EmptyProgressIndicator()));
+        assertEquals("Unexpected recovery check status: " + status,
+                unsupported ? CodexSkillStatus.State.CLIENT_UNSUPPORTED : CodexSkillStatus.State.RECOVERY_PENDING,
+                status.state());
+        assertEquals(unsupported ? "codex-cli 0.0.0" : CodexSkillInstallService.VERIFIED_CLIENT_VERSION,
+                status.clientVersion());
+        assertEquals(!unsupported, status.canUpdate());
+        assertArrayEquals(journal, Files.readAllBytes(store.journalFile()));
+        assertFalse(Files.exists(root.resolve(".agents")));
+        assertFalse(Files.exists(store.metadataFile()));
+        assertFalse(Files.exists(store.lockFile()));
+        assertFalse(Files.exists(store.lastCheckFile()));
+    }
+
     public void testOfflineCheckPreservesManagedSkillAndMetadataBytes() throws Exception {
         Assume.assumeTrue("Codex Skill lifecycle is currently verified on macOS Apple Silicon",
                 CodexClientProbe.isVerifiedHost());

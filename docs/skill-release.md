@@ -74,3 +74,7 @@ env \
 ## 正式发布边界
 
 Skill正式发布还依赖`doc-view-mcp-tools`的发布范围取消与项目生命周期验收，以及正式包的Project/Global安装、更新、取消和故障恢复。完成本地archive构建、注入测试源验收或`skills/list`发现，均不能单独解除这些门槛。GitHub Release上传和版本发布须经独立发布授权及完整[发布检查清单](release-checklist.md)核对。
+
+## 1.7.0 GitHub 预发布资产
+
+[GitHub v1.7.0](https://github.com/liuzhihang/doc-view/releases/tag/v1.7.0) 保留插件 ZIP、Skill ZIP 和 manifest，绑定源码 commit `1612cdc3ac62323c04fca0301843a0a0be5e8f0c`。ZIP 正文与前述本地候选相同；GitHub 资产字节已回读。Release 目前标记为 prerelease 且非 Latest，生产下载器只读取稳定版，因此不会将它作为可安装的最新 Skill。manifest 指纹为 `sha256:400aacb3bc373117e01288d995be7969d3e962c2ace58880a4a1775752ec2a17`，SHA-256 为 `d1d1865697720f25c0069adb080fa6b889ed986dedbe0d4133ae0a63a070d17b`。IDEA 原生安装、更新及恢复状态见[1.7.0验收记录](release-1.7.0.md)和[1.7.1补丁记录](release-1.7.1.md)。

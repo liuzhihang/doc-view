@@ -51,3 +51,5 @@
 2026-11-13 最终回归：549项全量复验0失败/错误/跳过。首轮中新增VFS create 测试因夹具未预加载目录 children 而未观察到 create event；保留该失败记录，修正测试夹具后 `ProjectDocumentIndexServiceTest` 20项定向检查通过，随后549项全量复验通过。该失败是测试夹具准备问题，不作为生产缺陷证据。准确记录位于 `build/mcp-release-gates-2026-11-13/final-549-r1-test-results/`、`final-549-test-results/` 与 `final-549-counts.json`。这些结果针对已验收的 `1.7.0-SNAPSHOT` 候选；正式 `1.7.0` 包的后续结果见下一段。
 
 正式 `1.7.0` 元数据重建首轮有一个测试断言仍硬编码 `SNAPSHOT`；测试现已改为读取 `gradle.properties` 版本，第二轮549项、构建/配置检查及两build Verifier均通过；快照候选的历史证据保持独立。正式官方Skill来源与按钮验收仍未完成，不整体勾选6.4。
+
+2026-11-13 正式来源原生验收：1.7.0 的项目/全局首次安装均已从官方 GitHub 下载并由真实 Codex 发现；随后的离线检查保持文件原样。重启注入未完成 journal 后发现恢复状态丢失已验证客户端身份，导致设置页 Update 按钮禁用。1.7.0 已标为 GitHub 预发布且未提交 Marketplace；1.7.1 修复该入口，新增两个回归测试先失败再通过，service/settings 19项定向检查通过。完整补丁构建、原生恢复及更新/取消仍须分别记录，不能据此整体勾选4.3/5.3/6.4。
