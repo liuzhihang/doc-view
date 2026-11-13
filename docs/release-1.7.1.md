@@ -1,6 +1,6 @@
-# 1.7.1 补丁发布准备
+# 1.7.1 发布与验收记录
 
-状态：**补丁构建与恢复准入通过，准备发布官方资产；尚未提交Marketplace。** 本补丁修复 1.7.0 正式包暴露的 Skill 安装事务恢复入口问题。GitHub 上的 v1.7.0 已设为 prerelease 且非 Latest，Marketplace 尚未提交；官方来源的更新/取消仍需资产上线后补验。
+状态（2026-11-13）：**[GitHub v1.7.1](https://github.com/liuzhihang/doc-view/releases/tag/v1.7.1) 已正式发布；Marketplace 已接收 update `1219746`，`approve=false`、`listed=false`，等待审核上架。** 当前项目和隔离全局范围均完成官方 1.7.0→1.7.1 更新、进行中取消后重试、用户修改保护及重启 journal 恢复。GitHub v1.7.0 保留原 tag/附件，已标为 prerelease 且非 Latest；1.7.0 未提交 Marketplace。
 
 ## 变更范围
 
@@ -32,15 +32,38 @@
 | 1.7.1 最终正式包全量测试、配置与构建 | 553项通过，0失败/错误/跳过 | 显式启用真实Codex与子JVM套件；17个Gradle任务均实际执行 |
 | 1.7.1 Plugin Verifier | 两build通过 | IU263.7031.23 / 263.7307.200均Compatible，各16项既有Experimental；无Internal/Deprecated/Override-only/兼容性问题 |
 | 1.7.1 原生注入 journal、重启、Project/Global 恢复 | 两范围通过 | 最终ZIP实际按钮可用，旧Skill/metadata原字节恢复，所有事务残留清理；无稳定版提示已纠正 |
-| GitHub 稳定 Release 与 Marketplace | 未提交 | 保持等待补丁门禁 |
+| 1.7.1 官方更新、Codex 发现与范围隔离 | 两范围通过 | 生产安装器下载官方资产，另一范围文件与 metadata 不变 |
+| 1.7.1 进行中取消、重试及用户修改保护 | 两范围通过 | 原生 Working 状态关闭设置；旧文件不变，重试成功；不推断具体下载/暂存时点 |
+| GitHub 稳定 Release | 已发布并回读 | tag commit、四个附件及 SHA 核对一致 |
+| Marketplace | 已提交，待审核 | update 1219746；approve=false、listed=false |
 
 子 JVM 的进程强制退出恢复、16 项文件事务服务测试与6次子进程故障恢复，是独立的自动化证据；它们不能覆盖 1.7.0 原生 UI 恢复失败。
 
-## 下一步
+## 正式来源的原生闭环
 
-在隔离工作区完成 1.7.1 正式包构建、全量测试、配置验证及两个目标 IDEA build 的 Plugin Verifier。随后使用相同隔离 project/home 重验项目和全局范围：先注入可恢复 journal 并重启 IDEA，再确认恢复操作启用；点击后确认旧目标/metadata 恢复、stage/backup/journal 清理，之后再处理官方检查。更新源遭限流时明确保留该项为未验证，不影响已读取的本地恢复结果。
+最终 ZIP 在 IU `263.7307.200`、macOS Apple Silicon、`codex-cli 0.167.0-alpha.4.1` 上使用未修改的生产 GitHub 下载器测试。Project 位于虚构项目，Global 位于隔离 HOME；没有安装到用户真实全局 Skill 目录。
 
-修复门禁通过后，再更新版本 release 文档，冻结新 ZIP/Skill 资产及 SHA，并按既有发布授权流程提交 GitHub stable Release 和 Marketplace。不得移动或覆盖 v1.7.0 tag；保留其 prerelease 状态和失败记录。
+两范围分别检查到官方 1.7.1，点击更新并观察到 Working 状态和按钮禁用后，点击设置页 Cancel。两范围旧 Skill 与 metadata 均逐字节不变，没有 journal/stage/backup 残留。重新打开、检查并重试后，两个范围均显示 1.7.1 已安装并由 Codex 发现；metadata 绑定正式 tag commit。没有观察下载或暂存的精确阶段，因此只记录“更新操作进行中取消”。
+
+项目更新后，全局的 1.7.0 文件保持原样；全局更新后，项目的 1.7.1 文件保持原样。分别修改两范围 Skill 测试文件后，检查更新显示修改冲突并禁用更新，保留修改内容与原 metadata；验收结束恢复测试文件。最终无事务残留，隔离 IDEA 正常退出，本阶段 MCP Server 未启用。
+
+首次原生安装证据属于 1.7.0；最终 1.7.1 包的上述证据属于真实升级，不能宣称重新验证了 1.7.1 空目录首次安装。机器记录位于 `build/mcp-release-gates-2026-11-13/formal-native/official-update-summary.json`，对应两范围取消、更新、修改保护的独立 JSON 和 `final-recovery-summary.json`。
+
+## GitHub 与 Marketplace
+
+源码经 [PR #130](https://github.com/liuzhihang/doc-view/pull/130) 进入 develop，再经 [PR #131](https://github.com/liuzhihang/doc-view/pull/131) 进入 master。`v1.7.1` 精确指向 `0894d9e427827a49eb3e2142bc674c8a5941fc83`，发布 tree 与已验收源码一致。GitHub Release `444147029` 于 2026-11-13 11:27:37 UTC 公开，非 draft/prerelease，作为 Latest；四个附件均重新下载并核对字节。
+
+| 资产 | SHA-256 |
+| --- | --- |
+| `Doc.View-1.7.1.zip` | `6183ec072f8ebc213003a8e1cf061279ed066093d384f183760e9d94074b57d5` |
+| `doc-view-skill-1.7.1.zip` | `f0f50211f7492167f99f391d0e740c4880bf69146d2989d6342b6267333955f9` |
+| `doc-view-skill-1.7.1.manifest.json` | `6292b59596c11394c00374da20c12e7c3db76e6e62511ce6deb22b21d7da9828` |
+
+Skill manifest 绑定同一 tag commit、contract version 1、指纹 `sha256:400aacb3bc373117e01288d995be7969d3e962c2ace58880a4a1775752ec2a17`，插件范围 `[1.7.1, 2.0.0)`。ZIP 只包含 Skill 文档，不包含凭据或客户端 MCP 连接配置。
+
+Marketplace 上传直接使用从 GitHub 回读且 SHA 匹配的最终 ZIP，未重新构建；`publishPlugin` 成功，所有者接口读回 update `1219746`，版本 1.7.1、最低 build 263.7031.23、稳定 channel。审核及列出状态仍为 false，不能描述为已上架；公开列表当前仍为 1.6.2。证据见 `patch-1.7.1/marketplace-owner-readback.json` 和 `build/release-readiness-2026-11-13/patch-marketplace-publish.{json,log}`。
+
+Marketplace 重新封装后的 ZIP SHA-256 为 `1f9f9e00281b0687673ce3ff16b44e7a656b8e3c273ed91c57ea6180b656771c`，与上传 ZIP 的外层字节不同；逐个非目录 entry 比较全部相同，内部插件 JAR 仍为 `5117df66d76e6eac89793de4b6686a8645227d0e5c5cbd8947ce2d3c8e9462a6`。下载 descriptor 的版本、最低 build、require-restart 及 Marketplace 更新说明均匹配。读回记录：`patch-1.7.1/marketplace-artifact-readback.json`。
 
 ## 最终包与失败保留
 
@@ -50,4 +73,12 @@
 
 首轮补丁原生两范围均已恢复原Skill/metadata字节并清理事务残留，但无稳定Release状态仍误写“未修改文件”；已修正文案，以上最终包重新验收。恢复完成后、第二次客户端检查期间取消的精细提示尚未原生验证，保留为未覆盖项。
 
-最终包已在263.7307.200原生重启并完成两范围恢复：检查返回待恢复且Update启用，明确点击后旧Skill和metadata逐字节恢复；两范围journal/stage/backup/metadata备份均清理。GitHub 1.7.0已为预发布，随后检查准确显示“无兼容稳定版，保留现有版本”，详情明确已恢复旧安装。首次正式安装证据仍属于1.7.0，不能冒充本补丁的官方更新/取消验收。文件与状态证据见 `formal-native/final-recovery-summary.json`。原工作区584个文件哈希、HEAD和porcelain状态核对不变。
+最终包已在263.7307.200原生重启并完成两范围恢复：检查返回待恢复且Update启用，明确点击后旧Skill和metadata逐字节恢复；两范围journal/stage/backup/metadata备份均清理。当时GitHub 1.7.0已为预发布、1.7.1尚未公开，随后检查准确显示“无兼容稳定版，保留现有版本”，详情明确已恢复旧安装。此恢复结果与后续官方更新/取消证据分别记录。原工作区584个文件哈希、HEAD和porcelain状态核对不变，Junie未操作。
+
+## 保留的边界与后续
+
+- 两个精确 IDEA build 的 Verifier 各保留16项既有 Experimental API 提示；没有承诺未来 build。Skill 自动写入目前只准入上述 macOS Apple Silicon 与精确 Codex build。
+- 原生 journal 由测试夹具注入，不等于真实 IDEA 崩溃留下的事务；独立子 JVM 的强制退出恢复已另行自动验证。
+- 具体下载/暂存阶段取消、恢复完成后第二次客户端检查期间取消的提示、最终文档索引提交后迟到取消等精确时点未全部原生覆盖。历史完整 HTTP/UI、中文/浅色/键盘组合和全部生命周期矩阵仍未重跑；保留 OpenSpec 未完成任务，不批量归档。
+- MCP 最低 build 查询、Dumb Mode、可选加载及真实 Codex 取消证据沿用本系列对应候选记录；1.7.1 未改变 MCP 适配实现，不将这些历史记录改称全部在补丁包重跑。
+- 安装、更新及停用需重启 IDEA；不承诺热卸载。Marketplace 仍需审核，审核完成前可从 GitHub 下载最终 ZIP 手动安装。若发现阻断性回归，停止推广并发布修复；1.6.2 可作为不含 MCP/Skill 的回退版本，不保证反向配置迁移。

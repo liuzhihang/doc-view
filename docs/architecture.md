@@ -23,8 +23,8 @@
 | `service` | Spring/Dubbo 文档构建、写入和上传服务 |
 | `service/export` | 项目接口快照、稳定身份、共享生成服务及受管理 Markdown/JSON 文件发布 |
 | `service/document` | PSI-free 结构化详情、格式 v1、项目索引查询、缓存与读写协调 |
-| `service/mcp`、`integration/mcp` | 开发候选的共享文档工具契约、可选IDEA MCP provider与取消/项目边界 |
-| `service/skill` | 开发候选的固定发行源、范围解析、校验、安装metadata、可恢复文件事务与Codex发现 |
+| `service/mcp`、`integration/mcp` | 共享文档工具契约、可选 IDEA MCP provider 与取消/项目边界 |
+| `service/skill` | 固定发行源、范围解析、校验、安装 metadata、可恢复文件事务与 Codex 发现 |
 | `ui` | Swing form、预览、参数编辑和 tool window |
 | `utils` | PSI、Velocity、HTTP、导出、文件和对话框工具 |
 
@@ -78,7 +78,7 @@
 
 1.6.x项目文档服务同时落盘人读 Markdown、JSON 摘要索引及接口详情，并提供文档搜索和打开 UI；实现与验收由 [`project-document-store`](../openspec/changes/project-document-store/tasks.md) 跟踪，仍保留未完成的原生验收。三种输出共用一次 PSI-free 快照。缓存仅保留不可变索引；首次加载/重开为 unknown，本会话生成后未观察到输入变化时为 current，观察到变化后为 stale。清缓存不删除文档，也不清除本会话新鲜度依据。这不等同于 `FileBasedIndex` 或语义索引。
 
-1.7.0待发布源码已加入内置MCP adapter，由 [`doc-view-mcp-tools`](../openspec/changes/doc-view-mcp-tools/proposal.md) 在同一个 Doc View 插件中声明可选 provider，注册到 IDEA 自带 MCP Server，并复用文档库服务：`doc_view_status`、`doc_view_search`、`doc_view_get` 只读，`doc_view_generate` 仅在显式请求时生成或更新文件。两个精确263 build的构建/Verifier、最低build可选加载与真实Codex取消已验证，完整生命周期矩阵仍有未覆盖项，见[取消说明](mcp-cancellation.md)与[路线图](roadmap.md)。客户端 Skill 由 [`doc-view-client-skill`](../openspec/changes/doc-view-client-skill/proposal.md) 维护为另一种分发物，调用这些 MCP 工具，不另建服务或搬移 Java/PSI 解析；当前尚无正式可安装包，操作状态见[MCP 使用说明](user-guide/mcp.md)。
+1.7.1 GitHub 正式包在同一个 Doc View 插件中可选注册 MCP provider，复用项目文档库服务：`doc_view_status`、`doc_view_search`、`doc_view_get` 只读，`doc_view_generate` 仅在明确请求时生成或更新文件。插件包完成构建及两个精确 build 的 Verifier；本系列对应候选在263.7307.200原生验证真实 Codex 生成取消和查询恢复，最终1.7.1包另完成两个 Skill 安装范围的 journal 重启恢复。Project/User 首次安装在 1.7.0 完成，最终 1.7.1 包的两范围官方更新、Codex 发现、Working 时关闭设置取消后重试、修改保护与相互隔离均通过；精确下载/暂存取消、在途退出和完整生命周期矩阵仍未全部验证。其他 OS/client build 没有 Skill 写入准入；见[取消说明](mcp-cancellation.md)及[1.7.1发布记录](release-1.7.1.md)。客户端 Skill 是发行资产，调用这些 MCP 工具，不另建服务或搬移 Java/PSI 解析；当前正式包、安装状态与 Marketplace 发布状态见[MCP 使用说明](user-guide/mcp.md)。
 
 平台 HTTP 仍使用现有 Apache 客户端，每次请求和响应使用 closeable 资源，连接/连接池等待10秒、socket读取30秒，不自动重试或跳转。facade负责有效响应判断；语雀只有HTTP404表示未找到。service保留平台级脱敏通知，透传取消；项目凭据与运行数据不进入异常正文。
 
