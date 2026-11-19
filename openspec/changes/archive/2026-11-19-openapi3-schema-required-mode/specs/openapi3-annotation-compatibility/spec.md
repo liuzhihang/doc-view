@@ -4,22 +4,22 @@
 
 ### Requirement: 名称修复不改变其他文档契约
 
-`@Operation.summary` 的读取 SHALL 只改变 `DocView.name`；它 SHALL 保持 `@Operation.description` 的解析、默认 Markdown 章节与模板变量、设置持久化和上传 payload shape 不变。字段级 `@Schema` 必填模式与源码写回由本 capability 中独立 requirement 定义。
+名称来源读取本身 SHALL 保持 `DocView` 的非名称字段、参数模型、默认 Markdown 章节与模板变量、设置持久化、上传 payload shape 和注解写回行为不变；方法描述来源按本 capability 的描述 requirement 及 java-documentation-metadata 执行；该隔离约束不撤销其他已完成 capability 对字段、模板或 classDesc 的扩展。字段级 `@Schema` 必填模式及其写回按本 capability 的独立 requirement 执行。
 
 #### Scenario: summary 与 description 同时存在
-- **WHEN** 方法声明非空 `@Operation.summary` 和 `@Operation.description`
+- **WHEN** 方法声明可用的 `@Operation.summary` 和 `@Operation.description`
 - **THEN** `DocView.name` 来自 summary
-- **AND** `DocView.desc` 继续等于 description
-- **AND** 既有 Spring Markdown golden 契约测试仍通过
+- **AND** `DocView.desc` 按方法描述来源顺序生成
+- **AND** 默认 Spring Markdown 的章节与模板变量保持不变
 
 ### Requirement: 当前已验证范围
 
-本 capability SHALL 保证方法上直接声明的普通字符串 `@Operation.summary`，以及字段上直接声明的 `@Schema.requiredMode` 对 `PsiField` 必填状态的映射；不得据此宣称支持参数 `@Parameter`、组合/继承注解或完整 OAS 导入导出。
+本 capability SHALL 保留直接声明且可求值的方法级字符串 `@Operation.summary`、`@Operation.description`、`@ApiOperation.value`、`@ApiOperation.notes` 的已定义来源优先级与 fallback，并包含字段级 `@Schema.requiredMode` 解析与受支持的字段注解写回，以及现有 Spring 直接 `Param`/String `@RequestHeader` 上 `@Parameter` 的基础元数据范围。普通 Javadoc 标题与正文遵循 java-documentation-metadata 的当前规则，不恢复旧版 15 字符限制。MUST NOT 据此宣称组合/继承注解、完整 OAS 导入导出或其他不在本 capability 里的写回扩展已通过。
 
 #### Scenario: 检查 capability 声明
 - **WHEN** 本 capability 的已验证范围被引用
-- **THEN** 它包含直接字段 `@Schema.requiredMode` 和对应的字段注解写回
-- **AND** 它不包含方法参数 `@Parameter` 元数据或完整 OAS 导入导出
+- **THEN** 名称和描述字符串 fallback、字段级 requiredMode 与受支持的字段注解写回，以及直接参数的名称、描述、示例、required 范围同时保留，不因单一 delta 覆盖而丢失
+- **AND** 方法级参数列表、组合/继承注解和完整 OAS 导入导出不在保证范围内
 
 ## ADDED Requirements
 

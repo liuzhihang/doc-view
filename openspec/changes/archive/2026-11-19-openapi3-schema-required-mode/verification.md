@@ -78,4 +78,11 @@ Escape 使用公开 ComponentPopupBuilder key handler，仅在无修饰的按下
 
 双字段写回时第二个多行 cell 仍处于编辑状态，直接点击 Apply 正确提交。displayName/age 的 requiredMode 双向变化、description 精确字符串、六个 name/title/example 哨兵、注解外源码不变均通过；随后一次原生 Undo 恢复完整原文，一次 Redo 恢复完整批量写回，再次 Undo 恢复测试源码。每一步均同时核对原生编辑器全文及实际磁盘文本，证据 `schema-writeback-result.json`、`schema-undo-redo-progress.json`。据此关闭 4.4；旧 Schema、复制/键盘和 GC 等后续复验单独记录，不据本段宣称整个发布矩阵通过。
 
-同一 421 包随后完成 Tab/Shift+Tab/Ctrl+Tab/Ctrl+Shift+Tab 与真实未提交 cell 的 Copy Markdown，四行表格、描述 `<br>` 和源文件不变均通过。独立旧 Schema 项目再次 Apply 时显示 requiredMode/2.2.5+ 通知，两个字段草稿和 popup 保留，编辑器/磁盘逐字不变，无普通字段部分写入；随后 Esc 关闭。分别见 `batch-escape-candidate/schema-navigation-result.json`、`schema-copy-result.json`、`old-schema-rejection-result.json`。本轮使用已授权的纯虚构隔离项目，原 doc-demo/工作区不作测试写入；Schema 必填/转义/成员/拒绝/Undo 矩阵完成，据此关闭 3.4、4.2。4.5 的资源/GC 仍需本包后续证据，未提前关闭。
+同一 421 包随后完成 Tab/Shift+Tab/Ctrl+Tab/Ctrl+Shift+Tab 与真实未提交 cell 的 Copy Markdown，四行表格、描述 `<br>` 和源文件不变均通过。独立旧 Schema 项目再次 Apply 时显示 requiredMode/2.2.5+ 通知，两个字段草稿和 popup 保留，编辑器/磁盘逐字不变，无普通字段部分写入；随后 Esc 关闭。分别见 `batch-escape-candidate/schema-navigation-result.json`、`schema-copy-result.json`、`old-schema-rejection-result.json`。本轮使用已授权的纯虚构隔离项目，原 doc-demo/工作区不作测试写入；Schema 必填/转义/成员/拒绝/Undo 矩阵完成，据此关闭 3.4、4.2。4.5 的参数编辑器资源/GC 证据见下节。
+
+
+## 参数编辑器关闭资源结案
+
+同一 421 项修复包、同一隔离 PID 46071 的三个关闭后 live GC 样本 `resource1-gc.json`、`resource2-gc.json`、`resource3-gc.json` 中，`ParamDocEditorForm` 与 `ParamTreeTableView` 实例数均为 0，四个静态列描述对象仍存在，不是窗体或表格实例。原始路径为 `build/native-validation/2026-11-08/remaining-native/batch-escape-candidate/`。结合上面的原生 Escape、Command+Enter、导航与复制，以及该包全量和双 build Verifier，参数编辑器自身的 4.5 已验证。非 macOS 未进行原生快捷键验收。
+
+同包还有 `PreviewForm` 瞬时保留，且禁用 Doc View 后存在 still-referenced 警告；并不证明插件 classloader 已释放。完整 Preview/JCEF 生命周期和平台卸载保留在其独立 change 中，详见 [同包资源与失败证据](../../http-client-generation-and-ui/verification-2026-11-08-remaining-native.md#421-项候选新增原生通过与卸载失败)。

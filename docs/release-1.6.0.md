@@ -159,9 +159,9 @@ OS 凭据授权拒绝、异步写入失败后的重试也未在最终包原生�
 
 已修复 PasswordSafe 同 serviceName 的跨项目覆盖：生成键按平台与项目位置隔离，并由真实 IU261 InMemoryCredentialStore 取得 RED/GREEN。IU261 原生已验证 A/B 保存、同包重启回读及清除 A 后 B 仍保留；OS 授权/拒绝和后端失败重试仍待验。真实上传本轮排除，旧 XML 不迁移。详见[验证记录](../openspec/changes/integration-credential-storage/verification.md)。
 
-**[`openapi3-schema-required-mode`](../openspec/changes/openapi3-schema-required-mode/proposal.md)**
+**[`openapi3-schema-required-mode`](../openspec/changes/archive/2026-11-19-openapi3-schema-required-mode/proposal.md)**
 
-`requiredMode` 三态、优先级、安全写回及 DTO golden 已实现；421 项候选补齐原生多行/必填/成员保留/缺少成员拒绝/批量 Undo/Redo。其余资源与发布门槛独立跟踪。详见[验证记录](../openspec/changes/openapi3-schema-required-mode/verification.md)。
+`requiredMode` 三态、优先级、安全写回及 DTO golden 已实现；421 项候选补齐原生多行/必填/成员保留/缺少成员拒绝/批量 Undo/Redo。其余资源与发布门槛独立跟踪。详见[验证记录](../openspec/changes/archive/2026-11-19-openapi3-schema-required-mode/verification.md)。
 
 **[`doc-generation-performance`](../openspec/changes/doc-generation-performance/proposal.md)**
 

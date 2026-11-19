@@ -22,7 +22,7 @@
 - [x] 3.1 运行 OpenAPI 3 字段契约和现有 Spring Markdown contract：`./gradlew test --tests 'com.liuzhihang.doc.view.contract.OpenApi3SchemaRequiredModeTest' --tests 'com.liuzhihang.doc.view.contract.SpringMarkdownContractTest' --rerun-tasks`；确认新 golden 与旧 Spring golden 均通过。
 - [x] 3.2 运行构建、平台验证与 OpenSpec strict 校验；主线全量门禁 `./gradlew test verifyPluginProjectConfiguration buildPlugin verifyPlugin --rerun-tasks` 成功，`openspec validate openapi3-schema-required-mode --strict` 有效。
 - [x] 3.3 更新用户指南 `docs/user-guide/settings.md` 与 `docs/user-guide/troubleshooting.md`，说明字段 `@Schema.requiredMode` 的优先级、AUTO 来源、deprecated `required` 不再读取，以及缺少成员时提示依赖版本并在任何字段写入前拒绝整批确认；该前置能力预检不承诺其他异常下的整批事务原子性。在 `CHANGELOG.md` 记录用户可见变化，在本 change 新建 `verification.md` 记录实际测试/构建/Verifier 结果，并通过 `git diff --check`。共享文档与 CHANGELOG 的修改由主线维护者完成。
-- [x] 3.4 补齐原生参数编辑写回验收：在已授权的隔离虚构项目验证 requiredMode true/false、description 转义、其余 Schema 成员保留，以及缺少成员时保留草稿/源码并给出通知；恢复测试源码后记录环境与结果。421 项修复包已取得原生源码/草稿/通知及一次 Undo/Redo 证据，见 verification；其余生命周期门槛独立记录，不据此直接归档。
+- [x] 3.4 补齐原生参数编辑写回验收：在已授权的隔离虚构项目验证 requiredMode true/false、description 转义、其余 Schema 成员保留，以及缺少成员时保留草稿/源码并给出通知；恢复测试源码后记录环境与结果。421 项修复包已取得原生源码/草稿/通知及一次 Undo/Redo 证据，见 verification；完整预览和卸载生命周期门槛独立记录。
 
 
 ## 4. 原生多行描述修复（2026-11-09）
@@ -34,4 +34,4 @@
 
 - [x] 4.4 根据双字段原生 Undo RED 修复批量命令边界；建立真实 Undo/Redo 回归，保持已有 Schema 预检与空批次边界，再完成全量、Verifier 和新包原生一次 Undo/Redo 整批恢复。
 
-- [ ] 4.5 根据原生 Escape 整窗关闭和 mac Ctrl+Enter 冲突证据，使用公开 popup key handler 处理仅当前 cell 的取消，并将提交键限定为平台主修饰键；补自动、两 build Verifier及原生 Escape/Command+Enter/导航/复制/GC，非 mac 原生未测项如实保留。
+- [x] 4.5 根据原生 Escape 整窗关闭和 mac Ctrl+Enter 冲突证据，使用公开 popup key handler 处理仅当前 cell 的取消，并将提交键限定为平台主修饰键；补自动、两 build Verifier及原生 Escape/Command+Enter/导航/复制/GC，参数窗关闭后实例回收以同包 3 个 live GC 样本确认；非 macOS 原生未执行，插件热卸载失败仍独立记录。见 [验收记录](verification.md)。

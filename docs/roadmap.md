@@ -20,9 +20,8 @@
 | [预览生命周期](../openspec/changes/fix-preview-lifecycle/tasks.md) | 核对 JCEF 状态替换、关闭释放与重复打开后的资源边界。 |
 | [生成性能](../openspec/changes/doc-generation-performance/tasks.md) | 补自然耗时重复测量、可见取消终态与 HTML 矩阵；受控断点不作性能结论。 |
 | [凭据存储](../openspec/changes/integration-credential-storage/tasks.md) | 补 OS 授权拒绝、后端写入失败及重试原生证据，保留项目隔离边界。 |
-| [Schema 必填与写回](../openspec/changes/openapi3-schema-required-mode/tasks.md) | 补最终包写回组合及剩余原生边界，不以历史候选 Undo/Redo 结果代替。 |
 
-[Clear Cache 已归档](../openspec/changes/archive/2026-11-19-clear-cache-safety/verification.md)：现行 `…` 入口已验证双项目缓存隔离及文件保护；旧目录菜单已被替代。
+[Clear Cache 已归档](../openspec/changes/archive/2026-11-19-clear-cache-safety/verification.md)：现行 `…` 入口已验证双项目缓存隔离及文件保护；旧目录菜单已被替代。[Schema 必填与写回已归档](../openspec/changes/archive/2026-11-19-openapi3-schema-required-mode/verification.md)：参数编辑器键盘、写回与关闭后资源已验，完整预览及插件卸载仍独立跟踪。
 
 尚未完成表示证据有缺口，不自动等于已确认的运行时缺陷。真实平台上传的历史排除是未执行，不是通过；下一次发布重新按[发布检查清单](release-checklist.md)确定范围。
 

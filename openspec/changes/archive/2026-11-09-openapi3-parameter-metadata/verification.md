@@ -10,7 +10,7 @@
 
 ## 前置依赖
 
-- 本 change 在 `openapi3-schema-required-mode` 的实现与目标测试通过后启动；前置检查通过记录见该 change 的 [verification.md](../../openapi3-schema-required-mode/verification.md)。
+- 本 change 在 `openapi3-schema-required-mode` 的实现与目标测试通过后启动；前置检查通过记录见该 change 的 [verification.md](../2026-11-19-openapi3-schema-required-mode/verification.md)。
 
 ## 参数元数据 PSI 与 Markdown
 
