@@ -50,3 +50,7 @@
 ## Migration Plan
 
 无需迁移持久化数据或用户文件。升级后两处 Clear Cache 只清当前项目 DTO schema 内存缓存；用户可手动刷新目录，生成文档继续保留。若新版本回滚，旧版本动作可能恢复删除副作用，因此无需增加运行时兼容开关或状态迁移。
+
+## 后续入口迁移
+
+上述为初始设计。`http-client-generation-and-ui` 将用户入口收纳到工具窗口 `…`，旧目录 action ID 复用 `WindowClearAction` 供快捷键和 Find Action；现行清理范围由 [delta](specs/schema-cache-management/spec.md) 定义。旧工具栏和目录菜单不再作为当前功能验收条件。

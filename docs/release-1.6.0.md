@@ -183,9 +183,9 @@ IU 261 的历史协议取消失败保留；IU 263.7031.23 / SDK 0.15.0 隔离探
 
 [源码评估完成](ai-context-assessment.md#历史文档导入与查看路线图-17)：不重复建设 Markdown 查看器。先完成第 11/14 项原生阅读验证；只有历史目录/差异存在实测缺口时，才另立只读快照 change。
 
-**[`clear-cache-safety`](../openspec/changes/clear-cache-safety/proposal.md)**
+**[`clear-cache-safety`](../openspec/changes/archive/2026-11-19-clear-cache-safety/proposal.md)**
 
-Clear Cache 已改为只清当前项目 schema 缓存，不再删除手写 Scratch；旧版自动回归及工具栏入口已验，目录菜单入口仍未完成；当前 HTTP/UI change 已将入口移至窗口 `…`，A/B 自动缓存隔离和文件保护已补验；原生新入口及 A/B 原生场景仍待验。详见[验证记录](../openspec/changes/clear-cache-safety/verification.md)。
+Clear Cache 已改为只清当前项目 schema 缓存，不再删除手写 Scratch；旧版自动回归及工具栏入口已验，目录菜单入口仍未完成；当前 HTTP/UI change 已将入口移至窗口 `…`，A/B 自动缓存隔离和文件保护已补验；原生新入口及 A/B 原生场景仍待验。详见[验证记录](../openspec/changes/archive/2026-11-19-clear-cache-safety/verification.md)。
 
 ## 2026-11-12 上架复核
 

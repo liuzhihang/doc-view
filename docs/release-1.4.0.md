@@ -32,7 +32,7 @@
 | OpenAPI Schema 写回 | 自动测试覆盖 PSI 写回与批次预检；最终包中可打开参数编辑器并读取 4 个字段，但没有完成真实编辑、确认、源文件读回及保留其他 Schema 属性的完整原生验收。 | [`openapi3-schema-required-mode`](../openspec/changes/openapi3-schema-required-mode/verification.md) |
 | PasswordSafe 异常路径 | OS 授权拒绝和后端存储失败后的设置错误提示/重试尚未验证；项目隔离、正常保存/重启读回等已有单独原生证据。 | [`integration-credential-storage`](../openspec/changes/integration-credential-storage/verification.md) |
 | 取消与性能 | 最终包完整 Spring/Dubbo 自然耗时分布、可见取消终态及无部分结果的组合证据尚不完整；受控断点暂停不作为自然耗时数据。 | [`doc-generation-performance`](../openspec/changes/doc-generation-performance/verification.md) |
-| Clear Cache | candidate235 中打开了目录右键菜单并触发 Clear Cache，随后 popup 收起且 5 个类节点仍在；这不是最终 1.4.0 包的完整目录菜单/选中上下文验收。 | [`clear-cache-safety`](../openspec/changes/clear-cache-safety/verification.md) |
+| Clear Cache | candidate235 中打开了目录右键菜单并触发 Clear Cache，随后 popup 收起且 5 个类节点仍在；这不是最终 1.4.0 包的完整目录菜单/选中上下文验收。 | [`clear-cache-safety`](../openspec/changes/archive/2026-11-19-clear-cache-safety/verification.md) |
 
 最终包的 Welcome HTML 已确认可见；这不覆盖 API Preview 的 JCEF 特殊状态与关闭后资源矩阵。所有原生范围仍按对应包 hash 区分，不可用旧包截图或自动测试替代未执行的最终包交互。
 

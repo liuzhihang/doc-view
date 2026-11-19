@@ -10,7 +10,7 @@
 
 ### 1. 补齐现有能力的验证欠账
 
-先处理可复现的功能问题，再补同包原生证据。以下八项可按影响并行推进，不要求串行完成；详细任务只在对应 change 维护，此处不复制完整 checklist。
+先处理可复现的功能问题，再补同包原生证据。以下未完成项可按影响并行推进，不要求串行完成；详细任务只在对应 change 维护，此处不复制完整 checklist。
 
 | 范围 / 活动 change | 近期重点 |
 | --- | --- |
@@ -21,7 +21,8 @@
 | [生成性能](../openspec/changes/doc-generation-performance/tasks.md) | 补自然耗时重复测量、可见取消终态与 HTML 矩阵；受控断点不作性能结论。 |
 | [凭据存储](../openspec/changes/integration-credential-storage/tasks.md) | 补 OS 授权拒绝、后端写入失败及重试原生证据，保留项目隔离边界。 |
 | [Schema 必填与写回](../openspec/changes/openapi3-schema-required-mode/tasks.md) | 补最终包写回组合及剩余原生边界，不以历史候选 Undo/Redo 结果代替。 |
-| [Clear Cache](../openspec/changes/clear-cache-safety/tasks.md) | 对照当前 `…` 入口补缓存隔离、文件保护和选中上下文证据。 |
+
+[Clear Cache 已归档](../openspec/changes/archive/2026-11-19-clear-cache-safety/verification.md)：现行 `…` 入口已验证双项目缓存隔离及文件保护；旧目录菜单已被替代。
 
 尚未完成表示证据有缺口，不自动等于已确认的运行时缺陷。真实平台上传的历史排除是未执行，不是通过；下一次发布重新按[发布检查清单](release-checklist.md)确定范围。
 

@@ -24,3 +24,7 @@
 ## Impact
 
 涉及 `WindowClearAction`、`CatalogClearAction`、`plugin.xml` 中两处 action presentation、可能不再使用的 `CustomFileUtils.delete`，以及 action contract 测试。`DtoSchemaCacheService` 的缓存结构和失效策略不变；不修改生成 Markdown、导出、上传、Scratch 文件格式或项目文件。
+
+## 结案范围
+
+以上记录最初设计。后续 UI 将现行入口移到工具窗口 `…`；旧目录 action ID 只为既有快捷键和 Find Action 保留，仍走同一清理逻辑。同步后的 [delta](specs/schema-cache-management/spec.md) 记录现行入口、派生文档搜索缓存和项目隔离；旧菜单的原生证据见 [验证记录](verification.md)。
