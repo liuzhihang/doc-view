@@ -52,7 +52,7 @@
 
 **full-10 自动构建、352 项测试、IU 263 Plugin Verifier 与新 ZIP 读回已通过；生产升级仍等待完整原生回归。** Codex 取消客户端准入 3/3、IU 263 精确平台解析、Java 25/IPGP 2.17.0 配置与生产 classfile 核验也已通过。官方 `codex-app-server 0.165.0-alpha.1` prerelease 候选在隔离 IU `263.7031.23` 上通过三轮真实 `turn/interrupt` 取消、服务端 cleanup 与同 session echo；`0.163.0-alpha.11.2` 的历史失败和官方 TypeScript SDK 补充结果均保留。Verifier 没有生产 deprecated/internal/override-only/compatibility 问题，但测试源码编译另有 15 条 test-only deprecated/removal warnings，且仍报告 16 处 Experimental API。新包 Markdown tamper/精确恢复、GET/form 生成与打开、Spring/Feign/Dubbo 预览及 Welcome 关闭重开等代表场景已通过；Copy/Export 等原生矩阵仍未完成。
 
-2026-10-25 在同一 full-10 包新增通过文档库分页/末页打开、用户编辑冲突恢复、真实 I/O 部分发布及重试、8,030 接口生成的原生在途取消及取消后重试、关闭/重开 freshness。实际取消通过原生任务列表的键盘 Cancel 按钮，前五次未生效的鼠标尝试不计通过；此项不替代 MCP 协议取消或 HTTP 生成取消。生产/构建输入 222/222 未变，本轮未重跑 Gradle。详细矩阵和边界见[文档库补验记录](../project-document-store/verification.md)。本轮隔离 PID `41280` 已退出，默认两个配置目录冻结的 785 个文件、原 fixture 84 个文件与 Junie 保留，收尾证据在 `/tmp/doc-view-native-20261025/cleanup.json`。Copy/Export、完整菜单/参数编辑与资源/GC 基线等仍有缺口，4.2 保持未勾选；下文旧阶段的“原生取消/partial/retry 待验”由本次已列明的文档库场景更新，其他范围保持原状态。
+2026-10-25 在同一 full-10 包新增通过文档库分页/末页打开、用户编辑冲突恢复、真实 I/O 部分发布及重试、8,030 接口生成的原生在途取消及取消后重试、关闭/重开 freshness。实际取消通过原生任务列表的键盘 Cancel 按钮，前五次未生效的鼠标尝试不计通过；此项不替代 MCP 协议取消或 HTTP 生成取消。生产/构建输入 222/222 未变，本轮未重跑 Gradle。详细矩阵和边界见[文档库补验记录](../archive/2026-11-19-project-document-store/verification.md)。本轮隔离 PID `41280` 已退出，默认两个配置目录冻结的 785 个文件、原 fixture 84 个文件与 Junie 保留，收尾证据在 `/tmp/doc-view-native-20261025/cleanup.json`。Copy/Export、完整菜单/参数编辑与资源/GC 基线等仍有缺口，4.2 保持未勾选；下文旧阶段的“原生取消/partial/retry 待验”由本次已列明的文档库场景更新，其他范围保持原状态。
 
 旧配置尝试使用 IPGP 2.16.0 构建 IU `263.7031.23` 时，检查器仍将 since-build 映射到 Java 21 并产生警告；该失败证据保留。正式 IPGP 2.17.0 已进入 `build.gradle`，其 release notes 和 tag 源码把 build 262 起映射到 Java 25。`verifyPluginProjectConfiguration` 在 2.17.0 下真实通过且无 source/target compatibility 警告。JBR `25.0.4.1` 的生产编译实际 javac 参数为 `--release 25`，未传 `-source` / `-target`；full-10 最终 ZIP 内 329 个生产 class 均为 major 69。证据见 `/tmp/doc-view-store-impl-20261024/baseline-263-ipgp217-config.log`、`/tmp/doc-view-store-impl-20261024/baseline-263-javac-flags.log` 与 full-10 package audit。IU `263.7031.23` 平台及 Verifier 固定输入已从实际元数据读回。
 
@@ -192,7 +192,7 @@ full-10 功能验收只发生在独立 IU `263.7031.23` 实例 PID `44922`；普
 
 以下为 full-8/full-7 阶段的历史记录，自动结果与最终产物已由本页当前结论中的 full-10 更新：当时已批准 Java 25 升级，Codex 门槛、精确目标解析、IPGP 2.17.0 配置、349 项测试、Verifier 和候选 ZIP 检查均已通过，full-7 的 344 项全绿另作历史记录。Verifier 当时仍报告 16 处 Experimental API；IU `263.7031.23` 原生回归仍在独立验收，不能据此宣称生产升级整体通过。固定 EAP snapshot 是解析输入，产品验收 build 为 `IU-263.7031.23`。0.163 历史失败、官方 SDK 补充验证和 263 MCP 服务端探针结论保持为各自范围的证据。
 
-现行发布/仓库基线在变更验收前仍按已验证状态声明；本 change 中的 263/Java25 目标尚未发布。新增[项目文档库/UI计划](../project-document-store/proposal.md)可独立推进；[正式MCP计划](../doc-view-mcp-tools/proposal.md)仍依赖取消准入及平台升级完整验收。
+现行发布/仓库基线在变更验收前仍按已验证状态声明；本 change 中的 263/Java25 目标尚未发布。新增[项目文档库/UI计划](../archive/2026-11-19-project-document-store/proposal.md)可独立推进；[正式MCP计划](../doc-view-mcp-tools/proposal.md)仍依赖取消准入及平台升级完整验收。
 
 ### 项目关闭清理 targeted RED/GREEN（2026-11-09）
 

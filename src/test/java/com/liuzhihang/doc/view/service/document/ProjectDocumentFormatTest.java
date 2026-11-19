@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class ProjectDocumentFormatTest extends TestCase {
 
-    private static final Path EXAMPLES = Path.of("openspec/changes/project-document-store/examples");
+    private static final Path EXAMPLES = Path.of("openspec/changes/archive/2026-11-19-project-document-store/examples");
     private static final String API_FILE = "apis/GreetingController-greet-b57b3f3f36aeb624a3bdc7d4fbbef8e0ae7f8278da113e0f313eefb884ef28b4.json";
 
     public void testCrossLanguageApiAndIndexGoldensRoundTripByteForByte() throws Exception {

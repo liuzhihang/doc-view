@@ -219,7 +219,7 @@ docs/doc-view/
 
 ### AI 检索边界
 
-导出文件是普通 Markdown，可以加入 Git，并由 IDE 或 AI 按普通文件读取。IDE 的 **Find in Files → Project** 可搜索接口名、方法签名或独有词；结果受当前 scope、排除规则与索引状态影响。当前项目导出没有注册自定义 IDEA 索引、正式 MCP 工具或实时知识库。版本化 JSON 文档库和相应的搜索/打开 UI 正在 [`project-document-store`](../../openspec/changes/project-document-store/tasks.md) 中实现验收；只读查询不扫描 PSI、不隐式更新文件，也不能把旧快照当成实时源码。
+导出文件是普通 Markdown，可以加入 Git，并由 IDE 或 AI 按普通文件读取。IDE 的 **Find in Files → Project** 可搜索接口名、方法签名或独有词；结果受当前 scope、排除规则与索引状态影响。当前项目导出没有注册自定义 IDEA 索引、正式 MCP 工具或实时知识库。版本化 JSON 文档库和相应的搜索/打开 UI 正在 [`project-document-store`](../../openspec/changes/archive/2026-11-19-project-document-store/tasks.md) 中实现验收；只读查询不扫描 PSI、不隐式更新文件，也不能把旧快照当成实时源码。
 
 正式 MCP 计划作为 Doc View 插件内的可选 provider，提供只读状态/搜索/详情和显式生成/更新工具；Codex Skill 计划作为调用 MCP 的客户端工作流，不是另一台服务。这些能力均尚未交付，Skill 规划见 [`doc-view-client-skill`](../../openspec/changes/doc-view-client-skill/proposal.md)。当前与计划边界、IDEA/Codex 注册方式见[MCP 使用说明](mcp.md)，磁盘 JSON 和 MCP 响应格式见[文档格式说明](../mcp-format.md)，取消候选及验收门槛见[取消说明](../mcp-cancellation.md)。
 

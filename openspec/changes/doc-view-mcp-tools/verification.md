@@ -33,7 +33,7 @@ PoC task 2.4 已依据此前 IU 263.7031.23 / SDK 0.15.0 探针的显式取消�
 - `openspec validate doc-view-mcp-tools --strict` 通过。
 - 使用仓库外 `jsonschema==4.25.1` 检查四个 inputSchema、结果 Text(JSON) envelope 及其共享定义；与文档库样例合计21个正例、18个拒绝例通过。schema 输入拒绝额外字段和缺少 projectPath；四种工具的成功、INDEX_NOT_FOUND 与 PARTIAL_PUBLICATION 错误样例均可按定义解析。
 - `mcp-wire-response.json` 仅演示一个 TextContent 中装 JSON，反序列化后与 search 内容样例一致；没有把它标为真实协议调用，也未承诺 structuredContent/outputSchema API 已验。
-- 磁盘字段定义与源 schema 相同，身份/hash/快照样例检查、变更文档链接和 `git diff --check` 通过；详见[文档库验证](../project-document-store/verification.md)及临时 `schema-validation.json`。
+- 磁盘字段定义与源 schema 相同，身份/hash/快照样例检查、变更文档链接和 `git diff --check` 通过；详见[文档库验证](../archive/2026-11-19-project-document-store/verification.md)及临时 `schema-validation.json`。
 
 当时仍未通过的前置条件是旧 Codex `0.163.0-alpha.11.2` 的 turn-interrupt 取消验收；当时仅确认官方 `rust-v0.165.0-alpha.1` 源码含 PR #56132。上述候选运行前结论已由本页首节的新实测更新；旧版本的实际失败继续保留，完整区分见[取消调查](../../../docs/mcp-cancellation.md)。
 

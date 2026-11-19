@@ -155,17 +155,17 @@ OS 凭据授权拒绝、异步写入失败后的重试也未在最终包原生�
 
 预览生成、后台任务列表和渲染切换已实现并完成自动验证；原生打开/重开与主题场景已验。JCEF 预览窗口关闭及释放的剩余边界见[验证记录](../openspec/changes/fix-preview-lifecycle/verification.md)。
 
-**[`integration-credential-storage`](../openspec/changes/integration-credential-storage/proposal.md)**
+**[`integration-credential-storage`](../openspec/changes/archive/2026-11-20-integration-credential-storage/proposal.md)**
 
-已修复 PasswordSafe 同 serviceName 的跨项目覆盖：生成键按平台与项目位置隔离，并由真实 IU261 InMemoryCredentialStore 取得 RED/GREEN。IU261 原生已验证 A/B 保存、同包重启回读及清除 A 后 B 仍保留；OS 授权/拒绝和后端失败重试仍待验。真实上传本轮排除，旧 XML 不迁移。详见[验证记录](../openspec/changes/integration-credential-storage/verification.md)。
+已修复 PasswordSafe 同 serviceName 的跨项目覆盖：生成键按平台与项目位置隔离，并由真实 IU261 InMemoryCredentialStore 取得 RED/GREEN。IU261 原生已验证 A/B 保存、同包重启回读及清除 A 后 B 仍保留；OS 授权/拒绝和后端失败重试仍待验。真实上传本轮排除，旧 XML 不迁移。详见[验证记录](../openspec/changes/archive/2026-11-20-integration-credential-storage/verification.md)。
 
 **[`openapi3-schema-required-mode`](../openspec/changes/archive/2026-11-19-openapi3-schema-required-mode/proposal.md)**
 
 `requiredMode` 三态、优先级、安全写回及 DTO golden 已实现；421 项候选补齐原生多行/必填/成员保留/缺少成员拒绝/批量 Undo/Redo。其余资源与发布门槛独立跟踪。详见[验证记录](../openspec/changes/archive/2026-11-19-openapi3-schema-required-mode/verification.md)。
 
-**[`doc-generation-performance`](../openspec/changes/doc-generation-performance/proposal.md)**
+**[`doc-generation-performance`](../openspec/changes/archive/2026-11-20-doc-generation-performance/proposal.md)**
 
-已处理缓存 epoch、过期结果写回和递归取消。IU261 原生目录扫描取消后保留旧树、不发布部分结果已验；历史候选包补过整类 Spring/Dubbo 源预览和刷新的一次可见时间上界；取消后的可见终态、重复测量及 HTML 矩阵仍待补。详见[验证记录](../openspec/changes/doc-generation-performance/verification.md)。
+已处理缓存 epoch、过期结果写回和递归取消。IU261 原生目录扫描取消后保留旧树、不发布部分结果已验；历史候选包补过整类 Spring/Dubbo 源预览和刷新的一次可见时间上界；取消后的可见终态、重复测量及 HTML 矩阵仍待补。详见[验证记录](../openspec/changes/archive/2026-11-20-doc-generation-performance/verification.md)。
 
 **[`mcp-java-feasibility`](../openspec/changes/archive/2026-11-09-mcp-java-feasibility/proposal.md)**
 

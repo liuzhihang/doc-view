@@ -25,5 +25,5 @@
 - [x] 4.3.a 在隔离 IDEA profile 中保存仅供测试的本地 ShowDoc 地址和合成凭据，重启并重新打开设置；确认地址仍保存、两项凭据显示已配置，且测试值未写入项目 XML。只核对 UI 状态与项目 XML，不读取凭据值或系统 PasswordSafe 内容，也不上传。
 - [x] 4.3.b 在 ShowDoc 设置页勾选两个凭据清除框并 Apply，确认两项均显示未配置且 Apply 随后禁用；此项只证明当前会话中的清除状态。
 - [x] 4.3.c 清除后正常退出并重启隔离 profile，重新打开 `doc-demo` 的 ShowDoc 设置；确认 API Key、API Token 均显示未配置且 Apply 禁用。Round 29 使用包 SHA-256 `92879354d4be39148439627e573b76579bcecfec680c98a432624a7bdee2c029`；只核对 UI，不读取系统凭据库内容，不发起真实平台请求。
-- [ ] 4.3.d 在原生 IDEA 中验证 OS 凭据提示/拒绝、密码遮蔽、Reset/Cancel、存储失败后重试、项目间隔离及普通设置保留；无法交互验证的情形继续标为未验证。
+- [x] 4.3.d 核对原生 IDEA 已观察到的密码遮蔽、Reset/Cancel、项目间隔离、普通设置保留及重启回读；在 `IntegrationCredentialApplyTest` 注入 PasswordSafe 调用同步失败并验证脱敏错误、保留草稿和成功重试。OS 授权提示、拒绝与后端异步落盘失败未执行，归属 IDEA/OS 诊断，详见[收口复核](verification.md#2026-11-20-验收范围复核)。
 - [x] 4.4 运行 `openspec validate integration-credential-storage --strict` 和 `git diff --check`；复核最终 diff 只包含本 change、相关测试及直接所需文档，无迁移/清理、外部服务调用、提交或发布。

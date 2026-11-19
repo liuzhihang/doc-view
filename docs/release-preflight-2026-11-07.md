@@ -74,4 +74,4 @@
 
 发布门槛来自 [发布检查清单](release-checklist.md) 与 [Release Readiness 技能](../.codex/skills/doc-view-release-readiness/SKILL.md)。清单要求“活动 OpenSpec changes 已完成 tasks”；技能要求先核对发布范围、任务、工作区差异和最终包。本次授权包含条件成立后的发布，不把当前未完成项改为通过，也不因发布意图自动归档 change。
 
-具体未完成范围见 [HTTP/UI tasks](../openspec/changes/http-client-generation-and-ui/tasks.md)、[基线 tasks](../openspec/changes/intellij-263-baseline-upgrade/tasks.md)、[文档库 tasks](../openspec/changes/project-document-store/tasks.md) 与 [full-17 原生记录](../openspec/changes/intellij-263-baseline-upgrade/verification-2026-11-07-full17.md)。真实平台账号上传仍按既有授权排除；Junie 与日常 IDEA profile 保留。
+具体未完成范围见 [HTTP/UI tasks](../openspec/changes/http-client-generation-and-ui/tasks.md)、[基线 tasks](../openspec/changes/intellij-263-baseline-upgrade/tasks.md)、[文档库 tasks](../openspec/changes/archive/2026-11-19-project-document-store/tasks.md) 与 [full-17 原生记录](../openspec/changes/intellij-263-baseline-upgrade/verification-2026-11-07-full17.md)。真实平台账号上传仍按既有授权排除；Junie 与日常 IDEA profile 保留。

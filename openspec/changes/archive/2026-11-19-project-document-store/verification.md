@@ -1,14 +1,14 @@
 # 验证记录
 
-2026-11-08 后续新包：已修复自身卸载前的平台禁用图标缓存清理，无 Doc View UI 的正式 build 卸载对照通过；目录使用后的 JNI 类加载器保留仍未通过。新增修复不自动继承旧包的完整原生验收结论，剩余弹窗和资源矩阵继续开放，详见[卸载 API 续验](../intellij-263-baseline-upgrade/verification-2026-11-08-unload-api.md)。下段为此前 final-v2 阶段结果。
+2026-11-08 后续新包：已修复自身卸载前的平台禁用图标缓存清理，无 Doc View UI 的正式 build 卸载对照通过；目录使用后的 JNI 类加载器保留仍未通过。新增修复不自动继承旧包的完整原生验收结论，剩余弹窗和资源矩阵继续开放，详见[卸载 API 续验](../../intellij-263-baseline-upgrade/verification-2026-11-08-unload-api.md)。下段为此前 final-v2 阶段结果。
 
-2026-11-08 整合包续验：首次生成/幂等更新、搜索并打开文档、55 条结果的三页加载、手工修改冲突保护与恢复、项目关闭重开后的 unknown 已原生通过；磁盘索引为 57 个唯一 API ID。相同生产输入此前 395 tests 与两个 Verifier 通过，本轮未重跑自动测试。热卸载在关闭 UI、只使用目录及不打开 Doc View 界面的对照中仍失败；官方本机分析取得无障碍 JNI 与平台图标缓存保留 ClassLoader 的不同引用链，尚未验证修复。仍缺新包的在途取消、partial/retry 及完整生命周期/资源矩阵，5.4 保留未勾选，正式 MCP 未推进。详见[新整合包原生记录](../intellij-263-baseline-upgrade/verification-2026-11-08-integration-native.md)；下文 full-10/11 是旧包历史结果。
+2026-11-08 整合包续验：首次生成/幂等更新、搜索并打开文档、55 条结果的三页加载、手工修改冲突保护与恢复、项目关闭重开后的 unknown 已原生通过；磁盘索引为 57 个唯一 API ID。相同生产输入此前 395 tests 与两个 Verifier 通过，本轮未重跑自动测试。热卸载在关闭 UI、只使用目录及不打开 Doc View 界面的对照中仍失败；官方本机分析取得无障碍 JNI 与平台图标缓存保留 ClassLoader 的不同引用链，尚未验证修复。仍缺新包的在途取消、partial/retry 及完整生命周期/资源矩阵，5.4 保留未勾选，正式 MCP 未推进。详见[新整合包原生记录](../../intellij-263-baseline-upgrade/verification-2026-11-08-integration-native.md)；下文 full-10/11 是旧包历史结果。
 
-2026-11-05 在正式 `IU-263.7307.200` 补验时修复了生产 XML 插件依赖缺失，full-11 已通过 352 项全量测试与 EAP/正式版两个精确 build 的 Verifier。此次未重新执行 full-10 的 8,030 接口取消、partial/retry 等文档库完整原生矩阵，5.4 仍未完成；当前包身份和 UI/资源边界见[正式版补验记录](../intellij-263-baseline-upgrade/verification-2026-11-05.md)。下文保留旧包历史结果。
+2026-11-05 在正式 `IU-263.7307.200` 补验时修复了生产 XML 插件依赖缺失，full-11 已通过 352 项全量测试与 EAP/正式版两个精确 build 的 Verifier。此次未重新执行 full-10 的 8,030 接口取消、partial/retry 等文档库完整原生矩阵，5.4 仍未完成；当前包身份和 UI/资源边界见[正式版补验记录](../../intellij-263-baseline-upgrade/verification-2026-11-05.md)。下文保留旧包历史结果。
 
 ## 2026-11-08：Dubbo 项目目录遗漏修复
 
-这是已有目录发现缺口，不是本轮引入的回归。原生候选 ZIP `50a956be5ee2534be9a2f1cf14fdc8766dc5b4b66c208f3027f2d0ef5928d94e` / JAR `d094f2b7c1d7bf7a706ea1844036595db6a64e933a9b373fbbafc1e7692273f0` 在 IU `263.7307.200` 中，从 `remaining-native/fixture-b` 的 `FictionalXmlService#readXmlUser` 直接打开 Doc View 预览，成功输出 Dubbo 文档和 `id` 参数；同一项目刷新并展开目录只列出 60 个方法，不包含该接口。原生证据为整合工作区 `build/native-validation/2026-11-08/remaining-native/xml-preview-native.json`、`new-catalog-expanded.json` 和 [当轮原生记录](../http-client-generation-and-ui/verification-2026-11-08-remaining-native.md)。这证明直接预览的 XML 识别与目录枚举的候选发现范围不一致；没有修改 Markdown 字段规则。
+这是已有目录发现缺口，不是本轮引入的回归。原生候选 ZIP `50a956be5ee2534be9a2f1cf14fdc8766dc5b4b66c208f3027f2d0ef5928d94e` / JAR `d094f2b7c1d7bf7a706ea1844036595db6a64e933a9b373fbbafc1e7692273f0` 在 IU `263.7307.200` 中，从 `remaining-native/fixture-b` 的 `FictionalXmlService#readXmlUser` 直接打开 Doc View 预览，成功输出 Dubbo 文档和 `id` 参数；同一项目刷新并展开目录只列出 60 个方法，不包含该接口。原生证据为整合工作区 `build/native-validation/2026-11-08/remaining-native/xml-preview-native.json`、`new-catalog-expanded.json` 和 [当轮原生记录](../../http-client-generation-and-ui/verification-2026-11-08-remaining-native.md)。这证明直接预览的 XML 识别与目录枚举的候选发现范围不一致；没有修改 Markdown 字段规则。
 
 实现收窄在 `DubboPsiUtils.findDocViewFromModule`：以 project-scoped Java annotation index 取短名候选后严格比较 Dubbo 注解 FQN；注解在实现类时遍历其父类/接口闭包；XML DOM 在项目范围发现后，使用声明 XML 的模块依赖 scope 解析 FQN，并只归档到接口源码所属模块。同来源经集合去重；在注解、继承和 XML 循环边界检查取消。没有使用 `AllClassesSearch`，也没有改 `isDubboClass`、Dubbo 方法/字段解析、Markdown 模板或 identity。
 
@@ -166,7 +166,7 @@ full-10 清理证据 `/tmp/doc-view-mcp-candidate-20261024/final/263-baseline-fu
 
 ## 2026-11-08：Dubbo XML freshness 与未保存输入状态
 
-整合包原生复现了一个既有 freshness 跟踪缺口：隔离 fixture-b 中将 `fictional-dubbo.xml` 的服务接口改为不存在的 `poc.MissingXmlService`，IDE 编辑器确认该修改尚未保存、磁盘字节保持原样；项目文档搜索仍显示 `Current`、62 个 API 且匹配 1 项。随后原生 Undo 和 Save 恢复了编辑器及磁盘内容。记录见 [`xml-freshness-result.json`](../../../build/native-validation/2026-11-08/remaining-native/dubbo-candidate/xml-freshness-result.json) 与 [`xml-freshness-observed.json`](../../../build/native-validation/2026-11-08/remaining-native/dubbo-candidate/xml-freshness-observed.json)。此前候选的原生 `Generate or Update` 62 条目录及无变化重复生成通过；这条旧候选结果不替代 XML freshness 修复后的新包验收。
+整合包原生复现了一个既有 freshness 跟踪缺口：隔离 fixture-b 中将 `fictional-dubbo.xml` 的服务接口改为不存在的 `poc.MissingXmlService`，IDE 编辑器确认该修改尚未保存、磁盘字节保持原样；项目文档搜索仍显示 `Current`、62 个 API 且匹配 1 项。随后原生 Undo 和 Save 恢复了编辑器及磁盘内容。记录见 `build/native-validation/2026-11-08/remaining-native/dubbo-candidate/xml-freshness-result.json` 与 `build/native-validation/2026-11-08/remaining-native/dubbo-candidate/xml-freshness-observed.json`。此前候选的原生 `Generate or Update` 62 条目录及无变化重复生成通过；这条旧候选结果不替代 XML freshness 修复后的新包验收。
 
 根因是索引服务虽把 PSI 与 Document 事件交给同一 freshness handler，但 handler 只接收 `.java`，未跟踪 Dubbo XML 声明。当前实现仅将项目内容根内 Java/XML 文件变化纳入 epoch，继续排除 `docs/doc-view/`，并保留外部内容根。快照的 `hasUnsavedDocuments` 同步覆盖内容根内未保存 Java/XML Document、排除输出目录；既有未提交 Java 源拒绝用例继续通过。对 XML 使用保守范围，因此不含 Dubbo 声明的未保存 XML 也可能令标记为 true。JSON schema v1 与既有 Markdown 输出保持不变，`source.capturedContentSha256` 仍只对应 API Java 来源 Document。
 
@@ -184,13 +184,13 @@ full-10 清理证据 `/tmp/doc-view-mcp-candidate-20261024/final/263-baseline-fu
 
 修复为严格 UTF-8/JSON 分块读取、条目校验、canonical JSON 和 SHA-256 轮询同一 ReadContext；取消/超时/项目关闭保留原错误分类，缓存安装前检查状态。Gson 的内存树到 DTO 调用只有边界检查，不宣称其内部逐字段可中断。格式 v1 字节、schema 和严格性保持不变。新增条目阶段测试也先 RED 后 GREEN，定点读取/完整性/语义校验取消均通过。
 
-最终针对性 3 suites / 28 tests 通过；全量 76 suites / 395 tests，0 failures/errors/skipped，构建、配置检查及两个精确 build 的 Verifier 通过。最终全量取消 p95 为 0.147 ms，5/5 observed、0 missed、0 completedBeforeCancel。此为 light fixture，不代表原生或 MCP 协议取消。中间工具链/编译失败与修复均保留，详细包 hash、日志、版本风险和发布前条件见[发布前核对](../../../docs/release-preflight-2026-11-07.md)。
+最终针对性 3 suites / 28 tests 通过；全量 76 suites / 395 tests，0 failures/errors/skipped，构建、配置检查及两个精确 build 的 Verifier 通过。最终全量取消 p95 为 0.147 ms，5/5 observed、0 missed、0 completedBeforeCancel。此为 light fixture，不代表原生或 MCP 协议取消。中间工具链/编译失败与修复均保留，详细包 hash、日志、版本风险和发布前条件见[发布前核对](../../../../docs/release-preflight-2026-11-07.md)。
 
 Task 5.4 仍未完成；当前整合包没有进行新的原生回归，不将 full-10/full-17 的证据迁移到新包，不归档此 change。
 
 ## 2026-11-08：XML freshness 全量与原生复验
 
-补齐完整遍历防御后，78 suites / 409 tests、构建和最低/正式两个精确 build 的 Verifier 通过。冻结 ZIP `a08ae7e2…d6319` 在隔离 PID 3786 中完成 XML 编辑 → Stale → 未保存生成 61 条及标记 → Undo/Save → 恢复 62 条 → 幂等更新；未自动保存 XML。完整 SHA、输入与原生证据见 [续验记录](../http-client-generation-and-ui/verification-2026-11-08-remaining-native.md#xml-freshness-最终修复包原生闭环)。新发现的 CGLIB 类加载器保留由 task 1.6 单独修复，不能由本次 freshness 通过代替；5.4 总体原生验收仍待补齐。
+补齐完整遍历防御后，78 suites / 409 tests、构建和最低/正式两个精确 build 的 Verifier 通过。冻结 ZIP `a08ae7e2…d6319` 在隔离 PID 3786 中完成 XML 编辑 → Stale → 未保存生成 61 条及标记 → Undo/Save → 恢复 62 条 → 幂等更新；未自动保存 XML。完整 SHA、输入与原生证据见 [续验记录](../../http-client-generation-and-ui/verification-2026-11-08-remaining-native.md#xml-freshness-最终修复包原生闭环)。新发现的 CGLIB 类加载器保留由 task 1.6 单独修复，不能由本次 freshness 通过代替；5.4 总体原生验收仍待补齐。
 
 ## 2026-11-09：XML PSI 新候选自动门禁
 
@@ -201,22 +201,22 @@ Task 5.4 仍未完成；当前整合包没有进行新的原生回归，不将 f
 
 ## 2026-11-09：414 项候选原生 XML 与文档库复验
 
-同包 PID 13788 已通过 XML-only/实现类注解目录及 Markdown、实际 XML 定义导航、XML 未保存编辑 freshness 和 Undo/Save 幂等更新。真实 index.json 发布失败触发 partial，旧索引拒绝已改写页面，解除故障后重试成功并核对 62 条/124 个引用 hash，源码恢复原快照。精确数据见 [本轮原生记录](../http-client-generation-and-ui/verification-2026-11-08-remaining-native.md#2026-11-09xml-psi-最终候选的构建与原生回归)。
+同包 PID 13788 已通过 XML-only/实现类注解目录及 Markdown、实际 XML 定义导航、XML 未保存编辑 freshness 和 Undo/Save 幂等更新。真实 index.json 发布失败触发 partial，旧索引拒绝已改写页面，解除故障后重试成功并核对 62 条/124 个引用 hash，源码恢复原快照。精确数据见 [本轮原生记录](../../http-client-generation-and-ui/verification-2026-11-08-remaining-native.md#2026-11-09xml-psi-最终候选的构建与原生回归)。
 
 三轮资源和四组 Finder 遮挡通过，但完整卸载仍失败：新 heap 最短链为 Local JNI → 平台树展开监听器 → BasicTreeUI Handler.pressedPath → 插件 ClassNode。这是基线 change 新 task 6.3 的待修复边，不能将 XML PSI 自动/功能通过写成卸载通过；本 change 1.6 保持未勾选，5.4 的完整取消/项目生命周期矩阵仍保留。进程退出后 21 个原 fixture 源码/模块文件和原工作区 584 文件 hash 不变；没有发布。
 
 
-树 UI 修复后的 ZIP `03f48336…4205b` / JAR `20fdd64a…2a74b` 再次通过 414 tests 和两精确 build Verifier，唯一生产 entry 变化为 `DocViewWindowPanel.class`。PID19963 同包 XML/Dubbo/导航/freshness 复验通过，实际禁用后插件对象记录归零、目标类消失且无 still-referenced 警告；1.6 因此完成，5.4 的完整矩阵仍保留。详见[热卸载结果](../http-client-generation-and-ui/verification-2026-11-08-remaining-native.md#树-ui-修复包原生热卸载通过)。
+树 UI 修复后的 ZIP `03f48336…4205b` / JAR `20fdd64a…2a74b` 再次通过 414 tests 和两精确 build Verifier，唯一生产 entry 变化为 `DocViewWindowPanel.class`。PID19963 同包 XML/Dubbo/导航/freshness 复验通过，实际禁用后插件对象记录归零、目标类消失且无 still-referenced 警告；1.6 因此完成，5.4 的完整矩阵仍保留。详见[热卸载结果](../../http-client-generation-and-ui/verification-2026-11-08-remaining-native.md#树-ui-修复包原生热卸载通过)。
 
 ## 2026-11-09：428 项目关闭与文档库 freshness 原生复验
 
-使用 IU `263.7307.200` 隔离 PID 66650 的 428 候选：ZIP SHA-256 `d377299230eb6ac6ff773f25283664839cd54b4b17c4622ddcee62cb9230efc8`，JAR SHA-256 `a7bcdf905c920a48900fba0680d1b46699e8d8513963b05ddda94e5ef4892b53`。相应自动门禁为 80 suites / 428 tests，0 failures/errors/skips，两个精确 build Verifier 均 Compatible。候选身份见[`artifact.json`](../../../build/native-validation/2026-11-08/remaining-native/project-close-candidate/artifact.json)。
+使用 IU `263.7307.200` 隔离 PID 66650 的 428 候选：ZIP SHA-256 `d377299230eb6ac6ff773f25283664839cd54b4b17c4622ddcee62cb9230efc8`，JAR SHA-256 `a7bcdf905c920a48900fba0680d1b46699e8d8513963b05ddda94e5ef4892b53`。相应自动门禁为 80 suites / 428 tests，0 failures/errors/skips，两个精确 build Verifier 均 Compatible。候选身份见`build/native-validation/2026-11-08/remaining-native/project-close-candidate/artifact.json`。
 
-原生项目关闭验证中，未创建过 tool window 内容的 `fixture-close-unopened` 可关闭；关闭 `fixture-b` 后 `schema-current-project` 窗口仍打开且目录刷新成功。应用退出确认框取消后项目和目录仍保留；这是应用退出被取消、尚未进入 `ProjectCloseListener.projectClosing` 的结果，不把它写成已测试项目关闭 veto。结果见[`unopened-close.json`](../../../build/native-validation/2026-11-08/remaining-native/project-close-candidate/unopened-close.json)、[`a-close-b-kept-result.json`](../../../build/native-validation/2026-11-08/remaining-native/project-close-candidate/a-close-b-kept-result.json) 与[`exit-cancel-result.json`](../../../build/native-validation/2026-11-08/remaining-native/project-close-candidate/exit-cancel-result.json)。项目关闭清理覆盖已复现的原生 UI/EDT 路径，不声明任意后台同步 close API 的线程契约。
+原生项目关闭验证中，未创建过 tool window 内容的 `fixture-close-unopened` 可关闭；关闭 `fixture-b` 后 `schema-current-project` 窗口仍打开且目录刷新成功。应用退出确认框取消后项目和目录仍保留；这是应用退出被取消、尚未进入 `ProjectCloseListener.projectClosing` 的结果，不把它写成已测试项目关闭 veto。结果见`build/native-validation/2026-11-08/remaining-native/project-close-candidate/unopened-close.json`、`build/native-validation/2026-11-08/remaining-native/project-close-candidate/a-close-b-kept-result.json` 与`build/native-validation/2026-11-08/remaining-native/project-close-candidate/exit-cancel-result.json`。项目关闭清理覆盖已复现的原生 UI/EDT 路径，不声明任意后台同步 close API 的线程契约。
 
-文档库显式生成后为 Current，共 65 entries 且 `hasUnsavedDocuments=false`。关闭并重开项目后显示 `Freshness is unknown`，65 entries 保留；133 个生成文件 hash 全部不变，且未触发 source parse。新会话需显式 Generate 后才确认 Current。证据见[`freshness-generated-result.json`](../../../build/native-validation/2026-11-08/remaining-native/project-close-candidate/freshness-generated-result.json) 与[`freshness-reopened-result.json`](../../../build/native-validation/2026-11-08/remaining-native/project-close-candidate/freshness-reopened-result.json)。
+文档库显式生成后为 Current，共 65 entries 且 `hasUnsavedDocuments=false`。关闭并重开项目后显示 `Freshness is unknown`，65 entries 保留；133 个生成文件 hash 全部不变，且未触发 source parse。新会话需显式 Generate 后才确认 Current。证据见`build/native-validation/2026-11-08/remaining-native/project-close-candidate/freshness-generated-result.json` 与`build/native-validation/2026-11-08/remaining-native/project-close-candidate/freshness-reopened-result.json`。
 
-同一候选的三轮资源观测中 `ParamDocEditorForm` / `ParamTreeTableView` 均为 0，`DocViewWindowPanel` 为 2、`PreviewForm` 为 1，renderer children 为 0；三轮可见 preview 分别为 HTML、源码、HTML，FD 均为 515。三轮 RSS 为 4,363,056 / 4,362,416 / 4,371,664 KiB。此处记录有限实例与模式观察，不称为长期资源基线或所有 preview 对象归零。禁用插件后 histogram 中 Doc View 对象为 0、目标类缺席且无 still-referenced 告警；卸载日志仍包含平台 `FileManagerImpl` possible-invalidation warning。证据见[`resource-cycle-summary.json`](../../../build/native-validation/2026-11-08/remaining-native/project-close-candidate/resource-cycle-summary.json)、[`resource-visible-modes.json`](../../../build/native-validation/2026-11-08/remaining-native/project-close-candidate/resource-visible-modes.json) 与[`unload-result.json`](../../../build/native-validation/2026-11-08/remaining-native/project-close-candidate/unload-result.json)。
+同一候选的三轮资源观测中 `ParamDocEditorForm` / `ParamTreeTableView` 均为 0，`DocViewWindowPanel` 为 2、`PreviewForm` 为 1，renderer children 为 0；三轮可见 preview 分别为 HTML、源码、HTML，FD 均为 515。三轮 RSS 为 4,363,056 / 4,362,416 / 4,371,664 KiB。此处记录有限实例与模式观察，不称为长期资源基线或所有 preview 对象归零。禁用插件后 histogram 中 Doc View 对象为 0、目标类缺席且无 still-referenced 告警；卸载日志仍包含平台 `FileManagerImpl` possible-invalidation warning。证据见`build/native-validation/2026-11-08/remaining-native/project-close-candidate/resource-cycle-summary.json`、`build/native-validation/2026-11-08/remaining-native/project-close-candidate/resource-visible-modes.json` 与`build/native-validation/2026-11-08/remaining-native/project-close-candidate/unload-result.json`。
 
 因此，本轮补齐了项目关闭、另一项目隔离、重开 freshness 和对应热卸载证据；task 5.4 仍未完成，文档生成取消后的可见终态/无部分索引验证及其余原生矩阵仍待补齐。429 guard 修正版的 429 项测试和两个精确 build Verifier 已通过；429 搜索取消的原生功能也已通过，但当时显示文案误称“状态检查”已取消，通用文案改动尚待新候选原生复验。其 `ToolWindowFactory` 与文档库生产 entries 和428一致，但本节不声称428是429的整包原生回归。PID 66650 已退出，原工作区冻结的584个文件未变，Junie 保留。
 

@@ -1,6 +1,6 @@
 # Doc View 文档与 MCP 格式
 
-状态：**1.7.1 已发布到 GitHub，复用 1.6.x 落盘 JSON 文档库并提供 IDEA 内置 MCP 工具及 Codex Skill 发行包**。Marketplace 提交和审核状态见[1.7.1发布记录](release-1.7.1.md)；原生验证范围及 Skill 的受支持客户端/build 见[同一记录](release-1.7.1.md)。当前生产最低 IDEA 版本仍以 Gradle 配置为准。自动和原生结果分别记录在[文档库任务](../openspec/changes/project-document-store/tasks.md)。
+状态：**1.7.1 已发布到 GitHub，复用 1.6.x 落盘 JSON 文档库并提供 IDEA 内置 MCP 工具及 Codex Skill 发行包**。Marketplace 提交和审核状态见[1.7.1发布记录](release-1.7.1.md)；原生验证范围及 Skill 的受支持客户端/build 见[同一记录](release-1.7.1.md)。当前生产最低 IDEA 版本仍以 Gradle 配置为准。自动和原生结果分别记录在[文档库任务](../openspec/changes/archive/2026-11-19-project-document-store/tasks.md)。
 
 采用 Markdown + JSON，各自有明确用途：
 
@@ -18,8 +18,8 @@
 
 唯一规范在 OpenSpec：
 
-- [磁盘格式、身份与 hash 算法](../openspec/changes/project-document-store/format.md)
-- [磁盘 JSON Schema](../openspec/changes/project-document-store/schemas/document-store.schema.json) 和 [虚构 index 样例](../openspec/changes/project-document-store/examples/index.json)
+- [磁盘格式、身份与 hash 算法](../openspec/changes/archive/2026-11-19-project-document-store/format.md)
+- [磁盘 JSON Schema](../openspec/changes/archive/2026-11-19-project-document-store/schemas/document-store.schema.json) 和 [虚构 index 样例](../openspec/changes/archive/2026-11-19-project-document-store/examples/index.json)
 - [MCP 工具设计](../openspec/changes/doc-view-mcp-tools/design.md)、[工具输入/结果 schema](../openspec/changes/doc-view-mcp-tools/tool-contracts.json) 和 [虚构调用结果](../openspec/changes/doc-view-mcp-tools/examples/search-response.json)
 
 变更必须联动 schema、示例、golden、工具契约及使用说明；不会在本指南再复制一套字段定义。首版使用 JSON Schema 2020-12。磁盘和 MCP schema 各自带版本，遇未知版本明确拒绝；生成受管理文件之前仍检查内容是否被手工修改。参数说明中的文本是文档数据，不是让 AI 执行的指令。

@@ -4,7 +4,7 @@
 
 动机和范围见[提案](proposal.md)。现有项目导出器从后台 PSI 快照生成 Markdown 页面和 `index.md`，通过 marker、hash、暂存和逐文件原子替换保护已有文件；它不提供结构化查询数据，也不保证整批文件事务。`ProjectDocumentIdentity` 已提供由模块、项目相对源码路径、类名、方法名和参数类型构成的稳定身份。`DocView` 对象图持有 PSI 和 parent 引用，不能序列化或传入磁盘写入阶段。
 
-本 change 在现有 Markdown 之上新增项目绑定的结构化读模型。项目文档库 UI 由 [`project-document-library-ui`](specs/project-document-library-ui/spec.md) 定义；正式 MCP adapter 的工具参数、MCP 响应和业务错误码由 [`doc-view-mcp-tools`](../doc-view-mcp-tools/design.md) 定义。
+本 change 在现有 Markdown 之上新增项目绑定的结构化读模型。项目文档库 UI 由 [`project-document-library-ui`](specs/project-document-library-ui/spec.md) 定义；正式 MCP adapter 的工具参数、MCP 响应和业务错误码由 [`doc-view-mcp-tools`](../../doc-view-mcp-tools/design.md) 定义。
 
 ## 目标与非目标
 
@@ -31,7 +31,7 @@
 
 路径语义固定为：`source.path` 相对项目根；Markdown 与详情路径相对 `docs/doc-view/` 文档根，例如 `apis/UserApi-find-<identity-hash>.md` 和同 stem 的 `.json`。索引与详情不写本机绝对项目路径。读取时拒绝绝对路径、`..` 越界及逃出文档根的符号链接。
 
-JSON 字段、schema 版本、错误 envelope、规范化与 hash 算法及可复制样例由同目录 [`format.md`](format.md) 维护；用户入口见[`docs/mcp-format.md`](../../../docs/mcp-format.md)。根 index entry 保留搜索摘要，包括存在时的 `httpMethod` 和 `httpPath`；`httpPath` 也属于本版本关键词检索字段。每个详情文件通过现有稳定 identity 关联，记录相同的 identity 字段。
+JSON 字段、schema 版本、错误 envelope、规范化与 hash 算法及可复制样例由同目录 [`format.md`](format.md) 维护；用户入口见[`docs/mcp-format.md`](../../../../docs/mcp-format.md)。根 index entry 保留搜索摘要，包括存在时的 `httpMethod` 和 `httpPath`；`httpPath` 也属于本版本关键词检索字段。每个详情文件通过现有稳定 identity 关联，记录相同的 identity 字段。
 
 另一方案是把所有字段树塞入 `index.json`。不采用该方案，因为它会让每次搜索载入响应 DTO，也会让大量条目扩大根索引；独立详情文件允许只按需读取单个接口。
 
@@ -134,3 +134,15 @@ XML 文件也在 project scope 发现，因为 provider XML 可以注册另一�
 ## 迁移计划
 
 现有 `index.md` 与 API Markdown 继续作为普通文档阅读。旧目录只有 Markdown 时，机器查询返回 `INDEX_NOT_FOUND`，只有用户显式执行项目文档生成后才产生 schema v1 JSON；查询时不扫描 PSI、不反解析 Markdown。未知 schema 不自动适配。显式重新生成只有在旧 JSON 所有权与完整性可验证且文件未被修改时才可覆盖；否则返回 `CONFLICT` 并保留原文件。旧页面不自动删除。回退旧插件仍可读取 Markdown，但不承诺读取新 JSON；本 change 不提高 IntelliJ 最低版本。
+
+### 搜索结果的呈现与导航
+
+侧栏使用 IDEA 原生搜索框。输入、粘贴及清除后短暂合并连续编辑，再使用最新文本读取已生成索引；编辑立即移除旧结果和高亮，并使旧分页和迟到回调失效；等待期间保留正在搜索提示，同快照的分页仍保留现有结果。清空后读取未筛选首页。显示片段与产生该页的查询及不可变索引条目绑定。后台准备每一页的显示片段，绘制行只消费这些片段，按当前主题区分标题、辅助文字、命中和选中。输入框的向下键进入结果。若首屏查询仍在等待或加载，仅记录当前查询的一次向下键意图，不重复发起查询；只有用户仍在搜索框且该查询返回条目时，才把焦点交给首条。改词、焦点离开、退出、取消或失败均丢弃该意图；单击选择、Enter 或双击实际行打开，搜索框、列表、返回和底部操作按钮在各自获得焦点时处理 Esc，不依赖祖先级 Swing 按键绑定；目录树及其他视图保留原快捷键。该调整不改变索引、MCP、搜索排序、写入规则或远程请求。
+
+### 同一次读取返回搜索页与索引状态
+
+查询在持有同一个读锁期间验证 `index.json`，得到匹配页及其索引总数、新鲜度、文档完整性状态。工具窗口从该页显示摘要，显式状态查询仍可独立读取。这个设计只合并一次用户查询内的重复读取；每次新查询继续校验磁盘字节，详情和 Markdown 继续校验各自的内容。用 10,000 条接口的固定测试项目对照旧的两次读取路径与一次读取路径。
+
+“更多结果”在同一快照内附加条目；点击后若游标已失效，使用当前查询重新读取一次首页，不继续使用旧游标。完成时焦点仍在触发按钮上则移到本批首条，否则保留已有焦点与选择。生成文档使用平台新建文件图标，与单独导出 Markdown 的导出图标区分。打开项目目录或搜索条目使用平台 Markdown 图标，与内置 Markdown 预览区分。
+
+搜索卡片的状态行显示本次查询反馈及简短新鲜度。文档库总数与未保存变更说明保留在完整提示中，目录视图继续显示原有信息。加载、缺失、损坏和操作失败沿用原错误提示，简短的新鲜度只用于可读索引。

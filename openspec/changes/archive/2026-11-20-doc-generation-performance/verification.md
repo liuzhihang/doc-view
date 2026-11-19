@@ -81,7 +81,7 @@ round40 `ClassNodeCancellationTest` targeted 1/1 通过。修订后的真实 PSI
 
 主代理完整执行 `./gradlew test verifyPluginProjectConfiguration buildPlugin verifyPlugin --rerun-tasks`：40 个 suite、196 项测试，0 失败、0 错误、0 跳过；构建成功，IU261.22158.277 Plugin Verifier verdict 为 `Compatible`。包括本 change 的最新修改及 Round41 的取消/释放守卫和真实 Scratch 文件失败用例。日志与精确 XML：`/tmp/doc-view-reliability-20261018/round42-fullgate.log`、`round42-fullgate-TEST-*.xml`；包审计为 `round42-package-audit.json`。
 
-Round42 ZIP SHA-256：`e214cd4525968356c936f798191006391415019afe48ee4e5235c02f342372d7`。7 个离线章节与仓库正文逐字节一致，生产包未包含测试框架、夹具或 MCP PoC。测试运行使用 JBR25，生产目标仍为 Java21；构建配置中跳过的 searchable-options 任务不计为测试跳过。完整包与原生已安装版本的区别见 [路线图](../../../docs/release-1.4.0.md#路线图迁入的历史进度摘要)。
+Round42 ZIP SHA-256：`e214cd4525968356c936f798191006391415019afe48ee4e5235c02f342372d7`。7 个离线章节与仓库正文逐字节一致，生产包未包含测试框架、夹具或 MCP PoC。测试运行使用 JBR25，生产目标仍为 Java21；构建配置中跳过的 searchable-options 任务不计为测试跳过。完整包与原生已安装版本的区别见 [路线图](../../../../docs/release-1.4.0.md#路线图迁入的历史进度摘要)。
 
 macOS 锁屏阻挡后续原生操作。IU262 测试实例仍安装 Round34，尚未安装或操作 Round42；本节自动验证不能替代新包原生双击/Enter、项目关闭、多项目隔离、主题及窗口矩阵验收，相关任务保持未完成。
 
@@ -149,3 +149,17 @@ Native 运行时隔离 profile 内插件 JAR SHA-256 为 `d5f8e6d774cac0d355d492
 本轮没有在预览或 Refresh 的在途任务中取消，也没有验证旧渲染回调在快速切换后不能覆盖新内容；这些仍是任务 3.3 的未验场景。另在同一候选热卸载记录 `unload-result.json` 中，禁用 Doc View 后目标 class 仍存在（`targetClassAbsent=false`），插件仍有 51 个 histogram rows，IDEA 记录 `stillReferencedWarning=true`。这是该候选的热卸载失败证据，根因由主线继续处理；它与上述自然耗时结果分开记录。
 
 因此，本节仅补齐当前候选 Spring/Dubbo 类级自然预览及目录刷新/展开结果的交互观察。tasks 3.3 继续保持未勾选：在途取消、取消后无部分结果、迟到回调保护和响应范围仍未完成；candidate 421 的热卸载也未通过。上述秒数不得用于声称纯 PSI 性能改善或 SLA。
+
+## 2026-11-20 最终候选的预览、刷新与取消
+
+macOS arm64、IU `263.7307.200`、Java 25，隔离项目含 1 module、6 classes、62 methods。ZIP SHA-256 `2f0284a418459a7e6e102500ec526d6b37fe68e0d4b75cae04664de40337575a`，已安装的 JAR SHA-256 `942422587aa51c79c69d9321375b279f66cd1765e07041ceea68d506984056cb`。自然计时不挂调试器，起点为触发入口前，终点为首次 AX 观察到完整列表及正文，或确认目录从展开回到新建的折叠树。数值包含输入、调度和 AX 读取开销，只代表本机这组三次观察。各场景单独记录。
+
+| 工作负载 | 试次（ms） | 范围（ms） | 可见终态 |
+| --- | --- | --- | --- |
+| Spring 整类预览 | 1522 / 867 / 801 | 801–1522 | 三个端点及首项 `/native/users/{id}` 正文。 |
+| 注解 Dubbo 接口预览 | 658 / 767 / 783 | 658–783 | 已知方法及 `FictionalAnnotatedService#annotatedCatalog` 正文。另有一次 CUA 点击未打开弹窗，未被计为成功试次。 |
+| Tool Window 刷新 | 876 / 883 / 884 | 876–884 | 每次从展开的 62 方法回到包含 6 个类的折叠树。 |
+
+同 ZIP 重开隔离 IDE 做受控取消，断点只暂停相应 worker 线程。Spring 两次在预览 worker 进入生成阶段后看到加载状态且方法列表为空，通过 IDEA 的“停止后台进程”取消，确认状态为“正在停止”再恢复 worker。停止后任务消失，原生焦点返回编辑器，未出现部分方法、正文或迟到弹窗；未从原生 popup 读到独立的取消文案。重新打开预览显示原有三项完整正文。刷新任务在准备构造临时目录前暂停，执行相同的原生停止后恢复 worker；状态显示“已取消刷新，可点击刷新重试”，62 个已发布方法逐行一致；重试清除取消状态并恢复 6 个类的折叠树。任务中段取消与禁止发布已构造部分节点另由目录 fixture 覆盖。受控暂停从耗时样本排除。
+
+本地证据位于 `build/openspec-remaining-review-20261120/` 的 `native-ui-evidence.json`、`native-preview*-break.log` 和 `native-refresh-break.log`。预览 HTML 替换与资源释放继续由[预览生命周期](../../fix-preview-lifecycle/tasks.md)处理，本 change 的结果不作性能提升或 SLA 声明。

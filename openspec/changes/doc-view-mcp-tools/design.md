@@ -2,7 +2,7 @@
 
 ## Context
 
-动机见 [proposal](proposal.md)。生产 descriptor 目前没有 MCP 依赖或扩展，独立 PoC 不随生产包交付。现有 Java `DocView`、`Body`、`Param` 含 PSI/父引用，不可直接作为磁盘或 MCP DTO。文档库与 UI 的服务边界由 [project-document-store](../project-document-store/design.md) 定义；本 adapter 只负责协议参数、项目绑定、结果编码和取消传播。
+动机见 [proposal](proposal.md)。生产 descriptor 目前没有 MCP 依赖或扩展，独立 PoC 不随生产包交付。现有 Java `DocView`、`Body`、`Param` 含 PSI/父引用，不可直接作为磁盘或 MCP DTO。文档库与 UI 的服务边界由 [project-document-store](../archive/2026-11-19-project-document-store/design.md) 定义；本 adapter 只负责协议参数、项目绑定、结果编码和取消传播。
 
 ## Goals / Non-Goals
 

@@ -9,7 +9,7 @@
 
 ## 联动范围
 
-- `PreviewForm` 单项 Upload 入口复用已有 `upload(project, docView)` 后台 wrapper。此 change 不修改上传 payload 或服务协议；凭据读取与集成配置行为见[集成凭据 change](../integration-credential-storage/proposal.md)。本轮预览测试没有验证上传接口或凭据行为。
+- `PreviewForm` 单项 Upload 入口复用已有 `upload(project, docView)` 后台 wrapper。此 change 不修改上传 payload 或服务协议；凭据读取与集成配置行为见[集成凭据 change](../archive/2026-11-20-integration-credential-storage/proposal.md)。本轮预览测试没有验证上传接口或凭据行为。
 
 ## 未验证
 

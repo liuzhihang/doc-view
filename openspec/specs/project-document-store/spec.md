@@ -1,12 +1,11 @@
-# Spec Delta
+# project-document-store Specification
 
 ## Purpose
-
 为当前 IDEA 项目提供可校验、可分页的 Doc View 结构化文档库，使接口搜索和详情读取复用已生成快照，而不重新扫描源码或解析自定义 Markdown。
 
-存储与查询错误码 MUST 使用 [MCP design](../../../doc-view-mcp-tools/design.md) 定义的大写枚举，不得引入小写别名。存储场景使用 `INDEX_NOT_FOUND`、`UNSUPPORTED_SCHEMA`、`INDEX_INVALID`、`INDEX_INCONSISTENT`、`API_NOT_FOUND`、`CURSOR_STALE`、`SNAPSHOT_CHANGED`、`BUSY`、`CONFLICT`、`SOURCE_CHANGED`、`LIMIT_EXCEEDED`、`CANCELLED`、`TIMEOUT`、`PARTIAL_PUBLICATION` 和 `IO_ERROR`；参数错误使用 `INVALID_ARGUMENT`。
+存储与查询错误码 MUST 使用 [MCP design](../../changes/doc-view-mcp-tools/design.md) 定义的大写枚举，不得引入小写别名。存储场景使用 `INDEX_NOT_FOUND`、`UNSUPPORTED_SCHEMA`、`INDEX_INVALID`、`INDEX_INCONSISTENT`、`API_NOT_FOUND`、`CURSOR_STALE`、`SNAPSHOT_CHANGED`、`BUSY`、`CONFLICT`、`SOURCE_CHANGED`、`LIMIT_EXCEEDED`、`CANCELLED`、`TIMEOUT`、`PARTIAL_PUBLICATION` 和 `IO_ERROR`；参数错误使用 `INVALID_ARGUMENT`。
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: 项目文档库固定绑定当前项目
 系统 SHALL 只从当前项目根目录下的 `docs/doc-view/` 发现和读取项目文档库，且不得在查询时创建目录、生成文档或扫描源码。
@@ -130,7 +129,7 @@
 - **AND** Markdown 与详情文件原始字节 hash 用于确认对应文件未被外部改写
 - **AND** 这些摘要不得互相替代或被描述为源码实时性证明
 
-机器格式字段、规范化算法、错误 envelope 与示例由 [格式说明](../../format.md) 定义；用户可读入口见 [`docs/mcp-format.md`](../../../../../docs/mcp-format.md)。
+机器格式字段、规范化算法、错误 envelope 与示例由 [格式说明](../../changes/archive/2026-11-19-project-document-store/format.md) 定义；用户可读入口见 [`docs/mcp-format.md`](../../../docs/mcp-format.md)。
 
 ### Requirement: 项目文档写入保护现有内容
 项目文档更新 MUST 在写入前验证所有目标路径及其 Doc View 所有权和既有内容完整性，并拒绝覆盖无法证明未被修改的文件。
@@ -258,6 +257,13 @@
 - **THEN** 旧快照标记为 `stale`，只读 status/search/get 不重新生成文件
 - **AND** 事件仅影响所属项目；其他项目、非 Java/XML 文件与 `docs/doc-view/` 下的输出不推进该项目输入代际
 - **AND** 不将尚未被 IDEA 观察到的磁盘变更宣称为已检测；监听器随项目服务释放
+
+#### Scenario: 首次生成创建固定输出根的直接容器目录
+- **WHEN** 新的 `docs/doc-view/` 文档库首次发布后，VFS 观察到其直接容器目录 `<project>/docs` 的创建事件，且该目录的唯一直接子目录是 `doc-view`
+- **THEN** 该容器目录事件不推进输入代际，首次生成的快照保持 `current`
+- **AND** 如果该目录另有直接子项（例如在首次刷新前已存在的源码目录），保守地使快照 `stale`
+- **AND** 该目录下后续 Java/XML 文件创建仍推进输入代际并使快照 `stale`
+- **AND** 其他目录移动、改名、复制和删除仍按项目输入事件规则处理
 
 #### Scenario: Dubbo XML 注册变更
 - **WHEN** 当前会话已提交项目快照后，项目任一内容根内的 XML Document 发生变化

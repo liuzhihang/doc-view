@@ -60,7 +60,7 @@ modal task 不提供取消按钮。PasswordSafe 调用本身是阻塞的，取�
 
 凭据操作的普通 `RuntimeException` 转换为上述脱敏设置错误；JVM `Error` 不属于可恢复的存储失败。非 EDT 调用直接向上传播 `Error`；EDT 调用在 modal task 中暂存该错误，等待平台完成任务清理后再向调用方传播，不将其误报为普通设置错误。
 
-不用 `getAsync()`/`Ephemeral`，因为目标 Java 代码不能调用其 Kotlin-only 实验 API；不用已标记 obsolete 的 `runProcessWithProgressSynchronously()` 或 `Task.WithResult`。`ProgressManager.run(Task.Modal)` 在目标 IU 261 公共 API 中可用，平台以 modal progress 运行任务并在返回前等待完成；原生验收仍需确认 PasswordSafe/OS 凭据授权提示能在该执行方式下正常完成。若无法完成 OS 授权，不将其记为通过，也不暗中退回 EDT 调用。
+不用 `getAsync()`/`Ephemeral`，因为目标 Java 代码不能调用其 Kotlin-only 实验 API；不用已标记 obsolete 的 `runProcessWithProgressSynchronously()` 或 `Task.WithResult`。`ProgressManager.run(Task.Modal)` 在目标 IU 261 公共 API 中可用，平台以 modal progress 运行任务并在返回前等待完成；OS 凭据授权由 IDEA 与操作系统管理，操作继续在后台进行。目标 IU `263.7307.200` 的公开 PasswordSafe API 没有单项写入完成或异步失败回执。macOS 后端允许排队写入，立即回读可能得到平台待写值。Apply 以公开调用正常返回为提交普通字段的条件；实际后端持久化以重启回读等独立证据观察。
 
 PasswordSafe 单项写入成功与 IDEA 项目 XML 落盘不是跨存储事务。正常 Apply 顺序确保 PasswordSafe 报告失败时不提交普通设置；若进程在安全存储成功后、IDE 持久化普通状态前崩溃，不能承诺两处数据同时回滚。此边界会在设计与验收记录中说明。
 
@@ -76,13 +76,13 @@ PasswordSafe 单项写入成功与 IDEA 项目 XML 落盘不是跨存储事务�
 
 自动测试通过包内 fake 存储 seam 断言 key、secret 状态、每种操作调用次数、非 EDT 线程和失败原子性；另用目标 IU 261 `InMemoryCredentialStore`（与该基线 KeePass 后端具有相同条目写入语义）验证同平台不同项目的保存、读取和单项目清除，以及跨平台条目互不影响，避免 fake 的复合 map key 掩盖 backend 条目覆盖。不写系统钥匙串，不使用真实 token/服务。设置状态序列化测试填入虚构凭据后断言输出 XML 不含 secret，并确认普通 URL/项目标识仍可保留。表单测试验证密码控件、零字符保留、非空输入原样替换、显式清除、Reset/Cancel 与 Apply 后清空。上传测试通过 fake service 检查凭据查找发生在后台，并断言没有密钥进入日志或错误消息。
 
-隔离 IDEA profile 的原生验收使用虚构 key/token，不调用 ShowDoc、YApi 或 YuQue。分别验证设置状态、PasswordSafe 提示/拒绝路径、密码遮蔽、Apply/Reset/Cancel、失败后重试、IDE 重启后同项目读取、不同项目隔离，以及首次/之后状态保存时 XML 变化。环境没有可交互 OS 密码提示时，单独记录跳过原因，不以 fake 自动测试代替原生结论。
+隔离 IDEA profile 的原生验收使用虚构 key/token，不调用 ShowDoc、YApi 或 YuQue。分别验证设置状态、密码遮蔽、Apply/Reset/Cancel、IDE 重启后同项目读取、不同项目隔离，以及首次/之后状态保存时 XML 变化。通过 fake 向调用方注入同步异常，验证可见错误、草稿保留和重试。系统授权提示、拒绝及异步写入异常作为 IDEA/OS 诊断场景单独记录。
 
 ## Risks / Trade-offs
 
 - [用户升级后需要重新填写三个平台凭据] → 普通设置仍保留；用户文档和 changelog 说明凭据必须重录。
 - [旧 XML 中原有凭据可能继续以明文存在] → 插件不扫描/清理；明确记录旧文件在新版正常状态重写前可能残留，由用户自行决定备份或清理。
-- [PasswordSafe 被配置为仅内存存储、系统钥匙串锁定或权限提示拒绝] → 状态显示为未配置/不可用，Apply 失败时保留草稿；在隔离原生 profile 记录实际行为，不写普通 XML 作为回退。
+- [PasswordSafe 被配置为仅内存存储、系统钥匙串锁定或权限提示拒绝] → 如果读取返回无值或抛出异常，状态分别显示为未配置或不可用；Apply 同步报错时保留草稿。后端异步写入状态由 IDEA/OS 管理，项目 XML 不作为凭据回退。
 - [项目身份变化使原凭据不可达] → 不扫描或复用别的项目凭据；提示当前项目缺少凭据，用户重新输入。
 - [Apply 成功后 IDE 状态文件仍未落盘时进程崩溃] → 顺序提交能覆盖常规失败，但不承诺跨系统存储与 IDEA XML 的崩溃事务。
 - [YApi 目录查询把 token 放在 URL query 参数] → 保持平台协议边界，本 change 不改传输格式；禁止插件新增完整 URL 日志，并将协议层改造留作单独评估。

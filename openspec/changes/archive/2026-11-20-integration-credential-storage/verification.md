@@ -67,4 +67,10 @@ IU 261 SDK 字节码检查发现，`BaseKeePassCredentialStore` 和 macOS `KeyCh
 
 正式IU263.7307.200安装包只读核对发现：公开CredentialStore/PasswordSafe的set为void，没有逐项完成、flush或失败回调接口；macOS native wrapper会先更新待写内存值，再排队写底层，紧随的get可能只读取待写值。底层异步失败不保证抛回Doc View的Apply调用栈。因此不能用立即read-back证明已持久化，也不能以fake-store同步失败测试宣称原生OS拒绝验收通过。详见[官方公开API说明](https://plugins.jetbrains.com/docs/intellij/persisting-sensitive-data.html)；精确安装包字节码调查保存在`build/native-validation/2026-11-09/credential-os-audit/api-write-completion.md`。未读取系统凭据值、改ACL或访问真实上传账号。
 
-维护者随后明确允许本次未能补齐的原生验收留待人工验证与用户反馈，不再阻断1.6.0发布；见[发布检查清单的本次例外](../../../docs/release-checklist.md)。4.3.d仍保持未勾选，OS授权/拒绝及真实后端失败重试不记为通过，后续需要平台公开错误语义或专项原生验证。此例外不改变PasswordSafe实现、不加入internal/reflection访问，也不改变后续版本的默认验收要求。
+维护者随后明确允许本次未能补齐的原生验收留待人工验证与用户反馈，不再阻断1.6.0发布；见[发布检查清单的本次例外](../../../../docs/release-checklist.md)。4.3.d仍保持未勾选，OS授权/拒绝及真实后端失败重试不记为通过，后续需要平台公开错误语义或专项原生验证。此例外不改变PasswordSafe实现、不加入internal/reflection访问，也不改变后续版本的默认验收要求。
+
+## 2026-11-20 验收范围复核
+
+本次重跑 Java 25 / IDEA 263 SDK 的 `IntegrationCredentialServiceTest`（7 项）、`IntegrationCredentialApplyTest`（1 项）、`IntegrationCredentialLifecycleTest`（7 项）及 `IntegrationSettingsLifecycleTest`（16 项），共 31 项，0 失败、错误或跳过。Apply 测试向真实配置表单的存储层注入同步失败，验证脱敏错误、已保存值和表单草稿均保留，并用同一份草稿重试成功。项目隔离、输入遮蔽、Reset/Cancel、普通设置及重启回读沿用上文记录的隔离 IDEA 证据。
+
+系统授权、拒绝与后端异步写入失败未执行。对应任务按目标平台可观察边界收口。IU `263.7307.200` 公开 PasswordSafe 调用无单项完成或异步失败回执，原生 wrapper 可排队写入，立即回读可能命中待写缓存。Doc View 负责可观察的调用失败和重试。实际系统提示与异步持久化结果留作 IDEA/OS 诊断，遇到具体投诉按相应系统、存储模式和 IDE build 单独复现。见 [JetBrains 凭据存储 API](https://plugins.jetbrains.com/docs/intellij/persisting-sensitive-data.html)。

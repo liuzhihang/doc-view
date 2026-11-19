@@ -1,6 +1,6 @@
 # 项目文档库格式 v1（待实现）
 
-本文件与本 change 的 spec、[JSON Schema](schemas/document-store.schema.json)、[虚构样例](examples/index.json) 一起定义首版持久化格式。它是实现契约；本地开发实现及实际验证范围见 tasks.md，不代表已发布插件已提供 JSON 文档库。用户入口见 [格式说明](../../../docs/mcp-format.md)。
+本文件与本 change 的 spec、[JSON Schema](schemas/document-store.schema.json)、[虚构样例](examples/index.json) 一起定义首版持久化格式。它是实现契约；本地开发实现及实际验证范围见 tasks.md，不代表已发布插件已提供 JSON 文档库。用户入口见 [格式说明](../../../../docs/mcp-format.md)。
 
 ## 文件与目录
 

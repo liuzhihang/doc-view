@@ -26,7 +26,7 @@ Export 与 Export All 当前先取消 popup，再读取实例字段（[PreviewFo
 **Non-Goals:**
 
 - 推断或专门修复那次尚未定位根因的 Dubbo 停滞。
-- 重排 popup UI、增加重试控件，或改变 Markdown 输出、导出格式、上传 payload/protocol 和共享任务工具语义。为遵守凭据读取的线程要求，单项 Upload 入口复用已有的 `upload(project, docView)` 后台 wrapper；凭据及集成设置行为由[集成凭据 change](../integration-credential-storage/proposal.md)定义。
+- 重排 popup UI、增加重试控件，或改变 Markdown 输出、导出格式、上传 payload/protocol 和共享任务工具语义。为遵守凭据读取的线程要求，单项 Upload 入口复用已有的 `upload(project, docView)` 后台 wrapper；凭据及集成设置行为由[集成凭据 change](../archive/2026-11-20-integration-credential-storage/proposal.md)定义。
 - 增加通用任务调度架构或生产依赖。
 
 ## Decisions

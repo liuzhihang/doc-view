@@ -2,7 +2,7 @@
 
 ## Context
 
-动机和用户可见范围见 [proposal](proposal.md)；行为以 [capability spec](specs/doc-view-client-skill/spec.md) 为准。当前项目已有计划中的 [MCP tools](../doc-view-mcp-tools/proposal.md) 与 [project document store](../project-document-store/proposal.md)，但生产 MCP/Skill 尚未交付。目标是为单个官方 Doc View Skill 定义发布与本地安装生命周期，不增加另一份 MCP 工具实现或项目文档格式。
+动机和用户可见范围见 [proposal](proposal.md)；行为以 [capability spec](specs/doc-view-client-skill/spec.md) 为准。当前项目已有计划中的 [MCP tools](../doc-view-mcp-tools/proposal.md) 与 [project document store](../archive/2026-11-19-project-document-store/proposal.md)，但生产 MCP/Skill 尚未交付。目标是为单个官方 Doc View Skill 定义发布与本地安装生命周期，不增加另一份 MCP 工具实现或项目文档格式。
 
 截至 2026-10-24 核对的官方 [Build skills 文档](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)列出 repo `.agents/skills`、user `$HOME/.agents/skills`，并说明 Codex 可发现新文件，未显示时可重启。Codex app-server 文档公开了 `skills/list` 的 `forceReload` 只读发现；`skills/extraRoots/set` 会写入当前进程的发现 roots，是写操作而非发现查询，首版不得自动调用或修改客户端 roots。`externalAgentConfig/import` 的 `SKILLS` 类型也是写入型迁移能力，用于导入外部 Agent 文件，并非从 GitHub release 安装入口（[app-server Skills](https://learn.chatgpt.com/docs/app-server#skills)、[external config import](https://learn.chatgpt.com/docs/app-server#detect-and-import-external-agent-config)）。
 

@@ -15,13 +15,16 @@
 | 范围 / 活动 change | 近期重点 |
 | --- | --- |
 | [263 基线](../openspec/changes/intellij-263-baseline-upgrade/tasks.md) | 补精确目标 build 的原生资源和生命周期边界；历史热卸载失败不改写为已修复，不推导未来 build 兼容性。 |
-| [项目文档库](../openspec/changes/project-document-store/tasks.md) | 完成最终包原生矩阵：项目隔离、生成/查询、冲突、取消/partial/retry、关闭重开 freshness。 |
 | [HTTP 与 UI](../openspec/changes/http-client-generation-and-ui/tasks.md) | 补最终包 HTTP Send、异常/取消和完整菜单、主题、窄窗、键盘及跨应用交互矩阵。 |
 | [预览生命周期](../openspec/changes/fix-preview-lifecycle/tasks.md) | 核对 JCEF 状态替换、关闭释放与重复打开后的资源边界。 |
-| [生成性能](../openspec/changes/doc-generation-performance/tasks.md) | 补自然耗时重复测量、可见取消终态与 HTML 矩阵；受控断点不作性能结论。 |
-| [凭据存储](../openspec/changes/integration-credential-storage/tasks.md) | 补 OS 授权拒绝、后端写入失败及重试原生证据，保留项目隔离边界。 |
 
 [Clear Cache 已归档](../openspec/changes/archive/2026-11-19-clear-cache-safety/verification.md)：现行 `…` 入口已验证双项目缓存隔离及文件保护；旧目录菜单已被替代。[Schema 必填与写回已归档](../openspec/changes/archive/2026-11-19-openapi3-schema-required-mode/verification.md)：参数编辑器键盘、写回与关闭后资源已验，完整预览及插件卸载仍独立跟踪。
+
+[项目文档库已归档](../openspec/changes/archive/2026-11-19-project-document-store/verification-2026-11-19-final-lifecycle.md)：同一最终包完成从首次生成到取消、重试和重开的原生验收。
+
+[凭据存储已归档](../openspec/changes/archive/2026-11-20-integration-credential-storage/verification.md#2026-11-20-验收范围复核)。保留项目隔离、重启回读和同步失败重试的证据。系统提示与异步持久化按 IDEA/OS 诊断。
+
+[生成性能已归档](../openspec/changes/archive/2026-11-20-doc-generation-performance/verification.md#2026-11-20-最终候选的预览刷新与取消)。最终候选的整类预览与刷新各完成三次原生测量；受控取消后未出现部分预览，目录保留原有 62 项。
 
 尚未完成表示证据有缺口，不自动等于已确认的运行时缺陷。真实平台上传的历史排除是未执行，不是通过；下一次发布重新按[发布检查清单](release-checklist.md)确定范围。
 

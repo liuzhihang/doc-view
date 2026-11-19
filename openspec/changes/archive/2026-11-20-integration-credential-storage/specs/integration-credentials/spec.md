@@ -77,7 +77,7 @@
 
 ### Requirement: Apply 与 Reset/Cancel 保持凭据状态一致
 
-Apply SHALL 在凭据安全存储操作成功后才提交该平台的非敏感设置；失败 SHALL 保留表单草稿并保持非敏感设置不变，Reset 和 Cancel SHALL NOT 写入或删除凭据。
+涉及凭据变更时，Apply SHALL 在 IDEA 公开 PasswordSafe 调用正常返回后才提交该平台的非敏感设置；调用同步报错时 SHALL 保留表单草稿并保持非敏感设置不变。Reset 和 Cancel SHALL NOT 写入或删除凭据。系统授权和底层存储的异步结果由 IDEA 与操作系统处理；Apply 结果 SHALL NOT 被表述为底层存储完成确认。
 
 #### Scenario: 成功应用凭据与普通设置
 - **WHEN** 用户 Apply 一组平台设置且安全存储操作成功
@@ -85,8 +85,8 @@ Apply SHALL 在凭据安全存储操作成功后才提交该平台的非敏感�
 - **AND** 同一次 Apply 的非敏感设置 SHALL 随后提交
 - **AND** 设置页 SHALL 显示成功后的已应用状态
 
-#### Scenario: 安全存储失败
-- **WHEN** 凭据安全存储读写或删除失败
+#### Scenario: PasswordSafe 调用报错
+- **WHEN** IDEA 的公开 PasswordSafe 调用在读取、写入或删除时同步抛出可恢复的异常
 - **THEN** 非敏感设置 SHALL 保持 Apply 前的已保存值
 - **AND** 用户输入草稿 SHALL 保留以便重试
 - **AND** 错误提示与日志 SHALL NOT 包含凭据明文

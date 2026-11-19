@@ -18,4 +18,4 @@
 
 - [x] 3.1 在相同环境/fixture 上复测基线 workload，比较优化前后的分阶段 p50/p95 与测量波动；只有提升超过波动且 p95 未退化时才报告性能改善，并记录实际结果和未覆盖场景到 `verification.md`。
 - [x] 3.2 运行 `./gradlew test verifyPluginProjectConfiguration buildPlugin verifyPlugin --rerun-tasks`，确认自动化门禁通过且插件包不包含测试 fixture/harness。
-- [ ] 3.3 在正式 IU `263.7307.200` 原生实例（本轮批准的精确正式 build；插件最低 `since-build` 为 `263.7031.23`）验收整类 Spring/Dubbo 预览与 Tool Window 刷新；在生成/刷新中取消并确认无部分结果，记录操作到可见终态的耗时范围、响应状态和环境。验收必须绑定最终候选 ZIP/JAR 身份；此前 IU 261、其他候选包和 light fixture 的结果均不能替代本项，也不得据单次 AX 观察宣称性能提升或 SLA。
+- [x] 3.3 在正式 IU `263.7307.200` 原生实例（本轮批准的精确正式 build；插件最低 `since-build` 为 `263.7031.23`）验收整类 Spring/Dubbo 预览与 Tool Window 刷新；在生成/刷新中取消并确认无部分结果，记录操作到可见终态的耗时范围、响应状态和环境。验收必须绑定最终候选 ZIP/JAR 身份；此前 IU 261、其他候选包和 light fixture 的结果均不能替代本项，也不得据单次 AX 观察宣称性能提升或 SLA。
