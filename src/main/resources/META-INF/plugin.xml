@@ -204,10 +204,10 @@
                         text="Export Markdown" description="Export Markdown" icon="AllIcons.ToolbarDecorator.Export"/>
                 <action id="liuzhihang.doc.tool.window.toolbar.action.project.export"
                         class="com.liuzhihang.doc.view.action.toolbar.window.ProjectDocumentExportAction"
-                        text="Generate or Update Project Docs" description="Generate or update the current project's Markdown and JSON API documentation" icon="AllIcons.ToolbarDecorator.Export"/>
+                        text="Generate or Update Project Docs" description="Generate or update the current project's Markdown and JSON API documentation" icon="AllIcons.Actions.AddFile"/>
                 <action id="liuzhihang.doc.tool.window.toolbar.action.project.open"
                         class="com.liuzhihang.doc.view.action.toolbar.window.OpenProjectDocsAction"
-                        text="Open Project Docs" description="Open the verified project documentation index" icon="AllIcons.Actions.Preview"/>
+                        text="Open Project Docs" description="Open the verified project documentation index" icon="AllIcons.FileTypes.Markdown"/>
                 <action id="liuzhihang.doc.tool.window.toolbar.action.project.search"
                         class="com.liuzhihang.doc.view.action.toolbar.window.SearchProjectDocsAction"
                         text="Search Project Docs" description="Search the current project's generated API documentation" icon="AllIcons.Actions.Find"/>

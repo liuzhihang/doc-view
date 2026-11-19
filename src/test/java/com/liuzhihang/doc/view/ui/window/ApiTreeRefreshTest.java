@@ -1,6 +1,7 @@
 package com.liuzhihang.doc.view.ui.window;
 
 import com.intellij.openapi.Disposable;
+import com.intellij.openapi.progress.EmptyProgressIndicator;
 import com.intellij.util.Alarm;
 import com.intellij.openapi.util.Disposer;
 import com.intellij.openapi.wm.ToolWindow;
@@ -127,11 +128,11 @@ public final class ApiTreeRefreshTest extends LightJavaCodeInsightFixtureTestCas
 
     @SuppressWarnings("unchecked")
     public void testSingleSelectionEnablesAndClearingSelectionDisablesOpenMarkdown() throws Exception {
-        DefaultListModel<EntryData> model = (DefaultListModel<EntryData>) field("searchResultsModel");
-        JList<EntryData> results = (JList<EntryData>) field("searchResults");
+        DefaultListModel<ProjectSearchResultRenderer.Row> model = (DefaultListModel<ProjectSearchResultRenderer.Row>) field("searchResultsModel");
+        JList<ProjectSearchResultRenderer.Row> results = (JList<ProjectSearchResultRenderer.Row>) field("searchResults");
         JButton openButton = (JButton) field("openSelectedButton");
         setField("searchSnapshotId", "snapshot-test");
-        model.addElement(sampleEntry());
+        model.addAll(ProjectSearchResultRenderer.rows(List.of(sampleEntry()), "", new EmptyProgressIndicator()));
 
         assertFalse(openButton.isEnabled());
         results.setSelectedIndex(0);

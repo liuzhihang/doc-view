@@ -1,6 +1,7 @@
 package com.liuzhihang.doc.view.ui.window;
 
 import com.intellij.ide.util.treeView.AbstractTreeStructure;
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.actionSystem.ActionManager;
 import com.intellij.openapi.actionSystem.ActionPlaces;
@@ -24,8 +25,10 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowManager;
 import com.intellij.pom.Navigatable;
 import com.intellij.psi.PsiElement;
+import com.intellij.ui.DocumentAdapter;
 import com.intellij.ui.PopupHandler;
 import com.intellij.ui.ScrollPaneFactory;
+import com.intellij.ui.SearchTextField;
 import com.intellij.ui.TreeSpeedSearch;
 import com.intellij.ui.components.JBLabel;
 import com.intellij.ui.components.JBTextField;
@@ -39,7 +42,7 @@ import com.intellij.util.Alarm;
 import com.liuzhihang.doc.view.DocViewBundle;
 import com.liuzhihang.doc.view.action.toolbar.window.ProjectDocumentExportAction;
 import com.liuzhihang.doc.view.data.DocViewDataKeys;
-import com.liuzhihang.doc.view.service.document.ProjectDocumentData.EntryData;
+import com.liuzhihang.doc.view.ui.window.ProjectSearchResultRenderer.Row;
 import com.liuzhihang.doc.view.service.document.ProjectDocumentIndexListener;
 import com.liuzhihang.doc.view.service.document.ProjectDocumentIndexMarkdownResult;
 import com.liuzhihang.doc.view.service.document.ProjectDocumentIndexService;
@@ -52,6 +55,7 @@ import com.liuzhihang.doc.view.service.document.ProjectDocumentMarkdownResult;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeSelectionModel;
@@ -59,15 +63,19 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseEvent;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /** The Doc View tool window and its project-document search surface. */
 public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposable {
@@ -86,15 +94,20 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
     private final JLabel inlineStatus = new JBLabel();
     private final JButton generateProjectDocsButton = new JButton();
     private final JPanel centerCards = new JPanel(new CardLayout());
-    private final DefaultListModel<EntryData> searchResultsModel = new DefaultListModel<>();
-    private final JBTextField searchField = new JBTextField();
-    private final JButton searchButton = new JButton();
+    private final DefaultListModel<Row> searchResultsModel = new DefaultListModel<>();
+    private final SearchTextField searchField = new SearchTextField(false) {
+        @Override
+        protected boolean toClearTextOnEscape() {
+            return false; // Esc returns to the catalog. The native clear icon resets the query.
+        }
+    };
     private final JButton backToCatalogButton = new JButton();
     private final JButton openSelectedButton = new JButton();
     private final JButton nextPageButton = new JButton();
-    private final JList<EntryData> searchResults = new JList<>(searchResultsModel);
+    private final JList<Row> searchResults = new JList<>(searchResultsModel);
     private final JPanel searchCard;
     private final Alarm projectStatusRefreshAlarm;
+    private final Alarm liveSearchAlarm = new Alarm(Alarm.ThreadToUse.SWING_THREAD, this);
 
     private volatile long refreshGeneration;
     private volatile boolean disposed;
@@ -105,12 +118,13 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
     private volatile ProgressIndicator documentActionIndicator;
     private volatile CompletableFuture<?> documentOpenFuture;
     private volatile String catalogStatusText = "";
-    private volatile String projectStatusText = "";
+    private volatile ProjectStatusText projectStatusText = new ProjectStatusText("");
     private volatile String projectStatusDetail = "";
     private volatile ProjectDocumentIndexStatus currentDocumentStatus;
     private String searchSnapshotId;
     private String searchCursor;
-    private String executedQuery = "";
+    private boolean firstSearchPagePending;
+    private boolean focusResultsWhenReady;
 
     public DocViewWindowPanel(@NotNull Project project, @NotNull ToolWindow toolWindow) {
         super(Boolean.TRUE, Boolean.TRUE);
@@ -137,7 +151,10 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
 
         JPanel statusStrip = new JPanel(new BorderLayout(JBUI.scale(8), 0));
         inlineStatus.setBorder(JBUI.Borders.empty(4, 8));
-        generateProjectDocsButton.setText(DocViewBundle.message("project.library.generate"));
+        generateProjectDocsButton.setText(DocViewBundle.message("project.library.generate.short"));
+        generateProjectDocsButton.setIcon(AllIcons.Actions.AddFile);
+        generateProjectDocsButton.setToolTipText(DocViewBundle.message("project.library.generate"));
+        generateProjectDocsButton.getAccessibleContext().setAccessibleName(DocViewBundle.message("project.library.generate"));
         generateProjectDocsButton.setVisible(false);
         generateProjectDocsButton.addActionListener(event -> ProjectDocumentExportAction.generateProject(project));
         statusStrip.add(inlineStatus, BorderLayout.CENTER);
@@ -166,41 +183,61 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
         JPanel card = new JPanel(new BorderLayout(JBUI.scale(6), JBUI.scale(6)));
         card.setBorder(JBUI.Borders.empty(6));
 
-        backToCatalogButton.setText(DocViewBundle.message("project.library.back.catalog"));
+        String backLabel = DocViewBundle.message("project.library.back.catalog");
+        backToCatalogButton.setIcon(AllIcons.Actions.Back);
+        int backSize = backToCatalogButton.getPreferredSize().height;
+        backToCatalogButton.setPreferredSize(new Dimension(backSize, backSize));
+        backToCatalogButton.setToolTipText(backLabel);
+        backToCatalogButton.getAccessibleContext().setAccessibleName(backLabel);
         backToCatalogButton.addActionListener(event -> showCatalog());
-        searchField.setToolTipText(DocViewBundle.message("project.library.search.query"));
-        searchField.putClientProperty("JTextField.placeholderText",
-                DocViewBundle.message("project.library.search.query"));
-        searchButton.setText(DocViewBundle.message("project.library.search"));
-        searchButton.addActionListener(event -> searchDocuments(false));
-        searchField.addActionListener(event -> searchDocuments(false));
+        JBTextField editor = searchField.getTextEditor();
+        editor.getAccessibleContext().setAccessibleName(DocViewBundle.message("project.library.search.query"));
+        editor.setToolTipText(DocViewBundle.message("project.library.search.query"));
+        editor.getEmptyText().setText(DocViewBundle.message("project.library.search.placeholder"));
+        searchField.addDocumentListener(new DocumentAdapter() {
+            @Override
+            protected void textChanged(@NotNull DocumentEvent event) {
+                searchDocuments(null, true);
+            }
+        });
 
         JPanel queryRow = new JPanel(new BorderLayout(JBUI.scale(6), 0));
         queryRow.add(backToCatalogButton, BorderLayout.WEST);
-        JPanel queryControls = new JPanel(new BorderLayout(JBUI.scale(6), 0));
-        queryControls.add(searchField, BorderLayout.CENTER);
-        queryControls.add(searchButton, BorderLayout.EAST);
-        queryRow.add(queryControls, BorderLayout.CENTER);
+        queryRow.add(searchField, BorderLayout.CENTER);
         card.add(queryRow, BorderLayout.NORTH);
 
         searchResults.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         searchResults.addListSelectionListener(event -> {
             if (!event.getValueIsAdjusting()) updateSearchSelectionState();
         });
-        searchResults.setCellRenderer((list, value, index, selected, focus) -> {
-            JLabel label = (JLabel) new DefaultListCellRenderer()
-                    .getListCellRendererComponent(list, value, index, selected, focus);
-            if (value != null) {
-                label.setText(searchResultText(value));
-                label.setToolTipText(value.description());
+        searchResults.setCellRenderer(new ProjectSearchResultRenderer());
+        searchResults.getAccessibleContext().setAccessibleName(DocViewBundle.message("project.library.search.results"));
+        editor.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), "focus-results");
+        editor.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent event) {
+                focusResultsWhenReady = false;
             }
-            return label;
+        });
+        editor.getActionMap().put("focus-results", new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent event) {
+                if (firstSearchPagePending) {
+                    focusResultsWhenReady = true;
+                } else if (searchSnapshotId != null && !searchResultsModel.isEmpty()) {
+                    focusSearchResult(Math.max(searchResults.getSelectedIndex(), 0));
+                }
+            }
         });
         searchResults.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent event) {
                 if (event.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(event)) {
-                    openSelectedMarkdown();
+                    int index = searchResults.locationToIndex(event.getPoint());
+                    if (index >= 0 && searchResults.getCellBounds(index, index).contains(event.getPoint())) {
+                        searchResults.setSelectedIndex(index);
+                        openSelectedMarkdown();
+                    }
                 }
             }
         });
@@ -214,11 +251,25 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
         });
         card.add(ScrollPaneFactory.createScrollPane(searchResults), BorderLayout.CENTER);
 
+        AbstractAction back = new AbstractAction() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent event) {
+                showCatalog();
+            }
+        };
+        // Keep Escape scoped to the focusable search controls.
+        KeyStroke escape = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+        for (JComponent control : List.of(editor, searchResults, backToCatalogButton, nextPageButton, openSelectedButton)) {
+            control.getInputMap(JComponent.WHEN_FOCUSED).put(escape, "back-to-catalog");
+            control.getActionMap().put("back-to-catalog", back);
+        }
+
         openSelectedButton.setText(DocViewBundle.message("project.library.open.markdown"));
+        openSelectedButton.setIcon(AllIcons.FileTypes.Markdown);
         openSelectedButton.addActionListener(event -> openSelectedMarkdown());
         nextPageButton.setText(DocViewBundle.message("project.library.search.more"));
         nextPageButton.setVisible(false);
-        nextPageButton.addActionListener(event -> searchDocuments(true));
+        nextPageButton.addActionListener(event -> searchDocuments(searchCursor, false));
         JPanel actionRow = new JPanel(new BorderLayout());
         actionRow.add(nextPageButton, BorderLayout.WEST);
         actionRow.add(openSelectedButton, BorderLayout.EAST);
@@ -226,29 +277,12 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
         return card;
     }
 
-    private static String searchResultText(EntryData entry) {
-        String request = entry.httpMethod() == null || entry.httpMethod().isBlank() ? ""
-                : "  " + entry.httpMethod() + " " + (entry.httpPath() == null ? "" : entry.httpPath());
-        String title = escapeHtml(entry.name());
-        String signature = escapeHtml(entry.identity().qualifiedClass() + "#" + entry.identity().fullSignature());
-        String module = escapeHtml(entry.identity().module());
-        String description = escapeHtml(entry.description());
-        return "<html><b>" + title + "</b>" + escapeHtml(request)
-                + "<br>" + module + " · " + signature
-                + (description.isBlank() ? "" : "<br>" + description) + "</html>";
-    }
-
-    private static String escapeHtml(String text) {
-        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                .replace("\"", "&quot;").replace("'", "&#39;");
-    }
-
     /** Initializes the project-document search view without generating or scanning source files. */
     public void showProjectSearch() {
         if (!isUsable()) return;
         ((CardLayout) centerCards.getLayout()).show(centerCards, SEARCH_CARD);
         searchField.requestFocusInWindow();
-        searchDocuments(false);
+        searchDocuments(null, false);
     }
 
     /** Returns to the live API catalog and prevents late search results from changing the panel. */
@@ -261,6 +295,7 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
         searchCursor = null;
         nextPageButton.setVisible(false);
         updateProjectStatusDetail("");
+        catalogTree.requestFocusInWindow();
     }
 
     /** Opens the verified, on-disk Markdown directory index for the current committed snapshot. */
@@ -346,23 +381,36 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
         }
     }
 
-    private void searchDocuments(boolean nextPage) {
-        if (!isUsable()) return;
-        String requestedQuery = nextPage ? executedQuery : searchField.getText();
-        String cursor = nextPage ? searchCursor : null;
-        long request = beginDocumentAction(DocViewBundle.message("project.library.search.pending"));
-        if (!nextPage) {
-            executedQuery = requestedQuery;
-            searchResultsModel.clear();
+    private void focusSearchResult(int index) {
+        searchResults.setSelectedIndex(index);
+        searchResults.ensureIndexIsVisible(index);
+        searchResults.requestFocusInWindow();
+    }
+
+    private void searchDocuments(String cursor, boolean afterTyping) {
+        if (!isUsable() || !searchCard.isVisible()) return;
+        String requestedQuery = searchField.getText();
+        if (cursor == null) {
             searchSnapshotId = null;
             searchCursor = null;
+            searchResultsModel.clear();
             nextPageButton.setVisible(false);
         }
+        long request = beginDocumentAction(DocViewBundle.message("project.library.search.pending"));
+        firstSearchPagePending = cursor == null;
+        if (afterTyping) {
+            liveSearchAlarm.addRequest(() -> loadSearchPage(request, requestedQuery, cursor), 200);
+        } else {
+            loadSearchPage(request, requestedQuery, cursor);
+        }
+    }
 
+    private void loadSearchPage(long request, String requestedQuery, String cursor) {
+        if (!isCurrentDocumentAction(request)) return;
         ProgressManager.getInstance().run(new Task.Backgroundable(project,
                 DocViewBundle.message("task.project.docs.search"), true) {
             private ProjectDocumentQueryResult result;
-            private ProjectDocumentIndexStatus status;
+            private List<Row> rows;
             private ProjectDocumentQueryException failure;
 
             @Override
@@ -373,11 +421,7 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
                     result = service.search(
                             new ProjectDocumentQuery(requestedQuery, null, null, null,
                                     ProjectDocumentQuery.DEFAULT_LIMIT, cursor), indicator);
-                    status = service.status(indicator);
-                    if (!result.snapshotId().equals(status.snapshotId())) {
-                        throw new ProjectDocumentQueryException(ProjectDocumentQueryException.Code.SNAPSHOT_CHANGED,
-                                "The project document snapshot changed while search status was read");
-                    }
+                    rows = ProjectSearchResultRenderer.rows(result.items(), requestedQuery, indicator);
                 } catch (ProjectDocumentQueryException exception) {
                     failure = exception;
                 }
@@ -387,8 +431,15 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
             public void onSuccess() {
                 if (!isCurrentDocumentAction(request)) return;
                 documentActionIndicator = null;
+                boolean enterFirstResult = focusResultsWhenReady;
+                resetSearchNavigation();
                 if (failure != null) {
-                    showQueryError(failure);
+                    if (cursor != null && failure.code() == ProjectDocumentQueryException.Code.CURSOR_STALE) {
+                        if (nextPageButton.isFocusOwner()) searchField.requestFocusInWindow();
+                        searchDocuments(null, false);
+                    } else {
+                        showQueryError(failure);
+                    }
                     return;
                 }
                 if (result == null) {
@@ -396,24 +447,29 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
                             "Project document search returned no result"));
                     return;
                 }
-                searchSnapshotId = result.snapshotId();
+                searchSnapshotId = result.indexStatus().snapshotId();
                 searchCursor = result.nextCursor();
-                for (EntryData entry : result.items()) searchResultsModel.addElement(entry);
+                boolean continueFromMore = cursor != null && nextPageButton.isFocusOwner();
+                int firstAddedRow = searchResultsModel.size();
+                searchResultsModel.addAll(rows);
                 nextPageButton.setVisible(searchCursor != null);
                 String searchMessage = result.totalMatched() == 0
                         ? DocViewBundle.message("project.library.search.no.results")
                         : DocViewBundle.message("project.library.search.ready",
                                 searchResultsModel.size(), result.totalMatched());
-                currentDocumentStatus = status;
-                applyDocumentStatus(status);
+                applyDocumentStatus(result.indexStatus());
                 updateProjectStatusDetail(searchMessage);
-                updateSearchSelectionState();
+                if (!rows.isEmpty() && (continueFromMore
+                        || (enterFirstResult && searchField.getTextEditor().isFocusOwner()))) {
+                    focusSearchResult(firstAddedRow);
+                }
             }
 
             @Override
             public void onCancel() {
                 if (isCurrentDocumentAction(request)) {
                     documentActionIndicator = null;
+                    resetSearchNavigation();
                     showQueryError(new ProjectDocumentQueryException(ProjectDocumentQueryException.Code.CANCELLED,
                             "Project document search was cancelled"));
                 }
@@ -423,6 +479,7 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
             public void onThrowable(@NotNull Throwable error) {
                 if (isCurrentDocumentAction(request)) {
                     documentActionIndicator = null;
+                    resetSearchNavigation();
                     showQueryError(error);
                 }
             }
@@ -430,14 +487,14 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
     }
 
     private void openSelectedMarkdown() {
-        if (!isUsable()) return;
-        EntryData selected = searchResults.getSelectedValue();
+        if (!isUsable() || !searchResults.isEnabled()) return;
+        Row selected = searchResults.getSelectedValue();
         String expectedSnapshot = searchSnapshotId;
         if (selected == null || expectedSnapshot == null) {
             updateProjectStatusDetail(DocViewBundle.message("project.library.search.select.result"));
             return;
         }
-        String apiId = selected.apiId();
+        String apiId = selected.entry().apiId();
         long request = beginDocumentAction(DocViewBundle.message("project.library.open.pending"));
         ProgressManager.getInstance().run(new Task.Backgroundable(project,
                 DocViewBundle.message("task.project.docs.open"), true) {
@@ -494,7 +551,14 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
         return LocalFileSystem.getInstance().refreshAndFindFileByNioFile(target);
     }
 
+    private void resetSearchNavigation() {
+        firstSearchPagePending = false;
+        focusResultsWhenReady = false;
+    }
+
     private long beginDocumentAction(String detail) {
+        resetSearchNavigation();
+        liveSearchAlarm.cancelAllRequests();
         long request = ++documentActionGeneration;
         cancelPendingEditorOpen();
         ProgressIndicator previous = documentActionIndicator;
@@ -518,6 +582,8 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
     }
 
     private void cancelDocumentAction() {
+        resetSearchNavigation();
+        liveSearchAlarm.cancelAllRequests();
         documentActionGeneration++;
         cancelPendingEditorOpen();
         ProgressIndicator previous = documentActionIndicator;
@@ -538,7 +604,7 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
         documentStatusIndicator = null;
         if (previous != null) previous.cancel();
         if (currentDocumentStatus == null) {
-            projectStatusText = DocViewBundle.message("project.library.status.loading");
+            projectStatusText = new ProjectStatusText(DocViewBundle.message("project.library.status.loading"));
             renderInlineStatus();
         }
         ProgressManager.getInstance().run(new Task.Backgroundable(project,
@@ -562,7 +628,7 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
             public void onCancel() {
                 if (isCurrentStatusRequest(request)) {
                     documentStatusIndicator = null;
-                    projectStatusText = DocViewBundle.message("project.library.status.cancelled");
+                    projectStatusText = new ProjectStatusText(DocViewBundle.message("project.library.status.cancelled"));
                     renderInlineStatus();
                 }
             }
@@ -571,7 +637,7 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
             public void onThrowable(@NotNull Throwable error) {
                 if (isCurrentStatusRequest(request)) {
                     documentStatusIndicator = null;
-                    projectStatusText = queryErrorMessage(error);
+                    projectStatusText = new ProjectStatusText(queryErrorMessage(error));
                     renderInlineStatus();
                 }
             }
@@ -622,13 +688,18 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
                 case UNKNOWN -> DocViewBundle.message("project.library.status.unknown");
             };
         };
-        if (status.entryCount() != null) {
-            base += " · " + DocViewBundle.message("project.library.status.entries", status.entryCount());
-        }
-        if (Boolean.TRUE.equals(status.hasUnsavedDocuments())) {
-            base += " · " + DocViewBundle.message("project.library.status.unsaved");
-        }
-        projectStatusText = base;
+        String compact = status.indexState() == ProjectDocumentIndexStatus.IndexState.READY
+                ? DocViewBundle.message(switch (status.freshness()) {
+                    case CURRENT -> "project.library.search.freshness.current";
+                    case STALE -> "project.library.search.freshness.stale";
+                    case UNKNOWN -> "project.library.search.freshness.unknown";
+                })
+                : base;
+        String total = status.entryCount() == null ? ""
+                : DocViewBundle.message("project.library.status.entries", status.entryCount());
+        String unsaved = Boolean.TRUE.equals(status.hasUnsavedDocuments())
+                ? DocViewBundle.message("project.library.status.unsaved") : "";
+        projectStatusText = new ProjectStatusText(joinStatus(base, total, unsaved), compact);
         renderInlineStatus();
     }
 
@@ -645,13 +716,14 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
 
     private void showQueryError(Throwable error) {
         if (!isUsable()) return;
+        if (searchSnapshotId == null) searchResultsModel.clear();
         if (error instanceof ProjectDocumentQueryException query
                 && query.code() == ProjectDocumentQueryException.Code.INDEX_NOT_FOUND) {
             currentDocumentStatus = new ProjectDocumentIndexStatus(ProjectDocumentIndexStatus.IndexState.NOT_GENERATED,
                     ProjectDocumentIndexStatus.Freshness.UNKNOWN, null, null, null, null,
                     ProjectDocumentQueryException.Code.INDEX_NOT_FOUND.name());
             generateProjectDocsButton.setVisible(true);
-            projectStatusText = DocViewBundle.message("project.library.status.not.generated");
+            projectStatusText = new ProjectStatusText(DocViewBundle.message("project.library.status.not.generated"));
         }
         updateProjectStatusDetail(queryErrorMessage(error));
         updateSearchSelectionState();
@@ -687,19 +759,33 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
             ApplicationManager.getApplication().invokeLater(this::renderInlineStatus);
             return;
         }
-        List<String> parts = new ArrayList<>();
-        if (!catalogStatusText.isBlank()) parts.add(catalogStatusText);
-        if (!projectStatusText.isBlank()) parts.add(projectStatusText);
-        if (!projectStatusDetail.isBlank() && !projectStatusDetail.equals(projectStatusText)) {
-            parts.add(projectStatusDetail);
-        }
-        inlineStatus.setText(String.join(" · ", parts));
-        inlineStatus.setVisible(!parts.isEmpty() || generateProjectDocsButton.isVisible());
+        ProjectStatusText status = projectStatusText;
+        String detail = projectStatusDetail;
+        boolean searching = searchCard.isVisible();
+        String fullText = searching
+                ? joinStatus(detail, status.full())
+                : joinStatus(catalogStatusText, status.full(), detail);
+        String visibleText = searching ? joinStatus(detail, status.compact()) : fullText;
+        inlineStatus.setText(visibleText);
+        inlineStatus.setToolTipText(fullText.isEmpty() ? null : fullText);
+        inlineStatus.getAccessibleContext().setAccessibleDescription(inlineStatus.getToolTipText());
+        inlineStatus.setVisible(!visibleText.isEmpty() || generateProjectDocsButton.isVisible());
         updateSearchSelectionState();
+    }
+
+    private static String joinStatus(String... parts) {
+        return Stream.of(parts).filter(part -> !part.isBlank()).distinct().collect(Collectors.joining(" · "));
+    }
+
+    private record ProjectStatusText(String full, String compact) {
+        private ProjectStatusText(String text) {
+            this(text, text);
+        }
     }
 
     private void updateSearchSelectionState() {
         if (openSelectedButton == null) return;
+        searchResults.setEnabled(searchSnapshotId != null);
         openSelectedButton.setEnabled(isUsable() && searchResults.getSelectedValue() != null
                 && searchSnapshotId != null);
         nextPageButton.setEnabled(isUsable() && searchCursor != null);
@@ -869,6 +955,7 @@ public class DocViewWindowPanel extends SimpleToolWindowPanel implements Disposa
         if (status != null) status.cancel();
         if (action != null) action.cancel();
         projectStatusRefreshAlarm.cancelAllRequests();
+        liveSearchAlarm.cancelAllRequests();
 
         var application = ApplicationManager.getApplication();
         if (application.isDispatchThread()) {

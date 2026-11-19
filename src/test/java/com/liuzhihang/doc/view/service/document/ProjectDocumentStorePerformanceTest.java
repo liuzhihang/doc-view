@@ -113,6 +113,108 @@ public final class ProjectDocumentStorePerformanceTest extends LightJavaCodeInsi
                 reportPath.toString(), report.get("reportPath"));
     }
 
+    public void testWarmSearchAndStatusComparisonSamples() throws Exception {
+        ProjectDocumentQuery query = new ProjectDocumentQuery("common endpoint", null, null, null, 20, null);
+        List<Double> separateSearchAndStatus = new ArrayList<>(WARM_SEARCH_SAMPLES);
+        List<Double> bundledSearchStatus = new ArrayList<>(WARM_SEARCH_SAMPLES);
+        List<String> sampleOrder = new ArrayList<>(WARM_SEARCH_SAMPLES);
+
+        ComparisonOutcome oldWarmup = background(() -> searchThenReadStatus(query));
+        ComparisonOutcome newWarmup = background(() -> searchWithBundledStatus(query));
+        assertEquivalent(oldWarmup, newWarmup);
+        for (int warmup = 1; warmup < 10; warmup++) {
+            ComparisonOutcome first;
+            ComparisonOutcome second;
+            if (warmup % 2 == 0) {
+                first = background(() -> searchThenReadStatus(query));
+                second = background(() -> searchWithBundledStatus(query));
+            } else {
+                first = background(() -> searchWithBundledStatus(query));
+                second = background(() -> searchThenReadStatus(query));
+            }
+            assertEquivalent(first, second);
+        }
+
+        for (int sample = 0; sample < WARM_SEARCH_SAMPLES; sample++) {
+            Timed<ComparisonOutcome> oldTimed;
+            Timed<ComparisonOutcome> newTimed;
+            if (sample % 2 == 0) {
+                oldTimed = backgroundTimed(() -> searchThenReadStatus(query));
+                newTimed = backgroundTimed(() -> searchWithBundledStatus(query));
+                sampleOrder.add("separate-search-and-status-first");
+            } else {
+                newTimed = backgroundTimed(() -> searchWithBundledStatus(query));
+                oldTimed = backgroundTimed(() -> searchThenReadStatus(query));
+                sampleOrder.add("bundled-search-status-first");
+            }
+            assertEquivalent(oldTimed.value(), newTimed.value());
+            separateSearchAndStatus.add(oldTimed.elapsedMillis());
+            bundledSearchStatus.add(newTimed.elapsedMillis());
+        }
+
+        long actualIndexBytes = Files.size(documentRoot.resolve("index.json"));
+        assertEquals(fixtureIndexBytes, actualIndexBytes);
+        Path reportPath = Path.of("build/reports/project-document-store/search-status-comparison.json")
+                .toAbsolutePath().normalize();
+        Map<String, Object> report = new LinkedHashMap<>();
+        report.put("evidenceScope", "light-fixture");
+        report.put("nativeIdeValidated", false);
+        report.put("measuredAtUtc", Instant.now().toString());
+        report.put("reportPath", reportPath.toString());
+        report.put("environment", Map.of(
+                "os", System.getProperty("os.name", "unknown"),
+                "osVersion", System.getProperty("os.version", "unknown"),
+                "architecture", System.getProperty("os.arch", "unknown"),
+                "javaVersion", System.getProperty("java.version", "unknown"),
+                "javaVendor", System.getProperty("java.vendor", "unknown"),
+                "ideaBuild", ideaBuild(),
+                "availableProcessors", Runtime.getRuntime().availableProcessors()));
+        report.put("fixture", Map.of(
+                "entries", ENTRY_COUNT,
+                "indexBytes", actualIndexBytes,
+                "kind", "warm index-only fixture; detail pages are not read"));
+        report.put("measurement", Map.of(
+                "warmupPairs", 10,
+                "comparisonPairs", WARM_SEARCH_SAMPLES,
+                "sampleOrder", List.copyOf(sampleOrder),
+                "separatePath", "search(query) followed by status()",
+                "bundledPath", "search(query) followed by reading result.indexStatus()",
+                "timedScope", "background call and returned result construction; semantic assertions run outside timing",
+                "timingThresholdApplied", false));
+        report.put("separateSearchAndStatus", descriptiveMetric(separateSearchAndStatus));
+        report.put("bundledSearchStatus", descriptiveMetric(bundledSearchStatus));
+
+        Files.createDirectories(reportPath.getParent());
+        String json = GSON.toJson(report);
+        Files.writeString(reportPath, json + "\n", StandardCharsets.UTF_8);
+        System.out.println("DOC_VIEW_STORE_SEARCH_STATUS_COMPARISON "
+                + json.replace("\n", System.lineSeparator()));
+
+        assertEquals(WARM_SEARCH_SAMPLES, separateSearchAndStatus.size());
+        assertEquals(WARM_SEARCH_SAMPLES, bundledSearchStatus.size());
+        assertEquals(ENTRY_COUNT, ((Number) ((Map<?, ?>) report.get("fixture")).get("entries")).intValue());
+    }
+
+    private ComparisonOutcome searchThenReadStatus(ProjectDocumentQuery query) {
+        ProjectDocumentQueryResult result = service.search(query, indicator());
+        return new ComparisonOutcome(result, service.status(indicator()));
+    }
+
+    private ComparisonOutcome searchWithBundledStatus(ProjectDocumentQuery query) {
+        ProjectDocumentQueryResult result = service.search(query, indicator());
+        return new ComparisonOutcome(result, result.indexStatus());
+    }
+
+    private void assertEquivalent(ComparisonOutcome first, ComparisonOutcome second) {
+        assertEquals(ENTRY_COUNT, first.result().totalMatched());
+        assertEquals(first.result().items(), second.result().items());
+        assertEquals(first.result().totalMatched(), second.result().totalMatched());
+        assertEquals(first.result().nextCursor(), second.result().nextCursor());
+        assertEquals(first.status(), second.status());
+        assertEquals(first.result().indexStatus(), first.status());
+        assertEquals(second.result().indexStatus(), second.status());
+    }
+
     public void testParseStageCancellationSamples() throws Exception {
         byte[] largeIndex = createParseCancellationIndex();
         assertTrue("The valid parser fixture must approach the 32 MiB limit",
@@ -459,6 +561,15 @@ public final class ProjectDocumentStorePerformanceTest extends LightJavaCodeInsi
         return metric;
     }
 
+    private static Map<String, Object> descriptiveMetric(List<Double> samples) {
+        Map<String, Object> metric = new LinkedHashMap<>();
+        metric.put("sampleCount", samples.size());
+        metric.put("samplesMillis", List.copyOf(samples));
+        metric.put("p50Millis", percentile(samples, 0.50));
+        metric.put("p95Millis", percentile(samples, 0.95));
+        return metric;
+    }
+
     private static Double percentile(List<Double> values, double percentile) {
         if (values.isEmpty()) {
             return null;
@@ -528,6 +639,9 @@ public final class ProjectDocumentStorePerformanceTest extends LightJavaCodeInsi
     }
 
     private record Timed<T>(T value, double elapsedMillis) {
+    }
+
+    private record ComparisonOutcome(ProjectDocumentQueryResult result, ProjectDocumentIndexStatus status) {
     }
 
     private record CancellationSample(boolean completedBeforeSignal,

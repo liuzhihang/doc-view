@@ -294,8 +294,9 @@ public final class DocViewMcpExecutor {
         data.add("items", items);
         addNullable(data, "nextCursor", page.nextCursor());
         data.addProperty("totalMatched", page.totalMatched());
-        return successEnvelope(root.path(), page.snapshotId(), page.freshness().value(),
-                page.hasUnsavedDocuments(), data);
+        ProjectDocumentIndexStatus status = page.indexStatus();
+        return successEnvelope(root.path(), status.snapshotId(), status.freshness().value(),
+                status.hasUnsavedDocuments(), data);
     }
 
     private JsonObject get(Project project, ProjectRoot root, JsonObject arguments, ProgressIndicator indicator) {

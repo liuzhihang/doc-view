@@ -5,14 +5,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-/** Immutable page of matching entries from one committed index generation. */
+/** Immutable page of matching entries from one verified index, including the status observed during that read. */
 public record ProjectDocumentQueryResult(List<EntryData> items,
                                          int totalMatched,
                                          @Nullable String nextCursor,
-                                         String snapshotId,
-                                         ProjectDocumentIndexStatus.Freshness freshness,
-                                         boolean hasUnsavedDocuments,
-                                         String generatedAt) {
+                                         ProjectDocumentIndexStatus indexStatus) {
 
     public ProjectDocumentQueryResult {
         items = List.copyOf(items);
