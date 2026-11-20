@@ -14,10 +14,10 @@
 ## 3. 集成与原生验收
 
 - [x] 3.1 由主代理串行运行 `./gradlew test --rerun-tasks` 与 `./gradlew verifyPluginProjectConfiguration buildPlugin verifyPlugin --rerun-tasks`；检查相关 XML 报告和 plugin verifier 结果，无失败、错误、未解释跳过或 descriptor 问题。
-- [x] 3.2 按实际发布入口验证项目缓存安全：以工具窗口 `… → Clear Cache` 取代旧工具栏和目录菜单的原生矩阵。IU `263.7307.200` 的同一 d094 候选验证 A/B 双向缓存隔离和 Scratch、HTTP 草稿、导出文件及未保存编辑保护，详见 [U03](../../http-client-generation-and-ui/verification-2026-11-08-remaining-native.md)；空选择可执行及无刷新由 action 自动回归覆盖。旧入口的原生场景被替代，从未验收为通过。
+- [x] 3.2 按实际发布入口验证项目缓存安全：以工具窗口 `… → Clear Cache` 取代旧工具栏和目录菜单的原生矩阵。IU `263.7307.200` 的同一 d094 候选验证 A/B 双向缓存隔离和 Scratch、HTTP 草稿、导出文件及未保存编辑保护，详见 [U03](../2026-11-20-http-client-generation-and-ui/verification-2026-11-08-remaining-native.md)；空选择可执行及无刷新由 action 自动回归覆盖。旧入口的原生场景被替代，从未验收为通过。
 
-2026-10-23 后续入口调整：`http-client-generation-and-ui` 已将可见清缓存入口收进工具窗口原生 `…`，目录不再显示项目级清缓存。旧版目录菜单原生矩阵未完成；现行入口按 [HTTP/UI 验证矩阵 U03](../../http-client-generation-and-ui/design.md#8-验收矩阵与证据层次) 从新入口补验，包含 A/B 项目、HTTP 草稿、手写 Scratch、导出文件及未保存编辑保护。按钮移动和单项目自动回归本身不构成验收。
+2026-10-23 后续入口调整：`http-client-generation-and-ui` 已将可见清缓存入口收进工具窗口原生 `…`，目录不再显示项目级清缓存。旧版目录菜单原生矩阵未完成；现行入口按 [HTTP/UI 验证矩阵 U03](../2026-11-20-http-client-generation-and-ui/design.md#8-验收矩阵与证据层次) 从新入口补验，包含 A/B 项目、HTTP 草稿、手写 Scratch、导出文件及未保存编辑保护。按钮移动和单项目自动回归本身不构成验收。
 
-2026-11-08 在新版 `…` 入口补得 A/B DTO 缓存隔离、132/133 个文件 hash 保持及同时未保存 HTTP/Markdown 保护；设置窗口标题分别显示正确项目。观察器没有直接验证文档查询派生缓存的 A/B 清除与保留，此时没有关闭旧入口矩阵。详见[当前原生记录](../../http-client-generation-and-ui/verification-2026-11-08-http-cache-search.md)。
+2026-11-08 在新版 `…` 入口补得 A/B DTO 缓存隔离、132/133 个文件 hash 保持及同时未保存 HTTP/Markdown 保护；设置窗口标题分别显示正确项目。观察器没有直接验证文档查询派生缓存的 A/B 清除与保留，此时没有关闭旧入口矩阵。详见[当前原生记录](../2026-11-20-http-client-generation-and-ui/verification-2026-11-08-http-cache-search.md)。
 
-同日后续在同一 d094 候选补齐 A/B 副本派生索引缓存双向隔离、152 个文件哈希保护及不同设置值读回，HTTP/UI 5.4 已完成。只比较公开查询条目身份，未读取私有搜索投影；旧版目录菜单从未在这一目标版本通过，现行能力以实测的新入口结案。详见[后续原生记录](../../http-client-generation-and-ui/verification-2026-11-08-remaining-native.md)。
+同日后续在同一 d094 候选补齐 A/B 副本派生索引缓存双向隔离、152 个文件哈希保护及不同设置值读回，HTTP/UI 5.4 已完成。只比较公开查询条目身份，未读取私有搜索投影；旧版目录菜单从未在这一目标版本通过，现行能力以实测的新入口结案。详见[后续原生记录](../2026-11-20-http-client-generation-and-ui/verification-2026-11-08-remaining-native.md)。

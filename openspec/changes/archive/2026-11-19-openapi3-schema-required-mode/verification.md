@@ -85,4 +85,4 @@ Escape 使用公开 ComponentPopupBuilder key handler，仅在无修饰的按下
 
 同一 421 项修复包、同一隔离 PID 46071 的三个关闭后 live GC 样本 `resource1-gc.json`、`resource2-gc.json`、`resource3-gc.json` 中，`ParamDocEditorForm` 与 `ParamTreeTableView` 实例数均为 0，四个静态列描述对象仍存在，不是窗体或表格实例。原始路径为 `build/native-validation/2026-11-08/remaining-native/batch-escape-candidate/`。结合上面的原生 Escape、Command+Enter、导航与复制，以及该包全量和双 build Verifier，参数编辑器自身的 4.5 已验证。非 macOS 未进行原生快捷键验收。
 
-同包还有 `PreviewForm` 瞬时保留，且禁用 Doc View 后存在 still-referenced 警告；并不证明插件 classloader 已释放。完整 Preview/JCEF 生命周期和平台卸载保留在其独立 change 中，详见 [同包资源与失败证据](../../http-client-generation-and-ui/verification-2026-11-08-remaining-native.md#421-项候选新增原生通过与卸载失败)。
+同包还有 `PreviewForm` 瞬时保留，且禁用 Doc View 后存在 still-referenced 警告；并不证明插件 classloader 已释放。完整 Preview/JCEF 生命周期和平台卸载保留在其独立 change 中，详见 [同包资源与失败证据](../2026-11-20-http-client-generation-and-ui/verification-2026-11-08-remaining-native.md#421-项候选新增原生通过与卸载失败)。

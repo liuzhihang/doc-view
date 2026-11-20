@@ -1156,6 +1156,9 @@ public final class ProjectDocumentIndexService implements Disposable {
         if (file == null || project.isDisposed()) {
             return;
         }
+        if (isIdeWorkspaceMetadataPath(file.getPath())) {
+            return;
+        }
         String extension = file.getExtension();
         if (!"java".equalsIgnoreCase(extension) && !"xml".equalsIgnoreCase(extension)) {
             return;
@@ -1274,10 +1277,29 @@ public final class ProjectDocumentIndexService implements Disposable {
         if (isGeneratedDocumentPath(path)) {
             return false;
         }
+        if (!directory && isIdeWorkspaceMetadataPath(path)) {
+            return false;
+        }
         if (!directory && !isSourceInputExtension(path)) {
             return false;
         }
         return isProjectContent(fileIndex, scope);
+    }
+
+    private static boolean isIdeWorkspaceMetadataPath(@NotNull String path) {
+        if (!path.endsWith("workspace.xml")) {
+            return false;
+        }
+        try {
+            Path file = Path.of(path).toAbsolutePath().normalize();
+            Path parent = file.getParent();
+            Path parentName = parent == null ? null : parent.getFileName();
+            Path fileName = file.getFileName();
+            return parentName != null && fileName != null && ".idea".equals(parentName.toString())
+                    && "workspace.xml".equals(fileName.toString());
+        } catch (RuntimeException nonLocalPath) {
+            return false;
+        }
     }
 
     private boolean isGeneratedDocumentPath(@NotNull String path) {

@@ -82,6 +82,7 @@ public final class DocViewActionLayoutTest extends LightJavaCodeInsightFixtureTe
                 findByIdOrNull(catalog, "action", "liuzhihang.doc.tool.window.catalog.action.clear"));
 
         Element maintenance = findById(descriptor, "group", "liuzhihang.doc.tool.window.maintenance.action");
+        assertEquals("Doc View Maintenance", maintenance.getAttribute("text"));
         assertEquals("The native gear group should contain only the existing maintenance actions",
                 List.of("action:liuzhihang.doc.tool.window.toolbar.action.setting",
                         "action:liuzhihang.doc.tool.window.toolbar.action.clear"), directEntries(maintenance));

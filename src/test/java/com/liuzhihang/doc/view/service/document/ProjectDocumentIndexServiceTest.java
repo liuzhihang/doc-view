@@ -1463,20 +1463,37 @@ public final class ProjectDocumentIndexServiceTest extends LightJavaCodeInsightF
         }
     }
 
-    public void testWorkspaceXmlRefreshFreshnessMatchesProjectContentMembership() throws Exception {
+    public void testWorkspaceXmlMetadataIsIgnoredButOrdinaryXmlRemainsTracked() throws Exception {
         Path projectRoot = Files.createTempDirectory("doc-view-workspace-xml-content-");
         Path workspaceDirectory = projectRoot.resolve(".idea");
         Path workspaceXmlPath = workspaceDirectory.resolve("workspace.xml");
+        Path otherIdeaXmlPath = workspaceDirectory.resolve("misc.xml");
+        Path ordinaryWorkspaceXmlPath = projectRoot.resolve("workspace.xml");
+        String workspaceBefore = "<project version=\"4\"><component name=\"probe\">before</component></project>\n";
+        String otherIdeaXmlBefore = "<project version=\"4\"><component name=\"other\">before</component></project>\n";
+        String ordinaryXmlBefore = "<beans><!-- before --></beans>\n";
         Files.createDirectories(workspaceDirectory);
-        Files.writeString(workspaceXmlPath, "<project version=\"4\"><component name=\"probe\">before</component></project>\n",
-                StandardCharsets.UTF_8);
+        Files.writeString(workspaceXmlPath, workspaceBefore, StandardCharsets.UTF_8);
+        Files.writeString(otherIdeaXmlPath, otherIdeaXmlBefore, StandardCharsets.UTF_8);
+        Files.writeString(ordinaryWorkspaceXmlPath, ordinaryXmlBefore, StandardCharsets.UTF_8);
         VirtualFile projectRootVf = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(projectRoot);
         VirtualFile workspaceXml = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(workspaceXmlPath);
+        VirtualFile otherIdeaXml = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(otherIdeaXmlPath);
+        VirtualFile ordinaryWorkspaceXml =
+                LocalFileSystem.getInstance().refreshAndFindFileByNioFile(ordinaryWorkspaceXmlPath);
         String projectRootUrl = projectRootVf == null ? null : projectRootVf.getUrl();
+        Document workspaceDocument = workspaceXml == null
+                ? null : FileDocumentManager.getInstance().getDocument(workspaceXml);
+        Document ordinaryWorkspaceDocument = ordinaryWorkspaceXml == null
+                ? null : FileDocumentManager.getInstance().getDocument(ordinaryWorkspaceXml);
         boolean contentRootAdded = false;
         try {
             assertNotNull("The local VFS must expose the real temporary project root", projectRootVf);
             assertNotNull("The local VFS must expose the real .idea/workspace.xml fixture", workspaceXml);
+            assertNotNull("The local VFS must expose another .idea XML fixture", otherIdeaXml);
+            assertNotNull("The local VFS must expose the ordinary workspace.xml fixture", ordinaryWorkspaceXml);
+            assertNotNull("IDEA must provide a Document for .idea/workspace.xml", workspaceDocument);
+            assertNotNull("IDEA must provide a Document for ordinary workspace.xml", ordinaryWorkspaceDocument);
             WriteCommandAction.runWriteCommandAction(getProject(), () -> {
                 ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
                 try {
@@ -1494,6 +1511,8 @@ public final class ProjectDocumentIndexServiceTest extends LightJavaCodeInsightF
             boolean workspaceXmlInContent = ReadAction.compute(() ->
                     ProjectFileIndex.getInstance(getProject()).isInContent(workspaceXml));
             assertTrue("The real temporary root must be present in the project file index", projectRootInContent);
+            assertTrue("The .idea/workspace.xml fixture must be in project content for this regression",
+                    workspaceXmlInContent);
             IndexData index = writeStore(List.of(api("core", "src/main/java/example/WorkspaceXmlProbe.java",
                     "example.WorkspaceXmlProbe", "lookup", "Workspace XML scope", "Description", "/workspace-xml")));
             service.installCommittedIndex(index, service.captureInputEpoch());
@@ -1502,12 +1521,20 @@ public final class ProjectDocumentIndexServiceTest extends LightJavaCodeInsightF
 
             MessageBusConnection vfsConnection = ApplicationManager.getApplication().getMessageBus().connect();
             AtomicBoolean workspaceXmlVfsEventObserved = new AtomicBoolean();
+            AtomicBoolean otherIdeaXmlVfsEventObserved = new AtomicBoolean();
+            AtomicBoolean ordinaryWorkspaceXmlVfsEventObserved = new AtomicBoolean();
             vfsConnection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
                 @Override
                 public void before(@org.jetbrains.annotations.NotNull List<? extends VFileEvent> events) {
                     for (VFileEvent event : events) {
                         if (workspaceXmlPath.toString().equals(event.getPath())) {
                             workspaceXmlVfsEventObserved.set(true);
+                        }
+                        if (otherIdeaXmlPath.toString().equals(event.getPath())) {
+                            otherIdeaXmlVfsEventObserved.set(true);
+                        }
+                        if (ordinaryWorkspaceXmlPath.toString().equals(event.getPath())) {
+                            ordinaryWorkspaceXmlVfsEventObserved.set(true);
                         }
                     }
                 }
@@ -1522,39 +1549,84 @@ public final class ProjectDocumentIndexServiceTest extends LightJavaCodeInsightF
 
                 ProjectDocumentIndexStatus.Freshness afterRefresh =
                         background(() -> service.status(indicator())).freshness();
-                System.out.printf("DOC_VIEW_WORKSPACE_XML_OBSERVATION rootIsInContent=%s workspaceXmlIsInContent=%s "
-                                + "freshnessAfterRefresh=%s%n",
-                        projectRootInContent, workspaceXmlInContent, afterRefresh);
-                assertEquals("The existing conservative XML rule tracks every XML file in project content; "
-                                + "workspace.xml isInContent=" + workspaceXmlInContent,
-                        workspaceXmlInContent ? ProjectDocumentIndexStatus.Freshness.STALE
-                                : ProjectDocumentIndexStatus.Freshness.CURRENT,
-                        afterRefresh);
+                assertEquals("IDE workspace UI metadata is not a document freshness input",
+                        ProjectDocumentIndexStatus.Freshness.CURRENT, afterRefresh);
+
+                WriteCommandAction.runWriteCommandAction(getProject(), () -> workspaceDocument.setText(
+                        "<project version=\"4\"><component name=\"probe\">after-document-edit</component></project>\n"));
+                assertTrue("The .idea/workspace.xml edit must remain an unsaved Document change",
+                        FileDocumentManager.getInstance().isDocumentUnsaved(workspaceDocument));
+                assertEquals("The PSI Document path must use the same workspace-metadata exclusion",
+                        ProjectDocumentIndexStatus.Freshness.CURRENT,
+                        background(() -> service.status(indicator())).freshness());
+
+                Files.writeString(otherIdeaXmlPath,
+                        "<project version=\"4\"><component name=\"other\">after</component></project>\n",
+                        StandardCharsets.UTF_8);
+                otherIdeaXml.refresh(false, false, null);
+                assertTrue("Other .idea XML edits must be observed as real local VFS events",
+                        otherIdeaXmlVfsEventObserved.get());
+                assertEquals("Only the .idea/workspace.xml file is excluded from freshness inputs",
+                        ProjectDocumentIndexStatus.Freshness.STALE,
+                        background(() -> service.status(indicator())).freshness());
+
+                service.installCommittedIndex(index, service.captureInputEpoch());
+                Files.writeString(ordinaryWorkspaceXmlPath, "<beans><!-- after external write --></beans>\n",
+                        StandardCharsets.UTF_8);
+                ordinaryWorkspaceXml.refresh(false, false, null);
+                assertTrue("Ordinary workspace.xml edits must be observed as real local VFS events",
+                        ordinaryWorkspaceXmlVfsEventObserved.get());
+                assertEquals("A workspace.xml outside .idea remains an ordinary XML freshness input",
+                        ProjectDocumentIndexStatus.Freshness.STALE,
+                        background(() -> service.status(indicator())).freshness());
+
+                service.installCommittedIndex(index, service.captureInputEpoch());
+                WriteCommandAction.runWriteCommandAction(getProject(), () -> ordinaryWorkspaceDocument.setText(
+                        "<beans><!-- after document edit --></beans>\n"));
+                assertTrue("An ordinary workspace.xml edit must remain an unsaved Document change",
+                        FileDocumentManager.getInstance().isDocumentUnsaved(ordinaryWorkspaceDocument));
+                assertEquals("The PSI Document path must continue tracking ordinary XML",
+                        ProjectDocumentIndexStatus.Freshness.STALE,
+                        background(() -> service.status(indicator())).freshness());
             } finally {
                 vfsConnection.disconnect();
             }
         } finally {
             try {
-                if (contentRootAdded && projectRootUrl != null && !getModule().isDisposed()) {
-                    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
-                        ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
-                        try {
-                            for (ContentEntry entry : model.getContentEntries()) {
-                                if (projectRootUrl.equals(entry.getUrl())) {
-                                    model.removeContentEntry(entry);
+                try {
+                    restoreDocument(workspaceDocument, workspaceBefore);
+                    restoreDocument(ordinaryWorkspaceDocument, ordinaryXmlBefore);
+                } finally {
+                    if (contentRootAdded && projectRootUrl != null && !getModule().isDisposed()) {
+                        WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                            ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                            try {
+                                for (ContentEntry entry : model.getContentEntries()) {
+                                    if (projectRootUrl.equals(entry.getUrl())) {
+                                        model.removeContentEntry(entry);
+                                    }
                                 }
+                                model.commit();
+                            } catch (RuntimeException | Error failure) {
+                                model.dispose();
+                                throw failure;
                             }
-                            model.commit();
-                        } catch (RuntimeException | Error failure) {
-                            model.dispose();
-                            throw failure;
-                        }
-                    });
+                        });
+                    }
                 }
             } finally {
                 deleteTree(projectRoot);
             }
         }
+    }
+
+    private void restoreDocument(Document document, String originalText) {
+        if (document == null) {
+            return;
+        }
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> document.setText(originalText));
+        com.intellij.psi.PsiDocumentManager.getInstance(getProject()).commitDocument(document);
+        FileDocumentManager.getInstance().saveDocument(document);
     }
 
     public void testXmlDocumentChangeInExternalContentRootMakesCommittedGenerationStale() throws Exception {

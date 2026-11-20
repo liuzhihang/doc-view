@@ -22,7 +22,7 @@ Skill 自动安装目前只验证 macOS Apple Silicon 和 `codex-cli 0.167.0-alp
 
 最低支持版本 IU 263.7031.23 的官方 Apple Silicon DMG 已完成身份校验并在隔离 profile 原生运行：DMG SHA-256 `c173e165d6365387302694d1fd9cd0d3b02f420f4af942fcd9ed80a37e1c00d2`，包内 JBR 为 `25.0.4.1+1-b635.72`，测试插件 JAR SHA-256 `fe48995947f91d782091f420751a2c977bbc8b40c3879f26ebdffa017b8fe2cc`。在同一候选包上，三项只读 MCP 工具完成 A/B 项目、schema、Dumb Mode、只读文件指纹和错误路径原生查询；另完成 MCP 启用与禁用重启路径。禁用时 Doc View 窗口和目录仍可用，127 个 Doc View 类加载、0 个 MCP adapter 类加载。物理移除 MCP 插件未测试。此前 SDK 与 App 混合启动仅作为诊断尝试，不计作完整原生验收。详细数据见[续验记录](../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/verification-2026-11-13-release-gates.md)。
 
-真实Codex取消首次立即状态检查失败，查明为协作式清理时序后修正harness，生产实现未改；两次有界复验分别5.703/70.351ms清理，同session恢复查询false，文档不变。完整包身份、命令、失败保留和证据边界见[最新候选验收](../openspec/changes/doc-view-client-skill/verification-2026-11-13-final-candidate.md)。
+真实Codex取消首次立即状态检查失败，查明为协作式清理时序后修正harness，生产实现未改；两次有界复验分别5.703/70.351ms清理，同session恢复查询false，文档不变。完整包身份、命令、失败保留和证据边界见[最新候选验收](../openspec/changes/archive/2026-11-20-doc-view-client-skill/verification-2026-11-13-final-candidate.md)。
 
 新包实际Codex在52/9000个页面已发布时取消生成，匹配的协议通知、旧索引保护及同session恢复通过，观察到清理约2.45秒；最终index提交后迟到取消仍只有自动测试证据。真实自然模型按Skill验证了缺少文档时不生成、显式生成、注释伪指令隔离，以及current/stale/unknown查询语义。旧源码下的stale失败及首轮取消harness超时均保留。该原生候选ZIP SHA-256为 `e6c64025ef250a34b272467e6d7887e0fc50a13e65ef9b4eb1652aca785297f4`，详见[续验记录](../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/verification-2026-11-13-release-gates.md)。
 

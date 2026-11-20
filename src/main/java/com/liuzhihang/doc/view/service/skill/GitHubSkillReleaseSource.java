@@ -240,22 +240,7 @@ final class GitHubSkillReleaseSource implements SkillReleaseSource {
                     info -> new LimitedBodySubscriber(maximumBytes));
             HttpResponse<byte[]> response;
             try {
-                while (true) {
-                    indicator.checkCanceled();
-                    try {
-                        response = future.get(100, TimeUnit.MILLISECONDS);
-                        break;
-                    } catch (TimeoutException wait) {
-                        // Polling keeps cancellation responsive while the network operation is pending.
-                    }
-                }
-            } catch (ProcessCanceledException cancelled) {
-                future.cancel(true);
-                throw cancelled;
-            } catch (InterruptedException interrupted) {
-                future.cancel(true);
-                Thread.currentThread().interrupt();
-                throw new ProcessCanceledException();
+                response = awaitHttpResponse(future, indicator);
             } catch (ExecutionException failed) {
                 if (failed.getCause() instanceof BodyTooLargeException tooLarge) throw tooLarge;
                 throw new OfflineException("Official GitHub release check failed", failed.getCause());
@@ -277,6 +262,27 @@ final class GitHubSkillReleaseSource implements SkillReleaseSource {
             return body;
         }
         throw new IOException("Official GitHub asset redirect could not be resolved");
+    }
+
+    static <T> T awaitHttpResponse(CompletableFuture<T> future, ProgressIndicator indicator)
+            throws ExecutionException {
+        try {
+            while (true) {
+                indicator.checkCanceled();
+                try {
+                    return future.get(100, TimeUnit.MILLISECONDS);
+                } catch (TimeoutException wait) {
+                    // Polling keeps cancellation responsive while the network operation is pending.
+                }
+            }
+        } catch (ProcessCanceledException cancelled) {
+            future.cancel(true);
+            throw cancelled;
+        } catch (InterruptedException interrupted) {
+            future.cancel(true);
+            Thread.currentThread().interrupt();
+            throw new ProcessCanceledException();
+        }
     }
 
     private static void validateUri(URI uri) throws IOException {

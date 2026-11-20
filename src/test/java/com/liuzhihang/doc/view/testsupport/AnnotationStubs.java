@@ -25,6 +25,7 @@ public final class AnnotationStubs {
 
                 public @interface RequestMapping {
                     String[] value() default {};
+                    String method() default "";
                 }
                 """);
         fixture.addClass("""
@@ -39,7 +40,19 @@ public final class AnnotationStubs {
 
                 public @interface RequestParam {
                     String value() default "";
+                    String name() default "";
 
+                    String defaultValue() default "\\n\\t\\t\\n\\t\\t\\n\\uE000\\uE001\\uE002\\n\\t\\t\\t\\t\\n";
+                    boolean required() default true;
+                }
+                """);
+        fixture.addClass("""
+                package org.springframework.web.bind.annotation;
+
+                public @interface RequestHeader {
+                    String value() default "";
+                    String name() default "";
+                    String defaultValue() default "\\n\\t\\t\\n\\t\\t\\n\\uE000\\uE001\\uE002\\n\\t\\t\\t\\t\\n";
                     boolean required() default true;
                 }
                 """);

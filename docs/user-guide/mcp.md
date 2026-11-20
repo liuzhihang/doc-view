@@ -1,6 +1,6 @@
 # 项目文档库与 MCP
 
-> **版本边界：** 1.6.x 提供项目文档库和搜索 UI；1.7.1 GitHub 正式包加入插件内置 MCP 与 Codex Skill 设置和发行资产。Marketplace 上传、审核及公开上架状态以[1.7.1发布记录](../release-1.7.1.md)为准；原生覆盖范围和未通过项也在该记录列明。磁盘格式见[格式说明](../mcp-format.md)。
+> **版本边界：** 1.6.x 提供项目文档库和搜索 UI；1.7.1 已在 GitHub / Marketplace 发布，提供插件内置 MCP、Codex Skill 设置和发行资产。1.7.2 的最低 IDEA build、Codex 准入与公开渠道见[1.7.2 发布记录](../release-1.7.2.md)。稳定版公开状态和原生覆盖范围见[1.7.1 发布记录](../release-1.7.1.md)。磁盘格式见[格式说明](../mcp-format.md)。
 
 ## 生成和更新项目文档
 
@@ -64,7 +64,7 @@ docs/doc-view/
 ### 三个独立的注册步骤
 
 1. **Doc View 向 IDEA 注册工具。** Doc View 插件声明对 IDEA `com.intellij.mcpServer` 的可选扩展。安装插件本身不会自动开启 IDEA MCP Server。
-2. **IDEA MCP Server 启用并暴露工具。** 在 **Settings → AI → MCP Server** 检查 MCP Server 插件，启用服务并阅读 IDEA 的访问同意说明；再到 **Exposed Tools** 查看并启用 Doc View 工具。具体界面随 IDEA 版本变化，按[JetBrains MCP Server 官方指南](https://www.jetbrains.com/help/idea/mcp-server.html)操作。
+2. **IDEA MCP Server 启用并暴露工具。** 在 **Settings → AI → MCP Server**（较早的 263 build 位于 Tools）检查 MCP Server 插件，启用服务并阅读 IDEA 的访问同意说明；再到 **Exposed Tools** 查看并启用 Doc View 工具。具体界面随 IDEA 版本变化，按[JetBrains MCP Server 官方指南](https://www.jetbrains.com/help/idea/mcp-server.html)操作。
 3. **MCP 客户端连接 IDEA。** 在 IDEA MCP Server 设置中选择 **Copy Config** 或适合的客户端配置方式，然后在 Codex 等目标客户端添加这台 IDEA Server 并按提示重启客户端。IDEA 官方文档也提供自动配置选项；它会修改相应客户端配置文件，使用前请确认目标客户端和配置范围。Doc View 不会私自写 Codex 全局配置，也不会因为安装插件就替客户端建立连接。
 
 每个打开的项目共用 IDEA 的 MCP Server。优先传当前项目的规范绝对 `projectPath`，只绑定该项目的固定 `docs/doc-view/`。IDEA 在已知项目的连接中会从工具 schema 移除该参数；Doc View 从公开的本次调用上下文取得项目。显式参数可覆盖宿主默认项目，不能把连接的默认项目当作不可变安全隔离；没有参数和上下文时，Doc View 不自行选择焦点或第一个项目。
@@ -80,15 +80,31 @@ Skill 是客户端使用说明，依次调用 status → search/get；仅在用�
 | 当前项目 / Project | `<project>/.agents/skills/doc-view` | 当前项目 |
 | 全局 / Global | `$HOME/.agents/skills/doc-view` | 当前用户的各个项目 |
 
-当前写入和发现准入限于 macOS Apple Silicon 上的 `codex-cli 0.167.0-alpha.4.1`。项目与全局首次官方安装于 1.7.0 完成；最终 1.7.1 包通过两范围官方更新、实际 Codex 发现和 journal 注入后的重启恢复。设置页显示 Working 时关闭窗口取消，两范围旧 Skill 树与 metadata 均保持不变；重试更新均成功。两范围用户手改保护与相互隔离已通过。其他客户端 build 或系统仍禁止 Skill 写入。
+稳定版 1.7.1 的写入和发现准入限于 macOS Apple Silicon 上的 `codex-cli 0.167.0-alpha.4.1`。项目与全局首次官方安装于 1.7.0 完成；最终 1.7.1 包通过两范围官方更新、实际 Codex 发现和 journal 注入后的重启恢复。设置页显示 Working 时关闭窗口取消，两范围旧 Skill 树与 metadata 均保持不变；重试更新均成功。两范围用户手改保护与相互隔离已通过。其他客户端 build 或系统仍禁止该稳定版写入 Skill。
 
-Codex 程序优先从已安装的 ChatGPT.app 和 PATH 自动检测。正常界面显示检测状态，完整程序路径可在提示中查看；无法检测或客户端版本不支持时，才提供手动选择程序的入口。安装目录始终自动计算并只读显示，可选择复制。打开设置不启动 Codex 或访问网络，显式检查更新时才在后台核对版本与发行包；不会修改 Codex MCP 配置或 discovery roots。
+1.7.2 候选在 macOS Apple Silicon 上的 `codex-cli 0.169.0-alpha.11.1` 完成两范围发现与安装/更新回归；真实自然 Codex 对 status/search/get、current/stale/unknown、未授权不生成及明确授权生成的工作流验收通过。IDEA `File → Close Project` 在 Skill 暂存期间取消后的事务清理、资源回收、项目重开与官方安装也已通过；`doc-view-client-skill` 25/25 项完成并归档。这些是 Skill 专项验收；最终插件包的构建与原生结果单独记录。稳定版 1.7.1 的自动写入准入仍限 `codex-cli 0.167.0-alpha.4.1`。详见[1.7.2 发布记录](../release-1.7.2.md)、[自然工作流](../../openspec/changes/archive/2026-11-20-doc-view-client-skill/verification-2026-11-20-skill-natural.md)及[官方取消/关闭项目记录](../../openspec/changes/archive/2026-11-20-doc-view-client-skill/verification-2026-11-20-official-cancel.md)。
+
+Codex 程序优先从已安装的 ChatGPT.app 和 PATH 自动检测。正常界面显示检测状态，完整程序路径可在提示中查看；无法检测或客户端版本不支持时，才提供手动选择程序的入口。安装目录始终自动计算并只读显示，可选择复制。稳定版 1.7.1 打开设置时只发现程序位置，点击检查更新后才启动 Codex 并访问发行源；不会修改 Codex MCP 配置或 discovery roots。
 
 设置入口为 **Settings → Tools → Doc View → MCP / AI**。检查更新采用轻量链接，安装或更新按当前状态共用一个按钮。检查读取官方 release 元数据和安装记录；release 查询成功时，只在 Doc View 独立状态文件原子更新最近成功检查时间，不写 Skill、安装记录或 writer lock。离线时显示本次未完成及最近一次成功检查时间；取消和失败不覆盖旧时间。本地状态文件写入失败显示为错误，不当作离线。只有明确点击安装/更新才下载、校验并写入 Skill。没有兼容正式包时说明原因并禁用写按钮；本地目录未被插件管理、用户有修改、版本或摘要不符时保留原内容。固定官方来源为 `liuzhihang/doc-view` 的稳定 release。1.7.0 GitHub Release 已转为 prerelease 且非 Latest；生产下载器从 1.7.1 稳定资产读取 Skill。清单绑定 tag、不可变 commit、逐文件 SHA-256、插件版本范围和 MCP contract 指纹。SHA-256 校验完整性，不能单独证明发布者身份。
 
 更新用暂存、同目录两次 rename、journal 和备份恢复；切换期间目标可能短暂不存在，整组操作不是原子文件系统事务。1.7.1 原生覆盖包含两范围的注入 journal 重启恢复、官方更新、用户修改保护、相互隔离及 Working 时关设置取消后重试。精确下载/暂存时点取消和插件全生命周期仍未完整验收。其他系统和 Codex build 不开放 Skill 写入；Marketplace 当前状态见[发布记录](../release-1.7.1.md)。
 
-本地候选包的服务测试和子 JVM 故障恢复是早期独立证据，不替代正式发行资产验收。1.7.1 已从官方 GitHub 稳定 release 下载；项目与全局两范围官方更新均通过，Codex 重新发现成功，修改保护、相互隔离以及清理无残留均通过。文件 hash、取消场景与精确下载/暂存时点未观察项见[1.7.1发布记录](../release-1.7.1.md)与[客户端 Skill tasks](../../openspec/changes/doc-view-client-skill/tasks.md)。
+本地候选包的服务测试和子 JVM 故障恢复是早期独立证据，不替代正式发行资产验收。1.7.1 已从官方 GitHub 稳定 release 下载；项目与全局两范围官方更新均通过，Codex 重新发现成功，修改保护、相互隔离以及清理无残留均通过。文件 hash、取消场景与精确下载/暂存时点未观察项见[1.7.1发布记录](../release-1.7.1.md)与[客户端 Skill tasks](../../openspec/changes/archive/2026-11-20-doc-view-client-skill/tasks.md)。
+
+## 1.7.2 的交互调整
+
+进入 MCP / AI 页面后会自动后台核对 CLI 版本、官方发行信息和当前范围的安装状态；切换当前项目/全局或选择其他程序后重新检查。页面重绘不重复检查；关闭设置会取消本页任务并忽略迟到结果。检查只更新最近成功检查时间，不自动下载 Skill、安装、恢复或改写 MCP 配置。
+
+操作区按结果只显示一个入口：可安装时显示“安装 Skill”，有新版本显示“更新 Skill”，存在未完成事务显示“恢复安装”，已最新、离线、冲突或尚不确定时显示“检查更新”。点击安装、更新或恢复才允许更改 Skill。恢复旧安装成功后取消后续检查，提示“旧安装已恢复，更新已取消”，不能把已恢复的文件说成从未改动。
+
+检查、安装、更新或恢复期间，页面会显示正在执行的动作，正常完成后收起进度行。复制安装路径时，同一范围的后台检查不会清除已选文字；切换目标后从新路径开头显示。如果本次检查离线，之前查到的发行版本标为“上次查到”，最近成功检查的时间仍然可见。
+
+MCP 区域的“打开 MCP Server 设置”可在当前设置窗口直接跳转到 IDEA 配置页；入口不可用时，页面直接说明应检查内置 MCP Server 插件，无需悬停。跳转不启用服务或修改客户端配置。文档库未生成时，工具窗口使用带图标的“生成”短按钮，完整动作名称保留在 tooltip 和可访问名称中；Export 菜单中的完整生成/更新入口保留。
+
+在 Doc View 的实时接口目录中，先聚焦树，再直接打字定位节点。需要按路径、完整签名或标签筛选已生成的文档时，在工具窗口选择 **导出 → 搜索项目文档**，输入或粘贴关键词，稍作停顿就会显示结果。点搜索框的 **×** 或删空文字可恢复全部接口的第一页。状态栏显示匹配数及简短的新鲜度，悬停可查看文档库总数、完整快照说明和未保存变更提示。列表会标出当前结果的命中词：接口名、请求路径和签名分层显示，仅由源码路径或标签解释的命中会补充显示该字段。例如查询 `user controller/`，一项结果可以在接口名中命中 `user`，在源码目录中命中 `controller/`。改词立即清除旧结果及高亮，等待时显示正在搜索，只采用最新查询。点 **更多结果** 继续读取同一快照。若期间重新生成了文档，列表会用当前关键词重新载入新快照的第一页。按 **↓** 进入结果。如果首屏仍在加载，可先按 ↓；有匹配且焦点仍在搜索框时，列表会选中首条。继续改词或离开输入框会取消这次跳转。用方向键选择、**Enter** 打开 Markdown；在搜索卡片中（包括底部操作按钮）按 **Esc**，或点左箭头，可回到接口目录继续用键盘浏览。
+
+各验收记录注明其实际工件与场景。汇总见[1.7.2 发布记录](../release-1.7.2.md)、[设置与搜索入口验收](../../openspec/changes/archive/2026-11-20-doc-view-client-skill/verification-2026-11-18-ui.md)、[命中高亮与键盘导航验收](../../openspec/changes/archive/2026-11-19-project-document-store/verification-2026-11-18-search-interaction.md)、[即时搜索验收](../../openspec/changes/archive/2026-11-19-project-document-store/verification-2026-11-18-live-search.md)、[窄窗状态与恢复验收](../../openspec/changes/archive/2026-11-19-project-document-store/verification-2026-11-19-compact-status.md)、[Esc 导航验收](../../openspec/changes/archive/2026-11-19-project-document-store/verification-2026-11-19-search-escape.md)和[首屏查询反馈续验](../../openspec/changes/archive/2026-11-19-project-document-store/verification-2026-11-19-search-first-page.md)。
 
 ## UI 与 Skill 入口
 

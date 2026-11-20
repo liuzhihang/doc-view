@@ -225,7 +225,7 @@
                     text="Collapse" description="Collapse" icon="AllIcons.Actions.Collapseall"/>
         </group>
 
-        <group id="liuzhihang.doc.tool.window.maintenance.action" text="Doc View Tool Window Maintenance Actions" popup="false">
+        <group id="liuzhihang.doc.tool.window.maintenance.action" text="Doc View Maintenance" popup="false">
             <action id="liuzhihang.doc.tool.window.toolbar.action.setting"
                     class="com.liuzhihang.doc.view.action.toolbar.window.WindowSettingsAction"
                     text="Settings" description="Open Doc View settings" icon="AllIcons.General.Settings"/>

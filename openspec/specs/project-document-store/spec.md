@@ -248,15 +248,26 @@
 - **AND** 系统只表示“没有观察到输入变化”，不声称源码绝对实时
 
 #### Scenario: 当前会话观察到来源变化
-- **WHEN** 快照提交后系统观察到项目内容根内 Java/XML 输入、模块根、模板或设置代际变化
+- **WHEN** 快照提交后系统观察到项目内容根内除 `.idea/workspace.xml` 外的 Java/XML 输入、模块根、模板或设置代际变化
 - **THEN** 查询将可完整读取的旧快照标记为 `stale`
 - **AND** 不因查询触发自动重生成
 
 #### Scenario: 外部编辑通过 VFS 刷新进入当前会话
-- **WHEN** 外部程序修改项目内容根内的 Java/XML 输入，IDEA 的 VFS 刷新已观察到变更，即使该文件没有已加载的 PSI 或 Document
+- **WHEN** 外部程序修改项目内容根内除 `.idea/workspace.xml` 外的 Java/XML 输入，IDEA 的 VFS 刷新已观察到变更，即使该文件没有已加载的 PSI 或 Document
 - **THEN** 旧快照标记为 `stale`，只读 status/search/get 不重新生成文件
 - **AND** 事件仅影响所属项目；其他项目、非 Java/XML 文件与 `docs/doc-view/` 下的输出不推进该项目输入代际
 - **AND** 不将尚未被 IDEA 观察到的磁盘变更宣称为已检测；监听器随项目服务释放
+
+#### Scenario: IDEA workspace UI metadata changes after snapshot commit
+- **WHEN** 当前会话的快照为 `current`，且 IDEA 通过 VFS 刷新或 PSI `Document` 观察到 `.idea/workspace.xml` 编辑
+- **THEN** 该文件变化不推进输入代际，freshness 保持 `current`
+- **AND** 只读 freshness 检查不生成或修改任何文档文件
+
+#### Scenario: Other project XML and tracked settings remain freshness inputs
+- **WHEN** 快照提交后 IDEA 观察到除 `.idea/workspace.xml` 以外的 Java/XML 编辑、项目内容根变化，或已跟踪的设置/模板代际变化
+- **THEN** 可完整读取的旧快照标记为 `stale`
+- **AND** `.idea` 下其他 XML 和不在 `.idea` 下的普通 `workspace.xml` 仍通过 VFS 事件跟踪，普通 XML `Document` 编辑仍会使快照过期
+- **AND** 不自动生成或修改项目文档
 
 #### Scenario: 首次生成创建固定输出根的直接容器目录
 - **WHEN** 新的 `docs/doc-view/` 文档库首次发布后，VFS 观察到其直接容器目录 `<project>/docs` 的创建事件，且该目录的唯一直接子目录是 `doc-view`
@@ -266,7 +277,7 @@
 - **AND** 其他目录移动、改名、复制和删除仍按项目输入事件规则处理
 
 #### Scenario: Dubbo XML 注册变更
-- **WHEN** 当前会话已提交项目快照后，项目任一内容根内的 XML Document 发生变化
+- **WHEN** 当前会话已提交项目快照后，项目内容根内除 `.idea/workspace.xml` 外的 XML Document 发生变化
 - **THEN** 旧快照标记为 `stale`，因为该 XML 可能参与 Dubbo 服务声明发现
 - **AND** 不自动保存 XML，也不因查询触发重生成
 

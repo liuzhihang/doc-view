@@ -1,6 +1,6 @@
 # 1.7.1 发布与验收记录
 
-状态（2026-11-13）：**[GitHub v1.7.1](https://github.com/liuzhihang/doc-view/releases/tag/v1.7.1) 已正式发布；Marketplace 已接收 update `1219746`，`approve=false`、`listed=false`，等待审核上架。** 当前项目和隔离全局范围均完成官方 1.7.0→1.7.1 更新、进行中取消后重试、用户修改保护及重启 journal 恢复。GitHub v1.7.0 保留原 tag/附件，已标为 prerelease 且非 Latest；1.7.0 未提交 Marketplace。
+状态（2026-11-14）：**[GitHub v1.7.1](https://github.com/liuzhihang/doc-view/releases/tag/v1.7.1) 与 [Marketplace 1.7.1](https://plugins.jetbrains.com/plugin/15305-doc-view/versions/stable/1219746) 均已公开；Marketplace update `1219746` 的公开接口返回 `approve=true`、`listed=true`。** 当前项目和隔离全局范围均完成官方 1.7.0→1.7.1 更新、进行中取消后重试、用户修改保护及重启 journal 恢复。GitHub v1.7.0 保留原 tag/附件，已标为 prerelease 且非 Latest；1.7.0 未提交 Marketplace。
 
 ## 变更范围
 
@@ -35,7 +35,7 @@
 | 1.7.1 官方更新、Codex 发现与范围隔离 | 两范围通过 | 生产安装器下载官方资产，另一范围文件与 metadata 不变 |
 | 1.7.1 进行中取消、重试及用户修改保护 | 两范围通过 | 原生 Working 状态关闭设置；旧文件不变，重试成功；不推断具体下载/暂存时点 |
 | GitHub 稳定 Release | 已发布并回读 | tag commit、四个附件及 SHA 核对一致 |
-| Marketplace | 已提交，待审核 | update 1219746；approve=false、listed=false |
+| Marketplace | 已审核并公开列出 | 2026-11-14 公开接口：update 1219746；approve=true、listed=true |
 
 子 JVM 的进程强制退出恢复、16 项文件事务服务测试与6次子进程故障恢复，是独立的自动化证据；它们不能覆盖 1.7.0 原生 UI 恢复失败。
 
@@ -61,7 +61,7 @@
 
 Skill manifest 绑定同一 tag commit、contract version 1、指纹 `sha256:400aacb3bc373117e01288d995be7969d3e962c2ace58880a4a1775752ec2a17`，插件范围 `[1.7.1, 2.0.0)`。ZIP 只包含 Skill 文档，不包含凭据或客户端 MCP 连接配置。
 
-Marketplace 上传直接使用从 GitHub 回读且 SHA 匹配的最终 ZIP，未重新构建；`publishPlugin` 成功，所有者接口读回 update `1219746`，版本 1.7.1、最低 build 263.7031.23、稳定 channel。审核及列出状态仍为 false，不能描述为已上架；公开列表当前仍为 1.6.2。证据见 `patch-1.7.1/marketplace-owner-readback.json` 和 `build/release-readiness-2026-11-13/patch-marketplace-publish.{json,log}`。
+Marketplace 上传直接使用从 GitHub 回读且 SHA 匹配的最终 ZIP，未重新构建；`publishPlugin` 成功，所有者接口读回 update `1219746`，版本 1.7.1、最低 build 263.7031.23、稳定 channel。2026-11-13 上传时审核及列出状态为 false，公开列表当时为 1.6.2。2026-11-14 再次读取官方公开 `/api/plugins/15305/updates?size=10`，1.7.1 的 `approve`、`listed` 均为 true，最低 build 仍为 263.7031.23；回读保存在 `build/mcp-ui-lifecycle-2026-11-14/marketplace-public.json`。证据见 `patch-1.7.1/marketplace-owner-readback.json` 和 `build/release-readiness-2026-11-13/patch-marketplace-publish.{json,log}`。
 
 Marketplace 重新封装后的 ZIP SHA-256 为 `1f9f9e00281b0687673ce3ff16b44e7a656b8e3c273ed91c57ea6180b656771c`，与上传 ZIP 的外层字节不同；逐个非目录 entry 比较全部相同，内部插件 JAR 仍为 `5117df66d76e6eac89793de4b6686a8645227d0e5c5cbd8947ce2d3c8e9462a6`。下载 descriptor 的版本、最低 build、require-restart 及 Marketplace 更新说明均匹配。读回记录：`patch-1.7.1/marketplace-artifact-readback.json`。
 
@@ -81,4 +81,4 @@ Marketplace 重新封装后的 ZIP SHA-256 为 `1f9f9e00281b0687673ce3ff16b44e7a
 - 原生 journal 由测试夹具注入，不等于真实 IDEA 崩溃留下的事务；独立子 JVM 的强制退出恢复已另行自动验证。
 - 具体下载/暂存阶段取消、恢复完成后第二次客户端检查期间取消的提示、最终文档索引提交后迟到取消等精确时点未全部原生覆盖。历史完整 HTTP/UI、中文/浅色/键盘组合和全部生命周期矩阵仍未重跑；保留 OpenSpec 未完成任务，不批量归档。
 - MCP 最低 build 查询、Dumb Mode、可选加载及真实 Codex 取消证据沿用本系列对应候选记录；1.7.1 未改变 MCP 适配实现，不将这些历史记录改称全部在补丁包重跑。
-- 安装、更新及停用需重启 IDEA；不承诺热卸载。Marketplace 仍需审核，审核完成前可从 GitHub 下载最终 ZIP 手动安装。若发现阻断性回归，停止推广并发布修复；1.6.2 可作为不含 MCP/Skill 的回退版本，不保证反向配置迁移。
+- 安装、更新及停用需重启 IDEA；不承诺热卸载。Marketplace 已上架，也可从 GitHub 下载同一最终 ZIP 手动安装。若发现阻断性回归，停止推广并发布修复；1.6.2 可作为不含 MCP/Skill 的回退版本，不保证反向配置迁移。

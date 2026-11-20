@@ -2,16 +2,33 @@ package com.liuzhihang.doc.view.service.skill;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.intellij.openapi.progress.ProcessCanceledException;
+import com.intellij.openapi.progress.ProgressIndicator;
+import com.sun.net.httpserver.HttpServer;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 public final class GitHubSkillReleaseSourceTest {
     private static final String COMMIT = "0123456789012345678901234567890123456789";
@@ -82,6 +99,82 @@ public final class GitHubSkillReleaseSourceTest {
     public void computesTheGitBlobObjectIdentityIncludingItsTypeAndLengthHeader() throws Exception {
         assertEquals("b6fc4c620b67d95f953a5c1c1230aaab5db5a1b0",
                 GitHubSkillReleaseSource.gitBlobSha1("hello".getBytes(StandardCharsets.UTF_8)));
+    }
+
+    @Test(timeout = 10000)
+    public void cancelsPendingHttpClientBodyTransferWhenTheProgressIndicatorIsCancelled() throws Exception {
+        CountDownLatch bodyStarted = new CountDownLatch(1);
+        CountDownLatch releaseBody = new CountDownLatch(1);
+        CountDownLatch responseFinished = new CountDownLatch(1);
+        AtomicBoolean serverObservedClientDisconnect = new AtomicBoolean();
+        int responseSize = 8 * 1024 * 1024;
+        CompletableFuture<HttpResponse<byte[]>> response;
+        HttpServer server = HttpServer.create(new InetSocketAddress(InetAddress.getByName("127.0.0.1"), 0), 0);
+        server.createContext("/slow-release-asset", exchange -> {
+            try {
+                exchange.sendResponseHeaders(200, responseSize);
+                try (OutputStream body = exchange.getResponseBody()) {
+                    body.write(new byte[8192]);
+                    body.flush();
+                    bodyStarted.countDown();
+                    try {
+                        if (!releaseBody.await(5, TimeUnit.SECONDS)) return;
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                    for (int offset = 8192; offset < responseSize; offset += 8192) {
+                        body.write(new byte[8192]);
+                    }
+                }
+            } catch (IOException clientCancelledTransfer) {
+                serverObservedClientDisconnect.set(true);
+            } finally {
+                responseFinished.countDown();
+                exchange.close();
+            }
+        });
+        server.start();
+        try {
+            URI uri = URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/slow-release-asset");
+            HttpRequest request = HttpRequest.newBuilder(uri).GET().build();
+            response = HttpClient.newHttpClient().sendAsync(
+                    request, HttpResponse.BodyHandlers.ofByteArray());
+            assertTrue("The loopback server must begin streaming its response", bodyStarted.await(5, TimeUnit.SECONDS));
+            assertFalse("The body transfer must still be in flight before cancellation", response.isDone());
+
+            AtomicInteger cancellationChecks = new AtomicInteger();
+            ProgressIndicator indicator = (ProgressIndicator) java.lang.reflect.Proxy.newProxyInstance(
+                    ProgressIndicator.class.getClassLoader(), new Class<?>[]{ProgressIndicator.class},
+                    (proxy, method, arguments) -> {
+                        if (method.getName().equals("checkCanceled") && cancellationChecks.incrementAndGet() == 2) {
+                            throw new ProcessCanceledException();
+                        }
+                        Class<?> returnType = method.getReturnType();
+                        if (returnType == boolean.class) return false;
+                        if (returnType == int.class) return 0;
+                        if (returnType == long.class) return 0L;
+                        if (returnType == double.class) return 0.0;
+                        return null;
+                    });
+            assertThrows(ProcessCanceledException.class,
+                    () -> GitHubSkillReleaseSource.awaitHttpResponse(response, indicator));
+        } finally {
+            releaseBody.countDown();
+            try {
+                if (bodyStarted.getCount() == 0) {
+                    assertTrue("The bounded loopback handler must finish after releasing the body",
+                            responseFinished.await(5, TimeUnit.SECONDS));
+                }
+            } finally {
+                server.stop(0);
+            }
+        }
+        Throwable transferFailure = response.handle((value, failure) -> failure).get(5, TimeUnit.SECONDS);
+        assertTrue("The cancelled HTTP future must settle exceptionally", response.isCompletedExceptionally());
+        assertNotNull("A cancelled HTTP body must not return a successful response", transferFailure);
+        assertTrue("The loopback server must observe the client disconnect while streaming the remaining body",
+                serverObservedClientDisconnect.get());
     }
 
     private static Map<String, byte[]> files(String skill, String guide) {

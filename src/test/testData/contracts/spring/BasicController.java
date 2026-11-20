@@ -20,7 +20,7 @@ public class BasicController {
      * @DocView.Name 查询用户
      */
     @GetMapping("/users")
-    public UserResponse getUser(@RequestParam String id) {
+    public UserResponse getUser(@RequestParam(name = "id") String id) {
         return null;
     }
 }

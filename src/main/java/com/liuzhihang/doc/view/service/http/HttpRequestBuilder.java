@@ -25,6 +25,7 @@ import com.intellij.psi.PsiType;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.psi.util.InheritanceUtil;
 import com.liuzhihang.doc.view.constant.FieldTypeConstant;
+import com.liuzhihang.doc.view.constant.SpringConstant;
 import com.liuzhihang.doc.view.utils.ParamPsiUtils;
 import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 import org.jetbrains.annotations.NotNull;
@@ -81,8 +82,6 @@ public class HttpRequestBuilder {
     private static final Pattern PATH_VARIABLE_PATTERN = Pattern.compile("\\{([^{}]+)}");
     private static final Pattern HTTP_CLIENT_VARIABLE_PATTERN = Pattern.compile("\\{\\{[^{}\\s]+}}");
     private static final Pattern SAFE_HEADER_NAME = Pattern.compile("[!#$%&'*+.^_`|~0-9A-Za-z-]+");
-    private static final String SPRING_DEFAULT_VALUE_SENTINEL =
-            "\n\t\t\n\t\t\n\uE000\uE001\uE002\n\t\t\t\t\n";
     private static final int MAX_ANCESTORS = 64;
 
     static {
@@ -445,7 +444,7 @@ public class HttpRequestBuilder {
             return null;
         }
         String value = stringAttribute(annotation, "defaultValue");
-        return value == null || SPRING_DEFAULT_VALUE_SENTINEL.equals(value) ? null : value;
+        return value == null || SpringConstant.DEFAULT_VALUE_SENTINEL.equals(value) ? null : value;
     }
 
     private static boolean booleanAttribute(PsiAnnotation annotation, String name, boolean defaultValue)

@@ -10,7 +10,7 @@
 
 ## 生产 MCP 生成与项目隔离
 
-在隔离 IU263.7307.200、R11包（身份见[上一轮候选记录](../../doc-view-client-skill/verification-2026-11-13-final-candidate.md)）上，通过 IDEA 原生 MCP `/stream`、协议 `2025-06-18` 调用生产工具：
+在隔离 IU263.7307.200、R11包（身份见[上一轮候选记录](../2026-11-20-doc-view-client-skill/verification-2026-11-13-final-candidate.md)）上，通过 IDEA 原生 MCP `/stream`、协议 `2025-06-18` 调用生产工具：
 
 - A 没有文档库时，status 为 not_generated，search 返回 INDEX_NOT_FOUND，文档目录未被查询创建。
 - 显式 generate 创建62个接口、127个文件；重复生成62个 unchanged，snapshotId、文件hash和mtime均不变。

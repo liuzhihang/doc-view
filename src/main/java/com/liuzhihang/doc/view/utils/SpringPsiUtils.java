@@ -43,6 +43,7 @@ import java.util.stream.Collectors;
 
 import static com.liuzhihang.doc.view.constant.MethodConstant.DELETE;
 import static com.liuzhihang.doc.view.constant.MethodConstant.GET;
+import static com.liuzhihang.doc.view.constant.MethodConstant.HEAD;
 import static com.liuzhihang.doc.view.constant.MethodConstant.PATCH;
 import static com.liuzhihang.doc.view.constant.MethodConstant.POST;
 import static com.liuzhihang.doc.view.constant.MethodConstant.PUT;
@@ -54,8 +55,6 @@ import static com.liuzhihang.doc.view.constant.MethodConstant.PUT;
  * @date 2020/3/4 19:45
  */
 public class SpringPsiUtils extends ParamPsiUtils {
-
-    private static final String SPRING_DEFAULT_VALUE_SENTINEL = "\n\t\t\n\t\t\n\uE000\uE001\uE002";
 
     /**
      * 检查类或者接口是否是 Spring 接口
@@ -310,13 +309,17 @@ public class SpringPsiUtils extends ParamPsiUtils {
     public static List<Header> buildHeader(@NotNull PsiMethod psiMethod) {
         List<Header> list = new ArrayList<>();
 
-        // 先设置 header 中的 contentType
+        // 保留 DocView 的 FORM 兼容类型，但不把无 body 的 GET/HEAD 推断为表单请求头。
         ContentTypeEnum contentType = contentType(psiMethod);
-        Header contentTypeHeader = new Header();
-        contentTypeHeader.setRequired(true);
-        contentTypeHeader.setName(contentType.getKey());
-        contentTypeHeader.setValue(contentType.getValue());
-        list.add(contentTypeHeader);
+        String requestMethod = method(psiMethod);
+        if (contentType == ContentTypeEnum.JSON
+                || (!GET.equals(requestMethod) && !HEAD.equals(requestMethod))) {
+            Header contentTypeHeader = new Header();
+            contentTypeHeader.setRequired(true);
+            contentTypeHeader.setName(contentType.getKey());
+            contentTypeHeader.setValue(contentType.getValue());
+            list.add(contentTypeHeader);
+        }
 
         // 判断有无 @Header 注解的参数
         PsiParameter[] parameters = psiMethod.getParameterList().getParameters();
@@ -663,7 +666,7 @@ public class SpringPsiUtils extends ParamPsiUtils {
 
     private static boolean hasCustomSpringDefaultValue(PsiAnnotation annotation) {
         String defaultValue = AnnotationUtil.getStringAttributeValue(annotation, "defaultValue");
-        return defaultValue != null && !SPRING_DEFAULT_VALUE_SENTINEL.equals(defaultValue);
+        return defaultValue != null && !SpringConstant.DEFAULT_VALUE_SENTINEL.equals(defaultValue);
     }
 
     private static Boolean declaredBooleanValue(PsiAnnotation annotation, String attributeName) {

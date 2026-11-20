@@ -33,7 +33,7 @@ summary 中 `interrupt_response` 字段因 runner 等待竞态为空；原始 ap
 
 ## 历史 Codex 0.163 失败记录
 
-常用桌面 Codex `0.163.0-alpha.11.2` 在 2026-10-23 的实测中未向 IDEA 发出可观察的取消信号。隔离 wire 记录显示，在途 30 秒工具调用在 `turn/interrupt` 后仍以 HTTP 200 正常完成，IDEA 日志为 `started → completed → cleanup`；同 session 后续 echo 成功。该轮未保存 initialize 协商版本，因此不能追溯指定它应采用哪个协议分支。原始证据见 `/tmp/doc-view-mcp-upgrade-20261023/codex/delayed-run/gate-result.json` 和 `wire.jsonl`，完整记录见[基线升级验证记录](../openspec/changes/intellij-263-baseline-upgrade/verification.md)。
+常用桌面 Codex `0.163.0-alpha.11.2` 在 2026-10-23 的实测中未向 IDEA 发出可观察的取消信号。隔离 wire 记录显示，在途 30 秒工具调用在 `turn/interrupt` 后仍以 HTTP 200 正常完成，IDEA 日志为 `started → completed → cleanup`；同 session 后续 echo 成功。该轮未保存 initialize 协商版本，因此不能追溯指定它应采用哪个协议分支。原始证据见 `/tmp/doc-view-mcp-upgrade-20261023/codex/delayed-run/gate-result.json` 和 `wire.jsonl`，完整记录见[基线升级验证记录](../openspec/changes/archive/2026-11-20-intellij-263-baseline-upgrade/verification.md)。
 
 Codex [PR #56132](https://github.com/openai/codex/pull/56132) 于 2026-10-22 合并，merge SHA 为 `2dbe6bfa44195e0c63b9a2ee59f46482bfd64fae`。官方 [`rust-v0.165.0-alpha.1` tag 源码](https://github.com/openai/codex/blob/rust-v0.165.0-alpha.1/codex-rs/rmcp-client/src/tool_request.rs#L14-L49)含有取消 guard；来源与发行检查见上文。源码线索曾作为待复验候选，后由本节运行证据完成客户端准入。
 

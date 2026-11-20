@@ -49,6 +49,23 @@ public class SkillInstallMetadataTest {
     }
 
     @Test
+    public void readsRecordedInstallVersionsAcrossTheVerifiedClientUpgrade() throws Exception {
+        SkillFixtureFactory.Fixture fixture = SkillFixtureFactory.fixture("1.7.0",
+                Map.of("SKILL.md", "name: doc-view\n".getBytes(StandardCharsets.UTF_8)));
+        for (CodexSkillScope scope : CodexSkillScope.values()) {
+            for (String recordedVersion : java.util.List.of(
+                    "codex-cli 0.167.0-alpha.4.1", "codex-cli 0.169.0-alpha.11.1")) {
+                SkillInstallMetadata metadata = SkillInstallMetadata.from(scope, fixture.manifest(),
+                        recordedVersion, "/fixture/.agents/skills/doc-view", Instant.EPOCH);
+                assertEquals(metadata, SkillInstallMetadata.parse(metadata.encode()));
+            }
+        }
+        SkillInstallMetadata unverified = SkillInstallMetadata.from(fixture.manifest(),
+                "codex-cli 0.168.0", "/fixture/.agents/skills/doc-view", Instant.EPOCH);
+        assertThrows(IOException.class, () -> SkillInstallMetadata.parse(unverified.encode()));
+    }
+
+    @Test
     public void scopeAndOwnerRootSeparateMetadataButUserStateIsSharedAcrossProjects() throws Exception {
         Path home = temporary.newFolder("home").toPath().toRealPath();
         Path state = temporary.newFolder("state").toPath().toRealPath();

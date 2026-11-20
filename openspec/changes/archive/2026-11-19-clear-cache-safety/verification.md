@@ -37,6 +37,6 @@ Window 与 Catalog 的选中文档用例都在 `assertPreserved` 处发现 Exten
 
 ## 现行入口结案
 
-现行插件 descriptor 只在工具窗口 `…` 提供可见入口；旧目录 action ID 作为快捷键和 Find Action 别名，两个 ID 使用同一个 `WindowClearAction`、名称、说明和图标。IU `263.7307.200` 的 d094 候选通过实际 `… → Clear Cache` 完成两个项目双向 DTO 与派生查询缓存隔离，保护打开的 Scratch 及未保存编辑；两项目合计 152 个受测文件的哈希不变。分别见 [DTO 与编辑保护](../../http-client-generation-and-ui/verification-2026-11-08-http-cache-search.md) 和 [派生缓存双向隔离](../../http-client-generation-and-ui/verification-2026-11-08-remaining-native.md#派生索引缓存与设置项目归属)。空选择 action 行为及文件/编辑器保护另有自动回归。
+现行插件 descriptor 只在工具窗口 `…` 提供可见入口；旧目录 action ID 作为快捷键和 Find Action 别名，两个 ID 使用同一个 `WindowClearAction`、名称、说明和图标。IU `263.7307.200` 的 d094 候选通过实际 `… → Clear Cache` 完成两个项目双向 DTO 与派生查询缓存隔离，保护打开的 Scratch 及未保存编辑；两项目合计 152 个受测文件的哈希不变。分别见 [DTO 与编辑保护](../2026-11-20-http-client-generation-and-ui/verification-2026-11-08-http-cache-search.md) 和 [派生缓存双向隔离](../2026-11-20-http-client-generation-and-ui/verification-2026-11-08-remaining-native.md#派生索引缓存与设置项目归属)。空选择 action 行为及文件/编辑器保护另有自动回归。
 
 早期两个菜单的原生验证仍只覆盖以上历史记录，不宣称它们已通过；归档以现行入口及已验证的安全合同为准，不结案 HTTP/UI 的其他验收。

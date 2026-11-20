@@ -26,6 +26,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public final class CodexSkillInstallServiceTest extends LightJavaCodeInsightFixtureTestCase {
@@ -86,6 +87,87 @@ public final class CodexSkillInstallServiceTest extends LightJavaCodeInsightFixt
 
     public void testUpdateReportsLocalRecoveryEvenWhenReleaseCheckIsOffline() throws Exception {
         assertRecoveryUpdateClientGate(false);
+    }
+
+    public void testUpdateReportsRestoredCancelledWhenClientCheckIsCancelledAfterRecovery() throws Exception {
+        Assume.assumeTrue("Codex Skill lifecycle is currently verified on macOS Apple Silicon",
+                CodexClientProbe.isVerifiedHost());
+        Path root = tempDir("project-recovery-cancel").toRealPath();
+        Path target = root.resolve(".agents/skills/doc-view");
+        Path metadataRoot = tempDir("metadata-recovery-cancel").toRealPath();
+        SkillInstallMetadataStore store = new SkillInstallMetadataStore(root, CodexSkillScope.PROJECT, metadataRoot);
+        byte[] oldBytes = "---\nname: doc-view\n---\nprevious complete version\n".getBytes(StandardCharsets.UTF_8);
+        SkillFixtureFactory.Fixture old = SkillFixtureFactory.fixture("1.7.0", Map.of("SKILL.md", oldBytes));
+        Files.createDirectories(target);
+        Files.write(target.resolve("SKILL.md"), oldBytes);
+        store.write(SkillInstallMetadata.from(CodexSkillScope.PROJECT, old.manifest(),
+                CodexSkillInstallService.VERIFIED_CLIENT_VERSION, target.toString(), Instant.EPOCH));
+        byte[] oldMetadata = Files.readAllBytes(store.metadataFile());
+        SkillFixtureFactory.Fixture interrupted = SkillFixtureFactory.fixture("1.7.1",
+                Map.of("SKILL.md", "new fixture".getBytes(StandardCharsets.UTF_8)));
+        try {
+            new SkillInstallTransaction(CodexSkillScope.PROJECT, root, target, store, interrupted.manifest(),
+                    interrupted.files(), CodexSkillInstallService.VERIFIED_CLIENT_VERSION, "1.7.1",
+                    new EmptyProgressIndicator(), (path, progress) -> true, phase -> {
+                        if (phase == SkillInstallTransaction.Phase.OLD_BACKED_UP) {
+                            throw new AssertionError("simulated interruption after old Skill backup");
+                        }
+                    }).execute();
+            fail("The fixture must leave a recoverable journal after backing up the old directory");
+        } catch (AssertionError expected) {
+            assertEquals("simulated interruption after old Skill backup", expected.getMessage());
+        }
+        assertFalse("The injected transaction must leave the target available only through its backup",
+                Files.exists(target));
+        assertTrue(Files.exists(store.journalFile()));
+
+        Path secondVersionStarted = root.resolve("second-version-started");
+        Path firstVersionCompleted = root.resolve("first-version-completed");
+        Path cli = blockingSecondVersionCodexExecutable(firstVersionCompleted, secondVersionStarted);
+        SkillReleaseSource noDownload = source(Optional.empty(),
+                new GitHubSkillReleaseSource.OfflineException("fixture offline"));
+        CodexSkillInstallService service = new CodexSkillInstallService(projectAt(root), noDownload, metadataRoot);
+        EmptyProgressIndicator indicator = new EmptyProgressIndicator();
+        java.util.concurrent.Future<CodexSkillOperationResult> operation =
+                ApplicationManager.getApplication().executeOnPooledThread(() ->
+                        service.update(CodexSkillScope.PROJECT, cli, indicator));
+
+        try {
+            awaitFile(secondVersionStarted, 5, TimeUnit.SECONDS);
+            assertTrue("The first client validation must finish before the recovery-triggered second check",
+                    Files.exists(firstVersionCompleted));
+            indicator.cancel();
+            CodexSkillOperationResult result;
+            try {
+                result = operation.get(10, TimeUnit.SECONDS);
+            } catch (java.util.concurrent.ExecutionException cancelled) {
+                result = null;
+            }
+
+            assertNotNull("Cancellation after local recovery must return its restored terminal result", result);
+            assertEquals("RESTORED_CANCELLED", result.status().state().name());
+            assertTrue(result.changedFiles());
+            assertFalse(result.committed());
+            assertEquals(CodexSkillInstallService.VERIFIED_CLIENT_VERSION, result.status().clientVersion());
+            assertEquals("1.7.0", result.status().installedVersion());
+            assertTrue(result.status().message().toLowerCase(java.util.Locale.ROOT).contains("recover"));
+            assertTrue(result.status().message().toLowerCase(java.util.Locale.ROOT).contains("cancel"));
+            assertArrayEquals(oldBytes, Files.readAllBytes(target.resolve("SKILL.md")));
+            assertArrayEquals(oldMetadata, Files.readAllBytes(store.metadataFile()));
+            assertFalse(Files.exists(store.journalFile()));
+            try (var targetSiblings = Files.list(target.getParent());
+                 var metadataFiles = Files.list(store.directory())) {
+                assertFalse(targetSiblings.anyMatch(path -> {
+                    String name = path.getFileName().toString();
+                    return name.startsWith(".doc-view-skill-stage-")
+                            || name.startsWith(".doc-view-skill-backup-");
+                }));
+                assertFalse(metadataFiles.anyMatch(path -> path.getFileName().toString().startsWith(".metadata-backup-")));
+            }
+        } finally {
+            indicator.cancel();
+            if (!operation.isDone()) operation.cancel(true);
+        }
     }
 
     private void assertRecoveryUpdateClientGate(boolean unsupported) throws Exception {
@@ -226,7 +308,7 @@ public final class CodexSkillInstallServiceTest extends LightJavaCodeInsightFixt
         CodexSkillStatus status = inBackground(() -> service.checkForUpdates(
                 CodexSkillScope.PROJECT, cli, new EmptyProgressIndicator()));
 
-        assertEquals(CodexSkillStatus.State.NO_COMPATIBLE_RELEASE, status.state());
+        assertEquals(status.message(), CodexSkillStatus.State.NO_COMPATIBLE_RELEASE, status.state());
         assertTrue(status.lastSuccessfulCheckAt().isAfter(Instant.EPOCH));
         assertEquals(status.lastSuccessfulCheckAt(),
                 new SkillLastCheckStore(store.lastCheckFile()).read().orElseThrow());
@@ -337,6 +419,40 @@ public final class CodexSkillInstallServiceTest extends LightJavaCodeInsightFixt
                 StandardCharsets.UTF_8);
         if (!executable.toFile().setExecutable(true)) throw new IOException("Could not mark fixture CLI executable");
         return executable;
+    }
+
+    private Path blockingSecondVersionCodexExecutable(Path firstVersionCompleted, Path secondVersionStarted)
+            throws IOException {
+        Path executable = Files.createTempFile("doc-view-skill-blocking-fake-codex-", ".sh");
+        temporaryRoots.add(executable);
+        String firstMarker = shellQuote(firstVersionCompleted.toString());
+        String secondMarker = shellQuote(secondVersionStarted.toString());
+        String script = "#!/bin/sh\n"
+                + "if [ \"$1\" = \"--version\" ]; then\n"
+                + "  if [ ! -e " + firstMarker + " ]; then\n"
+                + "    touch " + firstMarker + "\n"
+                + "    printf '%s\\n' '" + CodexClientProbe.SUPPORTED_VERSION + "'\n"
+                + "    exit 0\n"
+                + "  fi\n"
+                + "  touch " + secondMarker + "\n"
+                + "  while :; do /bin/sleep 1; done\n"
+                + "fi\n"
+                + "exit 2\n";
+        Files.writeString(executable, script, StandardCharsets.UTF_8);
+        if (!executable.toFile().setExecutable(true)) throw new IOException("Could not mark fixture CLI executable");
+        return executable;
+    }
+
+    private static String shellQuote(String value) {
+        return "'" + value.replace("'", "'\"'\"'") + "'";
+    }
+
+    private static void awaitFile(Path path, long timeout, TimeUnit unit) throws Exception {
+        long deadline = System.nanoTime() + unit.toNanos(timeout);
+        while (System.nanoTime() < deadline && !Files.exists(path)) {
+            TimeUnit.MILLISECONDS.sleep(10);
+        }
+        assertTrue("Timed out waiting for the second Codex version probe", Files.exists(path));
     }
 
     private static void warmAndValidateFakeCodexExecutable(Path executable) throws IOException, InterruptedException {

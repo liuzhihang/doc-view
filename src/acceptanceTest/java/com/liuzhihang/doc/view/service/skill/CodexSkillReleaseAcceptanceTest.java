@@ -114,6 +114,16 @@ public final class CodexSkillReleaseAcceptanceTest extends LightJavaCodeInsightF
                 assertEquals(target.toString(), store.read().orElseThrow().targetPath());
                 record(checks, scope, "candidate-install-real-discovery");
 
+                // Same-format record from the previously verified client; the actual running CLI stays current.
+                SkillInstallMetadata historical = SkillInstallMetadata.from(scope, manifest,
+                        "codex-cli 0.167.0-alpha.4.1", target.toString(), java.time.Instant.EPOCH);
+                store.write(historical);
+                byte[] historicalBytes = Files.readAllBytes(store.metadataFile());
+                assertEquals(CodexSkillStatus.State.CURRENT,
+                        background(() -> service.checkForUpdates(scope, cli, new EmptyProgressIndicator())).state());
+                assertTrue(java.util.Arrays.equals(historicalBytes, Files.readAllBytes(store.metadataFile())));
+                record(checks, scope, "current-client-reads-historical-metadata-without-rewriting");
+
                 Map<String, byte[]> updateFiles = new LinkedHashMap<>(candidateFiles);
                 updateFiles.put("SKILL.md", (new String(candidateFiles.get("SKILL.md"), StandardCharsets.UTF_8)
                         + "\n<!-- Isolated lifecycle update fixture. -->\n").getBytes(StandardCharsets.UTF_8));
@@ -123,6 +133,7 @@ public final class CodexSkillReleaseAcceptanceTest extends LightJavaCodeInsightF
                 CodexSkillOperationResult updated = background(() -> service.update(scope, cli, new EmptyProgressIndicator()));
                 assertTrue(updated.committed());
                 assertEquals("1.7.1", updated.status().installedVersion());
+                assertEquals(CodexClientProbe.SUPPORTED_VERSION, store.read().orElseThrow().clientVersion());
                 assertFiles(updateFiles, target);
                 record(checks, scope, "update-real-discovery");
 

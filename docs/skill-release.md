@@ -69,7 +69,7 @@ env \
     --tests '*CodexSkillReleaseAcceptanceTest' --rerun-tasks --no-build-cache --no-parallel
 ```
 
-测试将Project、用户home、metadata、CLI进程配置及崩溃子JVM限制在新建的测试目录。`real-codex-lifecycle.json`记录16个场景，`jvm-crash-recovery.json`记录6次独立JVM退出恢复。文件事务由生产服务执行，网络源被明确替换为本地候选；此命令不发布、不安装到普通用户目录，不启动普通IDEA或Junie。[本轮验收记录](../openspec/changes/doc-view-client-skill/verification-2026-11-13-release.md)保留失败轮次和测试边界。
+测试将Project、用户home、metadata、CLI进程配置及崩溃子JVM限制在新建的测试目录。`real-codex-lifecycle.json`记录16个场景，`jvm-crash-recovery.json`记录6次独立JVM退出恢复。文件事务由生产服务执行，网络源被明确替换为本地候选；此命令不发布、不安装到普通用户目录，不启动普通IDEA或Junie。[本轮验收记录](../openspec/changes/archive/2026-11-20-doc-view-client-skill/verification-2026-11-13-release.md)保留失败轮次和测试边界。
 
 ## 正式发布边界
 
@@ -85,4 +85,12 @@ Skill正式发布还依赖`doc-view-mcp-tools`的发布范围取消与项目生�
 
 1.7.0 两范围官方首次安装通过后，原生重启恢复发现按钮禁用问题；1.7.1 已修复并在最终插件 ZIP 中完成两范围恢复和官方 1.7.0→1.7.1 更新。当前项目、隔离全局 HOME 的实际 Codex 发现、进行中取消保留旧文件、再次更新成功、用户修改保护及范围隔离均通过。取消时确认操作处于 Working，未定位具体下载/暂存阶段；journal 为受控注入，子 JVM 强制退出恢复另有自动证据。未将首次安装、升级及不同包的证据混为同一检查。
 
-Marketplace 已接收插件 1.7.1，仍待审核；Skill 发行资产已经可由生产安装器通过 GitHub 稳定 Release 获取。自动安装仍限 macOS Apple Silicon 与 `codex-cli 0.167.0-alpha.4.1`，其他 build/系统不承诺支持。详情及未覆盖项见[1.7.1 发布记录](release-1.7.1.md)。
+2026-11-14 Marketplace 公开接口确认插件 1.7.1 已审核并列出；Skill 发行资产已经可由生产安装器通过 GitHub 稳定 Release 获取。自动安装仍限 macOS Apple Silicon 与 `codex-cli 0.167.0-alpha.4.1`，其他 build/系统不承诺支持。详情及未覆盖项见[1.7.1 发布记录](release-1.7.1.md)。
+
+## 1.7.2 插件候选与 Skill 资产复用（2026-11-20，未发布）
+
+1.7.2 候选在 macOS Apple Silicon 上针对实际 `codex-cli 0.169.0-alpha.11.1` 验证了客户端发现、当前项目/全局两范围安装与更新、同格式既有安装记录识别，以及真实自然 Codex 文档工作流。Skill OpenSpec 的 25/25 项已完成并归档；包括 IDEA `File → Close Project` 在 Skill 暂存期间取消后的事务清理、资源回收、重开与官方安装。验收范围和原始记录见[归档任务](../openspec/changes/archive/2026-11-20-doc-view-client-skill/tasks.md)、[自然工作流](../openspec/changes/archive/2026-11-20-doc-view-client-skill/verification-2026-11-20-skill-natural.md)与[官方取消/关闭项目](../openspec/changes/archive/2026-11-20-doc-view-client-skill/verification-2026-11-20-official-cancel.md)。最终插件工件与公开渠道见[1.7.2 发布记录](release-1.7.2.md)。
+
+本次插件候选不改变 MCP tool contract，也不修改 Skill 正文，因此继续复用 GitHub v1.7.1 的 Skill ZIP 与 manifest，不单独发布 1.7.2 Skill 资产。v1.7.1 manifest 的 Doc View 插件兼容范围为 `[1.7.1, 2.0.0)`，包含插件 1.7.2；安装器还会检查本地 MCP contract fingerprint。
+
+生产下载器读取最多 50 条 stable、非 draft/prerelease GitHub releases，并寻找与各 tag 同版本的 Skill ZIP/manifest。某个版本两个资产都没有时会跳过该 release 并继续检查较旧版本；仅缺其中一个则拒绝该候选。因而，当 v1.7.2 作为 plugin-only release 且不附 Skill 资产时，按当前实现会继续找到 v1.7.1 的配对资产；这项源代码路径判断不冒充对尚未公开的 v1.7.2 GitHub Release 的线上回读。找到候选后仍需验证 manifest 与 tag commit、插件版本范围和 MCP contract 指纹。

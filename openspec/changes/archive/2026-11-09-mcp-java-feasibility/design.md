@@ -67,4 +67,4 @@
 
 临时 SDK 安装与 Codex app-server `-c` 进程覆盖使用用户授权的隔离证据目录；未修改全局 Codex 配置、生产插件、普通 IDEA profile 或用户日常 MCP 设置。实测使用的是隔离测试插件工具，不能表示 Doc View 正式工具已注册。
 
-正式集成方向是在同一个 Doc View 插件中增加可选 MCP 扩展、注册到 IDEA 自带 MCP Server，并复用 UI 按钮调用的文档服务；所需 API 边界仅在插件内部。当前没有正式的 Doc View 接口搜索/详情工具，也没有未来显式生成/更新工具。独立 PoC 继续作为隔离准入探针。因 Codex turn interrupt 仍未传播到服务端，task 2.4 保持未完成，生产 IDEA 最低版本仍为 261；条件升级单独跟踪在 [proposal](../../intellij-263-baseline-upgrade/proposal.md) 和 [verification](../../intellij-263-baseline-upgrade/verification.md)，不能把 263 前向实验计为生产升级回归。
+正式集成方向是在同一个 Doc View 插件中增加可选 MCP 扩展、注册到 IDEA 自带 MCP Server，并复用 UI 按钮调用的文档服务；所需 API 边界仅在插件内部。当前没有正式的 Doc View 接口搜索/详情工具，也没有未来显式生成/更新工具。独立 PoC 继续作为隔离准入探针。因 Codex turn interrupt 仍未传播到服务端，task 2.4 保持未完成，生产 IDEA 最低版本仍为 261；条件升级单独跟踪在 [proposal](../2026-11-20-intellij-263-baseline-upgrade/proposal.md) 和 [verification](../2026-11-20-intellij-263-baseline-upgrade/verification.md)，不能把 263 前向实验计为生产升级回归。
