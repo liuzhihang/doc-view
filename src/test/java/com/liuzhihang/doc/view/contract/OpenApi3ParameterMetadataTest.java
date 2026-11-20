@@ -111,7 +111,7 @@ public final class OpenApi3ParameterMetadataTest extends LightJavaCodeInsightFix
 
         List<Header> headers = SpringPsiUtils.buildHeader(method(controller, "headers"));
         assertEquals(List.of("X-Name", "X-Value", "X-OpenAPI", "conflictingAlias"),
-                headers.subList(1, headers.size()).stream().map(Header::getName).toList());
+                headers.stream().map(Header::getName).toList());
     }
 
     public void testRequestHeaderNameAndParameterDescriptionExampleAreMapped() {
@@ -135,7 +135,7 @@ public final class OpenApi3ParameterMetadataTest extends LightJavaCodeInsightFix
                 """);
 
         List<Header> headers = SpringPsiUtils.buildHeader(method(controller, "headers"));
-        Header traceHeader = headers.get(1);
+        Header traceHeader = headers.get(0);
         assertEquals("X-Trace", traceHeader.getName());
         assertEquals("  追踪标识  ", traceHeader.getDesc());
         assertEquals("trace-123", traceHeader.getValue());
@@ -214,7 +214,7 @@ public final class OpenApi3ParameterMetadataTest extends LightJavaCodeInsightFix
         assertEquals("retained-empty-array", params.get(6).getExample());
 
         List<Header> headers = SpringPsiUtils.buildHeader(method(controller, "examples"));
-        assertNull(headers.get(1).getValue());
+        assertNull(headers.get(0).getValue());
     }
 
     public void testParameterMetadataRendersInSpringMarkdownGolden() throws Exception {
@@ -292,7 +292,7 @@ public final class OpenApi3ParameterMetadataTest extends LightJavaCodeInsightFix
                 public class RequiredMetadataController {
                     @GetMapping("/required/{path}")
                     public void required(
-                            @RequestParam String defaultRequestParam,
+                            @RequestParam(name = "q") String defaultRequestParam,
                             @RequestParam(required = false) @Parameter(required = true) String optionalRequestParam,
                             @RequestParam(defaultValue = "fallback") String defaultedRequestParam,
                             @PathVariable String defaultPath,
@@ -333,7 +333,7 @@ public final class OpenApi3ParameterMetadataTest extends LightJavaCodeInsightFix
 
         List<Header> headers = SpringPsiUtils.buildHeader(method(controller, "headers"));
         assertEquals(List.of(true, false, false, true),
-                headers.subList(1, headers.size()).stream().map(Header::getRequired).toList());
+                headers.stream().map(Header::getRequired).toList());
     }
 
     public void testMetadataDoesNotRenameFlattenedFieldsOrRequestBodyAndIgnoresMethodLevelAnnotations() {
@@ -477,7 +477,7 @@ public final class OpenApi3ParameterMetadataTest extends LightJavaCodeInsightFix
                 public @interface RequestParam {
                     String name() default "";
                     String value() default "";
-                    String defaultValue() default "\\n\\t\\t\\n\\t\\t\\n\\uE000\\uE001\\uE002";
+                    String defaultValue() default "\\n\\t\\t\\n\\t\\t\\n\\uE000\\uE001\\uE002\\n\\t\\t\\t\\t\\n";
                     boolean required() default true;
                 }
                 """);
@@ -496,7 +496,7 @@ public final class OpenApi3ParameterMetadataTest extends LightJavaCodeInsightFix
                 public @interface RequestHeader {
                     String name() default "";
                     String value() default "";
-                    String defaultValue() default "\\n\\t\\t\\n\\t\\t\\n\\uE000\\uE001\\uE002";
+                    String defaultValue() default "\\n\\t\\t\\n\\t\\t\\n\\uE000\\uE001\\uE002\\n\\t\\t\\t\\t\\n";
                     boolean required() default true;
                 }
                 """);

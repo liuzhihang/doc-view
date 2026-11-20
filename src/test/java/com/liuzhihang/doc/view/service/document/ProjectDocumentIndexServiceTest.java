@@ -24,10 +24,13 @@ import com.intellij.openapi.vfs.newvfs.events.VFileDeleteEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent;
 import com.intellij.openapi.vfs.newvfs.events.VFileMoveEvent;
 import com.intellij.project.TestProjectManager;
+import com.intellij.testFramework.IndexingTestUtil;
 import com.intellij.testFramework.LightProjectDescriptor;
 import com.intellij.testFramework.PlatformTestUtil;
 import com.intellij.testFramework.fixtures.LightJavaCodeInsightFixtureTestCase;
 import com.intellij.util.messages.MessageBusConnection;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.search.GlobalSearchScope;
 import com.liuzhihang.doc.view.config.Settings;
 import com.liuzhihang.doc.view.config.TemplateSettings;
 import com.liuzhihang.doc.view.service.document.ProjectDocumentData.ApiData;
@@ -38,8 +41,12 @@ import com.liuzhihang.doc.view.service.document.ProjectDocumentData.IdentityData
 import com.liuzhihang.doc.view.service.document.ProjectDocumentData.IndexData;
 import com.liuzhihang.doc.view.service.document.ProjectDocumentData.SourceData;
 import com.liuzhihang.doc.view.service.export.ProjectDocumentIdentity;
+import com.liuzhihang.doc.view.service.export.ProjectDocumentGenerationService;
+import com.liuzhihang.doc.view.testsupport.LocalProjectJavaSources;
+import com.liuzhihang.doc.view.utils.SpringPsiUtils;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -50,6 +57,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -102,7 +110,8 @@ public final class ProjectDocumentIndexServiceTest extends LightJavaCodeInsightF
         assertEquals(2, first.totalMatched());
         assertEquals(1, first.items().size());
         assertNotNull(first.nextCursor());
-        assertEquals(index.snapshotId(), first.snapshotId());
+        assertEquals(index.snapshotId(), first.indexStatus().snapshotId());
+        assertEquals(background(() -> service.status(indicator())), first.indexStatus());
 
         ProjectDocumentQueryResult second = background(() -> service.search(
                 new ProjectDocumentQuery("api greeting", null, null, null, 1, first.nextCursor()), indicator()));
@@ -328,8 +337,11 @@ public final class ProjectDocumentIndexServiceTest extends LightJavaCodeInsightF
             assertEquals(ProjectDocumentQueryException.Code.INDEX_INCONSISTENT, exception.code());
             assertEquals(entry.detail().path(), exception.relativePath());
         }
-        assertEquals(ProjectDocumentIndexStatus.IndexState.INCONSISTENT,
-                background(() -> service.status(indicator())).indexState());
+        ProjectDocumentQueryResult afterFailure = background(() -> service.search(ProjectDocumentQuery.all(), indicator()));
+        assertEquals(1, afterFailure.totalMatched());
+        assertEquals(index.snapshotId(), afterFailure.indexStatus().snapshotId());
+        assertEquals(ProjectDocumentIndexStatus.IndexState.INCONSISTENT, afterFailure.indexStatus().indexState());
+        assertEquals(background(() -> service.status(indicator())), afterFailure.indexStatus());
     }
 
     public void testDetailRequiresSnapshotAndChecksSymlinkBoundaries() throws Exception {
@@ -670,6 +682,288 @@ public final class ProjectDocumentIndexServiceTest extends LightJavaCodeInsightF
                 });
             } finally {
                 deleteTree(externalContentRoot);
+            }
+        }
+    }
+
+    public void testFirstGenerationRefreshDetectsInputsInsideNewDocsContainer() throws Exception {
+        Path projectRoot = Path.of(getProject().getBasePath()).toAbsolutePath().normalize();
+        Path docsPath = projectRoot.resolve("docs");
+        deleteTree(documentRoot);
+        if (Files.isDirectory(docsPath)) {
+            deleteTree(docsPath);
+        }
+        VirtualFile projectRootFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(projectRoot);
+        assertNotNull("The fixture project root must be visible in the local VFS", projectRootFile);
+        projectRootFile.refresh(false, true, null);
+        assertNull("The first-generation fixture must not have a docs directory", projectRootFile.findChild("docs"));
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+            ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+            try {
+                model.addContentEntry(projectRootFile);
+                model.commit();
+            } catch (RuntimeException | Error failure) {
+                model.dispose();
+                throw failure;
+            }
+        });
+
+        LocalProjectJavaSources sources = new LocalProjectJavaSources(getProject(), getModule());
+        sources.installApiAnnotationStubs();
+        sources.addClass("freshness/FirstGenerationApi.java", """
+                package freshness;
+
+                @org.springframework.web.bind.annotation.RestController
+                public class FirstGenerationApi {
+                    @org.springframework.web.bind.annotation.GetMapping("/lookup")
+                    public String lookup(String id) { return id; }
+                }
+                """);
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
+
+        List<String> vfsEvents = new CopyOnWriteArrayList<>();
+        MessageBusConnection vfsConnection = ApplicationManager.getApplication().getMessageBus().connect();
+        vfsConnection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
+            @Override
+            public void before(@org.jetbrains.annotations.NotNull List<? extends VFileEvent> events) {
+                for (VFileEvent event : events) {
+                    boolean directory = event instanceof VFileCreateEvent createEvent && createEvent.isDirectory();
+                    VirtualFile scope = event instanceof VFileCreateEvent createEvent
+                            ? createEvent.getParent() : event.getFile();
+                    vfsEvents.add(event.getClass().getSimpleName() + " path=" + event.getPath()
+                            + " directory=" + directory + " scopePath=" + (scope == null ? null : scope.getPath())
+                            + " inputEpoch=" + service.captureInputEpoch());
+                }
+            }
+        });
+        try {
+            CompletableFuture<ProjectDocumentGenerationService.Outcome> generation = new CompletableFuture<>();
+            ApplicationManager.getApplication().executeOnPooledThread(() -> {
+                try {
+                    generation.complete(ProjectDocumentGenerationService.getInstance(getProject()).generate(indicator()));
+                } catch (Throwable failure) {
+                    generation.completeExceptionally(failure);
+                }
+            });
+            ProjectDocumentGenerationService.Outcome outcome = PlatformTestUtil.waitForFuture(generation, 30_000);
+            assertFalse("The actual generation fixture must contain a real API page", outcome.snapshot().pages().isEmpty());
+            long committedEpoch = committedInputEpoch();
+            assertEquals(ProjectDocumentIndexStatus.Freshness.CURRENT,
+                    background(() -> service.status(indicator())).freshness());
+
+            Path nestedJava = docsPath.resolve("input-source/nested/Other.java");
+            Path nestedXml = docsPath.resolve("input-source/nested/config.xml");
+            Files.createDirectories(nestedJava.getParent());
+            Files.writeString(nestedJava, "class Other {}\n", StandardCharsets.UTF_8);
+            Files.writeString(nestedXml, "<beans/>\n", StandardCharsets.UTF_8);
+
+            Path outputRootPath = projectRoot.resolve(ProjectDocumentIndexService.DOCUMENT_ROOT);
+            VirtualFile outputRoot = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(outputRootPath);
+            assertNotNull("The exporter must have published its output root", outputRoot);
+            outputRoot.refresh(false, true, null);
+            long inputEpochAfterFirstRefresh = service.captureInputEpoch();
+            ProjectDocumentIndexStatus afterFirstRefresh = background(() -> service.status(indicator()));
+            String observation = "committedInputEpoch=" + committedEpoch
+                    + ", inputEpochAfterFirstRefresh=" + inputEpochAfterFirstRefresh
+                    + ", freshnessAfterFirstRefresh=" + afterFirstRefresh.freshness()
+                    + ", vfsEvents=" + vfsEvents;
+            Path docsAncestorPath = docsPath.toAbsolutePath().normalize();
+            assertTrue("The fixture must observe creation of the docs ancestor; " + observation,
+                    vfsEvents.stream().anyMatch(event -> event.contains("path=" + docsAncestorPath)
+                            && event.contains("directory=true") && event.contains("scopePath=" + projectRoot)));
+            assertEquals("Nested Java/XML inputs present when docs first enters the VFS must stale the snapshot; "
+                            + observation,
+                    ProjectDocumentIndexStatus.Freshness.STALE, afterFirstRefresh.freshness());
+            assertTrue("The first VFS refresh must advance the epoch for nested Java/XML inputs; "
+                            + observation,
+                    inputEpochAfterFirstRefresh > committedEpoch);
+        } finally {
+            vfsConnection.disconnect();
+            try {
+                cleanupFirstGenerationFixture(sources, docsPath, projectRootFile);
+                assertFirstGenerationClassWasCleaned();
+                assertFirstGenerationCandidateWasCleaned();
+            } finally {
+                WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                    ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                    try {
+                        for (ContentEntry entry : model.getContentEntries()) {
+                            if (projectRootFile.getUrl().equals(entry.getUrl())) {
+                                model.removeContentEntry(entry);
+                            }
+                        }
+                        model.commit();
+                    } catch (RuntimeException | Error failure) {
+                        model.dispose();
+                        throw failure;
+                    }
+                });
+            }
+        }
+    }
+
+    public void testFirstGenerationOutputRefreshKeepsSnapshotCurrent() throws Exception {
+        Path projectRoot = Path.of(getProject().getBasePath()).toAbsolutePath().normalize();
+        Path docsPath = projectRoot.resolve("docs");
+        deleteTree(documentRoot);
+        if (Files.isDirectory(docsPath)) {
+            try (var children = Files.list(docsPath)) {
+                if (children.findAny().isEmpty()) {
+                    Files.deleteIfExists(docsPath);
+                }
+            }
+        }
+        VirtualFile projectRootFile = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(projectRoot);
+        assertNotNull("The fixture project root must be visible in the local VFS", projectRootFile);
+        projectRootFile.refresh(false, true, null);
+        assertNull("The first-generation fixture must not have a docs directory", projectRootFile.findChild("docs"));
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+            ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+            try {
+                model.addContentEntry(projectRootFile);
+                model.commit();
+            } catch (RuntimeException | Error failure) {
+                model.dispose();
+                throw failure;
+            }
+        });
+
+        LocalProjectJavaSources sources = new LocalProjectJavaSources(getProject(), getModule());
+        sources.installApiAnnotationStubs();
+        sources.addClass("freshness/FirstGenerationApi.java", """
+                package freshness;
+
+                @org.springframework.web.bind.annotation.RestController
+                public class FirstGenerationApi {
+                    @org.springframework.web.bind.annotation.GetMapping("/lookup")
+                    public String lookup(String id) { return id; }
+                }
+                """);
+        IndexingTestUtil.waitUntilIndexesAreReady(getProject());
+
+        long inputEpochBeforeGeneration = service.captureInputEpoch();
+        List<String> vfsEvents = new CopyOnWriteArrayList<>();
+        MessageBusConnection vfsConnection = ApplicationManager.getApplication().getMessageBus().connect();
+        vfsConnection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
+            @Override
+            public void before(@org.jetbrains.annotations.NotNull List<? extends VFileEvent> events) {
+                for (VFileEvent event : events) {
+                    boolean directory = event instanceof VFileCreateEvent createEvent && createEvent.isDirectory();
+                    VirtualFile scope = event instanceof VFileCreateEvent createEvent
+                            ? createEvent.getParent() : event.getFile();
+                    vfsEvents.add(event.getClass().getSimpleName() + " path=" + event.getPath()
+                            + " directory=" + directory + " scopePath=" + (scope == null ? null : scope.getPath())
+                            + " inputEpoch=" + service.captureInputEpoch());
+                }
+            }
+        });
+        try {
+            CompletableFuture<ProjectDocumentGenerationService.Outcome> generation = new CompletableFuture<>();
+            ApplicationManager.getApplication().executeOnPooledThread(() -> {
+                try {
+                    generation.complete(ProjectDocumentGenerationService.getInstance(getProject()).generate(indicator()));
+                } catch (Throwable failure) {
+                    generation.completeExceptionally(failure);
+                }
+            });
+            ProjectDocumentGenerationService.Outcome outcome = PlatformTestUtil.waitForFuture(generation, 30_000);
+            assertFalse("The actual generation fixture must contain a real API page", outcome.snapshot().pages().isEmpty());
+            long committedEpoch = committedInputEpoch();
+            long inputEpochAfterGeneration = service.captureInputEpoch();
+            ProjectDocumentIndexStatus beforeOutputRefresh = background(() -> service.status(indicator()));
+            assertEquals(ProjectDocumentIndexStatus.Freshness.CURRENT, beforeOutputRefresh.freshness());
+
+            Path outputRootPath = projectRoot.resolve(ProjectDocumentIndexService.DOCUMENT_ROOT);
+            VirtualFile outputRoot = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(outputRootPath);
+            assertNotNull("The exporter must have published its output root", outputRoot);
+            outputRoot.refresh(false, true, null);
+
+            long inputEpochAfterRefresh = service.captureInputEpoch();
+            ProjectDocumentIndexStatus afterOutputRefresh = background(() -> service.status(indicator()));
+            String observation = "inputEpochBeforeGeneration=" + inputEpochBeforeGeneration
+                    + ", committedInputEpoch=" + committedEpoch
+                    + ", inputEpochAfterGeneration=" + inputEpochAfterGeneration
+                    + ", inputEpochAfterOutputRefresh=" + inputEpochAfterRefresh
+                    + ", freshnessAfterOutputRefresh=" + afterOutputRefresh.freshness()
+                    + ", docsAncestorParentInContent=" + ReadAction.compute(
+                            () -> ProjectFileIndex.getInstance(getProject()).isInContent(projectRootFile))
+                    + ", vfsEvents=" + vfsEvents;
+            Path ancestorPath = docsPath.toAbsolutePath().normalize();
+            assertTrue("The fixture's docs parent must be within the project content root; " + observation,
+                    ReadAction.compute(() -> ProjectFileIndex.getInstance(getProject()).isInContent(projectRootFile)));
+            assertTrue("The real LocalFileSystem refresh must report creation of the docs ancestor; " + observation,
+                    vfsEvents.stream().anyMatch(event -> event.contains("path=" + ancestorPath)
+                            && event.contains("directory=true") && event.contains("scopePath=" + projectRoot)));
+            assertEquals("The output refresh must not advance the committed input epoch; " + observation,
+                    committedEpoch, inputEpochAfterRefresh);
+            assertEquals("The first snapshot must remain current after refreshing its own published files; "
+                            + observation,
+                    ProjectDocumentIndexStatus.Freshness.CURRENT, afterOutputRefresh.freshness());
+
+            Path siblingJavaPath = docsPath.resolve("OrdinaryInput.java");
+            Path siblingXmlPath = docsPath.resolve("ordinary-dubbo.xml");
+            Files.writeString(siblingJavaPath, "class OrdinaryInput {}\n", StandardCharsets.UTF_8);
+            Files.writeString(siblingXmlPath, "<beans/>\n", StandardCharsets.UTF_8);
+            VirtualFile docsDirectory = outputRoot.getParent();
+            assertNotNull("The output container must be visible in the local VFS", docsDirectory);
+            docsDirectory.refresh(false, true, null);
+            long inputEpochAfterSiblingInputs = service.captureInputEpoch();
+            ProjectDocumentIndexStatus afterSiblingInputs = background(() -> service.status(indicator()));
+            assertTrue("Java and XML inputs beside docs/doc-view must remain tracked; inputEpoch="
+                            + inputEpochAfterSiblingInputs + ", vfsEvents=" + vfsEvents,
+                    inputEpochAfterSiblingInputs > committedEpoch);
+            assertEquals("Ordinary Java/XML inputs under docs must stale the committed snapshot",
+                    ProjectDocumentIndexStatus.Freshness.STALE, afterSiblingInputs.freshness());
+            assertTrue("The source files must arrive as ordinary VFS create events; vfsEvents=" + vfsEvents,
+                    vfsEvents.stream().anyMatch(event -> event.contains("path=" + siblingJavaPath))
+                            && vfsEvents.stream().anyMatch(event -> event.contains("path=" + siblingXmlPath)));
+        } finally {
+            vfsConnection.disconnect();
+            try {
+                cleanupFirstGenerationFixture(sources, docsPath, projectRootFile);
+                assertFirstGenerationClassWasCleaned();
+                assertFirstGenerationCandidateWasCleaned();
+            } finally {
+                WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                    ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                    try {
+                        for (ContentEntry entry : model.getContentEntries()) {
+                            if (projectRootFile.getUrl().equals(entry.getUrl())) {
+                                model.removeContentEntry(entry);
+                            }
+                        }
+                        model.commit();
+                    } catch (RuntimeException | Error failure) {
+                        model.dispose();
+                        throw failure;
+                    }
+                });
+            }
+        }
+    }
+
+    private void assertFirstGenerationClassWasCleaned() {
+        assertNull("The first-generation fixture Java class must leave the project PSI/index after cleanup",
+                ReadAction.compute(() -> JavaPsiFacade.getInstance(getProject()).findClass("freshness.FirstGenerationApi",
+                        GlobalSearchScope.allScope(getProject()))));
+    }
+
+    private void assertFirstGenerationCandidateWasCleaned() {
+        assertFalse("The first-generation fixture must no longer be a Spring API candidate after cleanup",
+                ReadAction.compute(() -> SpringPsiUtils.findDocViewFromModule(getModule()).stream()
+                        .anyMatch(psiClass -> "freshness.FirstGenerationApi".equals(psiClass.getQualifiedName()))));
+    }
+
+    private void cleanupFirstGenerationFixture(LocalProjectJavaSources sources, Path docsPath,
+                                               VirtualFile projectRootFile) throws Exception {
+        try {
+            sources.cleanup();
+        } finally {
+            try {
+                deleteTree(docsPath);
+            } finally {
+                projectRootFile.refresh(false, true, null);
+                IndexingTestUtil.waitUntilIndexesAreReady(getProject());
             }
         }
     }
@@ -1169,20 +1463,37 @@ public final class ProjectDocumentIndexServiceTest extends LightJavaCodeInsightF
         }
     }
 
-    public void testWorkspaceXmlRefreshFreshnessMatchesProjectContentMembership() throws Exception {
+    public void testWorkspaceXmlMetadataIsIgnoredButOrdinaryXmlRemainsTracked() throws Exception {
         Path projectRoot = Files.createTempDirectory("doc-view-workspace-xml-content-");
         Path workspaceDirectory = projectRoot.resolve(".idea");
         Path workspaceXmlPath = workspaceDirectory.resolve("workspace.xml");
+        Path otherIdeaXmlPath = workspaceDirectory.resolve("misc.xml");
+        Path ordinaryWorkspaceXmlPath = projectRoot.resolve("workspace.xml");
+        String workspaceBefore = "<project version=\"4\"><component name=\"probe\">before</component></project>\n";
+        String otherIdeaXmlBefore = "<project version=\"4\"><component name=\"other\">before</component></project>\n";
+        String ordinaryXmlBefore = "<beans><!-- before --></beans>\n";
         Files.createDirectories(workspaceDirectory);
-        Files.writeString(workspaceXmlPath, "<project version=\"4\"><component name=\"probe\">before</component></project>\n",
-                StandardCharsets.UTF_8);
+        Files.writeString(workspaceXmlPath, workspaceBefore, StandardCharsets.UTF_8);
+        Files.writeString(otherIdeaXmlPath, otherIdeaXmlBefore, StandardCharsets.UTF_8);
+        Files.writeString(ordinaryWorkspaceXmlPath, ordinaryXmlBefore, StandardCharsets.UTF_8);
         VirtualFile projectRootVf = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(projectRoot);
         VirtualFile workspaceXml = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(workspaceXmlPath);
+        VirtualFile otherIdeaXml = LocalFileSystem.getInstance().refreshAndFindFileByNioFile(otherIdeaXmlPath);
+        VirtualFile ordinaryWorkspaceXml =
+                LocalFileSystem.getInstance().refreshAndFindFileByNioFile(ordinaryWorkspaceXmlPath);
         String projectRootUrl = projectRootVf == null ? null : projectRootVf.getUrl();
+        Document workspaceDocument = workspaceXml == null
+                ? null : FileDocumentManager.getInstance().getDocument(workspaceXml);
+        Document ordinaryWorkspaceDocument = ordinaryWorkspaceXml == null
+                ? null : FileDocumentManager.getInstance().getDocument(ordinaryWorkspaceXml);
         boolean contentRootAdded = false;
         try {
             assertNotNull("The local VFS must expose the real temporary project root", projectRootVf);
             assertNotNull("The local VFS must expose the real .idea/workspace.xml fixture", workspaceXml);
+            assertNotNull("The local VFS must expose another .idea XML fixture", otherIdeaXml);
+            assertNotNull("The local VFS must expose the ordinary workspace.xml fixture", ordinaryWorkspaceXml);
+            assertNotNull("IDEA must provide a Document for .idea/workspace.xml", workspaceDocument);
+            assertNotNull("IDEA must provide a Document for ordinary workspace.xml", ordinaryWorkspaceDocument);
             WriteCommandAction.runWriteCommandAction(getProject(), () -> {
                 ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
                 try {
@@ -1200,6 +1511,8 @@ public final class ProjectDocumentIndexServiceTest extends LightJavaCodeInsightF
             boolean workspaceXmlInContent = ReadAction.compute(() ->
                     ProjectFileIndex.getInstance(getProject()).isInContent(workspaceXml));
             assertTrue("The real temporary root must be present in the project file index", projectRootInContent);
+            assertTrue("The .idea/workspace.xml fixture must be in project content for this regression",
+                    workspaceXmlInContent);
             IndexData index = writeStore(List.of(api("core", "src/main/java/example/WorkspaceXmlProbe.java",
                     "example.WorkspaceXmlProbe", "lookup", "Workspace XML scope", "Description", "/workspace-xml")));
             service.installCommittedIndex(index, service.captureInputEpoch());
@@ -1208,12 +1521,20 @@ public final class ProjectDocumentIndexServiceTest extends LightJavaCodeInsightF
 
             MessageBusConnection vfsConnection = ApplicationManager.getApplication().getMessageBus().connect();
             AtomicBoolean workspaceXmlVfsEventObserved = new AtomicBoolean();
+            AtomicBoolean otherIdeaXmlVfsEventObserved = new AtomicBoolean();
+            AtomicBoolean ordinaryWorkspaceXmlVfsEventObserved = new AtomicBoolean();
             vfsConnection.subscribe(VirtualFileManager.VFS_CHANGES, new BulkFileListener() {
                 @Override
                 public void before(@org.jetbrains.annotations.NotNull List<? extends VFileEvent> events) {
                     for (VFileEvent event : events) {
                         if (workspaceXmlPath.toString().equals(event.getPath())) {
                             workspaceXmlVfsEventObserved.set(true);
+                        }
+                        if (otherIdeaXmlPath.toString().equals(event.getPath())) {
+                            otherIdeaXmlVfsEventObserved.set(true);
+                        }
+                        if (ordinaryWorkspaceXmlPath.toString().equals(event.getPath())) {
+                            ordinaryWorkspaceXmlVfsEventObserved.set(true);
                         }
                     }
                 }
@@ -1228,39 +1549,84 @@ public final class ProjectDocumentIndexServiceTest extends LightJavaCodeInsightF
 
                 ProjectDocumentIndexStatus.Freshness afterRefresh =
                         background(() -> service.status(indicator())).freshness();
-                System.out.printf("DOC_VIEW_WORKSPACE_XML_OBSERVATION rootIsInContent=%s workspaceXmlIsInContent=%s "
-                                + "freshnessAfterRefresh=%s%n",
-                        projectRootInContent, workspaceXmlInContent, afterRefresh);
-                assertEquals("The existing conservative XML rule tracks every XML file in project content; "
-                                + "workspace.xml isInContent=" + workspaceXmlInContent,
-                        workspaceXmlInContent ? ProjectDocumentIndexStatus.Freshness.STALE
-                                : ProjectDocumentIndexStatus.Freshness.CURRENT,
-                        afterRefresh);
+                assertEquals("IDE workspace UI metadata is not a document freshness input",
+                        ProjectDocumentIndexStatus.Freshness.CURRENT, afterRefresh);
+
+                WriteCommandAction.runWriteCommandAction(getProject(), () -> workspaceDocument.setText(
+                        "<project version=\"4\"><component name=\"probe\">after-document-edit</component></project>\n"));
+                assertTrue("The .idea/workspace.xml edit must remain an unsaved Document change",
+                        FileDocumentManager.getInstance().isDocumentUnsaved(workspaceDocument));
+                assertEquals("The PSI Document path must use the same workspace-metadata exclusion",
+                        ProjectDocumentIndexStatus.Freshness.CURRENT,
+                        background(() -> service.status(indicator())).freshness());
+
+                Files.writeString(otherIdeaXmlPath,
+                        "<project version=\"4\"><component name=\"other\">after</component></project>\n",
+                        StandardCharsets.UTF_8);
+                otherIdeaXml.refresh(false, false, null);
+                assertTrue("Other .idea XML edits must be observed as real local VFS events",
+                        otherIdeaXmlVfsEventObserved.get());
+                assertEquals("Only the .idea/workspace.xml file is excluded from freshness inputs",
+                        ProjectDocumentIndexStatus.Freshness.STALE,
+                        background(() -> service.status(indicator())).freshness());
+
+                service.installCommittedIndex(index, service.captureInputEpoch());
+                Files.writeString(ordinaryWorkspaceXmlPath, "<beans><!-- after external write --></beans>\n",
+                        StandardCharsets.UTF_8);
+                ordinaryWorkspaceXml.refresh(false, false, null);
+                assertTrue("Ordinary workspace.xml edits must be observed as real local VFS events",
+                        ordinaryWorkspaceXmlVfsEventObserved.get());
+                assertEquals("A workspace.xml outside .idea remains an ordinary XML freshness input",
+                        ProjectDocumentIndexStatus.Freshness.STALE,
+                        background(() -> service.status(indicator())).freshness());
+
+                service.installCommittedIndex(index, service.captureInputEpoch());
+                WriteCommandAction.runWriteCommandAction(getProject(), () -> ordinaryWorkspaceDocument.setText(
+                        "<beans><!-- after document edit --></beans>\n"));
+                assertTrue("An ordinary workspace.xml edit must remain an unsaved Document change",
+                        FileDocumentManager.getInstance().isDocumentUnsaved(ordinaryWorkspaceDocument));
+                assertEquals("The PSI Document path must continue tracking ordinary XML",
+                        ProjectDocumentIndexStatus.Freshness.STALE,
+                        background(() -> service.status(indicator())).freshness());
             } finally {
                 vfsConnection.disconnect();
             }
         } finally {
             try {
-                if (contentRootAdded && projectRootUrl != null && !getModule().isDisposed()) {
-                    WriteCommandAction.runWriteCommandAction(getProject(), () -> {
-                        ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
-                        try {
-                            for (ContentEntry entry : model.getContentEntries()) {
-                                if (projectRootUrl.equals(entry.getUrl())) {
-                                    model.removeContentEntry(entry);
+                try {
+                    restoreDocument(workspaceDocument, workspaceBefore);
+                    restoreDocument(ordinaryWorkspaceDocument, ordinaryXmlBefore);
+                } finally {
+                    if (contentRootAdded && projectRootUrl != null && !getModule().isDisposed()) {
+                        WriteCommandAction.runWriteCommandAction(getProject(), () -> {
+                            ModifiableRootModel model = ModuleRootManager.getInstance(getModule()).getModifiableModel();
+                            try {
+                                for (ContentEntry entry : model.getContentEntries()) {
+                                    if (projectRootUrl.equals(entry.getUrl())) {
+                                        model.removeContentEntry(entry);
+                                    }
                                 }
+                                model.commit();
+                            } catch (RuntimeException | Error failure) {
+                                model.dispose();
+                                throw failure;
                             }
-                            model.commit();
-                        } catch (RuntimeException | Error failure) {
-                            model.dispose();
-                            throw failure;
-                        }
-                    });
+                        });
+                    }
                 }
             } finally {
                 deleteTree(projectRoot);
             }
         }
+    }
+
+    private void restoreDocument(Document document, String originalText) {
+        if (document == null) {
+            return;
+        }
+        WriteCommandAction.runWriteCommandAction(getProject(), () -> document.setText(originalText));
+        com.intellij.psi.PsiDocumentManager.getInstance(getProject()).commitDocument(document);
+        FileDocumentManager.getInstance().saveDocument(document);
     }
 
     public void testXmlDocumentChangeInExternalContentRootMakesCommittedGenerationStale() throws Exception {
@@ -1447,6 +1813,12 @@ public final class ProjectDocumentIndexServiceTest extends LightJavaCodeInsightF
 
     private static ProgressIndicator indicator() {
         return new EmptyProgressIndicator();
+    }
+
+    private long committedInputEpoch() throws ReflectiveOperationException {
+        Field field = ProjectDocumentIndexService.class.getDeclaredField("committedInputEpoch");
+        field.setAccessible(true);
+        return field.getLong(service);
     }
 
     private static ProgressIndicator timeoutIndicator() {

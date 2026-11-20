@@ -27,6 +27,10 @@ record SkillInstallMetadata(
         String installedAt,
         List<SkillReleaseManifest.FileRecord> files) {
 
+    // Installation provenance is distinct from the build allowed to perform a new operation.
+    private static final Set<String> RECORDED_CLIENT_BUILDS = Set.of(
+            "codex-cli 0.167.0-alpha.4.1", CodexClientProbe.SUPPORTED_VERSION);
+
     static SkillInstallMetadata from(SkillReleaseManifest manifest, String clientVersion,
                                      String targetPath, Instant installedAt) {
         return from(CodexSkillScope.PROJECT, manifest, clientVersion, targetPath, installedAt);
@@ -111,7 +115,7 @@ record SkillInstallMetadata(
         if (metadata.scope() == null || !metadata.releaseTag().equals("v" + metadata.skillVersion())
                 || !metadata.commitSha().matches("[a-f0-9]{40,64}")
                 || !metadata.toolContractFingerprint().matches("sha256:[a-f0-9]{64}")
-                || !CodexClientProbe.SUPPORTED_VERSION.equals(metadata.clientVersion())
+                || !RECORDED_CLIENT_BUILDS.contains(metadata.clientVersion())
                 || metadata.targetPath().isBlank()) {
             throw new IOException("Skill installation metadata does not match the supported install contract");
         }

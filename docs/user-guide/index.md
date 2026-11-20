@@ -14,7 +14,7 @@ Doc View 从 Java 源码、注释和注解生成 API 文档，支持在 IDE 中�
 
 ## 安装
 
-1. 打开 IDE 的 **Settings → Plugins → Marketplace**，搜索 `Doc View`，核对作者与[插件页面](https://plugins.jetbrains.com/plugin/15305-doc-view)，选择兼容版本安装。1.6.0 的最低 build 为 IU `263.7031.23`，生产 Java 基线为25；安装、更新或停用后按IDE提示重启。旧IDE可选择兼容的旧插件版本。已验证范围和待人工复验项见[发布记录](../release-1.6.0.md)。Java 和 Markdown 插件应启用，具体兼容范围见[兼容性说明](../intellij-compatibility.md)。
+1. 打开 IDE 的 **Settings → Plugins → Marketplace**，搜索 `Doc View`，核对作者与[插件页面](https://plugins.jetbrains.com/plugin/15305-doc-view)，选择兼容版本安装。1.7.2 的最低 build 为 IDEA Ultimate `263.7307.200` 正式版，生产 Java 基线为 25。安装、更新、停用或卸载后按 IDE 提示重启。旧 IDE 可选择仍兼容的旧插件版本，例如最低 IU `263.7031.23` 的 1.7.1。版本与下载渠道见[1.7.2 发布记录](../release-1.7.2.md)及[兼容性说明](../intellij-compatibility.md)。Java 和 Markdown 插件应启用。
 2. 离线安装可从[项目 Releases](https://github.com/liuzhihang/doc-view/releases)取得兼容的插件包，在 **Plugins → 齿轮菜单 → Install Plugin from Disk…** 选择下载包。
 3. 按 IDE 提示完成加载或重启，打开 Java 项目，等待依赖解析与索引完成。
 
@@ -219,9 +219,9 @@ docs/doc-view/
 
 ### AI 检索边界
 
-导出文件是普通 Markdown，可以加入 Git，并由 IDE 或 AI 按普通文件读取。IDE 的 **Find in Files → Project** 可搜索接口名、方法签名或独有词；结果受当前 scope、排除规则与索引状态影响。当前项目导出没有注册自定义 IDEA 索引、正式 MCP 工具或实时知识库。版本化 JSON 文档库和相应的搜索/打开 UI 正在 [`project-document-store`](../../openspec/changes/project-document-store/tasks.md) 中实现验收；只读查询不扫描 PSI、不隐式更新文件，也不能把旧快照当成实时源码。
+导出文件是普通 Markdown，可以加入 Git，也能用 IDEA 的 **Find in Files → Project** 按接口名、签名或关键词搜索。搜索范围和项目排除设置仍由 IDE 决定。Doc View 的项目文档搜索则使用版本化 JSON 清单；只读查询不重扫 PSI，也不会自动更新。生成的内容是快照，不能当作实时源码。文档库和搜索界面的验收见[归档记录](../../openspec/changes/archive/2026-11-19-project-document-store/verification-2026-11-19-final-lifecycle.md)。
 
-正式 MCP 计划作为 Doc View 插件内的可选 provider，提供只读状态/搜索/详情和显式生成/更新工具；Codex Skill 计划作为调用 MCP 的客户端工作流，不是另一台服务。这些能力均尚未交付，Skill 规划见 [`doc-view-client-skill`](../../openspec/changes/doc-view-client-skill/proposal.md)。当前与计划边界、IDEA/Codex 注册方式见[MCP 使用说明](mcp.md)，磁盘 JSON 和 MCP 响应格式见[文档格式说明](../mcp-format.md)，取消候选及验收门槛见[取消说明](../mcp-cancellation.md)。
+Doc View 1.7.1 的可选 MCP provider 注册到 IDEA 内置 MCP Server，提供只读状态、搜索、详情和显式生成/更新。Codex Skill 使用同一服务。客户端兼容范围和连接方式见 [MCP 使用说明](mcp.md)，磁盘 JSON 和 MCP 响应见[文档格式](../mcp-format.md)，取消证据见[取消说明](../mcp-cancellation.md)。
 
 ## 找到设置与帮助
 

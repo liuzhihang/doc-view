@@ -26,6 +26,20 @@ public final class SpringMarkdownContractTest extends LightJavaCodeInsightFixtur
     protected void setUp() throws Exception {
         super.setUp();
         AnnotationStubs.installSpringWeb(myFixture);
+        myFixture.addClass("""
+                package org.springframework.web.bind.annotation;
+
+                public @interface PostMapping {
+                    String[] value() default {};
+                }
+                """);
+        myFixture.addClass("""
+                package org.springframework.web.bind.annotation;
+
+                public @interface RequestBody {
+                    boolean required() default true;
+                }
+                """);
     }
 
     @Override
@@ -57,11 +71,7 @@ public final class SpringMarkdownContractTest extends LightJavaCodeInsightFixtur
         assertEquals("GET", docView.getMethod());
         assertEquals(ContentTypeEnum.FORM, docView.getContentType());
 
-        assertEquals(1, docView.getHeaderList().size());
-        Header contentType = docView.getHeaderList().get(0);
-        assertEquals("Content-Type", contentType.getName());
-        assertEquals("application/x-www-form-urlencoded", contentType.getValue());
-        assertTrue(contentType.getRequired());
+        assertTrue(docView.getHeaderList().isEmpty());
 
         assertEquals(1, docView.getReqParamList().size());
         Param id = docView.getReqParamList().get(0);
@@ -82,6 +92,71 @@ public final class SpringMarkdownContractTest extends LightJavaCodeInsightFixtur
         String expectedMarkdown = StringUtil.convertLineSeparators(
                 Files.readString(goldenFile, StandardCharsets.UTF_8)) + "\n";
         assertEquals(expectedMarkdown, markdown);
+    }
+
+    public void testHeadAndExplicitContentTypeHeaderUseOnlyDeclaredHeaders() {
+        PsiClass controller = myFixture.addClass("""
+                package contracts.spring;
+
+                import org.springframework.web.bind.annotation.GetMapping;
+                import org.springframework.web.bind.annotation.RequestHeader;
+                import org.springframework.web.bind.annotation.RequestMapping;
+                import org.springframework.web.bind.annotation.RequestParam;
+                import org.springframework.web.bind.annotation.RestController;
+
+                @RestController
+                public class HeaderController {
+                    @RequestMapping(value = "/head", method = "HEAD")
+                    public void head(@RequestParam(name = "q") String query) { }
+
+                    @GetMapping("/explicit")
+                    public void explicit(@RequestHeader(name = "Content-Type") String contentType) { }
+                }
+                """);
+
+        DocView head = buildDoc(controller, "head");
+        assertEquals("HEAD", head.getMethod());
+        assertEquals(ContentTypeEnum.FORM, head.getContentType());
+        assertTrue(head.getHeaderList().isEmpty());
+
+        DocView explicit = buildDoc(controller, "explicit");
+        assertEquals(1, explicit.getHeaderList().size());
+        Header contentType = explicit.getHeaderList().get(0);
+        assertEquals("Content-Type", contentType.getName());
+        assertNull(contentType.getValue());
+    }
+
+    public void testRequestBodyAndPostKeepTheirExistingContentTypeHeaders() {
+        PsiClass controller = myFixture.addClass("""
+                package contracts.spring;
+
+                import org.springframework.web.bind.annotation.PostMapping;
+                import org.springframework.web.bind.annotation.RequestBody;
+                import org.springframework.web.bind.annotation.RequestParam;
+                import org.springframework.web.bind.annotation.RestController;
+
+                @RestController
+                public class ContentTypeController {
+                    @PostMapping("/json")
+                    public void json(@RequestBody String body) { }
+
+                    @PostMapping("/post-query")
+                    public void postQuery(@RequestParam(name = "q") String query) { }
+                }
+                """);
+
+        DocView json = buildDoc(controller, "json");
+        assertEquals(ContentTypeEnum.JSON, json.getContentType());
+        assertEquals("application/json", json.getHeaderList().get(0).getValue());
+
+        DocView postQuery = buildDoc(controller, "postQuery");
+        assertEquals(ContentTypeEnum.FORM, postQuery.getContentType());
+        assertEquals("application/x-www-form-urlencoded", postQuery.getHeaderList().get(0).getValue());
+    }
+
+    private DocView buildDoc(PsiClass controller, String methodName) {
+        return new SpringDocViewServiceImpl().buildClassMethodDoc(
+                controller, controller.findMethodsByName(methodName, false)[0]);
     }
 
     @Override

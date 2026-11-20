@@ -1,14 +1,16 @@
 # MCP 取消传播与验收
 
-更新日期：2026-11-13。本文保留2026-10-24客户端候选证据，并补充当前开发包的生产工具取消复验；开发验收不等于正式发布。
+更新日期：2026-11-20。本文记录生产工具取消复验与历次客户端准入结果。
 
 ## 当前结论
 
-1.7.0-SNAPSHOT 开发包与实际 `codex-cli 0.167.0-alpha.4.1` 在隔离 IDEA `263.7307.200` 上通过生产 `doc_view_generate` 取消复验。此前在文件发布前取消，127个文档文件未变，记录见[首轮验收](../openspec/changes/doc-view-mcp-tools/verification-2026-11-12.md)。最新包进一步在9000方法fixture的52个页面已经落盘、最终索引尚未提交时执行真实 `turn/interrupt`：`notifications/cancelled` 的request ID匹配，旧索引原字节保留，同一app-server/thread/session在2451.126ms内恢复 `generating=false`，随后查询成功；1秒观察期无迟到完成。实际协商协议为 `2025-06-18`。取消用例由本地合成Responses响应驱动真实Codex工具客户端；自然模型遵循Skill由独立用例验证，不混淆这两类证据。包身份、失败轮次和原始记录见[续验记录](../openspec/changes/doc-view-mcp-tools/verification-2026-11-13-release-gates.md)。
+隔离 IDEA `263.7307.200` 和实际 Codex `0.169.0-alpha.11.1` 已通过 `1.7.2-SNAPSHOT` 候选的两种发布取消。页面发布后、索引提交前取消时保留旧索引和已落盘页面。索引提交后取消时保留新索引、匹配的详情和 `current` 快照。两轮均收到与原 JSON-RPC request ID 匹配的 `notifications/cancelled`，暂存清理后原 Codex 会话恢复查询，1 秒内未观察到迟到完成。候选、失败轮次和读回证据见[当前验收](../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/verification-2026-11-20-native-acceptance.md#最终候选的索引提交前后取消门)。
+
+此前 `0.167.0-alpha.4.1` 对 `1.7.0-SNAPSHOT` 的实测覆盖 9000 个方法中的 52 个页面发布后取消，以及同一会话恢复。两次候选的取消均由本地合成模型驱动真实 Codex 客户端，实际协商协议为 `2025-06-18`。证据见[历史续验](../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/verification-2026-11-13-release-gates.md)。
 
 2026-10-24 的官方 Codex `0.165.0-alpha.1` Apple Silicon app-server 候选经真实模型工具调用和 `turn/interrupt` 完成三轮取消互操作：三次均协商 MCP `2025-06-18`、发送与原工具请求 ID 相符的 `notifications/cancelled`，IDEA 取消并清理对应探针任务一次，没有迟到的 `completed`，同一 session 的后续 echo 三次均成功。该历史候选准入为 **3/3 passed**。
 
-这项结果只证明隔离环境中的官方候选客户端与 IU `263.7031.23` MCP 服务端探针闭环。常用桌面 Codex `0.163.0-alpha.11.2` 的既有失败记录保留；候选没有替换日常客户端。该轮记录时生产插件仍声明261。1.6.0已采用IU263/Java25基线，当前构建、Verifier及原生证据另见[发布记录](release-1.6.0.md)；正式MCP工具仍未交付。
+这项结果只证明隔离环境中的官方候选客户端与 IU `263.7031.23` MCP 服务端探针闭环。常用桌面 Codex `0.163.0-alpha.11.2` 的既有失败记录保留；候选没有替换日常客户端。该轮记录时生产插件仍声明261。1.6.0已采用IU263/Java25基线，当前构建、Verifier及原生证据另见[发布记录](release-1.6.0.md)。
 
 ## 候选客户端运行证据
 
@@ -31,7 +33,7 @@ summary 中 `interrupt_response` 字段因 runner 等待竞态为空；原始 ap
 
 ## 历史 Codex 0.163 失败记录
 
-常用桌面 Codex `0.163.0-alpha.11.2` 在 2026-10-23 的实测中未向 IDEA 发出可观察的取消信号。隔离 wire 记录显示，在途 30 秒工具调用在 `turn/interrupt` 后仍以 HTTP 200 正常完成，IDEA 日志为 `started → completed → cleanup`；同 session 后续 echo 成功。该轮未保存 initialize 协商版本，因此不能追溯指定它应采用哪个协议分支。原始证据见 `/tmp/doc-view-mcp-upgrade-20261023/codex/delayed-run/gate-result.json` 和 `wire.jsonl`，完整记录见[基线升级验证记录](../openspec/changes/intellij-263-baseline-upgrade/verification.md)。
+常用桌面 Codex `0.163.0-alpha.11.2` 在 2026-10-23 的实测中未向 IDEA 发出可观察的取消信号。隔离 wire 记录显示，在途 30 秒工具调用在 `turn/interrupt` 后仍以 HTTP 200 正常完成，IDEA 日志为 `started → completed → cleanup`；同 session 后续 echo 成功。该轮未保存 initialize 协商版本，因此不能追溯指定它应采用哪个协议分支。原始证据见 `/tmp/doc-view-mcp-upgrade-20261023/codex/delayed-run/gate-result.json` 和 `wire.jsonl`，完整记录见[基线升级验证记录](../openspec/changes/archive/2026-11-20-intellij-263-baseline-upgrade/verification.md)。
 
 Codex [PR #56132](https://github.com/openai/codex/pull/56132) 于 2026-10-22 合并，merge SHA 为 `2dbe6bfa44195e0c63b9a2ee59f46482bfd64fae`。官方 [`rust-v0.165.0-alpha.1` tag 源码](https://github.com/openai/codex/blob/rust-v0.165.0-alpha.1/codex-rs/rmcp-client/src/tool_request.rs#L14-L49)含有取消 guard；来源与发行检查见上文。源码线索曾作为待复验候选，后由本节运行证据完成客户端准入。
 
@@ -47,10 +49,10 @@ Codex [PR #56132](https://github.com/openai/codex/pull/56132) 于 2026-10-22 合
 
 ## IDEA 服务端和 Doc View 边界
 
-IU `263.7031.23` 隔离 Java 探针的历史结果只覆盖探针。当前开发包已在同一 Doc View 插件内通过可选 `McpToolsProvider` 注册工具，由 IDEA 自带 MCP Server 托管；Java adapter使用公开协程取消回调传递到平台进度指示器，长循环协作检查，清理有一次性保护。原生生产证据目前来自263.7307.200：包含页面发布中客户端取消、在途关闭项目返回PARTIAL_PUBLICATION及后续项目查询。每个move精确边界、最终commit之后的迟到取消、在途退出/重启与完整压力矩阵尚未全部原生复现。插件采用已批准的require-restart策略，不继续要求动态热卸载。相关平台依据见 JetBrains [扩展点列表](https://plugins.jetbrains.com/docs/intellij/intellij-community-plugins-extension-point-list.html#comintellijmcpserver)和[Disposer 指南](https://plugins.jetbrains.com/docs/intellij/disposers.html)。
+IU `263.7031.23` 隔离 Java 探针的历史结果只覆盖探针。当前开发包已在同一 Doc View 插件内通过可选 `McpToolsProvider` 注册工具，由 IDEA 自带 MCP Server 托管；Java adapter使用公开协程取消回调传递到平台进度指示器，长循环协作检查，清理有一次性保护。原生生产证据目前来自263.7307.200：包含页面发布中客户端取消、在途关闭项目返回PARTIAL_PUBLICATION及后续项目查询。当前候选也已完成最终索引提交后的取消，以及在途项目关闭、正常退出与重启。各文件移动的精确时点仍由定向测试覆盖；完整压力矩阵没有在原生 IDE 逐项重跑。插件采用已批准的require-restart策略，不继续要求动态热卸载。相关平台依据见 JetBrains [扩展点列表](https://plugins.jetbrains.com/docs/intellij/intellij-community-plugins-extension-point-list.html#comintellijmcpserver)和[Disposer 指南](https://plugins.jetbrains.com/docs/intellij/disposers.html)。
 
 当前adapter设置读接口5秒、文档生成120秒服务端上限。超时是Doc View的资源保护，不能替代MCP客户端取消通知或保证Codex turn已中断。
 
-文档库按文件发布；失败时报告已发布和未发布部分，不声称整批事务回滚。文件所有权与部分发布规则见[项目文档库设计](../openspec/changes/project-document-store/design.md)。
+文档库按文件发布；失败时报告已发布和未发布部分，不声称整批事务回滚。文件所有权与部分发布规则见[项目文档库设计](../openspec/changes/archive/2026-11-19-project-document-store/design.md)。
 
 1.6.0起最低build为IU `263.7031.23`，生产代码为Java25/classfile major69；旧261描述是历史准入状态，不是当前支持范围。1.7最终开发包实跑511项测试、构建、配置检查和263.7031.23/263.7307.200两个Verifier均通过；原生仅在后者执行。完整原生矩阵与Skill发行仍未完成，不能据此标记change归档或正式发布。

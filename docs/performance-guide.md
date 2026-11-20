@@ -50,4 +50,4 @@ Doc View 运行在用户 IDE 进程内。性能 contract 的首要目标是避�
 
 ## 可复用的生成基线
 
-`GenerationPerformanceBaselineTest` 使用固定 Spring/Dubbo PSI fixture，分别记录7次采样的冷构建、热构建、Markdown渲染和目录扫描 p50/p95，并检查缓存条目/节点数与输出稳定性。源码、设置、模板失效和旧任务迟到写回属于正确性断言；耗时仅为本机 light fixture 观测。环境与 RED/GREEN 数据见[性能 change 验证](../openspec/changes/doc-generation-performance/verification.md)。未经原生 profiling 和固定环境对照，不把样本波动说成速度提升或 IDE 端到端延迟。
+`GenerationPerformanceBaselineTest` 使用固定 Spring/Dubbo PSI fixture，分别记录7次采样的冷构建、热构建、Markdown渲染和目录扫描 p50/p95，并检查缓存条目/节点数与输出稳定性。源码、设置、模板失效和旧任务迟到写回属于正确性断言；耗时仅为本机 light fixture 观测。环境与 RED/GREEN 数据见[性能 change 验证](../openspec/changes/archive/2026-11-20-doc-generation-performance/verification.md)。未经原生 profiling 和固定环境对照，不把样本波动说成速度提升或 IDE 端到端延迟。

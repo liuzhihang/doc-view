@@ -1,6 +1,11 @@
 package com.liuzhihang.doc.view.ui;
 
 import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.ide.DataManager;
+import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurableWithId;
+import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.options.ex.Settings;
 import com.intellij.openapi.ui.TextFieldWithBrowseButton;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -35,29 +40,45 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Rectangle;
+import java.awt.event.ActionListener;
 import javax.swing.BoxLayout;
 import java.nio.file.Path;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 /** Compact project settings for installing the supported Codex Skill. */
 public final class McpAiSettingsPanel {
 
+    private static final String MCP_SETTINGS_ID = "com.intellij.mcpserver.settings";
+
     private final Project project;
     private final CodexSkillInstallService service;
+    private final Supplier<List<Path>> executableCandidates;
     private final JPanel rootPanel = new SettingsRootPanel();
     private final TextFieldWithBrowseButton executableField = new TextFieldWithBrowseButton();
     private JPanel executableBlock;
     private final JBTextArea executableDetectionLabel = new JBTextArea();
-    private final JComboBox<ScopeChoice> scopeSelector = new JComboBox<>();
+    private final JComboBox<ScopeChoice> scopeSelector = new ScopeSelector();
     private final JBTextField targetPathField = new JBTextField();
     private final JBTextArea versionSummaryLabel = new JBTextArea();
     private final JBTextArea statusLabel = new JBTextArea();
     private final JBTextArea lastCheckLabel = new JBTextArea();
     private final JBTextArea operationFeedbackLabel = new JBTextArea();
+    private final JBTextArea mcpSettingsInfo = help("", "skillMcpServerInfo");
     private final ActionLink checkUpdatesLink = new ActionLink(DocViewBundle.message("skill.action.check.updates"));
     private final JButton primaryActionButton = new JButton();
+    private final ActionLink openMcpSettingsLink = new ActionLink(DocViewBundle.message("skill.mcp.open.settings"));
+    private final DocumentListener executableDocumentListener = new DocumentListener() {
+        @Override public void insertUpdate(DocumentEvent event) { executableChanged(); }
+        @Override public void removeUpdate(DocumentEvent event) { executableChanged(); }
+        @Override public void changedUpdate(DocumentEvent event) { executableChanged(); }
+    };
+    private final ActionListener scopeActionListener = event -> scopeChanged();
+    private final ActionListener checkUpdatesActionListener = event -> runOperation(Operation.CHECK);
+    private final ActionListener primaryActionListener = event -> runOperation(primaryOperation());
+    private final ActionListener openMcpSettingsActionListener = event -> openMcpSettings();
 
     private volatile ProgressIndicator activeIndicator;
     private volatile ProgressIndicator detectionIndicator;
@@ -74,10 +95,15 @@ public final class McpAiSettingsPanel {
     private boolean executableChooserVisible;
 
     public McpAiSettingsPanel(@NotNull Project project) {
+        this(project, CodexSkillInstallService.getInstance(project), CodexSkillInstallService::codexExecutableCandidates);
+    }
+
+    McpAiSettingsPanel(@NotNull Project project, @NotNull CodexSkillInstallService service,
+                       @NotNull Supplier<List<Path>> executableCandidates) {
         this.project = project;
-        this.service = CodexSkillInstallService.getInstance(project);
-        // Cached state is not tied to the executable currently selected by automatic discovery.
-        // Require an explicit check before showing any client/version-specific result.
+        this.service = service;
+        this.executableCandidates = executableCandidates;
+        // A new background check must bind state to this view's actual executable and scope.
         status = unknownStatus(CodexSkillScope.PROJECT);
         detectingExecutable = true;
         executableChooserVisible = false;
@@ -115,6 +141,11 @@ public final class McpAiSettingsPanel {
         }
         if (indicator != null) indicator.cancel();
         if (executableIndicator != null) executableIndicator.cancel();
+        executableField.getTextField().getDocument().removeDocumentListener(executableDocumentListener);
+        scopeSelector.removeActionListener(scopeActionListener);
+        checkUpdatesLink.removeActionListener(checkUpdatesActionListener);
+        primaryActionButton.removeActionListener(primaryActionListener);
+        openMcpSettingsLink.removeActionListener(openMcpSettingsActionListener);
     }
 
     private void buildUi() {
@@ -159,7 +190,6 @@ public final class McpAiSettingsPanel {
                 DocViewBundle.message("skill.scope.project")));
         scopeSelector.addItem(new ScopeChoice(CodexSkillScope.USER,
                 DocViewBundle.message("skill.scope.global")));
-        scopeSelector.setMaximumSize(scopeSelector.getPreferredSize());
         JPanel scopeBlock = labeled(DocViewBundle.message("skill.scope.label"), scopeSelector);
         scopeBlock.setName("skillScopeBlock");
         addContent(content, scopeBlock);
@@ -216,24 +246,60 @@ public final class McpAiSettingsPanel {
         configureHelpArea(operationFeedbackLabel);
         operationFeedbackLabel.setColumns(60);
         operationFeedbackLabel.setBorder(JBUI.Borders.emptyTop(2));
+        operationFeedbackLabel.setVisible(false);
         addContent(content, operationFeedbackLabel);
 
         JPanel mcpSection = section(DocViewBundle.message("skill.mcp.section.title"));
         mcpSection.setName("skillMcpSectionHeader");
+        mcpSection.setBorder(JBUI.Borders.emptyTop(8));
         addContent(content, mcpSection);
-        addContent(content, help(DocViewBundle.message("skill.mcp.server.info"), "skillMcpServerInfo"));
+        addContent(content, mcpSettingsInfo);
+        openMcpSettingsLink.setName("skillOpenMcpSettings");
+        openMcpSettingsLink.setAutoHideOnDisable(false);
+        openMcpSettingsLink.getAccessibleContext().setAccessibleName(DocViewBundle.message("skill.mcp.open.settings"));
+        showMcpSettingsAvailability(mcpSettingsAvailable());
+        openMcpSettingsLink.addActionListener(openMcpSettingsActionListener);
+        JPanel mcpActions = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, JBUI.scale(4)));
+        mcpActions.add(openMcpSettingsLink);
+        addContent(content, mcpActions);
         rootPanel.add(content, BorderLayout.NORTH);
     }
 
+    private static boolean mcpSettingsAvailable() {
+        return Configurable.APPLICATION_CONFIGURABLE.getExtensionList().stream()
+                .anyMatch(ep -> MCP_SETTINGS_ID.equals(ep.id) && ep.isAvailable() && ep.canCreateConfigurable());
+    }
+
+    private void showMcpSettingsAvailability(boolean available) {
+        mcpSettingsInfo.setText(DocViewBundle.message(available ? "skill.mcp.server.info" : "skill.mcp.settings.unavailable"));
+        openMcpSettingsLink.setEnabled(available);
+        openMcpSettingsLink.setToolTipText(DocViewBundle.message(available
+                ? "skill.mcp.open.settings.tip" : "skill.mcp.settings.unavailable"));
+    }
+
+    private void openMcpSettings() {
+        if (disposed || project.isDisposed()) return;
+        Settings settings = Settings.KEY.getData(DataManager.getInstance().getDataContext(rootPanel));
+        if (settings != null) {
+            Configurable target = settings.find(MCP_SETTINGS_ID);
+            if (target != null) {
+                settings.select(target);
+                return;
+            }
+        } else if (mcpSettingsAvailable()) {
+            ShowSettingsUtil.getInstance().showSettingsDialog(project,
+                    configurable -> configurable instanceof ConfigurableWithId identified
+                            && MCP_SETTINGS_ID.equals(identified.getId()), null);
+            return;
+        }
+        showMcpSettingsAvailability(false);
+    }
+
     private void installListeners() {
-        executableField.getTextField().getDocument().addDocumentListener(new DocumentListener() {
-            @Override public void insertUpdate(DocumentEvent event) { executableChanged(); }
-            @Override public void removeUpdate(DocumentEvent event) { executableChanged(); }
-            @Override public void changedUpdate(DocumentEvent event) { executableChanged(); }
-        });
-        scopeSelector.addActionListener(event -> scopeChanged());
-        checkUpdatesLink.addActionListener(event -> runOperation(Operation.CHECK));
-        primaryActionButton.addActionListener(event -> runOperation(primaryOperation()));
+        executableField.getTextField().getDocument().addDocumentListener(executableDocumentListener);
+        scopeSelector.addActionListener(scopeActionListener);
+        checkUpdatesLink.addActionListener(checkUpdatesActionListener);
+        primaryActionButton.addActionListener(primaryActionListener);
     }
 
     private void startExecutableDiscovery() {
@@ -253,7 +319,7 @@ public final class McpAiSettingsPanel {
             public void run(@NotNull ProgressIndicator indicator) {
                 if (!registerDetection(request, indicator)) return;
                 indicator.setIndeterminate(true);
-                List<Path> candidates = CodexSkillInstallService.codexExecutableCandidates();
+                List<Path> candidates = executableCandidates.get();
                 indicator.checkCanceled();
                 candidate = candidates.isEmpty() ? null : candidates.getFirst();
             }
@@ -298,6 +364,7 @@ public final class McpAiSettingsPanel {
         setExecutableChooserVisible(candidate == null);
         renderExecutableDetection();
         updateActionAvailability();
+        if (candidate != null) runOperation(Operation.CHECK);
     }
 
     private void executableChanged() {
@@ -306,10 +373,13 @@ public final class McpAiSettingsPanel {
             validatedExecutable = null;
             validatedScope = null;
             renderStatus(unknownStatus(selectedScope()));
-            operationFeedbackLabel.setText("");
+            showOperationFeedback("");
         }
         renderExecutableDetection();
         updateActionAvailability();
+        if (executableChooserVisible && selected != null && !detectingExecutable && !running) {
+            runOperation(Operation.CHECK);
+        }
     }
 
     private void scopeChanged() {
@@ -318,8 +388,9 @@ public final class McpAiSettingsPanel {
         validatedScope = null;
         renderStatus(unknownStatus(selectedScope()));
         renderExecutableDetection();
-        operationFeedbackLabel.setText("");
+        showOperationFeedback("");
         updateActionAvailability();
+        if (!detectingExecutable) runOperation(Operation.CHECK);
     }
 
     private void runOperation(@NotNull Operation operation) {
@@ -329,9 +400,10 @@ public final class McpAiSettingsPanel {
         long request = beginOperation();
         if (request < 0) return;
 
-        operationFeedbackLabel.setText(DocViewBundle.message("skill.operation.running"));
+        String title = DocViewBundle.message(operation == Operation.UPDATE && status.state() == CodexSkillStatus.State.RECOVERY_PENDING
+                ? "skill.operation.title.restore" : operation.titleKey);
+        showOperationFeedback(title);
         updateActionAvailability();
-        String title = DocViewBundle.message(operation.titleKey);
         ProgressManager.getInstance().run(new Task.Backgroundable(project, title, true) {
             private CodexSkillStatus nextStatus;
             private boolean committedWrite;
@@ -361,12 +433,12 @@ public final class McpAiSettingsPanel {
             public void onSuccess() {
                 if (!finishOperation(request)) return;
                 if (nextStatus == null) {
-                    operationFeedbackLabel.setText(DocViewBundle.message("skill.operation.failed"));
+                    showOperationFeedback(DocViewBundle.message("skill.operation.failed"));
                     updateActionAvailability();
                     return;
                 }
                 applyOperationStatus(nextStatus, operation, executable, operationScope);
-                operationFeedbackLabel.setText("");
+                showOperationFeedback("");
                 updateActionAvailability();
             }
 
@@ -378,7 +450,7 @@ public final class McpAiSettingsPanel {
             @Override
             public void onThrowable(@NotNull Throwable throwable) {
                 if (!finishOperation(request)) return;
-                operationFeedbackLabel.setText(DocViewBundle.message("skill.operation.failed"));
+                showOperationFeedback(DocViewBundle.message("skill.operation.failed"));
                 updateActionAvailability();
             }
         });
@@ -409,12 +481,12 @@ public final class McpAiSettingsPanel {
                                          Operation operation, Path executable, CodexSkillScope operationScope) {
         if (!finishOperation(request)) return;
         if (completedStatus == null) {
-            operationFeedbackLabel.setText(DocViewBundle.message("skill.operation.cancelled"));
+            showOperationFeedback(DocViewBundle.message("skill.operation.cancelled"));
         } else {
             applyOperationStatus(completedStatus, operation, executable, operationScope);
             // A completed status is authoritative. In particular, committedWrite is set only after the
             // transaction and Codex discovery both succeed, so a late cancellation cannot hide success.
-            operationFeedbackLabel.setText(committedWrite && completedStatus.state() != CodexSkillStatus.State.CURRENT
+            showOperationFeedback(committedWrite && completedStatus.state() != CodexSkillStatus.State.CURRENT
                     ? DocViewBundle.message("skill.operation.failed") : "");
         }
         updateActionAvailability();
@@ -424,6 +496,11 @@ public final class McpAiSettingsPanel {
         if (disposed || project.isDisposed() || running) return -1;
         running = true;
         return ++generation;
+    }
+
+    private void showOperationFeedback(String message) {
+        operationFeedbackLabel.setText(message);
+        operationFeedbackLabel.setVisible(!message.isEmpty());
     }
 
     private synchronized boolean register(long request, ProgressIndicator indicator) {
@@ -453,6 +530,11 @@ public final class McpAiSettingsPanel {
         primaryActionButton.setEnabled(current && !disposed
                 && (primaryOperation() == Operation.UPDATE ? status.canUpdate() : status.canInstall()));
         updatePrimaryActionPresentation();
+        boolean writeAction = status.canInstall() || status.canUpdate();
+        primaryActionButton.setVisible(writeAction);
+        checkUpdatesLink.setVisible(!writeAction);
+        rootPanel.revalidate();
+        rootPanel.repaint();
     }
 
     private void setExecutableChooserVisible(boolean visible) {
@@ -471,8 +553,10 @@ public final class McpAiSettingsPanel {
 
     private void updatePrimaryActionPresentation() {
         Operation operation = primaryOperation();
-        String key = operation == Operation.UPDATE ? "skill.action.update" : "skill.action.install";
-        String tipKey = operation == Operation.UPDATE ? "skill.action.update.tip" : "skill.action.install.tip";
+        String key = status.state() == CodexSkillStatus.State.RECOVERY_PENDING ? "skill.action.restore"
+                : operation == Operation.UPDATE ? "skill.action.update" : "skill.action.install";
+        String tipKey = status.state() == CodexSkillStatus.State.RECOVERY_PENDING ? "skill.action.restore.tip"
+                : operation == Operation.UPDATE ? "skill.action.update.tip" : "skill.action.install.tip";
         String label = DocViewBundle.message(key);
         primaryActionButton.setText(label);
         primaryActionButton.setToolTipText(DocViewBundle.message(tipKey));
@@ -492,12 +576,17 @@ public final class McpAiSettingsPanel {
 
     private void renderStatus(CodexSkillStatus current) {
         status = current;
-        targetPathField.setText(current.targetPath().toString());
-        targetPathField.setCaretPosition(0);
-        targetPathField.setToolTipText(current.targetPath().toString());
+        String path = current.targetPath().toString();
+        if (!path.equals(targetPathField.getText())) {
+            targetPathField.setText(path);
+            targetPathField.setCaretPosition(0);
+            targetPathField.setToolTipText(path);
+        }
         java.util.List<String> knownVersions = new java.util.ArrayList<>(2);
         addKnownVersion(knownVersions, "skill.version.installed", current.installedVersion());
-        addKnownVersion(knownVersions, "skill.version.available", current.availableVersion());
+        String releaseLabel = current.state() == CodexSkillStatus.State.OFFLINE
+                ? "skill.version.last.seen" : "skill.version.available";
+        addKnownVersion(knownVersions, releaseLabel, current.availableVersion());
         versionSummaryLabel.setText(String.join(" · ", knownVersions));
         versionSummaryLabel.setVisible(!knownVersions.isEmpty());
         statusLabel.setText(localizedStatusMessage(current));
@@ -574,6 +663,7 @@ public final class McpAiSettingsPanel {
             case NO_COMPATIBLE_RELEASE -> DocViewBundle.message("skill.status.release.unavailable");
             case OFFLINE -> DocViewBundle.message("skill.status.offline");
             case RECOVERY_PENDING -> DocViewBundle.message("skill.status.recovery.pending");
+            case RESTORED_CANCELLED -> DocViewBundle.message("skill.status.restored.cancelled");
             case ERROR -> DocViewBundle.message("skill.status.error");
         };
     }
@@ -640,6 +730,20 @@ public final class McpAiSettingsPanel {
 
         Operation(String titleKey) {
             this.titleKey = titleKey;
+        }
+    }
+
+    private static final class ScopeSelector extends JComboBox<ScopeChoice> {
+        @Override
+        public Dimension getPreferredSize() {
+            Dimension size = super.getPreferredSize();
+            // Leave room between the native arrow and the longest localized choice.
+            return new Dimension(size.width + JBUI.scale(20), size.height);
+        }
+
+        @Override
+        public Dimension getMaximumSize() {
+            return getPreferredSize();
         }
     }
 

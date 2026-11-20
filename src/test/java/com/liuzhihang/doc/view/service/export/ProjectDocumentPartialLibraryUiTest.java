@@ -204,7 +204,7 @@ public final class ProjectDocumentPartialLibraryUiTest extends LightJavaCodeInsi
                                 && expectedPartialMessage.equals(notification.getContent())),
                 "the actual partial exception to produce an error notification");
 
-        searchAndOpen(firstApi.markdown().path());
+        searchAndOpen(firstApi);
         await(() -> statusText().contains(DocViewBundle.message("project.library.status.inconsistent")),
                 "opening the published page against the old index to fail closed");
         assertFalse("The inconsistent page must not open in the editor",
@@ -216,7 +216,7 @@ public final class ProjectDocumentPartialLibraryUiTest extends LightJavaCodeInsi
             if (!Files.isRegularFile(jsonIndex)) return false;
             IndexData index = ProjectDocumentFormat.readIndex(Files.readAllBytes(jsonIndex));
             return !committedBefore.snapshotId().equals(index.snapshotId())
-                    && statusText().contains(DocViewBundle.message("project.library.status.current"));
+                    && statusText().contains(DocViewBundle.message("project.library.search.freshness.current"));
         }, "the real action retry to install the repaired snapshot");
         IndexData repaired = ProjectDocumentFormat.readIndex(Files.readAllBytes(jsonIndex));
         assertFalse("Retry must commit the changed source snapshot", committedBefore.snapshotId().equals(repaired.snapshotId()));
@@ -231,7 +231,7 @@ public final class ProjectDocumentPartialLibraryUiTest extends LightJavaCodeInsi
                         + expectedUpdatedSummary + "; actual Markdown:\n" + repairedMarkdown,
                 repairedMarkdown.contains(expectedUpdatedSummary));
 
-        searchAndOpen(repairedApi.markdown().path());
+        searchAndOpen(repairedApi);
         String openedMessage = DocViewBundle.message("project.library.opened", repairedApi.markdown().path());
         await(() -> statusText().contains(openedMessage), "the repaired Markdown page to open from the library");
         assertTrue("The retry must open the verified on-disk Markdown file",
@@ -259,13 +259,14 @@ public final class ProjectDocumentPartialLibraryUiTest extends LightJavaCodeInsi
         PsiDocumentManager.getInstance(getProject()).commitDocument(document);
     }
 
-    private void searchAndOpen(String relativeMarkdownPath) throws Exception {
+    private void searchAndOpen(EntryData api) throws Exception {
+        String signature = api.identity().qualifiedClass() + "#" + api.identity().fullSignature();
         EdtTestUtil.runInEdtAndWait(() -> panel.showProjectSearch());
-        await(() -> resultIndex(relativeMarkdownPath) >= 0, "the actual project search to return the selected API");
+        await(() -> resultIndex(signature) >= 0, "the actual project search to return the selected API");
         EdtTestUtil.runInEdtAndWait(() -> {
             JList<?> results = findComponent(panel, JList.class, ignored -> true);
             assertNotNull(results);
-            results.setSelectedIndex(resultIndexOnEdt(relativeMarkdownPath));
+            results.setSelectedIndex(resultIndexOnEdt(signature));
             JButton openButton = findButton(DocViewBundle.message("project.library.open.markdown"));
             assertNotNull("The real search view must expose Open Markdown", openButton);
             assertTrue("The selected API result must enable Open Markdown", openButton.isEnabled());
@@ -344,20 +345,20 @@ public final class ProjectDocumentPartialLibraryUiTest extends LightJavaCodeInsi
         }
     }
 
-    private int resultIndex(String relativeMarkdownPath) {
+    private int resultIndex(String signature) {
         int[] index = {-1};
-        Runnable read = () -> index[0] = resultIndexOnEdt(relativeMarkdownPath);
+        Runnable read = () -> index[0] = resultIndexOnEdt(signature);
         if (EventQueue.isDispatchThread()) read.run();
         else EdtTestUtil.runInEdtAndWait(read::run);
         return index[0];
     }
 
-    private int resultIndexOnEdt(String relativeMarkdownPath) {
+    private int resultIndexOnEdt(String signature) {
         JList<?> results = findComponent(panel, JList.class, ignored -> true);
         if (results == null) return -1;
         for (int i = 0; i < results.getModel().getSize(); i++) {
-            Object item = results.getModel().getElementAt(i);
-            if (item instanceof EntryData entry && entry.markdown().path().equals(relativeMarkdownPath)) return i;
+            var item = results.getAccessibleContext().getAccessibleChild(i);
+            if (item != null && item.getAccessibleContext().getAccessibleName().contains(signature)) return i;
         }
         return -1;
     }

@@ -268,7 +268,7 @@ Codex 直接 app-server 调用三轮均将 turn 标记为 `interrupted`，后续
 
 临时 SDK 包安装与 Codex app-server 的 `-c` 进程配置覆盖均得到用户授权，文件留在上述 `/tmp` 证据目录。普通 Codex 全局配置内容未读取；后续 hash 读回与先前基线不一致，来源未知，因此不能据此声称字节未变，也未尝试恢复。实际注册到 IDEA Server 的仍是隔离探针工具，不是 Doc View 产品工具；生产插件没有在本轮注册或改动。
 
-产品边界已确认：正式 MCP 将作为同一个 Doc View 插件内的可选扩展注册到 IDEA 自带 MCP Server，并复用 UI 按钮使用的文档服务；独立 PoC 只是隔离探针。正式接口搜索/详情和未来显式生成/更新能力均未交付。生产平台基线仍为 IU 261；IU 263.7031.23 的条件升级及其构建、Verifier、原生回归由 [proposal](../../intellij-263-baseline-upgrade/proposal.md) 和 [verification](../../intellij-263-baseline-upgrade/verification.md) 单独跟踪。当前仍 **13/14**，task 2.4 保持未勾选。
+产品边界已确认：正式 MCP 将作为同一个 Doc View 插件内的可选扩展注册到 IDEA 自带 MCP Server，并复用 UI 按钮使用的文档服务；独立 PoC 只是隔离探针。正式接口搜索/详情和未来显式生成/更新能力均未交付。生产平台基线仍为 IU 261；IU 263.7031.23 的条件升级及其构建、Verifier、原生回归由 [proposal](../2026-11-20-intellij-263-baseline-upgrade/proposal.md) 和 [verification](../2026-11-20-intellij-263-baseline-upgrade/verification.md) 单独跟踪。当前仍 **13/14**，task 2.4 保持未勾选。
 
 ## 2026-10-24：Codex `0.165.0-alpha.1` 候选三轮实测通过
 
@@ -286,4 +286,4 @@ Codex 直接 app-server 调用三轮均将 turn 标记为 `interrupted`，后续
 
 普通 Codex 全局配置内容没有读取。本轮观察到的当前 hash 与先前基线不同，来源未知；不声称字节未变、不归因，也未尝试恢复。测试使用临时 app-server 进程配置覆盖；这只说明没有主动读取或恢复普通配置，不能证明该配置此前或本轮期间保持 byte-identical。
 
-据此 PoC task 2.4 已完成；资源边界仍只覆盖已有的有限 IU 263 探针场景。生产平台仍是 IU 261。用户已批准精确 `IU-263.7031.23` / JBR 25 生产基线升级，目前正在构建；本记录没有运行 Gradle、Plugin Verifier 或生产插件原生回归，也不声称升级通过。正式 MCP 工具仍未注册或实现，见 [doc-view-mcp-tools tasks](../../doc-view-mcp-tools/tasks.md)；其 task 1.3 保持未勾选，等待生产基线与文档库最终验收。
+据此 PoC task 2.4 已完成；资源边界仍只覆盖已有的有限 IU 263 探针场景。生产平台仍是 IU 261。用户已批准精确 `IU-263.7031.23` / JBR 25 生产基线升级，目前正在构建；本记录没有运行 Gradle、Plugin Verifier 或生产插件原生回归，也不声称升级通过。正式 MCP 工具仍未注册或实现，见 [doc-view-mcp-tools tasks](../2026-11-20-doc-view-mcp-tools/tasks.md)；其 task 1.3 保持未勾选，等待生产基线与文档库最终验收。

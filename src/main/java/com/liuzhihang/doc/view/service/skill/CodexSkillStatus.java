@@ -53,6 +53,7 @@ public record CodexSkillStatus(
         NO_COMPATIBLE_RELEASE,
         OFFLINE,
         RECOVERY_PENDING,
+        RESTORED_CANCELLED,
         ERROR
     }
 

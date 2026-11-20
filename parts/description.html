@@ -27,7 +27,7 @@
 <p><b>Help → Doc View Welcome</b> opens the bundled HTML welcome page and update summary in an editor tab.
     These pages use the IDE's JCEF support and work offline; the full user guide is maintained on GitHub and requires network access.</p>
 <p>Custom templates apply to local Markdown and ShowDoc / YuQue content. YApi uses its own structured upload format.</p>
-<p>Project documentation is a captured snapshot. Search does not regenerate it; changes to source or templates require an explicit update. Version 1.7 adds optional tools for IDEA's built-in MCP Server and Project/Global Codex Skill installation. Automatic Skill installation currently supports macOS Apple Silicon with Codex 0.167.0-alpha.4.1 and requires a compatible official Skill release. Version 1.7.1 fixes the interrupted Skill installation recovery action and preserves the restored version when an update check is unavailable.</p>
+<p>Project documentation is a captured snapshot. Search does not regenerate it; changes to source or templates require an explicit update. Version 1.7 adds optional tools for IDEA's built-in MCP Server and Project/Global Codex Skill installation. Skill management in 1.7.2 was verified on macOS Apple Silicon with Codex 0.169.0-alpha.11.1. The plugin uses the official Doc View Skill 1.7.1 assets from GitHub. Other Codex builds and systems are outside this validation scope. Version 1.7.1 fixes the interrupted Skill installation recovery action and preserves the restored version when an update check is unavailable.</p>
 <p><b>Upgrading from before 1.4.0:</b> re-enter platform credentials in the PasswordSafe-backed settings.
     Old XML credentials are not imported or automatically removed. OpenAPI 3 field requirements use
     <code>Schema.requiredMode</code> instead of the deprecated <code>Schema.required</code>.
@@ -54,22 +54,22 @@
 <p><b>Help → Doc View Welcome</b> 在编辑区打开随包 HTML 欢迎页与更新摘要，依赖 IDE 的 JCEF 支持并可离线查看。
     完整使用指南在 GitHub 维护，阅读需要网络。</p>
 <p>自定义模板影响本地 Markdown 与 ShowDoc / 语雀正文；YApi 使用独立的结构化上传格式。</p>
-<p>项目文档是生成时的快照。搜索不触发生成；修改源码或模板后需显式更新。1.7 系列加入 IDEA 内置 MCP Server 的可选工具，以及当前项目/全局 Codex Skill 安装设置。Skill 自动安装目前支持 macOS Apple Silicon 与 Codex 0.167.0-alpha.4.1，需要兼容的官方 Skill 发行包。1.7.1 修复中断的 Skill 安装事务恢复入口，并在无法检查更新时保留已恢复的版本。</p>
+<p>项目文档是生成时的快照。搜索不触发生成；修改源码或模板后需显式更新。1.7 系列加入 IDEA 内置 MCP Server 的可选工具，以及当前项目/全局 Codex Skill 安装设置。1.7.2 已在 macOS Apple Silicon 上验证 Codex 0.169.0-alpha.11.1 的 Skill 管理，并复用 GitHub 官方 Doc View Skill 1.7.1 发行资产；其他 Codex build 和系统不在本次验证范围。1.7.1 修复中断的 Skill 安装事务恢复入口，并在无法检查更新时保留已恢复的版本。</p>
 <p><b>从 1.4.0 之前升级：</b>请在新版设置中重新填写平台凭据，插件不迁移或自动清理旧 XML 密钥。
     OpenAPI 3 字段必填使用 <code>Schema.requiredMode</code>，不再读取已弃用的 <code>Schema.required</code>。
     具体操作见<a href="https://github.com/liuzhihang/doc-view/blob/master/docs/user-guide/integrations.md#token-与本地保存">凭据说明</a>
     和<a href="https://github.com/liuzhihang/doc-view/blob/master/docs/user-guide/settings.md">设置说明</a>。</p>
 
 <h3>Compatibility / 兼容性</h3>
-<p>Version 1.6.2 requires IntelliJ IDEA IU build 263.7031.23 or later, Java 25, and Java, Markdown and JCEF support.
+<p>Version 1.7.2 requires IntelliJ IDEA IU build 263.7307.200 or later, Java 25, and Java, Markdown and JCEF support.
     Installation, updates and disabling or removing the plugin require an IDE restart.
-    Exact verified IDE builds are 263.7031.23 and 263.7307.200; future builds are not automatically verified.</p>
-<p>1.6.2 需要 IntelliJ IDEA IU build 263.7031.23 或更高版本、Java 25，以及 Java、Markdown 和 JCEF 支持。
+    Exact compatibility checks cover IU build 263.7307.200; future builds are not automatically verified.</p>
+<p>1.7.2 需要 IntelliJ IDEA IU build 263.7307.200 或更高版本、Java 25，以及 Java、Markdown 和 JCEF 支持。
     安装、更新、停用或卸载后需重启 IDE。本次不承诺热更新或热卸载。
-    已检查的精确 build 为 263.7031.23 和 263.7307.200，后续版本不自动视为已验证。</p>
-<p>See the <a href="https://github.com/liuzhihang/doc-view/blob/master/docs/release-1.6.2.md">release record</a>
-    for validation scope and known limitations, including pending native credential failure checks.</p>
-<p>验证范围、已知限制及尚待人工验证的系统凭据失败场景见<a href="https://github.com/liuzhihang/doc-view/blob/master/docs/release-1.6.2.md">发布记录</a>。</p>
+    已检查的精确 build 为 263.7307.200，后续版本不自动视为已验证。</p>
+<p>See the <a href="https://github.com/liuzhihang/doc-view/blob/master/docs/intellij-compatibility.md">compatibility notes</a>
+    for validation scope and known limitations.</p>
+<p>验证范围和已知限制见<a href="https://github.com/liuzhihang/doc-view/blob/master/docs/intellij-compatibility.md">兼容性说明</a>。</p>
 
 <h3>Feedback / 反馈</h3>
 <p>Report reproducible problems and suggestions through

@@ -42,6 +42,9 @@ public final class SpringConstant {
 
     public static final String REQUEST_PARAM = "org.springframework.web.bind.annotation.RequestParam";
     public static final String REQUEST_PART = "org.springframework.web.bind.annotation.RequestPart";
+
+    /** Spring's marker value for an annotation default that was not explicitly configured. */
+    public static final String DEFAULT_VALUE_SENTINEL = "\n\t\t\n\t\t\n\uE000\uE001\uE002\n\t\t\t\t\n";
     /**
      * header
      */

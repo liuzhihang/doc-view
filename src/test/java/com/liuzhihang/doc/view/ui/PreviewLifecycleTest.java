@@ -37,6 +37,8 @@ import com.liuzhihang.doc.view.service.DocViewService;
 import com.liuzhihang.doc.view.service.impl.DubboDocViewServiceImpl;
 import com.liuzhihang.doc.view.testsupport.AnnotationStubs;
 
+import javax.swing.JPanel;
+import java.awt.Component;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -152,6 +154,51 @@ public final class PreviewLifecycleTest extends LightJavaCodeInsightFixtureTestC
         assertEquals("Closing or failing to show a preview must release its viewer",
                 editorsBeforePreview, editorsForProject());
         assertTrue("Closing a preview must preserve an unrelated editor", isEditorAlive(unrelatedEditor));
+    }
+
+    public void testReopeningAfterHtmlSelectionKeepsIndependentPreviewResources() throws Exception {
+        PreviewForm first = createForm();
+        PreviewForm second = createForm();
+        MarkdownHtmlPanel panel = capturingHtmlPanel(
+                new ArrayList<>(), new AtomicBoolean(), new CountDownLatch(1));
+
+        EdtTestUtil.runInEdtAndWait(() -> {
+            initializeUi(first);
+            setField(first, "markdownHtmlPanel", panel);
+            invoke(first, "setHtmlPreview", new Class<?>[]{boolean.class}, true);
+            try {
+                // This fixture has no JCEF. The new form needs its own mode and a safe source fallback.
+                initializeUi(second);
+                assertNotNull(fieldValue(second, "markdownEditor", Editor.class));
+                assertNull(fieldValue(second, "markdownHtmlPanel", MarkdownHtmlPanel.class));
+                assertTrue(fieldValue(first, "previewIsHtml", AtomicBoolean.class).get());
+                assertFalse(fieldValue(second, "previewIsHtml", AtomicBoolean.class).get());
+            } finally {
+                invoke(first, "setHtmlPreview", new Class<?>[]{boolean.class}, false);
+                first.dispose();
+                second.dispose();
+            }
+        });
+    }
+
+    public void testClosingHtmlPreviewDetachesItsComponent() throws Exception {
+        PreviewForm form = createForm();
+        MarkdownHtmlPanel panel = capturingHtmlPanel(
+                new ArrayList<>(), new AtomicBoolean(), new CountDownLatch(1));
+
+        EdtTestUtil.runInEdtAndWait(() -> {
+            initializeUi(form);
+            setField(form, "markdownHtmlPanel", panel);
+            invoke(form, "setHtmlPreview", new Class<?>[]{boolean.class}, true);
+            JPanel contentPanel = fieldValue(form, "previewContentPanel", JPanel.class);
+            Component htmlComponent = contentPanel.getComponent(0);
+            assertSame(contentPanel, htmlComponent.getParent());
+
+            form.dispose();
+
+            assertNull("A closed popup must not retain the HTML component in its content panel",
+                    htmlComponent.getParent());
+        });
     }
 
     public void testNewRenderClearsPreviousMarkdownAndShowsVisibleProgress() throws Exception {
@@ -380,6 +427,40 @@ public final class PreviewLifecycleTest extends LightJavaCodeInsightFixtureTestC
         }
     }
 
+    public void testOpeningHtmlDuringSourceRenderShowsItsCompletedBody() throws Exception {
+        DocView rendered = new DocView("RenderedWhileOpeningHtml");
+        rendered.setPsiClass(fixtureClass);
+        String markdown = "# Completed source render";
+        List<String> htmlUpdates = Collections.synchronizedList(new ArrayList<>());
+        AtomicBoolean htmlUpdatedOnEdt = new AtomicBoolean();
+        CountDownLatch htmlUpdated = new CountDownLatch(1);
+        PreviewForm form = createForm();
+        MarkdownHtmlPanel panel = capturingHtmlPanel(htmlUpdates, htmlUpdatedOnEdt, htmlUpdated);
+
+        try {
+            EdtTestUtil.runInEdtAndWait(() -> {
+                initializeUi(form);
+                setField(form, "currentDocView", rendered);
+                fieldValue(form, "renderRequest", AtomicLong.class).set(1L);
+                setField(form, "markdownHtmlPanel", panel);
+                invoke(form, "showPreviewStatus", new Class<?>[]{String.class}, "Pending status");
+                invoke(form, "applyMarkdown",
+                        new Class<?>[]{DocView.class, String.class, String.class, long.class},
+                        rendered, markdown, null, 1L);
+            });
+
+            awaitHtmlUpdate(htmlUpdated, "A source-only render must reach the newly opened HTML panel");
+            awaitPreviewStatusCallbacks();
+            assertEquals(1, htmlUpdates.size());
+            assertTrue(htmlUpdates.getFirst().contains("Completed source render"));
+            assertTrue(htmlUpdatedOnEdt.get());
+            assertEquals(markdown, fieldValue(form, "currentMarkdownText", String.class));
+        } finally {
+            EdtTestUtil.runInEdtAndWait(form::dispose);
+            awaitPreviewStatusCallbacks();
+        }
+    }
+
     public void testDisposedPreviewRejectsLateHtmlStatus() throws Exception {
         List<String> htmlUpdates = Collections.synchronizedList(new ArrayList<>());
         AtomicBoolean htmlUpdatedOnEdt = new AtomicBoolean();
@@ -433,7 +514,7 @@ public final class PreviewLifecycleTest extends LightJavaCodeInsightFixtureTestC
             assertFalse("The platform cancellation sentinel need not be ProcessCanceledException",
                     cancellationFailure.get() instanceof ProcessCanceledException);
             assertFalse("A canceled promise must not be logged as a renderer failure",
-                    PreviewForm.shouldLogStatusHtmlFailure(promise, cancellationFailure.get()));
+                    PreviewForm.shouldLogPreviewHtmlFailure(promise, cancellationFailure.get()));
         } finally {
             release.set(true);
             promise.cancel();
@@ -453,7 +534,7 @@ public final class PreviewLifecycleTest extends LightJavaCodeInsightFixtureTestC
                 renderFailureReported.await(5, TimeUnit.SECONDS));
         assertFalse(failedPromise.isCancelled());
         assertTrue("A non-canceled renderer failure must remain loggable",
-                PreviewForm.shouldLogStatusHtmlFailure(failedPromise, renderFailure.get()));
+                PreviewForm.shouldLogPreviewHtmlFailure(failedPromise, renderFailure.get()));
     }
 
     private void awaitPreviewStatusCallbacks() {

@@ -291,6 +291,7 @@ public final class CodexSkillInstallService {
             return new CodexSkillOperationResult(unsupported, false);
         }
         boolean recovered = false;
+        CodexSkillStatus restoredCancelledStatus = null;
         try {
             Path projectRoot = validatedProjectRoot();
             CodexSkillTarget resolved = resolveTarget(scope);
@@ -307,6 +308,12 @@ public final class CodexSkillInstallService {
                             status.clientVersion(), target, "", "", false, false, scope)), true);
                 }
                 recovered = true;
+                String restoredVersion = store.read().map(SkillInstallMetadata::skillVersion).orElse("");
+                restoredCancelledStatus = new CodexSkillStatus(
+                        CodexSkillStatus.State.RESTORED_CANCELLED,
+                        "Skill transaction recovery completed. The follow-up operation was cancelled; the existing complete state was preserved.",
+                        status.clientVersion(), target, restoredVersion, "", false, false, scope,
+                        status.lastSuccessfulCheckAt());
                 status = checkForUpdates(scope, codexExecutable, indicator);
             }
             if (update ? !status.canUpdate() : !status.canInstall()) {
@@ -344,6 +351,9 @@ public final class CodexSkillInstallService {
                     false, false, scope));
             return new CodexSkillOperationResult(complete, recovered || outcome.filesChanged(), outcome.committed());
         } catch (ProcessCanceledException cancelled) {
+            if (restoredCancelledStatus != null) {
+                return new CodexSkillOperationResult(publish(restoredCancelledStatus), true, false);
+            }
             throw cancelled;
         } catch (GitHubSkillReleaseSource.OfflineException unavailable) {
             CodexSkillStatus previous = status(scope);

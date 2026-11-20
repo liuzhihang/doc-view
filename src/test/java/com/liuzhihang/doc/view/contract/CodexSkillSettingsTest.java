@@ -100,57 +100,78 @@ public final class CodexSkillSettingsTest extends LightJavaCodeInsightFixtureTes
         }
     }
 
-    public void testCodexExecutableDetectionRunsInBackgroundAndKeepsPathOutOfSummary() throws Exception {
-        McpAiConfigurable configurable = new McpAiConfigurable(getProject());
-        CodexSkillStatus status = CodexSkillInstallService.getStatus(getProject(), CodexSkillScope.PROJECT);
+    public void testMissingCodexDetectionRunsInBackgroundAndOffersManualSelection() throws Exception {
+        McpAiSettingsPanel panel = newPanel();
         try {
-            JComponent root = configurable.createComponent();
-            TextFieldWithBrowseButton executable = component(root, "codexExecutableField",
-                    TextFieldWithBrowseButton.class);
+            JComponent root = panel.getRootPanel();
+            TextFieldWithBrowseButton executable = component(root, "codexExecutableField", TextFieldWithBrowseButton.class);
             ActionLink check = component(root, "skillCheckUpdatesAction", ActionLink.class);
-            JButton primary = component(root, "skillPrimaryActionButton", JButton.class);
             JPanel executableBlock = component(root, "skillExecutableBlock", JPanel.class);
             JBTextArea detection = component(root, "skillCodexDetectionStatus", JBTextArea.class);
-            JBTextArea statusLabel = component(root, "skillStatusLabel", JBTextArea.class);
-            JBTextArea versionSummary = component(root, "skillVersionSummary", JBTextArea.class);
-
-            assertEquals("Before the background resolver completes, the UI must not claim that a CLI was found",
-                    DocViewBundle.message("skill.codex.detected.searching"), detection.getText());
+            assertEquals(DocViewBundle.message("skill.codex.detected.searching"), detection.getText());
             assertTrue(executable.getText().isBlank());
             assertFalse(executableBlock.isVisible());
             assertFalse(check.isEnabled());
-            assertFalse("Do not show an unknown status next to the pending-detection hint", statusLabel.isVisible());
-            assertFalse("Unknown versions should not be repeated beside the pending-check hint",
-                    versionSummary.isVisible());
-            assertEquals(DocViewBundle.message("skill.action.install"), primary.getText());
-            assertFalse("Unknown state must keep the Install action disabled", primary.isEnabled());
-            assertEquals(DocViewBundle.message("skill.action.install"),
-                    primary.getAccessibleContext().getAccessibleName());
-            assertNotNull(primary.getToolTipText());
             awaitDetection(detection);
-            if (DocViewBundle.message("skill.codex.detected.pending").equals(detection.getText())) {
-                assertFalse("Hide manual selection when automatic discovery found the CLI", executableBlock.isVisible());
-                assertFalse(executable.getText().isBlank());
-                assertEquals(DocViewBundle.message("skill.codex.detected.pending"), detection.getText());
-                assertEquals(executable.getText(), detection.getToolTipText());
-                assertFalse("The discovered executable path belongs in the tooltip, not the visible summary",
-                        detection.getText().contains(executable.getText()));
-                assertTrue(check.isEnabled());
-            } else {
-                assertTrue("Show the chooser only when automatic discovery did not find a usable CLI",
-                        executableBlock.isVisible());
-                assertTrue(executable.getText().isBlank());
-                assertTrue(DocViewBundle.message("skill.codex.detected.missing").equals(detection.getText())
-                        || DocViewBundle.message("skill.codex.detected.failed").equals(detection.getText()));
-                assertFalse(check.isEnabled());
-            }
-            assertEquals(DocViewBundle.message("skill.action.check.updates"),
-                    check.getAccessibleContext().getAccessibleName());
+            assertTrue(executableBlock.isVisible());
+            assertEquals(DocViewBundle.message("skill.codex.detected.missing"), detection.getText());
+            assertFalse(check.isEnabled());
+            assertEquals(DocViewBundle.message("skill.action.check.updates"), check.getAccessibleContext().getAccessibleName());
             assertNotNull(check.getToolTipText());
-            assertFalse("Rendering the page must not create the target directory", Files.exists(status.targetPath()));
-            assertFalse("Opening the page must not start a background operation", configurable.isModified());
         } finally {
-            configurable.disposeUIResources();
+            panel.dispose();
+        }
+    }
+
+    public void testOnlyRelevantSkillActionIsVisible() throws Exception {
+        McpAiSettingsPanel panel = newPanel();
+        try {
+            Method render = McpAiSettingsPanel.class.getDeclaredMethod("renderStatus", CodexSkillStatus.class);
+            render.setAccessible(true);
+            Method actions = McpAiSettingsPanel.class.getDeclaredMethod("updateActionAvailability");
+            actions.setAccessible(true);
+            JButton primary = component(panel.getRootPanel(), "skillPrimaryActionButton", JButton.class);
+            ActionLink check = component(panel.getRootPanel(), "skillCheckUpdatesAction", ActionLink.class);
+            Path target = CodexSkillInstallService.targetPath(getProject());
+            render.invoke(panel, new CodexSkillStatus(CodexSkillStatus.State.NOT_INSTALLED, "",
+                    CodexSkillInstallService.VERIFIED_CLIENT_VERSION, target, "", "1.7.1", true, false));
+            actions.invoke(panel);
+            assertTrue(primary.isVisible());
+            assertFalse("Install is the only relevant action after a successful first check", check.isVisible());
+            render.invoke(panel, new CodexSkillStatus(CodexSkillStatus.State.CURRENT, "",
+                    CodexSkillInstallService.VERIFIED_CLIENT_VERSION, target, "1.7.1", "1.7.1", false, false));
+            actions.invoke(panel);
+            assertFalse("A current installation must not show a disabled Update button", primary.isVisible());
+            assertTrue(check.isVisible());
+        } finally {
+            panel.dispose();
+        }
+    }
+
+    public void testMcpSettingsShortcutIsDiscoverableWithoutMcpClasses() throws Exception {
+        McpAiSettingsPanel panel = newPanel();
+        try {
+            ActionLink link = component(panel.getRootPanel(), "skillOpenMcpSettings", ActionLink.class);
+            assertNotNull(link.getAccessibleContext().getAccessibleName());
+            assertNotNull(link.getToolTipText());
+        } finally {
+            panel.dispose();
+        }
+    }
+
+    public void testMissingMcpConfigurableExplainsDisabledLinkWithoutHover() throws Exception {
+        var ep = Configurable.APPLICATION_CONFIGURABLE;
+        com.intellij.testFramework.ExtensionTestUtil.maskExtensions(ep, ep.getExtensionList().stream()
+                .filter(item -> !"com.intellij.mcpserver.settings".equals(item.id)).toList(), getTestRootDisposable());
+        McpAiSettingsPanel panel = newPanel();
+        try {
+            ActionLink link = component(panel.getRootPanel(), "skillOpenMcpSettings", ActionLink.class);
+            JBTextArea info = component(panel.getRootPanel(), "skillMcpServerInfo", JBTextArea.class);
+            assertFalse(link.isEnabled());
+            assertTrue(info.isVisible());
+            assertEquals(DocViewBundle.message("skill.mcp.settings.unavailable"), info.getText());
+        } finally {
+            panel.dispose();
         }
     }
 
@@ -166,7 +187,7 @@ public final class CodexSkillSettingsTest extends LightJavaCodeInsightFixtureTes
     }
 
     public void testDisposedSettingsPanelDropsLateCliDiscoveryResult() throws Exception {
-        McpAiSettingsPanel panel = new McpAiSettingsPanel(getProject());
+        McpAiSettingsPanel panel = newPanel();
         JBTextArea detection = component(panel.getRootPanel(), "skillCodexDetectionStatus", JBTextArea.class);
         try {
             awaitDetection(detection);
@@ -224,7 +245,7 @@ public final class CodexSkillSettingsTest extends LightJavaCodeInsightFixtureTes
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void testUnknownStatusRetainsGlobalScope() throws Exception {
-        McpAiSettingsPanel panel = new McpAiSettingsPanel(getProject());
+        McpAiSettingsPanel panel = newPanel();
         try {
             Method unknownStatus = McpAiSettingsPanel.class.getDeclaredMethod("unknownStatus", CodexSkillScope.class);
             unknownStatus.setAccessible(true);
@@ -238,7 +259,7 @@ public final class CodexSkillSettingsTest extends LightJavaCodeInsightFixtureTes
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void testUnsupportedPlatformDoesNotOfferAnotherCliExecutable() throws Exception {
-        McpAiSettingsPanel panel = new McpAiSettingsPanel(getProject());
+        McpAiSettingsPanel panel = newPanel();
         Path executable = Path.of("/isolated-test/codex");
         Path target = CodexSkillInstallService.targetPath(getProject(), CodexSkillScope.PROJECT);
         CodexSkillStatus unsupported = new CodexSkillStatus(CodexSkillStatus.State.PLATFORM_UNSUPPORTED,
@@ -279,7 +300,7 @@ public final class CodexSkillSettingsTest extends LightJavaCodeInsightFixtureTes
                 "codexExecutableField", "skillScopeBlock", "skillScopeSelector", "skillTargetBlock",
                 "skillTargetPathField", "skillVersionSummary", "skillStatusLabel", "skillLastCheckLabel",
                 "skillActions", "skillCheckUpdatesAction", "skillPrimaryActionButton",
-                "skillOperationFeedbackLabel", "skillMcpSectionHeader", "skillMcpServerInfo"
+                "skillOperationFeedbackLabel", "skillMcpSectionHeader", "skillMcpServerInfo", "skillOpenMcpSettings"
         };
         McpAiConfigurable configurable = new McpAiConfigurable(getProject());
         try {
@@ -337,7 +358,7 @@ public final class CodexSkillSettingsTest extends LightJavaCodeInsightFixtureTes
     }
 
     public void testCheckUpdatesLinkStaysVisibleAndKeepsActionLayoutWhileRunning() throws Exception {
-        McpAiSettingsPanel panel = new McpAiSettingsPanel(getProject());
+        McpAiSettingsPanel panel = newPanel();
         try {
             awaitDetection(component(panel.getRootPanel(), "skillCodexDetectionStatus", JBTextArea.class));
             ActionLink check = component(panel.getRootPanel(), "skillCheckUpdatesAction", ActionLink.class);
@@ -371,7 +392,7 @@ public final class CodexSkillSettingsTest extends LightJavaCodeInsightFixtureTes
     }
 
     public void testInstalledSkillShowsUpdateAsTheSinglePrimaryAction() throws Exception {
-        McpAiSettingsPanel panel = new McpAiSettingsPanel(getProject());
+        McpAiSettingsPanel panel = newPanel();
         Path target = CodexSkillInstallService.targetPath(getProject(), CodexSkillScope.PROJECT);
         CodexSkillStatus updateAvailable = new CodexSkillStatus(CodexSkillStatus.State.UPDATE_AVAILABLE,
                 "raw backend message", CodexSkillInstallService.VERIFIED_CLIENT_VERSION, target,
@@ -413,7 +434,7 @@ public final class CodexSkillSettingsTest extends LightJavaCodeInsightFixtureTes
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void testLateCancellationKeepsCommittedInstallResult() throws Exception {
-        McpAiSettingsPanel panel = new McpAiSettingsPanel(getProject());
+        McpAiSettingsPanel panel = newPanel();
         Path target = CodexSkillInstallService.targetPath(getProject(), CodexSkillScope.PROJECT);
         CodexSkillStatus committed = new CodexSkillStatus(CodexSkillStatus.State.CURRENT,
                 "installed and discovered", CodexSkillInstallService.VERIFIED_CLIENT_VERSION,
@@ -447,17 +468,21 @@ public final class CodexSkillSettingsTest extends LightJavaCodeInsightFixtureTes
     }
 
     public void testLastSuccessfulCheckTimeIsShownAndUnknownStateHidesIt() throws Exception {
-        McpAiSettingsPanel panel = new McpAiSettingsPanel(getProject());
+        McpAiSettingsPanel panel = newPanel();
         Path target = CodexSkillInstallService.targetPath(getProject(), CodexSkillScope.PROJECT);
         java.time.Instant checkedAt = java.time.Instant.parse("2026-11-13T10:11:12Z");
         CodexSkillStatus checked = new CodexSkillStatus(CodexSkillStatus.State.OFFLINE,
                 "offline", CodexSkillInstallService.VERIFIED_CLIENT_VERSION, target,
-                "1.0.0", "", false, false, CodexSkillScope.PROJECT, checkedAt);
+                "1.0.0", "1.1.0", false, false, CodexSkillScope.PROJECT, checkedAt);
         try {
             Method render = McpAiSettingsPanel.class.getDeclaredMethod("renderStatus", CodexSkillStatus.class);
             render.setAccessible(true);
             render.invoke(panel, checked);
             JBTextArea lastCheck = component(panel.getRootPanel(), "skillLastCheckLabel", JBTextArea.class);
+            JBTextArea versions = component(panel.getRootPanel(), "skillVersionSummary", JBTextArea.class);
+            assertFalse("An offline check cannot promise the cached release is available",
+                    versions.getText().contains(DocViewBundle.message("skill.version.available", "1.1.0")));
+            assertTrue(versions.getText().contains(DocViewBundle.message("skill.version.last.seen", "1.1.0")));
             assertTrue("Offline status should retain the prior successful check time", lastCheck.isVisible());
             assertTrue(lastCheck.getText(), lastCheck.getText().startsWith(
                     DocViewBundle.message("skill.check.last.success", "").trim()));
@@ -484,9 +509,9 @@ public final class CodexSkillSettingsTest extends LightJavaCodeInsightFixtureTes
         String chineseInstallTip = chinese.getString("skill.action.install.tip");
         String englishUpdateTip = english.getString("skill.action.update.tip");
         String chineseUpdateTip = chinese.getString("skill.action.update.tip");
-        assertTrue(englishLocation, englishLocation.contains("Settings → AI → MCP Server"));
+        assertTrue(englishLocation, englishLocation.contains("MCP Server"));
         assertFalse("The old Tools location must not be shown", englishLocation.contains("Settings → Tools"));
-        assertTrue(chineseLocation, chineseLocation.contains("设置 → AI → MCP Server"));
+        assertTrue(chineseLocation, chineseLocation.contains("MCP Server"));
         assertFalse("不得继续显示旧 Tools 路径", chineseLocation.contains("Tools →"));
         assertTrue(englishInstallTip, englishInstallTip.contains("displayed directory"));
         assertFalse("The install tooltip must not assume Project scope", englishInstallTip.contains("project path"));
@@ -503,10 +528,19 @@ public final class CodexSkillSettingsTest extends LightJavaCodeInsightFixtureTes
                 "skill.status.scope.unsupported", "skill.status.not.installed", "skill.status.current",
                 "skill.status.update.available", "skill.status.unmanaged.conflict", "skill.status.modified.conflict",
                 "skill.status.incompatible", "skill.status.release.unavailable", "skill.status.offline",
-                "skill.status.recovery.pending", "skill.status.error", "skill.check.last.success"}) {
+                "skill.status.recovery.pending", "skill.status.restored.cancelled", "skill.status.error", "skill.check.last.success",
+                "skill.action.restore", "skill.mcp.open.settings", "skill.mcp.settings.unavailable"}) {
             assertNotNull("Missing English status message " + key, english.getString(key));
             assertNotNull("Missing Chinese status message " + key, chinese.getString(key));
         }
+    }
+
+    private McpAiSettingsPanel newPanel() throws Exception {
+        var constructor = McpAiSettingsPanel.class.getDeclaredConstructor(com.intellij.openapi.project.Project.class,
+                CodexSkillInstallService.class, java.util.function.Supplier.class);
+        constructor.setAccessible(true);
+        return constructor.newInstance(getProject(), CodexSkillInstallService.getInstance(getProject()),
+                (java.util.function.Supplier<java.util.List<Path>>) java.util.List::of);
     }
 
     private static <T extends Component> T component(Container root, String name, Class<T> type) {

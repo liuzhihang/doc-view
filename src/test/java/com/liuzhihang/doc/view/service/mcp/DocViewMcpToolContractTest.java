@@ -57,12 +57,20 @@ public final class DocViewMcpToolContractTest extends LightJavaCodeInsightFixtur
 
     public void testSchemasAndExamplesUseOneStrictInputContract() throws Exception {
         Path schemaFile = Path.of("src/main/resources/mcp/tool-contracts.json");
-        Path proposalSchema = Path.of("openspec/changes/doc-view-mcp-tools/tool-contracts.json");
+        Path proposalSchema = Path.of("openspec/changes/archive/2026-11-20-doc-view-mcp-tools/tool-contracts.json");
         assertTrue("The packaged contract schema must be present", Files.isRegularFile(schemaFile));
         assertEquals("Packaged MCP schema must be an exact copy of the OpenSpec contract",
                 Files.readString(proposalSchema), Files.readString(schemaFile));
         JsonObject resource = JsonParser.parseString(Files.readString(schemaFile)).getAsJsonObject();
         assertEquals(1, resource.get("contractVersion").getAsInt());
+        // diskSchemaSource is historical metadata in the signed-by-fingerprint v1 contract.
+        Path diskSchema = Path.of("openspec/changes/archive/2026-11-19-project-document-store/schemas/document-store.schema.json");
+        JsonObject diskDefinitions = JsonParser.parseString(Files.readString(diskSchema)).getAsJsonObject().getAsJsonObject("$defs");
+        JsonObject contractDefinitions = resource.getAsJsonObject("$defs");
+        for (var definition : diskDefinitions.entrySet()) {
+            assertEquals("MCP must preserve the archived disk schema definition " + definition.getKey(),
+                    definition.getValue(), contractDefinitions.get(definition.getKey()));
+        }
         assertEquals(4, resource.getAsJsonArray("tools").size());
 
         JsonObject status = object("projectPath", projectRoot.toString());

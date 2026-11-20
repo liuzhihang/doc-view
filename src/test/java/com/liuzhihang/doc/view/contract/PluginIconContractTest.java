@@ -80,7 +80,9 @@ public final class PluginIconContractTest extends LightJavaCodeInsightFixtureTes
         assertEquals(DocViewBundle.message("action.export.markdown"), markdownAction.getAttribute("text"));
         assertEquals(projectActionName, projectAction.getAttribute("text"));
         assertEquals("AllIcons.ToolbarDecorator.Export", markdownAction.getAttribute("icon"));
-        assertEquals("AllIcons.ToolbarDecorator.Export", projectAction.getAttribute("icon"));
+        assertEquals("AllIcons.Actions.AddFile", projectAction.getAttribute("icon"));
+        Element openDocs = findById(descriptor, "action", "liuzhihang.doc.tool.window.toolbar.action.project.open");
+        assertEquals("AllIcons.FileTypes.Markdown", openDocs.getAttribute("icon"));
     }
 
     public void testOnlyBrandIconsRemainInThePluginIconHolder() {

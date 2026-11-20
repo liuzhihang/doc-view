@@ -163,6 +163,21 @@ public final class ProjectDocumentIndexService implements Disposable {
                     public void before(@NotNull List<? extends VFileEvent> events) {
                         markChangedVfsInputs(events);
                     }
+
+                    @Override
+                    public void after(@NotNull List<? extends VFileEvent> events) {
+                        ProjectFileIndex fileIndex = ProjectFileIndex.getInstance(project);
+                        for (VFileEvent event : events) {
+                            if (event instanceof VFileCreateEvent createEvent
+                                    && isGeneratedOutputContainerCreate(createEvent, fileIndex)
+                                    && events.stream().noneMatch(other -> other != event
+                                            && affectsProjectInputs(other, fileIndex))
+                                    && !containsOnlyGeneratedOutputDirectory(createEvent)) {
+                                markObservedInputsChanged();
+                                return;
+                            }
+                        }
+                    }
                 });
     }
 
@@ -240,12 +255,7 @@ public final class ProjectDocumentIndexService implements Disposable {
     public @NotNull ProjectDocumentIndexStatus status(@NotNull ProgressIndicator indicator) {
         observeSettingsChanges();
         try {
-            return withRead(indicator, context -> {
-                IndexData index = readIndex(context);
-                IndexState state = hasKnownInconsistency(index.snapshotId())
-                        ? IndexState.INCONSISTENT : IndexState.READY;
-                return statusOf(state, index, null);
-            });
+            return withRead(indicator, context -> statusOf(readIndex(context)));
         } catch (ProjectDocumentQueryException exception) {
             return switch (exception.code()) {
                 case INDEX_NOT_FOUND -> new ProjectDocumentIndexStatus(IndexState.NOT_GENERATED,
@@ -305,8 +315,7 @@ public final class ProjectDocumentIndexService implements Disposable {
                     ? encodeCursor(request, index.snapshotId(), page.get(page.size() - 1).identity().canonicalForm())
                     : null;
             context.checkActive();
-            return new ProjectDocumentQueryResult(page, matches.size(), nextCursor, index.snapshotId(),
-                    freshnessFor(index.snapshotId()), index.hasUnsavedDocuments(), index.generatedAt());
+            return new ProjectDocumentQueryResult(page, matches.size(), nextCursor, statusOf(index));
         });
     }
 
@@ -909,9 +918,10 @@ public final class ProjectDocumentIndexService implements Disposable {
         }
     }
 
-    private ProjectDocumentIndexStatus statusOf(IndexState state, IndexData index, @Nullable String errorCode) {
+    private ProjectDocumentIndexStatus statusOf(IndexData index) {
+        IndexState state = hasKnownInconsistency(index.snapshotId()) ? IndexState.INCONSISTENT : IndexState.READY;
         return new ProjectDocumentIndexStatus(state, freshnessFor(index.snapshotId()), index.snapshotId(),
-                index.entries().size(), index.generatedAt(), index.hasUnsavedDocuments(), errorCode);
+                index.entries().size(), index.generatedAt(), index.hasUnsavedDocuments(), null);
     }
 
     private Freshness freshnessFor(String snapshotId) {
@@ -1146,6 +1156,9 @@ public final class ProjectDocumentIndexService implements Disposable {
         if (file == null || project.isDisposed()) {
             return;
         }
+        if (isIdeWorkspaceMetadataPath(file.getPath())) {
+            return;
+        }
         String extension = file.getExtension();
         if (!"java".equalsIgnoreCase(extension) && !"xml".equalsIgnoreCase(extension)) {
             return;
@@ -1207,6 +1220,9 @@ public final class ProjectDocumentIndexService implements Disposable {
                     || isRelevantInputPath(propertyEvent.getNewPath(), file.getParent(), directory, fileIndex);
         }
         if (event instanceof VFileCreateEvent createEvent) {
+            if (isGeneratedOutputContainerCreate(createEvent, fileIndex)) {
+                return false;
+            }
             return isRelevantInputPath(createEvent.getPath(), createEvent.getParent(), createEvent.isDirectory(),
                     fileIndex);
         }
@@ -1221,6 +1237,39 @@ public final class ProjectDocumentIndexService implements Disposable {
                 || isRelevantInputPath(event.getPath(), file.getParent(), file.isDirectory(), fileIndex));
     }
 
+    private boolean isGeneratedOutputContainerCreate(@NotNull VFileCreateEvent event,
+                                                     @NotNull ProjectFileIndex fileIndex) {
+        if (!event.isDirectory()) {
+            return false;
+        }
+        String basePath = project.getBasePath();
+        VirtualFile parent = event.getParent();
+        if (basePath == null || parent == null || !isProjectContent(fileIndex, parent)) {
+            return false;
+        }
+        try {
+            Path projectRoot = Path.of(basePath).toAbsolutePath().normalize();
+            Path outputContainer = projectRoot.resolve(DOCUMENT_ROOT).getParent();
+            Path eventPath = Path.of(event.getPath()).toAbsolutePath().normalize();
+            Path eventParentPath = Path.of(parent.getPath()).toAbsolutePath().normalize();
+            // A first publish can make the local VFS report only the new docs/ container. Defer
+            // classification until after the event, when direct children reveal sibling inputs.
+            return outputContainer != null && outputContainer.equals(eventPath)
+                    && projectRoot.equals(eventParentPath);
+        } catch (RuntimeException nonLocalPath) {
+            return false;
+        }
+    }
+
+    private static boolean containsOnlyGeneratedOutputDirectory(@NotNull VFileCreateEvent event) {
+        VirtualFile directory = event.getFile();
+        if (directory == null || !directory.isValid() || !directory.isDirectory()) {
+            return false;
+        }
+        VirtualFile[] children = directory.getChildren();
+        return children.length == 1 && children[0].isDirectory() && "doc-view".equals(children[0].getName());
+    }
+
     private boolean isRelevantInputPath(@NotNull String path,
                                         @Nullable VirtualFile scope,
                                         boolean directory,
@@ -1228,10 +1277,29 @@ public final class ProjectDocumentIndexService implements Disposable {
         if (isGeneratedDocumentPath(path)) {
             return false;
         }
+        if (!directory && isIdeWorkspaceMetadataPath(path)) {
+            return false;
+        }
         if (!directory && !isSourceInputExtension(path)) {
             return false;
         }
         return isProjectContent(fileIndex, scope);
+    }
+
+    private static boolean isIdeWorkspaceMetadataPath(@NotNull String path) {
+        if (!path.endsWith("workspace.xml")) {
+            return false;
+        }
+        try {
+            Path file = Path.of(path).toAbsolutePath().normalize();
+            Path parent = file.getParent();
+            Path parentName = parent == null ? null : parent.getFileName();
+            Path fileName = file.getFileName();
+            return parentName != null && fileName != null && ".idea".equals(parentName.toString())
+                    && "workspace.xml".equals(fileName.toString());
+        } catch (RuntimeException nonLocalPath) {
+            return false;
+        }
     }
 
     private boolean isGeneratedDocumentPath(@NotNull String path) {

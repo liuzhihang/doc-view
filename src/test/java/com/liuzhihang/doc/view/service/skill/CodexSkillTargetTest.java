@@ -4,9 +4,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 
 public class CodexSkillTargetTest {
     @Rule public final TemporaryFolder temporary = new TemporaryFolder();
@@ -23,7 +27,20 @@ public class CodexSkillTargetTest {
         assertEquals(home.resolve(".agents/skills/doc-view"), userTarget.targetPath());
         assertEquals(project.resolve(".agents/skills"), projectTarget.discoveryRoot());
         assertEquals(home.resolve(".agents/skills"), userTarget.discoveryRoot());
-        org.junit.Assert.assertFalse(java.nio.file.Files.exists(projectTarget.targetPath()));
-        org.junit.Assert.assertFalse(java.nio.file.Files.exists(userTarget.targetPath()));
+        assertFalse(Files.exists(projectTarget.targetPath()));
+        assertFalse(Files.exists(userTarget.targetPath()));
+    }
+
+    @Test
+    public void rejectsMissingProjectAndNonDirectoryOwnersWithoutCreatingATarget() throws Exception {
+        Path root = temporary.newFolder("owner").toPath().toRealPath();
+        Path missing = root.resolve("missing");
+        Path regularFile = Files.createFile(root.resolve("not-a-directory"));
+
+        assertThrows(IOException.class, () -> CodexSkillTarget.resolve(null, CodexSkillScope.PROJECT));
+        assertThrows(IOException.class, () -> CodexSkillTarget.forOwnerRoot(missing, CodexSkillScope.PROJECT));
+        assertThrows(IOException.class, () -> CodexSkillTarget.forOwnerRoot(regularFile, CodexSkillScope.USER));
+        assertFalse(Files.exists(missing));
+        assertFalse(Files.exists(root.resolve(".agents")));
     }
 }

@@ -14,17 +14,21 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /** Bounded, isolated probes for the selected Codex executable. */
 final class CodexClientProbe {
-    static final String SUPPORTED_VERSION = "codex-cli 0.167.0-alpha.4.1";
+    static final String SUPPORTED_VERSION = "codex-cli 0.169.0-alpha.11.1";
     private static final int MAX_VERSION_OUTPUT = 4096;
     private static final int MAX_SERVER_OUTPUT = 1024 * 1024;
     private static final long VERSION_TIMEOUT_MILLIS = 3_000;
     private static final long SERVER_TIMEOUT_MILLIS = 15_000;
+    private static final long PROCESS_TERMINATION_TIMEOUT_MILLIS = 1_000;
 
     record Discovery(boolean discovered, String discoveredPath) {}
 
@@ -56,8 +60,11 @@ final class CodexClientProbe {
             }
             return value;
         } finally {
-            if (process != null) process.destroyForcibly();
-            deleteTemporaryTree(temporaryHome);
+            try {
+                terminateProcessTree(process);
+            } finally {
+                deleteTemporaryTree(temporaryHome);
+            }
         }
     }
 
@@ -119,15 +126,56 @@ final class CodexClientProbe {
             }
             return new Discovery(false, "");
         } finally {
-            if (process != null) {
-                process.destroyForcibly();
-                try {
-                    process.waitFor(1, TimeUnit.SECONDS);
-                } catch (InterruptedException interrupted) {
-                    Thread.currentThread().interrupt();
+            try {
+                terminateProcessTree(process);
+            } finally {
+                deleteTemporaryTree(temporaryHome);
+            }
+        }
+    }
+
+    private static void terminateProcessTree(Process process) {
+        if (process == null) return;
+        List<ProcessHandle> descendants = new ArrayList<>();
+        collectDescendants(process, descendants);
+        destroyForcibly(descendants);
+        // A child may have been spawned while the first snapshot was being terminated.
+        collectDescendants(process, descendants);
+        destroyForcibly(descendants);
+        process.destroyForcibly();
+
+        long deadline = System.nanoTime()
+                + TimeUnit.MILLISECONDS.toNanos(PROCESS_TERMINATION_TIMEOUT_MILLIS);
+        boolean interrupted = false;
+        try {
+            while (System.nanoTime() < deadline
+                    && (process.isAlive() || descendants.stream().anyMatch(ProcessHandle::isAlive))) {
+                long remaining = deadline - System.nanoTime();
+                if (remaining <= 0) break;
+                if (process.isAlive()) {
+                    process.waitFor(Math.min(remaining, TimeUnit.MILLISECONDS.toNanos(20)), TimeUnit.NANOSECONDS);
+                } else {
+                    TimeUnit.NANOSECONDS.sleep(Math.min(remaining, TimeUnit.MILLISECONDS.toNanos(10)));
                 }
             }
-            deleteTemporaryTree(temporaryHome);
+        } catch (InterruptedException interruption) {
+            interrupted = true;
+        } finally {
+            if (interrupted) Thread.currentThread().interrupt();
+        }
+    }
+
+    private static void collectDescendants(Process process, List<ProcessHandle> descendants) {
+        Set<Long> seen = new HashSet<>();
+        for (ProcessHandle descendant : descendants) seen.add(descendant.pid());
+        process.descendants().forEach(descendant -> {
+            if (seen.add(descendant.pid())) descendants.add(descendant);
+        });
+    }
+
+    private static void destroyForcibly(List<ProcessHandle> processes) {
+        for (ProcessHandle process : processes) {
+            if (process.isAlive()) process.destroyForcibly();
         }
     }
 

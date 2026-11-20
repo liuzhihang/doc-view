@@ -72,4 +72,4 @@ Authorization、Proxy-Authorization、X-Api-Key、Api-Key、ApiKey（大小写�
 
 目录原来的 **Open** 改为 **打开 Markdown 文档 / Open Markdown Document**；源码导航继续使用 IDEA 的导航动作。目录获得焦点后可用 Speed Search 搜索方法名、完整 Java 签名和完整方法说明；说明的搜索范围不受灰色副标题长度限制。类、模块和空节点上的文档/HTTP 动作隐藏，程序化触发也不再展开目录。
 
-相关：[使用指南](index.md)、[设置](settings.md)、[问题排查](troubleshooting.md)；实施与未覆盖验收见 [HTTP change 验证记录](../../openspec/changes/http-client-generation-and-ui/verification.md)。
+相关：[使用指南](index.md)、[设置](settings.md)、[问题排查](troubleshooting.md)；实施与未覆盖验收见 [HTTP change 验证记录](../../openspec/changes/archive/2026-11-20-http-client-generation-and-ui/verification.md)。

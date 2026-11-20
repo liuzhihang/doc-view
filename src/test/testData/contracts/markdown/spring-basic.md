@@ -18,9 +18,6 @@ GET
 
 - Header
 
-|参数名|参数值|必填|描述|版本|
-|:-----|:-----|:-----|:-----|:-----|
-|Content-Type|application/x-www-form-urlencoded|Y|||
 
 
 - Param

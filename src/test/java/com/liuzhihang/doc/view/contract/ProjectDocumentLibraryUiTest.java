@@ -73,11 +73,15 @@ public final class ProjectDocumentLibraryUiTest extends LightPlatformTestCase {
                 "project.library.status.inconsistent",
                 "project.library.search.no.results",
                 "project.library.search.ready",
+                "project.library.search.freshness.current",
+                "project.library.search.freshness.stale",
+                "project.library.search.freshness.unknown",
                 "project.library.search.failed",
                 "project.library.open.failed",
                 "project.library.open.markdown",
                 "project.library.search.query",
-                "project.library.search",
+                "project.library.search.placeholder",
+                "project.library.search.results",
                 "project.library.back.catalog")) {
             assertTrue("English bundle is missing " + key, english.containsKey(key));
             assertTrue("Chinese bundle is missing " + key, chinese.containsKey(key));
