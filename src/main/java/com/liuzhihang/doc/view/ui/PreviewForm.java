@@ -92,7 +92,9 @@ public class PreviewForm implements Disposable {
     @NonNls
     public static final String DOC_VIEW_POPUP = "com.intellij.docview.popup";
     public static final AtomicBoolean myIsPinned = new AtomicBoolean(false);
-    private static final AtomicBoolean previewIsHtml = new AtomicBoolean(false);
+    private static final AtomicBoolean preferredHtmlPreview = new AtomicBoolean();
+
+    private final AtomicBoolean previewIsHtml = new AtomicBoolean();
 
     private Document markdownDocument;
 
@@ -206,8 +208,8 @@ public class PreviewForm implements Disposable {
     private final Map<String, String> markdownCache = new HashMap<>();
     private final AtomicLong renderRequest = new AtomicLong();
     private final AtomicLong loadRequest = new AtomicLong();
-    private long statusHtmlRequest;
-    private CancellablePromise<String> statusHtmlPromise;
+    private long previewHtmlRequest;
+    private CancellablePromise<String> previewHtmlPromise;
     private final ConcurrentMap<Long, ProgressIndicator> renderIndicators = new ConcurrentHashMap<>();
     private final ConcurrentMap<Long, ProgressIndicator> loadIndicators = new ConcurrentHashMap<>();
     private boolean uiInitialized;
@@ -314,10 +316,11 @@ public class PreviewForm implements Disposable {
         disposed = true;
         loadRequest.incrementAndGet();
         renderRequest.incrementAndGet();
-        invalidateStatusHtml();
+        invalidatePreviewHtml();
         cancelIndicators(loadIndicators);
         cancelIndicators(renderIndicators);
         markdownCache.clear();
+        previewContentPanel.removeAll();
 
         if (markdownEditor != null && !markdownEditor.isDisposed()) {
             EditorFactory.getInstance().releaseEditor(markdownEditor);
@@ -387,10 +390,11 @@ public class PreviewForm implements Disposable {
 
         // 右侧 Markdown 源码面板
         markdownSourcePanel();
-        // markdownHtmlPanel
-        markdownHtmlPanel();
-        // 选择在预览面板上呈现的面板：源码/HTML
-        choosePreviewPanel();
+        if (preferredHtmlPreview.get() && JBCefApp.isSupported()) {
+            setHtmlPreview(true);
+        } else {
+            choosePreviewPanel();
+        }
         // 预览面板操作栏
         previewLeftToolbar();
         // 预览面板右侧操作栏
@@ -502,35 +506,51 @@ public class PreviewForm implements Disposable {
         markdownEditor.setBorder(JBUI.Borders.emptyLeft(5));
     }
 
-    /**
-     * markdown 预览界面
-     */
-    private void markdownHtmlPanel() {
+    private void choosePreviewPanel() {
+        JComponent content = previewIsHtml.get()
+                ? markdownHtmlPanel.getComponent()
+                : ScrollPaneFactory.createScrollPane(markdownEditor.getComponent());
+        previewContentPanel.removeAll();
+        previewContentPanel.add(content, BorderLayout.CENTER);
+        previewContentPanel.revalidate();
+        previewContentPanel.repaint();
+    }
 
-        MarkdownHtmlPanelProvider provider = MarkdownHtmlPanelProvider.createFromInfo(MarkdownSettings.getDefaultProviderInfo());
-
-        if (!JBCefApp.isSupported()) {
-            // Fallback to an alternative browser-less solution
-            // https://plugins.jetbrains.com/docs/intellij/jcef.html#jbcefapp
-            log.info("当前不支持 JCEF");
+    private void setHtmlPreview(boolean showHtml) {
+        if (disposed || previewIsHtml.get() == showHtml) {
             return;
         }
 
-        markdownHtmlPanel = provider.createHtmlPanel();
-    }
-
-    /**
-     * 预览面板，根据设置选择 HTML 面板或者 Markdown 面板
-     */
-    private void choosePreviewPanel() {
-
-        if (previewIsHtml.get() && JBCefApp.isSupported()) {
-            previewContentPanel.add(markdownHtmlPanel.getComponent(), BorderLayout.CENTER);
-        } else {
-            // 展示源码
-            previewContentPanel.add(ScrollPaneFactory.createScrollPane(markdownEditor.getComponent()), BorderLayout.CENTER);
+        boolean firstHtmlPreview = showHtml && markdownHtmlPanel == null;
+        if (firstHtmlPreview) {
+            if (!JBCefApp.isSupported()) {
+                DocViewNotification.notifyInfo(psiClass.getProject(), DocViewBundle.message("notify.not.support.jcef"));
+                return;
+            }
+            MarkdownHtmlPanelProvider provider =
+                    MarkdownHtmlPanelProvider.createFromInfo(MarkdownSettings.getDefaultProviderInfo());
+            markdownHtmlPanel = provider.createHtmlPanel();
         }
 
+        previewIsHtml.set(showHtml);
+        try {
+            choosePreviewPanel();
+        } catch (RuntimeException exception) {
+            previewIsHtml.set(!showHtml);
+            if (firstHtmlPreview) {
+                MarkdownHtmlPanel panel = markdownHtmlPanel;
+                markdownHtmlPanel = null;
+                if (panel != null) {
+                    Disposer.dispose(panel);
+                }
+            }
+            throw exception;
+        }
+
+        preferredHtmlPreview.set(showHtml);
+        if (firstHtmlPreview && markdownDocument.getTextLength() > 0) {
+            queuePreviewHtml(markdownDocument.getText(), currentMarkdownText != null);
+        }
     }
 
     /**
@@ -555,26 +575,7 @@ public class PreviewForm implements Disposable {
 
             @Override
             public void setSelected(@NotNull AnActionEvent e, boolean state) {
-
-                if (!JBCefApp.isSupported()) {
-                    // 不支持 JCEF 不允许预览
-                    previewIsHtml.set(false);
-                    DocViewNotification.notifyInfo(psiClass.getProject(), DocViewBundle.message("notify.not.support.jcef"));
-                } else {
-                    previewIsHtml.set(state);
-                    if (state) {
-                        previewContentPanel.removeAll();
-                        previewContentPanel.repaint();
-                        previewContentPanel.add(markdownHtmlPanel.getComponent(), BorderLayout.CENTER);
-                        previewContentPanel.revalidate();
-                    } else {
-                        // 展示源码
-                        previewContentPanel.removeAll();
-                        previewContentPanel.repaint();
-                        previewContentPanel.add(ScrollPaneFactory.createScrollPane(markdownEditor.getComponent()), BorderLayout.CENTER);
-                        previewContentPanel.revalidate();
-                    }
-                }
+                setHtmlPreview(state);
             }
 
             @Override
@@ -936,11 +937,16 @@ public class PreviewForm implements Disposable {
             return;
         }
 
-        invalidateStatusHtml();
+        invalidatePreviewHtml();
         currentMarkdownText = markdownText;
 
-        if (markdownHtmlPanel != null && htmlText != null) {
-            markdownHtmlPanel.setHtml(htmlText, 0);
+        if (markdownHtmlPanel != null) {
+            if (htmlText != null) {
+                markdownHtmlPanel.setHtml(htmlText, 0);
+            } else {
+                // The user opened HTML while this source-only render was still in flight.
+                queuePreviewHtml(markdownText, true);
+            }
         }
 
         setMarkdownText(markdownText);
@@ -951,29 +957,36 @@ public class PreviewForm implements Disposable {
         if (disposed) {
             return;
         }
-        invalidateStatusHtml();
+        invalidatePreviewHtml();
         currentMarkdownText = null;
         setMarkdownText(message);
+        queuePreviewHtml(message, false);
+    }
+
+    private void queuePreviewHtml(@NotNull String text, boolean documentBody) {
         if (markdownHtmlPanel == null || psiClass.getProject().isDisposed()) {
             return;
         }
 
-        long requestId = statusHtmlRequest;
+        long requestId = previewHtmlRequest;
         Project project = psiClass.getProject();
         CancellablePromise<String> promise = ReadAction.nonBlocking(() -> {
                     if (project.isDisposed() || disposed || !psiClass.isValid()) {
                         throw new ProcessCanceledException();
                     }
+                    if (documentBody) {
+                        return MarkdownPreviewHtml.render(project, text);
+                    }
                     VirtualFile sourceFile = psiClass.getContainingFile().getVirtualFile();
                     if (sourceFile == null || !sourceFile.isValid()) {
                         throw new ProcessCanceledException();
                     }
-                    return MarkdownUtil.INSTANCE.generateMarkdownHtml(sourceFile, message, project);
+                    return MarkdownUtil.INSTANCE.generateMarkdownHtml(sourceFile, text, project);
                 })
                 .expireWith(project)
                 .expireWith(this)
                 .finishOnUiThread(ModalityState.any(), html -> {
-                    if (!isCurrentStatusHtml(requestId, project)) {
+                    if (!isCurrentPreviewHtml(requestId, project)) {
                         return;
                     }
                     MarkdownHtmlPanel panel = markdownHtmlPanel;
@@ -982,30 +995,30 @@ public class PreviewForm implements Disposable {
                     }
                 })
                 .submit(AppExecutorUtil.getAppExecutorService());
-        statusHtmlPromise = promise;
+        previewHtmlPromise = promise;
         promise.onError(failure -> {
-            if (shouldLogStatusHtmlFailure(promise, failure)) {
-                log.warn("Unable to render Doc View preview status", failure);
+            if (shouldLogPreviewHtmlFailure(promise, failure)) {
+                log.warn("Unable to refresh Doc View HTML preview", failure);
             }
         });
     }
 
-    static boolean shouldLogStatusHtmlFailure(@NotNull CancellablePromise<?> promise,
+    static boolean shouldLogPreviewHtmlFailure(@NotNull CancellablePromise<?> promise,
                                               @NotNull Throwable failure) {
         return !promise.isCancelled() && !(failure instanceof ProcessCanceledException);
     }
 
-    private void invalidateStatusHtml() {
-        statusHtmlRequest++;
-        CancellablePromise<String> promise = statusHtmlPromise;
-        statusHtmlPromise = null;
+    private void invalidatePreviewHtml() {
+        previewHtmlRequest++;
+        CancellablePromise<String> promise = previewHtmlPromise;
+        previewHtmlPromise = null;
         if (promise != null) {
             promise.cancel();
         }
     }
 
-    private boolean isCurrentStatusHtml(long requestId, @NotNull Project project) {
-        return !disposed && !project.isDisposed() && requestId == statusHtmlRequest;
+    private boolean isCurrentPreviewHtml(long requestId, @NotNull Project project) {
+        return !disposed && !project.isDisposed() && requestId == previewHtmlRequest;
     }
 
     private void handleLoadCancellation(long requestId) {

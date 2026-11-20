@@ -16,9 +16,10 @@
 | --- | --- |
 | [263 基线](../openspec/changes/intellij-263-baseline-upgrade/tasks.md) | 补精确目标 build 的原生资源和生命周期边界；历史热卸载失败不改写为已修复，不推导未来 build 兼容性。 |
 | [HTTP 与 UI](../openspec/changes/http-client-generation-and-ui/tasks.md) | 补最终包 HTTP Send、异常/取消和完整菜单、主题、窄窗、键盘及跨应用交互矩阵。 |
-| [预览生命周期](../openspec/changes/fix-preview-lifecycle/tasks.md) | 核对 JCEF 状态替换、关闭释放与重复打开后的资源边界。 |
 
 [Clear Cache 已归档](../openspec/changes/archive/2026-11-19-clear-cache-safety/verification.md)：现行 `…` 入口已验证双项目缓存隔离及文件保护；旧目录菜单已被替代。[Schema 必填与写回已归档](../openspec/changes/archive/2026-11-19-openapi3-schema-required-mode/verification.md)：参数编辑器键盘、写回与关闭后资源已验，完整预览及插件卸载仍独立跟踪。
+
+[预览生命周期已归档](../openspec/changes/archive/2026-11-20-fix-preview-lifecycle/verification.md#2026-11-20-预览组件分离与最终原生回归)。正式 IDEA 中复验源码按需创建 JCEF、关闭后资源基线、取消以及 Spring/Dubbo 预览与导出。
 
 [项目文档库已归档](../openspec/changes/archive/2026-11-19-project-document-store/verification-2026-11-19-final-lifecycle.md)：同一最终包完成从首次生成到取消、重试和重开的原生验收。
 

@@ -162,4 +162,4 @@ macOS arm64、IU `263.7307.200`、Java 25，隔离项目含 1 module、6 classes
 
 同 ZIP 重开隔离 IDE 做受控取消，断点只暂停相应 worker 线程。Spring 两次在预览 worker 进入生成阶段后看到加载状态且方法列表为空，通过 IDEA 的“停止后台进程”取消，确认状态为“正在停止”再恢复 worker。停止后任务消失，原生焦点返回编辑器，未出现部分方法、正文或迟到弹窗；未从原生 popup 读到独立的取消文案。重新打开预览显示原有三项完整正文。刷新任务在准备构造临时目录前暂停，执行相同的原生停止后恢复 worker；状态显示“已取消刷新，可点击刷新重试”，62 个已发布方法逐行一致；重试清除取消状态并恢复 6 个类的折叠树。任务中段取消与禁止发布已构造部分节点另由目录 fixture 覆盖。受控暂停从耗时样本排除。
 
-本地证据位于 `build/openspec-remaining-review-20261120/` 的 `native-ui-evidence.json`、`native-preview*-break.log` 和 `native-refresh-break.log`。预览 HTML 替换与资源释放继续由[预览生命周期](../../fix-preview-lifecycle/tasks.md)处理，本 change 的结果不作性能提升或 SLA 声明。
+本地证据位于 `build/openspec-remaining-review-20261120/` 的 `native-ui-evidence.json`、`native-preview*-break.log` 和 `native-refresh-break.log`。预览 HTML 替换与资源释放继续由[预览生命周期](../2026-11-20-fix-preview-lifecycle/tasks.md)处理，本 change 的结果不作性能提升或 SLA 声明。

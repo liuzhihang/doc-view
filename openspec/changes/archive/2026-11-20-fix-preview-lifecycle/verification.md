@@ -9,7 +9,7 @@
 
 ## 联动范围
 
-- `PreviewForm` 单项 Upload 入口复用已有 `upload(project, docView)` 后台 wrapper。此 change 不修改上传 payload 或服务协议；凭据读取与集成配置行为见[集成凭据 change](../archive/2026-11-20-integration-credential-storage/proposal.md)。本轮预览测试没有验证上传接口或凭据行为。
+- `PreviewForm` 单项 Upload 入口复用已有 `upload(project, docView)` 后台 wrapper。此 change 不修改上传 payload 或服务协议；凭据读取与集成配置行为见[集成凭据 change](../2026-11-20-integration-credential-storage/proposal.md)。本轮预览测试没有验证上传接口或凭据行为。
 
 ## 未验证
 
@@ -41,7 +41,7 @@ Fixture 仍关闭 JCEF；上述结果不能证明 HTML panel 创建、状态切�
 
 ## Round50 原生 Markdown 渲染及混合主题补验
 
-IU262 隔离 profile 安装 Round50 包后，从 `doc-demo` 的 `UserController.respGenericTest` 行标记打开真实文档，点击 Preview 后实际显示渲染后的标题、POST路径与参数表（`/tmp/doc-view-reliability-20261018/native-round50-preview-toggle.png`）。深色 IDE/浅色 editor scheme 与浅色 IDE/深色 editor scheme 的浮窗操作区均跟随 IDE 主题、正文保留 editor scheme（`native-round50-preview-dark.png`、`native-round50-preview-light.png`）。本轮完成一次渲染切换，未覆盖反复切换后资源数量/项目关闭/泄漏压力；相关原生生命周期任务不据此整体勾选。图标与背景修正、后续包及普通窗口恢复证据见 [API tree verification](../archive/2026-11-09-api-tree-navigation/verification.md)。
+IU262 隔离 profile 安装 Round50 包后，从 `doc-demo` 的 `UserController.respGenericTest` 行标记打开真实文档，点击 Preview 后实际显示渲染后的标题、POST路径与参数表（`/tmp/doc-view-reliability-20261018/native-round50-preview-toggle.png`）。深色 IDE/浅色 editor scheme 与浅色 IDE/深色 editor scheme 的浮窗操作区均跟随 IDE 主题、正文保留 editor scheme（`native-round50-preview-dark.png`、`native-round50-preview-light.png`）。本轮完成一次渲染切换，未覆盖反复切换后资源数量/项目关闭/泄漏压力；相关原生生命周期任务不据此整体勾选。图标与背景修正、后续包及普通窗口恢复证据见 [API tree verification](../2026-11-09-api-tree-navigation/verification.md)。
 
 ## IU 261 JCEF 生命周期观测与 candidate caaf 原生预览（2026-10-22）
 
@@ -115,3 +115,60 @@ IU `263.7307.200` 421 候选 `build/native-validation/2026-11-08/unload-clean/lo
 无调试器的同包对照 PID 78877 通过真实 Export 写出 618-byte `nativeGet.md`（`no-debug-export-control/export-result.json`，明确 `debuggerEnabled=false`）；禁用插件后仍有 20 条 Doc View 类直方图记录和 still-referenced warning，`diagnostics/classloader-roots.txt` 复现同一 file chooser toolbar creation-trace 链。故不能把该引用归因于调试器。卸载根因与 release gate 仍开放。
 
 因此 tasks 1.4、4.5、4.6 已由此候选补齐其各自的 JCEF 状态、selection/log 和在途关闭验收；2.2 的按需创建/失败释放及 4.3 的整类预览、批量导出与完整资源基线仍保持未完成。429 查询取消显示的旧 `Project document status check was cancelled.` 属于共享文档库错误提示，不是 preview 的 `Loading Doc View was cancelled.`；通用查询文案的新版本尚待后续候选原生读回。插件热卸载未通过，不得据 428 历史通过、表单归零或 renderer 子进程退出宣称本包 classloader 已释放。
+
+## 2026-11-20 最终候选整类预览、批量导出与资源样本
+
+正式 IU `263.7307.200` 隔离运行，安装 ZIP SHA-256 `2f0284a418459a7e6e102500ec526d6b37fe68e0d4b75cae04664de40337575a`，JAR SHA-256 `942422587aa51c79c69d9321375b279f66cd1765e07041ceea68d506984056cb`。恢复隔离 profile 的本机 JBR 25 SDK 定义后，Spring 整类和注解 Dubbo 分别打开及关闭三次，正文与方法数符合夹具。Spring 使用“全部导出”写入隔离证据目录；IDEA 显示成功，落盘的 `HttpAcceptanceController.md` 包含 `/native/users/{id}`、`/native/json` 和 `/native/form`。原生 HTML 预览从 GET 切换 JSON，再立即切换 Form，最后选中 `nativeForm` 且页面显示 `/native/form` 和 POST。该次未受控注入迟到回调。取消与重试证据见[最终性能复验](../2026-11-20-doc-generation-performance/verification.md#2026-11-20-最终候选的预览刷新与取消)。
+
+GC 与 JCEF 仍未结案。同一进程保留 IDEA 内置 Markdown 编辑器标签，关闭文档弹窗时曾有 3 个 `PreviewForm` 实例，后续关闭样本降至 1。打开 Doc View HTML 时观察到 2 个 `MarkdownJCEFHtmlPanel`，关闭后再次采样仍看到 2 个 panel、2 个 RemoteBrowser 和同一 JCEF 子进程。采样包含 IDEA 内置 Markdown viewer，仅凭类计数无法归属到具体弹窗或判断泄漏。没有取得对象根路径，也未重跑此包的空、失败与取消 HTML 组合，所以 2.2、4.3 保留。原始样本与本次导出文件在 `build/openspec-remaining-review-20261120/`。
+
+### 源码模式提前创建 JCEF 的原生复现
+
+关掉独立 Markdown 标签后正常重启同一隔离 IDEA。首次打开 Doc View 前，full GC 没有 `PreviewForm`、`MarkdownJCEFHtmlPanel` 或 `RemoteBrowser`，也没有该 IDEA 的 CEF 子进程。打开默认 Markdown 源码预览且未切换 HTML 时，full GC 样本仍看到三类实例各 1 个，且出现新的 JCEF 子进程。源码初始化无条件调用 `markdownHtmlPanel()`，和原生观察相符。样本是 `no-viewer-at-clean-start.txt` 和 `clean-open-source.txt`。
+
+### 按需创建修复及再验
+
+修复包 ZIP SHA-256 `998f952318afe03d46b676f7dcd72cec79a58db612784a83888b7c15f305463a`，JAR SHA-256 `d41c3edecc48e76bd6d17d287763481d59bc52698cc445bdbf58d74a3daef27f`。Java 25、单 JAR、418 个 class 的 major 均为 69。定向 `PreviewLifecycleTest` 19 项通过，新增“进入 HTML 时源码渲染已经在途”的正文回填用例；启用 opt-in 验收源集的全量为 100 suites / 581 tests，0 failures / errors / skipped，构建和配置检查通过。Plugin Verifier 1.411 在 `IU 263.7031.23` 与 `IU 263.7307.200` 均 Compatible，各有 16 项既有 Experimental API 使用。
+
+同包在干净隔离会话验证如下。
+
+- 启动及打开默认源码预览时，无 `MarkdownJCEFHtmlPanel`、`RemoteBrowser` 或 JCEF 子进程；源码包含 `nativeGet` 和正确正文。
+- 首次切换到 HTML 后各出现 1 个 panel / RemoteBrowser 和一个 JCEF 子进程，渲染后显示 `/native/users/{id}` 和 GET。再快速切换到 `nativeForm` 后显示 `/native/form` 和 POST。
+- 按 Esc 关闭后约 150 秒的 full GC 仍有 1 个 `PreviewForm`、1 个 panel / RemoteBrowser 及原 CEF 子进程。同一进程的对象元数据确认 Form 与 popup 均已 disposed，Form 的源码 viewer、HTML panel、当前 Markdown/DocView 引用均为空，两个工作 indicator map 与 Markdown cache 为空。此结果证实直接引用已清理，仍需查清平台存活对象的归属和释放时机。
+- 此包的 HTML 空、失败与取消组合，以及重复关闭后完整回到资源基线，保留在 2.2 / 4.3。原始数据保存在 `build/openspec-remaining-review-20261120/`。
+- 后续对象图检查中，存活的 `PreviewForm`、`MarkdownJCEFHtmlPanel` 和 `RemoteBrowser` 均查到以 JBR macOS `CAccessible.timer` 为静态根的强引用路径。该记录来自受辅助功能观测的会话。正常退出隔离 IDEA 后，对应 IDEA 与 JCEF 子进程均已结束。现场能证明关闭路径清理了直接引用及进程退出后的释放，关闭 popup 后回到完整基线仍未通过。未操作 JBR 的内部计时器。仅保留类名和引用结构，临时堆文件已清除。
+
+## 2026-11-20 同一会话重开预览
+
+使用 `998f9523…463a` 候选。打开 Spring 源码预览，切换 HTML 并关闭，在同一进程重新执行空类的 Doc View 预览。IDEA 出现意外异常，日志显示 `PreviewForm.choosePreviewPanel` 在初始化时解引用尚未创建的 `markdownHtmlPanel`。原因为显示模式是一个全局会话标志，而懒创建的面板属于单个 popup。
+
+新增独立资源回归，先在旧实现执行并命中同一空指针，随后保留会话的模式偏好，将当前模式和面板分配到各自窗口。JCEF 不可用时，新窗口保持源码模式；可用且已选 HTML 时，新窗口先准备自身面板，由正常加载流程渲染状态或正文。定向回归与完整 `PreviewLifecycleTest` 已通过，对应记录位于 `build/openspec-followthrough-20261120/`。
+
+## 2026-11-20 修复包原生预览复验
+
+隔离 IntelliJ IDEA IU `263.7307.200` 通过从磁盘升级到 `1.7.2-SNAPSHOT`。ZIP SHA-256 `bd0d5a404d061050d8ed7d429aa904550feea1b0956b5d5ced346f90f35999ed`，安装 JAR SHA-256 `f55e13cf168985f80710efa5935ee381bed66c13417cb4485b80fb08716075b3`。全量 100 suites、583 tests，0 failures / errors / skipped；`buildPlugin` 和 `verifyPluginProjectConfiguration` 通过。Plugin Verifier 对 `263.7031.23`、`263.7307.200` 均 Compatible，每个 build 报告 16 项既有 Experimental usages。原始证据保存在 `build/openspec-followthrough-20261120/`。
+
+- 在同一进程先打开 Spring HTML、关闭并重开，新的浮窗保留 HTML 模式，正常渲染 `/native/users/{id}`。再打开无方法的虚构 Spring 类，HTML 出现“没有 Doc View 内容。”，原空指针未复现。注解 Dubbo `annotatedCatalog` 的源码预览可读。单项导出的 Markdown 包含 `FictionalAnnotatedService#annotatedCatalog`，Spring 整类导出包含 `/native/users/{id}`、`/native/json`、`/native/form`。已回读两个落盘文件。
+- 在列表加载阶段暂停工作线程，原生 `⌘⇧F2` 选中“Doc View 预览”取消，实际显示“正在停止”。恢复线程后任务退出并回到主窗口。在第二次受控复验中，通过调试器调用该任务自己的 `ProgressIndicator.cancel()` 保持浮窗在前台，HTML 和切回的源码视图均显示“已取消加载 Doc View。”。第二次仅用于观察终态，不作为原生快捷键触发的独立证据或耗时测量。
+- 另一个虚构项目使用无效 Velocity 模板 `#if(`。同一包在源码编辑器与 JCEF HTML 中都显示“渲染 Doc View 失败。”。按 Esc 回到原 Java 编辑器。该进程没有独立 Markdown 编辑器；full GC 样本中 `EditorImpl$MyScrollPane` 的数量从 4 降至 3，但 `PreviewForm` 和 `MarkdownJCEFHtmlPanel` 关闭后仍各存活 1 个。正常退出后 IDEA PID 22446 和 CEF PID 22581 均消失。存活项延续此前已记录的 macOS 辅助功能根路径疑点，本轮只证明关闭时源码编辑器对应资源下降，不声称已定位此轮的确切持有者或跨窗口完整 GC 基线。2.2 / 4.3 保持未完成。
+
+对同一正式版 JBR 的 `java.desktop` 字节码做只读复核。`CAccessible$AXChangeNotifier` 在 `AccessibleSelection` 事件中停止旧计时器，将捕获当前 notifier 的单次 Swing Timer 存回静态 `CAccessible.timer`。单次回调会转发通知，其字节码不清空该字段。此前 heap 的第一段强引用链和该实现一致，说明等待计时器到期并不能验证对象释放。仍需用不相关的原生可访问选择事件替换最后一次通知、对照原窗口样本，才能判断面板有无其他存活链。复核输出 `build/openspec-followthrough-20261120/jbr-accessible-selection.javap.txt`。Doc View 沿用 [平台 Disposer](https://plugins.jetbrains.com/docs/intellij/disposers.html) 释放自己的资源。
+
+
+再用同一包、另一个隔离进程 PID 28920 验证从 GET 切到 HTML 后立即点 `nativeForm`，最终 HTML 显示 `/native/form` 和 POST。关闭后，从内置文件查找列表按 ↓ 选中另一条无关记录，未打开文件。四次 live GC 的 `EditorImpl` 数量依次为 3、4、4、3，说明该次最终回到原编辑器计数；`PreviewForm`、`MarkdownJCEFHtmlPanel`、`RemoteBrowser` 仍从各 0 到各 1 并保持在 1。未证实本次事件实际替换了 JBR timer 的目标，也没有证明浏览器层回到原基线。对应 `preview-selection-{baseline,open,closed,other-list}.hist`。
+
+## 2026-11-20 预览组件分离与最终原生回归
+
+旧包的堆记录显示 macOS JBR 辅助功能仍可暂时持有已关闭的 Swing 树。定向回归把 HTML 面板实际挂入预览容器并关闭，旧代码失败，组件仍有 parent。修复在释放 viewer 和 HTML 面板之前先移除预览内容。只处理 Doc View 自己的组件，没有调用 JBR 内部 API。
+
+冻结包 ZIP SHA-256 `a389dce4c82b991071e0ce0351597489b1c3b17345ee20d625e00676b4f166e7`，安装 JAR `53bed374acd5b9dbb5a49a11f7b9dcc1c64bba888e49713e8f2c35ddfc46b305`。定向测试 21/21；全量标准 Gradle 测试 99 suites、582 项，0 失败、错误或跳过。构建、配置检查通过，同 ZIP 在 `263.7031.23` 与 `263.7307.200` 的 Verifier 1.411 均 Compatible，各 16 处已知 Experimental API。复验日志和哈希在 `build/openspec-closure-20261120/`。
+
+同一包在正式 IU `263.7307.200`、JBR 25、macOS Apple Silicon 验收：
+
+- 仅打开 Markdown 源码预览不会创建 HTML panel 或新增 browser。基线为 2 个 editor、0 个 PreviewForm/MarkdownJCEFHtmlPanel、1 个宿主已有 RemoteBrowser。源码预览为 3/1/0/1，切换 HTML 后为 3/1/1/2。按 Esc 后面板归零、浏览器回到 1，后续 live GC 中四个计数全部恢复到 2/0/0/1，原 Java 编辑器可用。Spring 批量导出关闭后的采样同样恢复至基线。
+- 同一会话重开恢复 HTML 模式。Spring GET、JSON、Form 连续切换后最终显示 `/native/form` 和 POST；批量导出 `HttpAcceptanceController.md` 含三条路径。整类 Dubbo 预览显示 `FictionalAnnotatedService#annotatedCatalog` 与 Dubbo 标记，单项导出也回读到对应签名。既有定向测试覆盖旧结果迟到。
+- 空类显示“没有 Doc View 内容。”。独立虚构项目的无效 Velocity 模板在 HTML 与源码都显示“渲染 Doc View 失败。”。失败预览关闭后最终未见 PreviewForm 或新增 MarkdownJCEFHtmlPanel/RemoteBrowser。初始化或开始显示失败的资源释放由 EditorFactory 夹具覆盖。
+- 同一 ZIP 在另一次隔离启动中用 JDI 只暂停预览 worker，实际按 `⌘⇧F2` 并选中“Doc View 预览”。IDEA 显示“正在停止”，BridgeTaskSupport 记录 UI cancellation，放行后未见迟到内容重新打开 popup。第一轮旧诊断器也调用了 indicator cancel，保留该轮但不算独立原生触发证据。独立一轮只用 JDI 调用活动任务的 indicator cancel 以保留前台窗口，真实 HTML 和源码都显示“已取消加载 Doc View。”，随后 Esc 关闭。
+- 调试轮次复查发现有一个仍未关闭的 Pin 弹窗，JDI 读回 `disposed=false`。关闭该虚构项目后，live GC 中 PreviewForm、MarkdownJCEFHtmlPanel 和 RemoteBrowser 均归零。此轮按项目生命周期验收。相应日志未出现 Markdown HTML 根结构或 EDT PSI read-access 错误。插件热卸载不在本 change 验收内。
+
+原生样本见 `jcef-native-{baseline,source,html,closed,settled,export-closed,failure-settled}.hist` 与 `jcef-cancel-project-settled.hist`，诊断器输出见 `jcef-native-cancel-clean.log`、`jcef-visible-cancel.log`。本轮还看到 GET 文档冗余的 Content-Type，已交由共享 Spring 文档模型路径独立核查。

@@ -9,9 +9,22 @@
 ### Requirement: 预览拥有并释放其 UI 资源
 每个预览 popup MUST 在关闭时释放本次创建的源码 viewer 和 HTML 预览资源；若初始化或显示失败，也 MUST 释放已创建的资源。释放一个预览 MUST 保持其他编辑器可用。
 
+#### Scenario: 从源码切换到 HTML
+- **WHEN** 用户打开默认 Markdown 源码预览
+- **THEN** 只创建源码 viewer
+- **AND** 用户首次切换到 HTML 时才创建当前 popup 的 HTML 面板，并使用后台 renderer 显示当前文档或状态
+- **AND** 首次切换发生在源码渲染进行中时，当前渲染的最终正文仍须显示，切换不得清空可复制的已生成正文
+- **AND** 如果 JCEF 不可用，源码预览保持可用
+
+#### Scenario: 在当前 IDE 会话重开预览
+- **WHEN** 用户已选择 HTML 并打开另一个预览
+- **THEN** JCEF 可用时新的预览用自身的 HTML 面板恢复所选模式
+- **AND** 新窗口和仍打开的窗口各自保持自己的面板及显示状态，JCEF 不可用时显示源码
+
 #### Scenario: 关闭已打开的 popup
 - **WHEN** 已创建源码 viewer 的预览 popup 被关闭
 - **THEN** viewer 和已创建的 HTML 预览资源均被释放，其他编辑器仍可使用
+- **AND** 已安装的预览组件从 popup 内容容器移除，即使平台暂时还持有已关闭的界面
 
 #### Scenario: 预览未能显示
 - **WHEN** 预览初始化、popup 创建或显示失败，且此前已创建预览资源

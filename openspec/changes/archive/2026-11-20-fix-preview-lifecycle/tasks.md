@@ -12,7 +12,7 @@
 ## 2. 建立预览资源所有权
 
 - [x] 2.1 将源码 `Document`、viewer 和文档加载延迟到 popup 显示流程；由 popup 所有者释放 viewer 并使关闭后的回调失效。自动测试覆盖未显示 form 不分配 editor、关闭或 show 失败后 viewer 数量恢复基线且无关 editor 保留；round7 中 `PreviewLifecycleTest` 10/10 通过。
-- [ ] 2.2 在 JCEF 可用的目标 IDE 验证 HTML panel 仅在需要的 preview 生命周期中创建，并在关闭/失败路径释放。429 候选已有三轮 HTML 关闭后 renderer 子进程退出证据；但关闭后的 `PreviewForm` 样本仍为 1，且本轮卸载留下 56 条 Doc View 类直方图记录。当前记录不足以关闭完整 panel 按需创建/失败释放及资源归属项；不得以 renderer 子进程退出或其他包的卸载通过代替。
+- [x] 2.2 正式 IU 263.7307.200 同包验证源码不创建 JCEF、HTML 首次切换增量资源、正常及模板失败关闭后面板/浏览器恢复基线；初始化或显示失败的资源释放有定向 EditorFactory 证据。见[组件分离与最终原生回归](verification.md#2026-11-20-预览组件分离与最终原生回归)。
 
 ## 3. 完成预览请求和状态生命周期
 
@@ -24,7 +24,7 @@
 
 - [x] 4.1 将 Markdown 与可选 HTML 字符串生成放到后台任务，按需在后台读取 PSI/VFS；在 EDT 更新 editor、HTML panel 和状态。round7 中 `PreviewLifecycleTest` 10/10、`SpringMarkdownContractTest` 1/1 通过；Spring/Dubbo 测试断言模板生成在后台线程、Document 更新在 EDT。该 fixture 禁用 JCEF，HTML 分支的实际运行仍见 1.4/2.2。
 - [x] 4.2 运行 `./gradlew test verifyPluginProjectConfiguration buildPlugin verifyPlugin --rerun-tasks` 并记录自动验证结果。round8 共执行 18/18 个 Gradle task，96 tests passed；IU 261.22158.277 Plugin Verifier Compatible，未报告 deprecated/experimental API。
-- [ ] 4.3 在目标 IDE 验证 Spring 与 Dubbo 预览成功、空/失败/取消终态、快速切换后旧结果不覆盖新选择、关闭 popup 后 viewer 数量回到关闭前基线、单项与批量导出可用；JCEF 可用时验证 HTML 状态替换和 panel 释放。429 候选补齐了状态、受控迟到 JSON、在途关闭、复制及单项导出，但同一候选的 Spring/Dubbo 整类预览、批量导出及完整 viewer 基线矩阵仍未形成可勾验收，故保持未完成。
+- [x] 4.3 最终同包在正式 IU 完成 Spring/Dubbo 整类预览、连续选择、空/失败/取消终态、原生取消、单项/批量导出读回及关闭后 viewer/JCEF 基线。诊断窗口的介入、平台暂时持有和项目关闭证据分别记录。见[最终原生回归](verification.md#2026-11-20-预览组件分离与最终原生回归)。
 - [x] 4.4 修复目录选择回调在 EDT 解引用 PSI 的问题：列表加载的后台 read action 捕获限定类名元数据，selection listener 只使用快照；新增测试先以旧实现 RED，再复验修复后结果。`PreviewLifecycleTest` 全类 13/13 通过，证据见 verification；新候选 IDEA 日志复查另见 4.5。
 - [x] 4.5 在包含 4.4 修复的新候选 IDEA 中原生选择预览目录项并检查 `idea.log`，确认没有对应 `ThreadingAssertions`/无 read access 错误；保留候选、IDE build、动作和日志范围证据。429 候选 PID 71085 的原生 selection assertion 与五类日志模式检查均无命中，证据见 verification。
 - [x] 4.6 在包含状态 HTML 修复的新候选和 JCEF 可用的目标 IDEA 中原生触发加载、空结果、失败与取消状态，确认状态可见、不会覆盖后续正文，关闭时 panel 释放，且 IDEA 日志不再出现 Markdown 预览结构错误；与 4.3 集成验收同包记录。429 候选已完成该预览状态/JCEF 子进程路径；这不替代 4.3 整类预览/导出矩阵或插件热卸载验收。

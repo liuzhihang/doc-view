@@ -2,15 +2,15 @@
 
 ## Context
 
-动机和范围见 [proposal.md](proposal.md)。当前 `PreviewForm` 在字段初始化时创建 Markdown `Document`，构造期间布局并创建 viewer，随后立即启动文档加载；`popup()` 之后才创建并显示 `JBPopup`（[PreviewForm.java#L79](../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L79)、[lines 186–197](../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L186)、[lines 220–243](../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L220)、[lines 394–420](../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L394)）。viewer 没有释放。IU-262 原生日志已将 `EditorView` 泄漏归到 `markdownSourcePanel()`；HTML panel 仅在 JCEF 可用时创建。
+动机和范围见 [proposal.md](proposal.md)。当前 `PreviewForm` 在字段初始化时创建 Markdown `Document`，构造期间布局并创建 viewer，随后立即启动文档加载；`popup()` 之后才创建并显示 `JBPopup`（[PreviewForm.java#L79](../../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L79)、[lines 186–197](../../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L186)、[lines 220–243](../../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L220)、[lines 394–420](../../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L394)）。viewer 没有释放。IU-262 原生日志已将 `EditorView` 泄漏归到 `markdownSourcePanel()`；HTML panel 仅在 JCEF 可用时创建。
 
-文档加载和渲染使用 `DocViewBackgroundTasks`。它会静默捕获 `ProcessCanceledException`，其他错误只调用通用错误回调（[DocViewBackgroundTasks.java#L22](../../../src/main/java/com/liuzhihang/doc/view/utils/DocViewBackgroundTasks.java#L22)、[lines 51–80](../../../src/main/java/com/liuzhihang/doc/view/utils/DocViewBackgroundTasks.java#L51)）。因此当前“Loading/Rendering”提示在这些路径上没有终态。已有渲染请求编号只保护成功的 Markdown 应用；`applyMarkdown()` 仍在 EDT 内生成 HTML 字符串（[PreviewForm.java#L654](../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L654)、[lines 702–742](../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L702)）。单次 Dubbo 卡在“Rendering Doc View...”的观察没有对应异常或已确认根因，本 change 不将它描述为已定位的故障。
+文档加载和渲染使用 `DocViewBackgroundTasks`。它会静默捕获 `ProcessCanceledException`，其他错误只调用通用错误回调（[DocViewBackgroundTasks.java#L22](../../../../src/main/java/com/liuzhihang/doc/view/utils/DocViewBackgroundTasks.java#L22)、[lines 51–80](../../../../src/main/java/com/liuzhihang/doc/view/utils/DocViewBackgroundTasks.java#L51)）。因此当前“Loading/Rendering”提示在这些路径上没有终态。已有渲染请求编号只保护成功的 Markdown 应用；`applyMarkdown()` 仍在 EDT 内生成 HTML 字符串（[PreviewForm.java#L654](../../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L654)、[lines 702–742](../../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L702)）。单次 Dubbo 卡在“Rendering Doc View...”的观察没有对应异常或已确认根因，本 change 不将它描述为已定位的故障。
 
 2026-11-09 的 IU 263.7307.200 原生日志发现另一项已定位的线程错误：用户在目录列表中选择预览项时，`PreviewForm.lambda$applyDocViewList$1` 从 EDT 直接调用 `currentDocView.getPsiClass().getQualifiedName()`；`idea.log` 报 `Read access is allowed from inside read-action only`，调用栈经 `JList.fireSelectionValueChanged`。该日志来自 `build/native-validation/2026-11-08/unload-clean/log/idea.log:48085` 附近。此前预览画面成功不能证明日志无线程错误。
 
 同一候选的 JCEF 日志还在 02:28:41 与 02:58:00 记录 `MarkdownJCEFHtmlPanel - Failed to update the Markdown preview`，浏览器侧异常为 `First body child is expected to be the root of the document!`。当前 `showPreviewStatus()` 自行拼接 `<html><body><p>…</p></body></html>` 后交给 Markdown panel；平台 Markdown JCEF 的滚动同步脚本要求 renderer 生成的文档根节点/源码位置结构。第一条日志附近没有取消或关闭事件；第二条发生在一次预览取消后，说明取消会走到该状态路径，但相同错误也能独立发生，现有证据不支持将它归因为 panel dispose 竞态。Java 调用栈在异步 JS worker 处终止，没有足够信息确认每次错误对应的具体 `setHtml()` 调用；将状态 HTML 改为复用当前公开 Markdown renderer，并在新状态、正文应用或关闭时使待处理状态结果失效，再以 JCEF 日志复验。
 
-Export 与 Export All 当前先取消 popup，再读取实例字段（[PreviewForm.java#L538](../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L538)、[lines 590–601](../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L590)）。关闭处理若清空这些字段，导出会读到空值，因此动作必须先取得所需快照。
+Export 与 Export All 当前先取消 popup，再读取实例字段（[PreviewForm.java#L538](../../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L538)、[lines 590–601](../../../../src/main/java/com/liuzhihang/doc/view/ui/PreviewForm.java#L590)）。关闭处理若清空这些字段，导出会读到空值，因此动作必须先取得所需快照。
 
 ## Goals / Non-Goals
 
@@ -26,14 +26,14 @@ Export 与 Export All 当前先取消 popup，再读取实例字段（[PreviewFo
 **Non-Goals:**
 
 - 推断或专门修复那次尚未定位根因的 Dubbo 停滞。
-- 重排 popup UI、增加重试控件，或改变 Markdown 输出、导出格式、上传 payload/protocol 和共享任务工具语义。为遵守凭据读取的线程要求，单项 Upload 入口复用已有的 `upload(project, docView)` 后台 wrapper；凭据及集成设置行为由[集成凭据 change](../archive/2026-11-20-integration-credential-storage/proposal.md)定义。
+- 重排 popup UI、增加重试控件，或改变 Markdown 输出、导出格式、上传 payload/protocol 和共享任务工具语义。为遵守凭据读取的线程要求，单项 Upload 入口复用已有的 `upload(project, docView)` 后台 wrapper；凭据及集成设置行为由[集成凭据 change](../2026-11-20-integration-credential-storage/proposal.md)定义。
 - 增加通用任务调度架构或生产依赖。
 
 ## Decisions
 
 ### 延迟创建资源并由 popup 释放
 
-将资源性初始化（`Document`、viewer、可选 HTML panel）和文档加载从构造函数移到 `popup()` 的显示流程中。尚未调用 `popup()` 的 form 不创建这些资源或后台任务。`PreviewForm` 实现可释放所有者；创建 popup 后将其注册为 popup 的子 disposable。关闭时统一取消当前任务、使请求失效、调用 `EditorFactory.releaseEditor` 释放 viewer，并释放已创建的 HTML panel。初始化、popup 构造或 `show` 抛错时走同一幂等清理路径。构造/布局途中若 viewer 已创建，则捕获异常并先清理再抛出。目标平台的 `JBPopup` 实现公开 `Disposable`；`Editor` 本身通过 `EditorFactory.releaseEditor` 释放。
+将资源性初始化（`Document`、viewer、可选 HTML panel）和文档加载从构造函数移到 `popup()` 的显示流程中。尚未调用 `popup()` 的 form 不创建这些资源或后台任务。 默认源码模式不调用 JCEF provider。首次切换到 HTML 时创建当前 popup 的面板，先渲染当前可见的 Markdown 或状态；若正在生成且开始时没有面板，在本次正文到达后后台补渲染 HTML。正文完成、新选择与关闭都沿用现有代次保护。 会话记住最后选择的模式，具体显示模式属于每个 popup。已选 HTML 时重开预览会初始化新面板；JCEF 不可用时直接显示源码。`PreviewForm` 实现可释放所有者；创建 popup 后将其注册为 popup 的子 disposable。关闭时统一取消当前任务、使请求失效、调用 `EditorFactory.releaseEditor` 释放 viewer，并释放已创建的 HTML panel。初始化、popup 构造或 `show` 抛错时走同一幂等清理路径。构造/布局途中若 viewer 已创建，则捕获异常并先清理再抛出。目标平台的 `JBPopup` 实现公开 `Disposable`；`Editor` 本身通过 `EditorFactory.releaseEditor` 释放。
 
 替代方案：仅关闭 HTML panel 会留下原生日志确认的 `EditorView` 泄漏；只依赖项目关闭会让每个已关闭 preview 的资源保留到项目退出。延迟初始化使从未展示的 form 不持有 editor 或后台任务。
 

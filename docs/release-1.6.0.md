@@ -151,9 +151,9 @@ OS 凭据授权拒绝、异步写入失败后的重试也未在最终包原生�
 
 ### 功能验收摘要（历史阶段）
 
-**[`fix-preview-lifecycle`](../openspec/changes/fix-preview-lifecycle/proposal.md)**
+**[`fix-preview-lifecycle`](../openspec/changes/archive/2026-11-20-fix-preview-lifecycle/proposal.md)**
 
-预览生成、后台任务列表和渲染切换已实现并完成自动验证；原生打开/重开与主题场景已验。JCEF 预览窗口关闭及释放的剩余边界见[验证记录](../openspec/changes/fix-preview-lifecycle/verification.md)。
+预览生成、后台任务列表和渲染切换已实现并完成自动验证；原生打开/重开与主题场景已验。JCEF 预览窗口关闭及释放的剩余边界见[验证记录](../openspec/changes/archive/2026-11-20-fix-preview-lifecycle/verification.md)。
 
 **[`integration-credential-storage`](../openspec/changes/archive/2026-11-20-integration-credential-storage/proposal.md)**
 
