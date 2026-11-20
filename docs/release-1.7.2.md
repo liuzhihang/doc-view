@@ -1,6 +1,6 @@
 # Doc View 1.7.2 发布记录
 
-最终包已构建。GitHub Release 与 Marketplace 状态以实际发布后的工件和官方接口回读为准。
+GitHub Release 已公开。JetBrains Marketplace 已收到稳定通道更新 `1225101`，提交后公开列表仍显示 1.7.1，1.7.2 等待审核和上架。
 
 ## 版本与兼容性
 
@@ -31,10 +31,12 @@ Gradle 以 IDEA 的 JBR 25 作为 `org.gradle.java.home`，执行 `./gradlew --o
 
 ## GitHub 和 Marketplace
 
-| 项目 | 发布前状态 |
+| 项目 | 2026-11-20 发布回读 |
 | --- | --- |
-| GitHub `v1.7.2` | 待发布 |
-| JetBrains Marketplace 1.7.2 | 待提交，1.7.1 已公开 |
+| GitHub `v1.7.2` | [公开 Release](https://github.com/liuzhihang/doc-view/releases/tag/v1.7.2)，tag 指向 `master` 上的 `19a9c276a5bebe2c3318f46784ebcbd874610ff5`。重新下载 `Doc.View-1.7.2.zip`，按公开 `SHA256SUMS` 校验通过，与本地发行 ZIP 字节一致。 |
+| JetBrains Marketplace 1.7.2 | 官方上传 API 返回 HTTP 201，更新 `1225101`、稳定通道，`approve=false`、`listed=false`，最低 build `263.7307.200`。公开列表仍为 1.7.1。 |
+
+[Marketplace 下载接口](https://plugins.jetbrains.com/plugin/download?updateId=1225101) 已返回该更新对应的包。Marketplace 重新封装外层 ZIP，下载 SHA-256 为 `88b3b9290e7f1796b5a3c5bdd11af25ee56c89b5eb1fe5a291e751777f3ee53d`；唯一文件条目主 JAR 与 GitHub 包的 JAR 字节完全相同。下载回读成立时，1.7.2 仍未在 Marketplace 公开列表出现。
 
 1.7.2 只发插件 ZIP。公开下载器在两份 Skill 附件均缺失时继续查询较早稳定版本。只缺一个附件会报错。Skill 包继续从官方 v1.7.1 取得，见[发行说明](skill-release.md)。
 
