@@ -4,7 +4,7 @@
 
 动机和范围见[提案](proposal.md)。现有项目导出器从后台 PSI 快照生成 Markdown 页面和 `index.md`，通过 marker、hash、暂存和逐文件原子替换保护已有文件；它不提供结构化查询数据，也不保证整批文件事务。`ProjectDocumentIdentity` 已提供由模块、项目相对源码路径、类名、方法名和参数类型构成的稳定身份。`DocView` 对象图持有 PSI 和 parent 引用，不能序列化或传入磁盘写入阶段。
 
-本 change 在现有 Markdown 之上新增项目绑定的结构化读模型。项目文档库 UI 由 [`project-document-library-ui`](specs/project-document-library-ui/spec.md) 定义；正式 MCP adapter 的工具参数、MCP 响应和业务错误码由 [`doc-view-mcp-tools`](../../doc-view-mcp-tools/design.md) 定义。
+本 change 在现有 Markdown 之上新增项目绑定的结构化读模型。项目文档库 UI 由 [`project-document-library-ui`](specs/project-document-library-ui/spec.md) 定义；正式 MCP adapter 的工具参数、MCP 响应和业务错误码由 [`doc-view-mcp-tools`](../2026-11-20-doc-view-mcp-tools/design.md) 定义。
 
 ## 目标与非目标
 

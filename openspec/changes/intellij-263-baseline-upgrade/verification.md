@@ -192,7 +192,7 @@ full-10 功能验收只发生在独立 IU `263.7031.23` 实例 PID `44922`；普
 
 以下为 full-8/full-7 阶段的历史记录，自动结果与最终产物已由本页当前结论中的 full-10 更新：当时已批准 Java 25 升级，Codex 门槛、精确目标解析、IPGP 2.17.0 配置、349 项测试、Verifier 和候选 ZIP 检查均已通过，full-7 的 344 项全绿另作历史记录。Verifier 当时仍报告 16 处 Experimental API；IU `263.7031.23` 原生回归仍在独立验收，不能据此宣称生产升级整体通过。固定 EAP snapshot 是解析输入，产品验收 build 为 `IU-263.7031.23`。0.163 历史失败、官方 SDK 补充验证和 263 MCP 服务端探针结论保持为各自范围的证据。
 
-现行发布/仓库基线在变更验收前仍按已验证状态声明；本 change 中的 263/Java25 目标尚未发布。新增[项目文档库/UI计划](../archive/2026-11-19-project-document-store/proposal.md)可独立推进；[正式MCP计划](../doc-view-mcp-tools/proposal.md)仍依赖取消准入及平台升级完整验收。
+现行发布/仓库基线在变更验收前仍按已验证状态声明；本 change 中的 263/Java25 目标尚未发布。新增[项目文档库/UI计划](../archive/2026-11-19-project-document-store/proposal.md)可独立推进；[正式MCP计划](../archive/2026-11-20-doc-view-mcp-tools/proposal.md)仍依赖取消准入及平台升级完整验收。
 
 ### 项目关闭清理 targeted RED/GREEN（2026-11-09）
 

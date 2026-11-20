@@ -30,11 +30,9 @@
 
 ### 2. 正式 MCP 工具
 
-由 [doc-view-mcp-tools](../openspec/changes/doc-view-mcp-tools/proposal.md) 跟踪。按本轮授权，task 1.3 已以明确保留旧原生缺口的方式准入开发；客户端候选的取消准入已经取得证据，但不代表所有客户端版本均可用，详见[取消验收说明](mcp-cancellation.md)。
+内置 MCP 的 OpenSpec 已完成验收。工具作为 Doc View 同一插件内的可选扩展注册到 IDEA MCP Server，与界面共用文档服务。正式工具提供只读 `status/search/get`，以及须由用户明确请求的 `generate`。工具边界见[长期规范](../openspec/specs/doc-view-mcp-tools/spec.md)，落盘结构见[文档库格式](mcp-format.md)。
 
-1.7.1 已在同一 Doc View 插件内通过可选扩展注册到 IDEA MCP Server，与 UI 共用文档服务，提供只读 `status/search/get` 及须由用户明确请求的 `generate`。不另建服务或第二套解析链路。工具契约、项目边界和未完成的取消/生命周期验收以 [tasks](../openspec/changes/doc-view-mcp-tools/tasks.md) 为准；落盘格式见[文档库格式](mcp-format.md)。
-
-最终1.7.1包553项测试通过（0失败/错误/跳过）；两个精确 IDEA build 的 Verifier 均 Compatible，各保留16项 Experimental 提示。本系列对应候选在263.7307.200原生验证真实 Codex 生成取消与查询恢复；最终1.7.1包另通过两范围注入 journal、重启后的恢复。取消必须在精确时机到达的边界、在途退出和其他未覆盖生命周期组合仍未完成；结果及对客户端、build 的限制见[发布记录](release-1.7.1.md)与[取消说明](mcp-cancellation.md)。
+同一开发候选已通过双项目读写隔离、冲突保护、索引提交前后两种真实 Codex 取消、同会话恢复、项目关闭及 IDEA 重启／插件停用。证据见[验收记录](../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/verification-2026-11-20-native-acceptance.md)。
 
 ### 3. 客户端 Skill
 

@@ -2,7 +2,7 @@
 
 ## Context
 
-动机见 [proposal](proposal.md)。生产 descriptor 目前没有 MCP 依赖或扩展，独立 PoC 不随生产包交付。现有 Java `DocView`、`Body`、`Param` 含 PSI/父引用，不可直接作为磁盘或 MCP DTO。文档库与 UI 的服务边界由 [project-document-store](../archive/2026-11-19-project-document-store/design.md) 定义；本 adapter 只负责协议参数、项目绑定、结果编码和取消传播。
+动机见 [proposal](proposal.md)。生产 descriptor 目前没有 MCP 依赖或扩展，独立 PoC 不随生产包交付。现有 Java `DocView`、`Body`、`Param` 含 PSI/父引用，不可直接作为磁盘或 MCP DTO。文档库与 UI 的服务边界由 [project-document-store](../2026-11-19-project-document-store/design.md) 定义；本 adapter 只负责协议参数、项目绑定、结果编码和取消传播。
 
 ## Goals / Non-Goals
 
@@ -49,13 +49,13 @@ generate 的 outcome 为 generated/updated/unchanged；数量按接口计数（�
 
 任务由插件拥有的 project service 负责，方法、递归、查询循环和每个文件发布边界观察同一取消信号。最多四个读任务和一个写任务/项目，超出返回 BUSY；同根多 IDEA 实例由文档库的排他写锁拒绝第二个 writer。不要持有 read action 进行磁盘 IO，不保存 PSI 到后台回调或缓存。
 
-服务端读任务期限5秒、生成120秒；只是防止无界运行，不能代替客户端取消验收。发布取消遵循文档库 design：暂存时零成品变化；已发布部分文件则停止后续 move、旧 index 保留、记录 partial；最终 index 原子提交之后迟到取消不回滚。每个工具只 cleanup 一次，项目关闭和插件卸载必须移除任务、监听器、缓存及工具可见性。
+服务端读任务期限5秒、生成120秒；只是防止无界运行，不能代替客户端取消验收。发布取消遵循文档库 design：暂存时零成品变化；已发布部分文件则停止后续 move、旧 index 保留、记录 partial；最终 index 原子提交之后迟到取消不回滚。每个工具只 cleanup 一次。关闭项目需要终止项目任务并释放监听器、暂存和缓存，IDEA MCP Server 保持运行时验证同一会话可以查询其他项目。插件安装、更新与停用按 `require-restart` 生效。正常退出或重启时核对在途任务和资源释放，并使用新会话核对工具注册状态。
 
-Codex 原因与候选修复见[取消调查](../../../docs/mcp-cancellation.md)。截至 2026-10-24，官方 `0.165.0-alpha.1` app-server 候选已在隔离 IU `263.7031.23` 上完成三轮真实 turn-interrupt 取消、cleanup、无迟到完成和同 session 恢复，候选准入 tasks 1.1/1.2 已通过。`0.163.0-alpha.11.2` 的两轮透明 wire 失败仍保留，不能把结论推广到所有 Codex 版本。候选通过不等于生产插件或生产基线通过；正式实现仍等待文档库最终验收，以及精确 263 生产 build、Verifier 和原生回归。后续根据 initialize 实际协商的协议，记录匹配的通知或响应流取消及服务端 run/cleanup；不只检查 HTTP 202 或 turn=interrupted。
+Codex 原因与候选修复见[取消调查](../../../../docs/mcp-cancellation.md)。截至 2026-10-24，官方 `0.165.0-alpha.1` app-server 候选已在隔离 IU `263.7031.23` 上完成三轮真实 turn-interrupt 取消、cleanup、无迟到完成和同 session 恢复，候选准入 tasks 1.1/1.2 已通过。`0.163.0-alpha.11.2` 的两轮透明 wire 失败仍保留，不能把结论推广到所有 Codex 版本。候选通过不等于生产插件或生产基线通过；正式实现仍等待文档库最终验收，以及精确 263 生产 build、Verifier 和原生回归。后续根据 initialize 实际协商的协议，记录匹配的通知或响应流取消及服务端 run/cleanup；不只检查 HTTP 202 或 turn=interrupted。
 
 ### 5. 验证和版本维护
 
-可执行接口描述在 [tool-contracts.json](tool-contracts.json)，例子在 `examples/`。API 字段/工具名、手册、schemas、golden 和真实 tools/list 必须一起变更；tool-contracts.json 中复制的磁盘 $defs 必须与源 schema 逐项一致并由检查保护，不能独立演进；MCP schemaVersion 与磁盘 schemaVersion 各自独立。第一版拒绝未知版本，不保留旧格式读取分支。
+可执行接口描述在 [tool-contracts.json](tool-contracts.json)，例子在 `examples/`。API 字段/工具名、手册、schemas、golden 和真实 tools/list 必须一起变更；tool-contracts.json 中复制的磁盘 $defs 必须与源 schema 逐项一致并由检查保护，不能独立演进；MCP schemaVersion 与磁盘 schemaVersion 各自独立。 存储格式的实际源文件为[已归档 JSON Schema](../2026-11-19-project-document-store/schemas/document-store.schema.json)。v1 合同内的 `diskSchemaSource` 是发布时的来源标签；Skill 清单校验合同原始字节，因此归档时保持该标签与合同文件不变。第一版拒绝未知版本，不保留旧格式读取分支。
 
 先完成文档库和客户端门槛，再完成精确 IU 生产升级，最后实现此 adapter。先测试 status/search/get 无写盘及 A/B 隔离，随后开放 generate 的真实写入、冲突、取消、partial 与恢复。最终构建、Plugin Verifier、原生 UI 和 MCP 实测分别留证，不能用 unit test 替代。
 

@@ -31,7 +31,7 @@
 
 ## 6. MCP 工作流与集成验收
 
-- [ ] 6.1 等待 [`doc-view-mcp-tools`](../doc-view-mcp-tools/tasks.md) 和 project document store 的生产 contract、IDEA 注册、目标 Codex 实际工具调用/取消/恢复及生命周期准入通过；未通过时保持 Skill release 不可发布，不将 schema、PoC 或隔离验证当生产能力。
+- [x] 6.1 内置 MCP 与项目文档库已分别完成规范、正式注册、真实 Codex 调用和索引提交前后取消、恢复、项目关闭及 IDE 正常重启验收。见[内置 MCP 最终包验收](../archive/2026-11-20-doc-view-mcp-tools/verification-2026-11-20-native-acceptance.md)及[项目文档库](../archive/2026-11-19-project-document-store/tasks.md)。当前 Skill 自然模型验收单独由 6.2 跟踪。
 - [ ] 6.2 在目标 Codex 与 IDEA 生产 MCP Server 组合下验收 Skill：status/search/get 使用正确项目与 snapshot；current/stale/unknown 描述准确；无文档库时不 generate；明确要求生成后才调用 generate；注释/工具内容不能授权写入；保存脱敏的工具列表、调用结果、源快照和 UI 证据。
 - [ ] 6.3 更新用户指南与变更说明，准确列出已验证 Codex build、Project/User 目录、官方来源、版本兼容性、离线/冲突/重启行为和仍不支持项；检查所有新链接并运行 `openspec validate doc-view-client-skill --strict`、`git diff --check`。
 - [ ] 6.4 按发布清单运行 `./gradlew test`、`./gradlew verifyPluginProjectConfiguration`、`./gradlew buildPlugin` 和 `./gradlew verifyPlugin`；对最终安装包运行目标 IDEA 原生设置/安装/更新/失败恢复回归。每个检查分别记录实际 build、结果和跳过项，不能以客户端 Skill 已可见替代插件验证。
@@ -46,7 +46,7 @@
 
 2026-11-13 最终候选：3.1/3.2依据531项全量检查、两范围独立状态文件及真实IDEA退出重启/离线保留时间的验收勾选；这不代表官方安装按钮或安装journal重启恢复通过。最新包身份、两build Verifier、可选加载、MCP取消时序失败及复验见[最终候选记录](verification-2026-11-13-final-candidate.md)。
 
-2026-11-13 发布门槛续验：修复VFS新鲜度与Skill提交竞争后，547项测试、构建、平台配置及两build Verifier通过；4.1/4.2据此勾选。真实自然模型补齐current/stale/unknown、无库不生成、明确授权生成和注释伪指令隔离，实际Codex补齐页面发布中取消。完整原生/官方发行来源的聚合任务仍不整体勾选，见[续验记录](../doc-view-mcp-tools/verification-2026-11-13-release-gates.md)。
+2026-11-13 发布门槛续验：修复VFS新鲜度与Skill提交竞争后，547项测试、构建、平台配置及两build Verifier通过；4.1/4.2据此勾选。真实自然模型补齐current/stale/unknown、无库不生成、明确授权生成和注释伪指令隔离，实际Codex补齐页面发布中取消。完整原生/官方发行来源的聚合任务仍不整体勾选，见[续验记录](../archive/2026-11-20-doc-view-mcp-tools/verification-2026-11-13-release-gates.md)。
 
 2026-11-13 最终回归：549项全量复验0失败/错误/跳过。首轮中新增VFS create 测试因夹具未预加载目录 children 而未观察到 create event；保留该失败记录，修正测试夹具后 `ProjectDocumentIndexServiceTest` 20项定向检查通过，随后549项全量复验通过。该失败是测试夹具准备问题，不作为生产缺陷证据。准确记录位于 `build/mcp-release-gates-2026-11-13/final-549-r1-test-results/`、`final-549-test-results/` 与 `final-549-counts.json`。这些结果针对已验收的 `1.7.0-SNAPSHOT` 候选；正式 `1.7.0` 包的后续结果见下一段。
 

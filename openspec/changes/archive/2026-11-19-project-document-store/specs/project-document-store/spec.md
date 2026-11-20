@@ -4,7 +4,7 @@
 
 为当前 IDEA 项目提供可校验、可分页的 Doc View 结构化文档库，使接口搜索和详情读取复用已生成快照，而不重新扫描源码或解析自定义 Markdown。
 
-存储与查询错误码 MUST 使用 [MCP design](../../../../doc-view-mcp-tools/design.md) 定义的大写枚举，不得引入小写别名。存储场景使用 `INDEX_NOT_FOUND`、`UNSUPPORTED_SCHEMA`、`INDEX_INVALID`、`INDEX_INCONSISTENT`、`API_NOT_FOUND`、`CURSOR_STALE`、`SNAPSHOT_CHANGED`、`BUSY`、`CONFLICT`、`SOURCE_CHANGED`、`LIMIT_EXCEEDED`、`CANCELLED`、`TIMEOUT`、`PARTIAL_PUBLICATION` 和 `IO_ERROR`；参数错误使用 `INVALID_ARGUMENT`。
+存储与查询错误码 MUST 使用 [MCP design](../../../2026-11-20-doc-view-mcp-tools/design.md) 定义的大写枚举，不得引入小写别名。存储场景使用 `INDEX_NOT_FOUND`、`UNSUPPORTED_SCHEMA`、`INDEX_INVALID`、`INDEX_INCONSISTENT`、`API_NOT_FOUND`、`CURSOR_STALE`、`SNAPSHOT_CHANGED`、`BUSY`、`CONFLICT`、`SOURCE_CHANGED`、`LIMIT_EXCEEDED`、`CANCELLED`、`TIMEOUT`、`PARTIAL_PUBLICATION` 和 `IO_ERROR`；参数错误使用 `INVALID_ARGUMENT`。
 
 ## ADDED Requirements
 

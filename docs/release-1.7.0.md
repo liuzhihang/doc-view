@@ -20,11 +20,11 @@ Skill 自动安装目前只验证 macOS Apple Silicon 和 `codex-cli 0.167.0-alp
 
 随后修正 VFS create 测试夹具未预加载目录 children 的问题：首轮 549 项全量检查保留了该夹具断言失败；调整夹具后，`ProjectDocumentIndexServiceTest` 的20项定向检查通过，最终549项复验通过（0失败/错误/跳过）。这次失败定位到测试夹具没有触发预期的真实 VFS create event，不是已知生产代码缺陷。原始失败与复验结果均保留在 `build/mcp-release-gates-2026-11-13/final-549-r1-test-results/`、`final-549-test-results/` 和 `final-549-counts.json`。
 
-最低支持版本 IU 263.7031.23 的官方 Apple Silicon DMG 已完成身份校验并在隔离 profile 原生运行：DMG SHA-256 `c173e165d6365387302694d1fd9cd0d3b02f420f4af942fcd9ed80a37e1c00d2`，包内 JBR 为 `25.0.4.1+1-b635.72`，测试插件 JAR SHA-256 `fe48995947f91d782091f420751a2c977bbc8b40c3879f26ebdffa017b8fe2cc`。在同一候选包上，三项只读 MCP 工具完成 A/B 项目、schema、Dumb Mode、只读文件指纹和错误路径原生查询；另完成 MCP 启用与禁用重启路径。禁用时 Doc View 窗口和目录仍可用，127 个 Doc View 类加载、0 个 MCP adapter 类加载。物理移除 MCP 插件未测试。此前 SDK 与 App 混合启动仅作为诊断尝试，不计作完整原生验收。详细数据见[续验记录](../openspec/changes/doc-view-mcp-tools/verification-2026-11-13-release-gates.md)。
+最低支持版本 IU 263.7031.23 的官方 Apple Silicon DMG 已完成身份校验并在隔离 profile 原生运行：DMG SHA-256 `c173e165d6365387302694d1fd9cd0d3b02f420f4af942fcd9ed80a37e1c00d2`，包内 JBR 为 `25.0.4.1+1-b635.72`，测试插件 JAR SHA-256 `fe48995947f91d782091f420751a2c977bbc8b40c3879f26ebdffa017b8fe2cc`。在同一候选包上，三项只读 MCP 工具完成 A/B 项目、schema、Dumb Mode、只读文件指纹和错误路径原生查询；另完成 MCP 启用与禁用重启路径。禁用时 Doc View 窗口和目录仍可用，127 个 Doc View 类加载、0 个 MCP adapter 类加载。物理移除 MCP 插件未测试。此前 SDK 与 App 混合启动仅作为诊断尝试，不计作完整原生验收。详细数据见[续验记录](../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/verification-2026-11-13-release-gates.md)。
 
 真实Codex取消首次立即状态检查失败，查明为协作式清理时序后修正harness，生产实现未改；两次有界复验分别5.703/70.351ms清理，同session恢复查询false，文档不变。完整包身份、命令、失败保留和证据边界见[最新候选验收](../openspec/changes/doc-view-client-skill/verification-2026-11-13-final-candidate.md)。
 
-新包实际Codex在52/9000个页面已发布时取消生成，匹配的协议通知、旧索引保护及同session恢复通过，观察到清理约2.45秒；最终index提交后迟到取消仍只有自动测试证据。真实自然模型按Skill验证了缺少文档时不生成、显式生成、注释伪指令隔离，以及current/stale/unknown查询语义。旧源码下的stale失败及首轮取消harness超时均保留。该原生候选ZIP SHA-256为 `e6c64025ef250a34b272467e6d7887e0fc50a13e65ef9b4eb1652aca785297f4`，详见[续验记录](../openspec/changes/doc-view-mcp-tools/verification-2026-11-13-release-gates.md)。
+新包实际Codex在52/9000个页面已发布时取消生成，匹配的协议通知、旧索引保护及同session恢复通过，观察到清理约2.45秒；最终index提交后迟到取消仍只有自动测试证据。真实自然模型按Skill验证了缺少文档时不生成、显式生成、注释伪指令隔离，以及current/stale/unknown查询语义。旧源码下的stale失败及首轮取消harness超时均保留。该原生候选ZIP SHA-256为 `e6c64025ef250a34b272467e6d7887e0fc50a13e65ef9b4eb1652aca785297f4`，详见[续验记录](../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/verification-2026-11-13-release-gates.md)。
 
 首次项目和全局安装使用官方 GitHub v1.7.0 release 资产；IDEA 均显示 Skill 1.7.0 已安装并由 Codex 发现。随后官方更新检查受 GitHub 匿名 API 限流（403、remaining=0）阻断，显示离线状态，先前 Skill 与 metadata 字节保持未变。为验证重启恢复，在隔离项目和隔离用户 HOME 写入旧目录备份与有效 journal 后重启 IDEA。设置页检测到项目范围的恢复待处理状态，但主按钮被禁用，未能从原生 UI 触发恢复，验收失败。全局范围在此轮重启后的 UI 状态未单独打开检查。该 journal 是测试夹具注入，不是 IDEA 在真实进程崩溃中自然留下；独立子 JVM 故障恢复测试仍通过，不能替代本次原生按钮失败。
 
@@ -45,7 +45,7 @@ Skill 自动安装目前只验证 macOS Apple Silicon 和 `codex-cli 0.167.0-alp
 
 ## 正式包身份
 
-正式1.7.0的549项测试、构建和配置检查已通过，两精确build的Verifier均Compatible（各16项Experimental提示，无Internal/Deprecated/兼容性问题）。ZIP SHA-256为 `03ab0ce539ea2d60c0c63bf563419f510e427d07858c219ed103eb95ebd69306`，JAR为 `19d4a324484bb03492789d8d6990a8ce89950aab524191bcde003995e13bcf69`；408个class与上述原生候选字节一致，仅版本与发布说明/契约标题资源变化。正式包首次检查中测试硬编码SNAPSHOT的失败已修正并复验；详情见[正式包记录](../openspec/changes/doc-view-mcp-tools/verification-2026-11-13-release-gates.md#正式版本包复验待发布)。这不代替官方Skill资产与IDEA按钮验收。
+正式1.7.0的549项测试、构建和配置检查已通过，两精确build的Verifier均Compatible（各16项Experimental提示，无Internal/Deprecated/兼容性问题）。ZIP SHA-256为 `03ab0ce539ea2d60c0c63bf563419f510e427d07858c219ed103eb95ebd69306`，JAR为 `19d4a324484bb03492789d8d6990a8ce89950aab524191bcde003995e13bcf69`；408个class与上述原生候选字节一致，仅版本与发布说明/契约标题资源变化。正式包首次检查中测试硬编码SNAPSHOT的失败已修正并复验；详情见[正式包记录](../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/verification-2026-11-13-release-gates.md#正式版本包复验待发布)。这不代替官方Skill资产与IDEA按钮验收。
 
 ## GitHub 发布结果
 

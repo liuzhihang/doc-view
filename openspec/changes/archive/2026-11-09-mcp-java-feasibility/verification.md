@@ -286,4 +286,4 @@ Codex 直接 app-server 调用三轮均将 turn 标记为 `interrupted`，后续
 
 普通 Codex 全局配置内容没有读取。本轮观察到的当前 hash 与先前基线不同，来源未知；不声称字节未变、不归因，也未尝试恢复。测试使用临时 app-server 进程配置覆盖；这只说明没有主动读取或恢复普通配置，不能证明该配置此前或本轮期间保持 byte-identical。
 
-据此 PoC task 2.4 已完成；资源边界仍只覆盖已有的有限 IU 263 探针场景。生产平台仍是 IU 261。用户已批准精确 `IU-263.7031.23` / JBR 25 生产基线升级，目前正在构建；本记录没有运行 Gradle、Plugin Verifier 或生产插件原生回归，也不声称升级通过。正式 MCP 工具仍未注册或实现，见 [doc-view-mcp-tools tasks](../../doc-view-mcp-tools/tasks.md)；其 task 1.3 保持未勾选，等待生产基线与文档库最终验收。
+据此 PoC task 2.4 已完成；资源边界仍只覆盖已有的有限 IU 263 探针场景。生产平台仍是 IU 261。用户已批准精确 `IU-263.7031.23` / JBR 25 生产基线升级，目前正在构建；本记录没有运行 Gradle、Plugin Verifier 或生产插件原生回归，也不声称升级通过。正式 MCP 工具仍未注册或实现，见 [doc-view-mcp-tools tasks](../2026-11-20-doc-view-mcp-tools/tasks.md)；其 task 1.3 保持未勾选，等待生产基线与文档库最终验收。

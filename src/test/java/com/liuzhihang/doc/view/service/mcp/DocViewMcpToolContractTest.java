@@ -57,7 +57,7 @@ public final class DocViewMcpToolContractTest extends LightJavaCodeInsightFixtur
 
     public void testSchemasAndExamplesUseOneStrictInputContract() throws Exception {
         Path schemaFile = Path.of("src/main/resources/mcp/tool-contracts.json");
-        Path proposalSchema = Path.of("openspec/changes/doc-view-mcp-tools/tool-contracts.json");
+        Path proposalSchema = Path.of("openspec/changes/archive/2026-11-20-doc-view-mcp-tools/tool-contracts.json");
         assertTrue("The packaged contract schema must be present", Files.isRegularFile(schemaFile));
         assertEquals("Packaged MCP schema must be an exact copy of the OpenSpec contract",
                 Files.readString(proposalSchema), Files.readString(schemaFile));

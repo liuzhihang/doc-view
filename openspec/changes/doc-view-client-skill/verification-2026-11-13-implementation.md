@@ -1,6 +1,6 @@
 # Skill 实现与设置页验收（2026-11-13）
 
-本轮在隔离工作区实现1.7开发候选；原工作区和Junie保留，未安装到真实用户Skill目录，未创建或发布Skill Release。发现矩阵见[客户端发现记录](verification-2026-11-12-discovery.md)，MCP包身份和调用证据见[MCP记录](../doc-view-mcp-tools/verification-2026-11-12.md)。
+本轮在隔离工作区实现1.7开发候选；原工作区和Junie保留，未安装到真实用户Skill目录，未创建或发布Skill Release。发现矩阵见[客户端发现记录](verification-2026-11-12-discovery.md)，MCP包身份和调用证据见[MCP记录](../archive/2026-11-20-doc-view-mcp-tools/verification-2026-11-12.md)。
 
 ## 已实现
 

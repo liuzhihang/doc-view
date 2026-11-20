@@ -2,7 +2,7 @@
 
 ## Context
 
-动机和用户可见范围见 [proposal](proposal.md)；行为以 [capability spec](specs/doc-view-client-skill/spec.md) 为准。当前项目已有计划中的 [MCP tools](../doc-view-mcp-tools/proposal.md) 与 [project document store](../archive/2026-11-19-project-document-store/proposal.md)，但生产 MCP/Skill 尚未交付。目标是为单个官方 Doc View Skill 定义发布与本地安装生命周期，不增加另一份 MCP 工具实现或项目文档格式。
+动机和用户可见范围见 [proposal](proposal.md)；行为以 [capability spec](specs/doc-view-client-skill/spec.md) 为准。当前项目已有计划中的 [MCP tools](../archive/2026-11-20-doc-view-mcp-tools/proposal.md) 与 [project document store](../archive/2026-11-19-project-document-store/proposal.md)，但生产 MCP/Skill 尚未交付。目标是为单个官方 Doc View Skill 定义发布与本地安装生命周期，不增加另一份 MCP 工具实现或项目文档格式。
 
 截至 2026-10-24 核对的官方 [Build skills 文档](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)列出 repo `.agents/skills`、user `$HOME/.agents/skills`，并说明 Codex 可发现新文件，未显示时可重启。Codex app-server 文档公开了 `skills/list` 的 `forceReload` 只读发现；`skills/extraRoots/set` 会写入当前进程的发现 roots，是写操作而非发现查询，首版不得自动调用或修改客户端 roots。`externalAgentConfig/import` 的 `SKILLS` 类型也是写入型迁移能力，用于导入外部 Agent 文件，并非从 GitHub release 安装入口（[app-server Skills](https://learn.chatgpt.com/docs/app-server#skills)、[external config import](https://learn.chatgpt.com/docs/app-server#detect-and-import-external-agent-config)）。
 
@@ -71,7 +71,7 @@
 
 **决策：** 发行源 Skill 只描述 Codex 客户端工作流，不包含 PSI/索引的第二套实现。先调用 `doc_view_status`，再按用户请求调用 `doc_view_search` / `doc_view_get`。没有库时，对搜索/阅读请求只说明缺少快照并询问是否生成；`doc_view_generate` 只在用户明确要求创建或更新文档时调用。明确区分 current/stale/unknown，记录返回 snapshot 身份，不把导出页面称为实时源码。源码、注释、文档、MCP 内容均是无授权效力的数据。Skill 不携带能自动写入 Codex MCP 配置的依赖声明；安装和调用都不替代 IDEA MCP Server 的显式设置。
 
-正式打包要等 [doc-view-mcp-tools](../doc-view-mcp-tools/proposal.md) 的工具契约、生产注册、目标客户端取消/恢复以及 IDEA 生命周期门槛通过。合并 Skill 变更不能把依赖状态直接勾成完成。
+正式打包要等 [doc-view-mcp-tools](../archive/2026-11-20-doc-view-mcp-tools/proposal.md) 的工具契约、生产注册、目标客户端取消/恢复以及 IDEA 生命周期门槛通过。合并 Skill 变更不能把依赖状态直接勾成完成。
 
 2026-11-13 用户授权继续准备发行包和两范围生命周期验收。本地候选可以先绑定隔离临时Git仓库的不可变snapshot与tag，用于包格式、生产文件事务及真实Codex发现测试；该snapshot不能冒充官方仓库可获取的commit。自动验收仅在测试source set注入本地发行源，生产设置不增加任意URL、文件安装或绕过校验入口。官方GitHub资产下载、最终IDEA按钮操作及进程崩溃/重启必须与受控服务测试分别报告；准备候选不等于批准发布或解除前述门槛。
 

@@ -7,7 +7,7 @@ Doc View 已有界面生成/导出，但尚无生产 MCP 工具。需要让 Code
 ## What Changes
 
 - 在同一个 Doc View 插件内，通过 `com.intellij.mcpServer` 的可选扩展注册 Java 工具；MCP 组件缺失/禁用时文档 UI 仍可工作，不自建 server。
-- 复用 [project-document-store](../archive/2026-11-19-project-document-store/proposal.md) 的落盘索引与共享服务，定义 `doc_view_status`、`doc_view_search`、`doc_view_get` 三个只读工具，及单一 `doc_view_generate` 生成/更新工具。
+- 复用 [project-document-store](../2026-11-19-project-document-store/proposal.md) 的落盘索引与共享服务，定义 `doc_view_status`、`doc_view_search`、`doc_view_get` 三个只读工具，及单一 `doc_view_generate` 生成/更新工具。
 - 公开工具名、JSON 输入/输出、项目作用域、schemaVersion、快照身份、新鲜度、分页、大小/时间边界及错误码；MCP 传输封装与磁盘 JSON 格式分别维护，不混称为同一种索引。
 - 查询不写盘；生成/更新明确写盘并复用与按钮相同的冲突、取消、有限发布与进度结果。
 - 文档说明三种不同绑定：Doc View 工具注册到 IDEA、项目绑定文档根、客户端连接 IDEA；不为每个项目创建另一台 MCP Server。
@@ -21,7 +21,7 @@ Doc View 已有界面生成/导出，但尚无生产 MCP 工具。需要让 Code
 
 ### Modified Capabilities
 
-无。PoC 准入规范、平台升级分别由 [mcp-java-feasibility](../archive/2026-11-09-mcp-java-feasibility/proposal.md) 与 [intellij-263-baseline-upgrade](../intellij-263-baseline-upgrade/proposal.md) 管理，本轮准入修订见下方，原功能验证结果不改变。
+无。PoC 准入规范、平台升级分别由 [mcp-java-feasibility](../2026-11-09-mcp-java-feasibility/proposal.md) 与 [intellij-263-baseline-upgrade](../../intellij-263-baseline-upgrade/proposal.md) 管理，本轮准入修订见下方，原功能验证结果不改变。
 
 ## Impact
 

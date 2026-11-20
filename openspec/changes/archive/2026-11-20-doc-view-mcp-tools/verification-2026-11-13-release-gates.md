@@ -10,7 +10,7 @@
 
 ## 生产 MCP 生成与项目隔离
 
-在隔离 IU263.7307.200、R11包（身份见[上一轮候选记录](../doc-view-client-skill/verification-2026-11-13-final-candidate.md)）上，通过 IDEA 原生 MCP `/stream`、协议 `2025-06-18` 调用生产工具：
+在隔离 IU263.7307.200、R11包（身份见[上一轮候选记录](../../doc-view-client-skill/verification-2026-11-13-final-candidate.md)）上，通过 IDEA 原生 MCP `/stream`、协议 `2025-06-18` 调用生产工具：
 
 - A 没有文档库时，status 为 not_generated，search 返回 INDEX_NOT_FOUND，文档目录未被查询创建。
 - 显式 generate 创建62个接口、127个文件；重复生成62个 unchanged，snapshotId、文件hash和mtime均不变。
@@ -163,4 +163,4 @@ GitHub与Marketplace发布尚未执行。按既有发布授权先完成正式提
 
 上述“尚未完成”和“待发布”描述是各候选阶段的历史状态。正式1.7.0官方首次Project/Global Skill安装通过后，发现原生journal恢复按钮被禁用；该版本已保留为GitHub prerelease且未提交Marketplace。1.7.1修复Skill恢复路径，最终553项测试/构建/配置、两精确build Verifier，以及两范围官方更新、取消后重试、修改保护和重启恢复均通过。精确下载/暂存取消时点及全部生命周期矩阵仍保留未覆盖，不更改本文历史MCP候选的验收身份。
 
-[GitHub v1.7.1](https://github.com/liuzhihang/doc-view/releases/tag/v1.7.1)已正式发布；Marketplace接收update1219746，approve=false/listed=false。最终包、tag、资产、原生结果与剩余边界统一见[1.7.1发布记录](../../../docs/release-1.7.1.md)，不批量归档未完成change。
+[GitHub v1.7.1](https://github.com/liuzhihang/doc-view/releases/tag/v1.7.1)已正式发布；Marketplace接收update1219746，approve=false/listed=false。最终包、tag、资产、原生结果与剩余边界统一见[1.7.1发布记录](../../../../docs/release-1.7.1.md)，不批量归档未完成change。

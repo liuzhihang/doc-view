@@ -23,7 +23,7 @@ Doc View 计划通过 IDEA 自带 MCP Server 向 Codex 提供项目文档查询�
 
 ### Modified Capabilities
 
-无。生产工具行为由 [`doc-view-mcp-tools`](../doc-view-mcp-tools/proposal.md) 定义；本 change 作为客户端使用层依赖该 contract，不重复定义 MCP 协议或项目文档库格式。
+无。生产工具行为由 [`doc-view-mcp-tools`](../archive/2026-11-20-doc-view-mcp-tools/proposal.md) 定义；本 change 作为客户端使用层依赖该 contract，不重复定义 MCP 协议或项目文档库格式。
 
 ## Impact
 

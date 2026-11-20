@@ -45,7 +45,7 @@
 - `full-candidate-r5` 的512项测试中，一个人为包装 Settings 的 headless 模拟断言失败；它没有复现原生平台宽度缓存，已删除该伪复现，保留单滚动层与宽窄布局边界检查。该失败记录不改写为通过。
 - `full-candidate-r6` 强制重跑且不使用 build cache：511 tests，0 failures/errors/skips；`buildPlugin`、`verifyPluginProjectConfiguration` 通过。包名1.7.0-SNAPSHOT，ZIP SHA-256 `06f16f0efac61e240972b2a89b76356715237a43cfac545b385f6816cdaadc16`，JAR `956905a6c90c55d67e2a02c438bdf84d0ffcc035e7e6e953b916e1a6917d6ce3`。单个生产JAR、406个class、全部major69；optional MCP descriptor、require-restart、契约指纹及无PoC/Test类均读回通过。
 - 同一包顺序通过263.7031.23与263.7307.200的Plugin Verifier，均为Compatible，16项既有Experimental引用，无Internal/Deprecated/Override-only/兼容性问题。日志为`fixed-minimum-verifier`、`fixed-release-verifier`；最终冻结源码hash与build/distributions包再次核对一致。
-- 原生263.7307.200复验确认：自动CLI检测、项目/全局固定目录、只读目标、稳定的检查按钮位置、无重复Codex版本；Settings放大再缩小后内容重新适配，左右滚动无整页偏移。检查更新OFFLINE后显式重试恢复，无兼容稳定Skill包时写按钮继续禁用。详见[设置页记录](../doc-view-client-skill/verification-2026-11-13-implementation.md)。
+- 原生263.7307.200复验确认：自动CLI检测、项目/全局固定目录、只读目标、稳定的检查按钮位置、无重复Codex版本；Settings放大再缩小后内容重新适配，左右滚动无整页偏移。检查更新OFFLINE后显式重试恢复，无兼容稳定Skill包时写按钮继续禁用。详见[设置页记录](../../doc-view-client-skill/verification-2026-11-13-implementation.md)。
 
 ### 最终包的目标客户端取消与收尾
 
@@ -62,4 +62,4 @@
 
 ## 2026-11-13 最新 r11 包复验
 
-最新ZIP `2a8adad9610058f1b94466a0b755b7f6515d05e042613dc2d948e1310a37e95e` 完成531项全量检查和两build Verifier。宿主MCP禁用时Doc View设置/目录加载，启用后A/B只读6次调用不改254个文件。真实Codex取消出现一次“通知已到、立即状态仍生成中”的时序失败；保留失败并修正harness为有界观测异步清理，两次分别5.703/70.351ms恢复，随后Codex同session查询false、文档不变，各1秒内无迟到完成。生产取消实现未改，不能据此勾选发布边界和项目关闭全部生命周期任务。完整证据及收尾见[最新候选验收](../doc-view-client-skill/verification-2026-11-13-final-candidate.md)。
+最新ZIP `2a8adad9610058f1b94466a0b755b7f6515d05e042613dc2d948e1310a37e95e` 完成531项全量检查和两build Verifier。宿主MCP禁用时Doc View设置/目录加载，启用后A/B只读6次调用不改254个文件。真实Codex取消出现一次“通知已到、立即状态仍生成中”的时序失败；保留失败并修正harness为有界观测异步清理，两次分别5.703/70.351ms恢复，随后Codex同session查询false、文档不变，各1秒内无迟到完成。生产取消实现未改，不能据此勾选发布边界和项目关闭全部生命周期任务。完整证据及收尾见[最新候选验收](../../doc-view-client-skill/verification-2026-11-13-final-candidate.md)。

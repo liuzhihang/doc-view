@@ -171,9 +171,9 @@ OS 凭据授权拒绝、异步写入失败后的重试也未在最终包原生�
 
 IU 261 的历史协议取消失败保留；IU 263.7031.23 / SDK 0.15.0 隔离探针的取消、项目/服务/插件生命周期与有限资源检查通过。Codex 0.163.0-alpha.11.2 的 turn interrupt 未取消服务端任务；官方 0.165.0-alpha.1 候选随后在隔离 IU 263 上三轮真实取消互操作通过，PoC 2.4 已完成。当前开发配置已提高到 IU263/Java25，完整自动矩阵通过，原生回归仍在进行；尚未发布。详见[验证记录](../openspec/changes/archive/2026-11-09-mcp-java-feasibility/verification.md)和[取消验收说明](mcp-cancellation.md)。
 
-**[`doc-view-mcp-tools`](../openspec/changes/doc-view-mcp-tools/proposal.md)**
+**[`doc-view-mcp-tools`](../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/proposal.md)**
 
-正式 MCP 放在同一个 Doc View 插件内，可选注册到 IDEA MCP Server；与界面按钮共用文档服务。只读 status/search/get 与显式 generate 的共享文档库 contract 已定义，生产工具尚未实现。Codex 候选取消门槛已通过，精确263的构建和Verifier已通过，但 task 1.3 仍等待原生回归和文档库最终验收；详见 [tasks](../openspec/changes/doc-view-mcp-tools/tasks.md)。
+正式 MCP 放在同一个 Doc View 插件内，可选注册到 IDEA MCP Server；与界面按钮共用文档服务。只读 status/search/get 与显式 generate 的共享文档库 contract 已定义，生产工具尚未实现。Codex 候选取消门槛已通过，精确263的构建和Verifier已通过，但 task 1.3 仍等待原生回归和文档库最终验收；详见 [tasks](../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/tasks.md)。
 
 **Air 可选协作评估**
 

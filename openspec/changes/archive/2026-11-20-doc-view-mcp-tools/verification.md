@@ -10,7 +10,7 @@
 | 2 | 7 | 103.796 ms | 73 ms / 1 ms | request 8 成功 | 31.005 秒内无 |
 | 3 | 9 | 102.763 ms | 24 ms / 0 ms | request 10 成功 | 31.005 秒内无 |
 
-候选是官方 `rust-v0.165.0-alpha.1` Apple Silicon release；app-server 与 code-mode-host 归档摘要读回匹配官方 metadata，二进制版本和身份、完整轮次证据见[取消验收说明](../../../docs/mcp-cancellation.md#候选客户端运行证据)及其中的 verified summary。`0.163.0-alpha.11.2` 的历史失败仍保留：两轮透明 wire 都没有取消通知，服务端长任务约 30 秒后正常完成；进程退出引起的取消不计入 turn-interrupt 结果。
+候选是官方 `rust-v0.165.0-alpha.1` Apple Silicon release；app-server 与 code-mode-host 归档摘要读回匹配官方 metadata，二进制版本和身份、完整轮次证据见[取消验收说明](../../../../docs/mcp-cancellation.md#候选客户端运行证据)及其中的 verified summary。`0.163.0-alpha.11.2` 的历史失败仍保留：两轮透明 wire 都没有取消通知，服务端长任务约 30 秒后正常完成；进程退出引起的取消不计入 turn-interrupt 结果。
 
 本轮使用临时 app-server 进程配置覆盖，未读取普通 Codex 全局配置内容。读回 hash 与先前基线不同，来源未知；不声称字节未变、不归因，也未尝试恢复。0.165 候选通过不表示日常客户端已升级或所有 Codex 版本都支持同样的取消行为。
 
@@ -33,8 +33,8 @@ PoC task 2.4 已依据此前 IU 263.7031.23 / SDK 0.15.0 探针的显式取消�
 - `openspec validate doc-view-mcp-tools --strict` 通过。
 - 使用仓库外 `jsonschema==4.25.1` 检查四个 inputSchema、结果 Text(JSON) envelope 及其共享定义；与文档库样例合计21个正例、18个拒绝例通过。schema 输入拒绝额外字段和缺少 projectPath；四种工具的成功、INDEX_NOT_FOUND 与 PARTIAL_PUBLICATION 错误样例均可按定义解析。
 - `mcp-wire-response.json` 仅演示一个 TextContent 中装 JSON，反序列化后与 search 内容样例一致；没有把它标为真实协议调用，也未承诺 structuredContent/outputSchema API 已验。
-- 磁盘字段定义与源 schema 相同，身份/hash/快照样例检查、变更文档链接和 `git diff --check` 通过；详见[文档库验证](../archive/2026-11-19-project-document-store/verification.md)及临时 `schema-validation.json`。
+- 磁盘字段定义与源 schema 相同，身份/hash/快照样例检查、变更文档链接和 `git diff --check` 通过；详见[文档库验证](../2026-11-19-project-document-store/verification.md)及临时 `schema-validation.json`。
 
-当时仍未通过的前置条件是旧 Codex `0.163.0-alpha.11.2` 的 turn-interrupt 取消验收；当时仅确认官方 `rust-v0.165.0-alpha.1` 源码含 PR #56132。上述候选运行前结论已由本页首节的新实测更新；旧版本的实际失败继续保留，完整区分见[取消调查](../../../docs/mcp-cancellation.md)。
+当时仍未通过的前置条件是旧 Codex `0.163.0-alpha.11.2` 的 turn-interrupt 取消验收；当时仅确认官方 `rust-v0.165.0-alpha.1` 源码含 PR #56132。上述候选运行前结论已由本页首节的新实测更新；旧版本的实际失败继续保留，完整区分见[取消调查](../../../../docs/mcp-cancellation.md)。
 
-候选运行前的历史状态：当时未执行生产 Java MCP adapter、Gradle build/tests、Plugin Verifier、正式工具 tools/list/tools/call、UI 与 MCP 同源结果、项目隔离、真实生成/取消/卸载、资源及性能原生验收；当时的开发/正式基线记录为 261。后续当前 263 full-10 自动构建、67 suites / 352 项测试和 Verifier 已通过，production Verifier 问题为 0；16 处 Experimental API 与 15 条 test-only deprecated/removal warnings 分开保留。full-9/8/7 的 350/349/344 项全绿为历史结果。full-10 新包的原生回归已部分通过，但 Copy/Export、菜单、完整参数编辑、生成取消/partial/retry 与资源基线仍未完成；文档库 tamper/恢复、代表性预览、Welcome 重开及 GET/form 草稿生成打开已有新包证据。正式生产 adapter 与工具仍未实现，文档库最终验收及基线原生矩阵未完成，因此 task 1.3 继续未勾选。精确升级和当前收尾状态见[基线 change](../intellij-263-baseline-upgrade/tasks.md)及其[验证记录](../intellij-263-baseline-upgrade/verification.md)。本轮最终 scope 审计和四个 strict validation 均通过；未提交、推送、发布、sync 或 archive。
+候选运行前的历史状态：当时未执行生产 Java MCP adapter、Gradle build/tests、Plugin Verifier、正式工具 tools/list/tools/call、UI 与 MCP 同源结果、项目隔离、真实生成/取消/卸载、资源及性能原生验收；当时的开发/正式基线记录为 261。后续当前 263 full-10 自动构建、67 suites / 352 项测试和 Verifier 已通过，production Verifier 问题为 0；16 处 Experimental API 与 15 条 test-only deprecated/removal warnings 分开保留。full-9/8/7 的 350/349/344 项全绿为历史结果。full-10 新包的原生回归已部分通过，但 Copy/Export、菜单、完整参数编辑、生成取消/partial/retry 与资源基线仍未完成；文档库 tamper/恢复、代表性预览、Welcome 重开及 GET/form 草稿生成打开已有新包证据。正式生产 adapter 与工具仍未实现，文档库最终验收及基线原生矩阵未完成，因此 task 1.3 继续未勾选。精确升级和当前收尾状态见[基线 change](../../intellij-263-baseline-upgrade/tasks.md)及其[验证记录](../../intellij-263-baseline-upgrade/verification.md)。本轮最终 scope 审计和四个 strict validation 均通过；未提交、推送、发布、sync 或 archive。

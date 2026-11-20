@@ -30,4 +30,4 @@
 
 实现将扩展 `service/export` 中的 snapshot/page/exporter，增加 Java-only 的文档库读取与检索 service、无 PSI 的 DTO，以及 tool window/action 文案与状态；使用现有 Gson/平台 API，不新增数据库、向量服务或运行时依赖。原有真实 PSI/Markdown contract、冲突/失败测试与原生 UI 验收需补齐。
 
-本 change 已进入实现和验收阶段，具体状态以 tasks 与 verification 为准。它不依赖 MCP 客户端取消修复，可在当前获准基线上独立实施；不修改生产最低版本。正式 MCP 由 [doc-view-mcp-tools](../../doc-view-mcp-tools/proposal.md) 跟踪。任意外部目录注册、独立 Wiki、自动源码写回、自动同步/删除、AI 语义搜索和 Air 集成不在范围内。
+本 change 已进入实现和验收阶段，具体状态以 tasks 与 verification 为准。它不依赖 MCP 客户端取消修复，可在当前获准基线上独立实施；不修改生产最低版本。正式 MCP 由 [doc-view-mcp-tools](../2026-11-20-doc-view-mcp-tools/proposal.md) 跟踪。任意外部目录注册、独立 Wiki、自动源码写回、自动同步/删除、AI 语义搜索和 Air 集成不在范围内。

@@ -57,7 +57,7 @@ docs/doc-view/
 | `doc_view_get` | 按稳定接口身份读取完整结构化详情 | 否 |
 | `doc_view_generate` | 扫描并生成或更新当前项目的 Markdown 与 JSON 文档 | 是，须由用户明确请求 |
 
-`doc_view_generate` 同时负责首次生成和再次更新，不另设 `update` 工具。前三个查询工具只读 JSON 文档库；它们不会读取任意文件、修改源码或隐式生成文档。完整输入、输出、错误、边界及项目隔离由[Doc View MCP tools change](../../openspec/changes/doc-view-mcp-tools/proposal.md)定义，实际完成度以验收记录为准。
+`doc_view_generate` 同时负责首次生成和再次更新，不另设 `update` 工具。前三个查询工具只读 JSON 文档库；它们不会读取任意文件、修改源码或隐式生成文档。完整输入、输出、错误、边界及项目隔离由[Doc View MCP tools change](../../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/proposal.md)定义，实际完成度以验收记录为准。
 
 项目已关闭或路径无效时，IDEA 可能在调用 Doc View 前直接拒绝请求；这种宿主错误不一定使用 Doc View 的 JSON 格式。客户端应保留原错误并停止，不改为查询另一项目，也不隐式生成。
 

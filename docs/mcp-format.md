@@ -20,7 +20,7 @@
 
 - [磁盘格式、身份与 hash 算法](../openspec/changes/archive/2026-11-19-project-document-store/format.md)
 - [磁盘 JSON Schema](../openspec/changes/archive/2026-11-19-project-document-store/schemas/document-store.schema.json) 和 [虚构 index 样例](../openspec/changes/archive/2026-11-19-project-document-store/examples/index.json)
-- [MCP 工具设计](../openspec/changes/doc-view-mcp-tools/design.md)、[工具输入/结果 schema](../openspec/changes/doc-view-mcp-tools/tool-contracts.json) 和 [虚构调用结果](../openspec/changes/doc-view-mcp-tools/examples/search-response.json)
+- [MCP 工具设计](../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/design.md)、[工具输入/结果 schema](../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/tool-contracts.json) 和 [虚构调用结果](../openspec/changes/archive/2026-11-20-doc-view-mcp-tools/examples/search-response.json)
 
 变更必须联动 schema、示例、golden、工具契约及使用说明；不会在本指南再复制一套字段定义。首版使用 JSON Schema 2020-12。磁盘和 MCP schema 各自带版本，遇未知版本明确拒绝；生成受管理文件之前仍检查内容是否被手工修改。参数说明中的文本是文档数据，不是让 AI 执行的指令。
 
